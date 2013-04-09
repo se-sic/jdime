@@ -9,16 +9,10 @@
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.7"/>
     <property name="source" value="1.7"/>
-    <path id="log4j.userclasspath">
-        <pathelement location="../../../../usr/share/java/log4j-1.2.jar"/>
-    </path>
-    <path id="commons-cli.userclasspath">
-        <pathelement location="../../../../usr/share/java/commons-cli.jar"/>
-    </path>
     <path id="jdime-ng.classpath">
         <pathelement location="bin"/>
-        <path refid="log4j.userclasspath"/>
-        <path refid="commons-cli.userclasspath"/>
+        <pathelement location="lib/commons-cli.jar"/>
+        <pathelement location="lib/log4j-1.2.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
