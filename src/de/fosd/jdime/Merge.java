@@ -19,25 +19,29 @@ import org.apache.log4j.Logger;
  * @author lessenic
  * 
  */
+/**
+ * @author lessenic
+ *
+ */
 public final class Merge {
-	
+
 	/**
 	 * 
 	 */
 	private Merge() {
-		
+
 	}
 
 	/**
 	 * 
 	 */
 	private static final Logger LOG = Logger.getLogger(Merge.class);
-	
+
 	/**
 	 * 
 	 */
 	private static final String TOOLNAME = "jdime";
-	
+
 	/**
 	 * 
 	 */
@@ -47,6 +51,11 @@ public final class Merge {
 	 * Time stamp to be set at program start.
 	 */
 	private static long programStart;
+	
+	/**
+	 * Tool to be used for merging operations.
+	 */
+	private static MergeTool mergeTool = MergeTool.LINEBASED;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -76,9 +85,12 @@ public final class Merge {
 
 		Options options = new Options();
 		options.addOption("help", false, "print this message");
-		options.addOption("VERSION", false,
-				"print the VERSION information and exit");
+		options.addOption("version", false,
+				"print the version information and exit");
 		options.addOption("debug", true, "set debug level");
+		options.addOption("mode", true,
+				"set merge mode (textual, structured, combined)");
+		options.addOption("info", false, "print configuration information");
 
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -88,12 +100,23 @@ public final class Merge {
 				help(options, 0);
 			}
 
-			if (cmd.hasOption("VERSION")) {
+			if (cmd.hasOption("version")) {
 				version();
 			}
 
 			if (cmd.hasOption("debug")) {
 				setLogLevel(cmd.getOptionValue("debug"));
+			}
+			
+			if (cmd.hasOption("mode")) {
+				mergeTool = MergeTool.parse(cmd.getOptionValue("mode"));
+				if (mergeTool == null) {
+					help(options, -1);
+				}
+			}
+			
+			if (cmd.hasOption("info")) {
+				info();
 			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
@@ -118,7 +141,7 @@ public final class Merge {
 	}
 
 	/**
-	 * Print VERSION information and exit.
+	 * Print version information and exit.
 	 */
 	private static void version() {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
@@ -147,6 +170,13 @@ public final class Merge {
 		LOG.debug("runtime: " + (programStop - programStart) + " ms");
 		LOG.debug("exit code: " + exitcode);
 		System.exit(exitcode);
+	}
+	
+	/**
+	 * Prints configuration information.
+	 */
+	private static void info() {
+		System.out.println("Merge tool: " + mergeTool);
 	}
 
 }
