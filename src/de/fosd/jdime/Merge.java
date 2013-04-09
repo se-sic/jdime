@@ -19,10 +19,6 @@ import org.apache.log4j.Logger;
  * @author lessenic
  * 
  */
-/**
- * @author lessenic
- *
- */
 public final class Merge {
 
 	/**
