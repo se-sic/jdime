@@ -3,7 +3,10 @@
  */
 package de.fosd.jdime;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -15,6 +18,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+/**
+ * @author lessenic
+ * 
+ */
 /**
  * @author lessenic
  * 
@@ -44,12 +51,22 @@ public final class Merge {
 	private static final double VERSION = 0.1;
 
 	/**
+	 * At least two input files are needed.
+	 */
+	private static final int MINFILES = 2;
+
+	/**
+	 * More than three input files are not supported at the moment.
+	 */
+	private static final int MAXFILES = 3;
+
+	/**
 	 * Time stamp to be set at program start.
 	 */
 	private static long programStart;
-	
+
 	/**
-	 * Tool to be used for merging operations.
+	 * Tool to be used for merging operations. Linebased is used as default.
 	 */
 	private static MergeTool mergeTool = MergeTool.LINEBASED;
 
@@ -63,6 +80,8 @@ public final class Merge {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
+
+		setLogLevel("INFO");
 		LOG.debug("starting program");
 
 		parseCommandLineArgs(args);
@@ -86,7 +105,8 @@ public final class Merge {
 		options.addOption("debug", true, "set debug level");
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
-		options.addOption("info", false, "print configuration information");
+		options.addOption("showconfig", false,
+				"print configuration information");
 
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -96,23 +116,44 @@ public final class Merge {
 				help(options, 0);
 			}
 
+			if (cmd.hasOption("info")) {
+				info(options, 0);
+			}
+
 			if (cmd.hasOption("version")) {
-				version();
+				version(true);
 			}
 
 			if (cmd.hasOption("debug")) {
 				setLogLevel(cmd.getOptionValue("debug"));
 			}
-			
+
 			if (cmd.hasOption("mode")) {
 				mergeTool = MergeTool.parse(cmd.getOptionValue("mode"));
+
 				if (mergeTool == null) {
 					help(options, -1);
 				}
 			}
-			
-			if (cmd.hasOption("info")) {
-				info();
+
+			if (cmd.hasOption("showconfig")) {
+				showConfig();
+			}
+
+			int numInputFiles = cmd.getArgList().size();
+
+			if (numInputFiles < MINFILES || numInputFiles > MAXFILES) {
+				// number of input files does not fit
+				help(options, 0);
+			} else {
+				// try to run the merge
+				List<File> inputFiles = new ArrayList<File>();
+
+				for (Object filename : cmd.getArgList()) {
+					inputFiles.add(new File((String) filename));
+				}
+
+				merge(inputFiles);
 			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
@@ -120,6 +161,22 @@ public final class Merge {
 			e.printStackTrace();
 			exit(-1);
 		}
+	}
+
+	/**
+	 * Print short information and exit.
+	 * 
+	 * @param options
+	 *            Available command line options
+	 * @param exitcode
+	 *            the code to return on termination
+	 */
+	private static void info(final Options options, final int exitcode) {
+		version(false);
+		System.out.println();
+		System.out.println("Run the program with the argument '--help' in "
+				+ "order to retrieve information on its usage!");
+		exit(exitcode);
 	}
 
 	/**
@@ -132,16 +189,22 @@ public final class Merge {
 	 */
 	private static void help(final Options options, final int exitcode) {
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(TOOLNAME, options);
+		formatter.printHelp(TOOLNAME, options, true);
 		exit(exitcode);
 	}
 
 	/**
 	 * Print version information and exit.
+	 * 
+	 * @param exit
+	 *            program exists if true
 	 */
-	private static void version() {
+	private static void version(final boolean exit) {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
-		exit(0);
+
+		if (exit) {
+			exit(0);
+		}
 	}
 
 	/**
@@ -167,12 +230,72 @@ public final class Merge {
 		LOG.debug("exit code: " + exitcode);
 		System.exit(exitcode);
 	}
-	
+
 	/**
 	 * Prints configuration information.
 	 */
-	private static void info() {
+	private static void showConfig() {
 		System.out.println("Merge tool: " + mergeTool);
+	}
+
+	/**
+	 * Merges the input files.
+	 * 
+	 * @param inputFiles
+	 *            list of files to merge in order left, base, right
+	 */
+	private static void merge(final List<File> inputFiles) {
+		assert inputFiles.size() >= MINFILES : "Too few input files!";
+		assert inputFiles.size() <= MAXFILES : "Too many input files!";
+
+		// Determine if we have to perform a 2-way or a 3-way merge.
+		MergeType mergeType = inputFiles.size() == 2 ? MergeType.TWOWAY
+				: MergeType.THREEWAY;
+
+		if (LOG.isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
+
+			for (File file : inputFiles) {
+				sb.append(file.getPath());
+				sb.append(" ");
+			}
+
+			LOG.debug(mergeType.getClass() + ": " + sb.toString());
+		}
+
+		boolean validInput = true;
+		int directories = 0;
+
+		for (int pos = 0; pos < mergeType.getNumFiles(); pos++) {
+			File file = inputFiles.get(pos);
+			if (!file.exists()) {
+				validInput = false;
+				System.err.println(mergeType.getRevision(pos) + " input file"
+						+ " does not exist: " + file.getPath());
+			} else if (file.isDirectory()) {
+				directories++;
+				LOG.debug(mergeType.getRevision(pos) + " is a directory: "
+						+ file.getPath());
+			} else if (file.isFile()) {
+				LOG.debug(mergeType.getRevision(pos) + " is a file: "
+						+ file.getPath());
+			}
+		}
+
+		if (!(directories == 0 || directories == mergeType.getNumFiles())) {
+			System.err
+					.println("Merging files with directories is not allowed!");
+			System.err
+					.println("Increase the debug level to get more information!");
+
+			if (validInput) {
+				validInput = false;
+			}
+		}
+
+		if (!validInput) {
+			exit(-1);
+		}
 	}
 
 }

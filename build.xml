@@ -21,6 +21,7 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
+    	<mkdir dir="dist"/>
     </target>
     <target name="clean">
         <delete dir="bin"/>
@@ -49,4 +50,14 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
+	<target depends="build" name="dist">
+		<jar jarfile="dist/Merge.jar" basedir="bin">
+			<fileset dir="lib/" includes="**/*.class" />
+			<zipgroupfileset dir="lib/" includes="**/*.jar" />
+			<manifest>
+				<attribute name="Built-By" value="Olaf Lessenich" />
+				<attribute name="Main-Class" value="de.fosd.jdime.Merge" />
+			</manifest>
+		</jar>
+	</target>
 </project>
