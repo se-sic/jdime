@@ -5,8 +5,19 @@ package de.fosd.jdime;
  *
  */
 public enum MergeType {
-	TWOWAY(2, "left", "right"), THREEWAY(3, "left", "base", "right");
+	/**
+	 * Two-way merge.
+	 */
+	TWOWAY(2, "left", "right"), 
 	
+	/**
+	 * Three-way merge.
+	 */
+	THREEWAY(3, "left", "base", "right");
+	
+	/**
+	 * Number of required input files.
+	 */
 	private int numFiles;
 
 	/**
@@ -19,17 +30,34 @@ public enum MergeType {
 	 */
 	public static final int MAXFILES = 3;
 	
+	/**
+	 * Names of input revisions.
+	 */
 	private String[] revisions;
 	
-	MergeType(int numFiles, String ... revisions) {
+	/**
+	 * Creates a new instance of MergeType.
+	 * @param numFiles number of required input files
+	 * @param revisions names of input revisions
+	 */
+	MergeType(final int numFiles, final String ... revisions) {
 		this.numFiles = numFiles;
 		this.revisions = revisions;
 	}
 	
-	public String getRevision(int pos) {
+	/**
+	 * Returns revision name of the input file at a certain position.
+	 * @param pos position of the input file
+	 * @return revision name
+	 */
+	public String getRevision(final int pos) {
 		return revisions[pos];
 	}
 	
+	/**
+	 * Returns number of required input files.
+	 * @return required input files.
+	 */
 	public int getNumFiles() {
 		return numFiles;
 	}

@@ -23,31 +23,27 @@ import org.apache.log4j.Logger;
  * @author lessenic
  * 
  */
-/**
- * @author lessenic
- * 
- */
 public final class Merge {
 
 	/**
-	 * 
+	 * Private constructor.
 	 */
 	private Merge() {
 
 	}
 
 	/**
-	 * 
+	 * Logger.
 	 */
 	private static final Logger LOG = Logger.getLogger(Merge.class);
 
 	/**
-	 * 
+	 * Toolname constant.
 	 */
 	private static final String TOOLNAME = "jdime";
 
 	/**
-	 * 
+	 * Version constant.
 	 */
 	private static final double VERSION = 0.1;
 
@@ -60,7 +56,11 @@ public final class Merge {
 	 * Tool to be used for merging operations. Linebased is used as default.
 	 */
 	private static MergeTool mergeTool = MergeTool.LINEBASED;
-	
+
+	/**
+	 * If set to true, the results of a merge are printed to STDOUT This can be
+	 * overridden by the command line argument '-stdout'.
+	 */
 	private static boolean printToStdout = false;
 
 	/**
@@ -69,7 +69,9 @@ public final class Merge {
 	 * @param args
 	 *            command line arguments
 	 * @throws IOException
+	 *             IOException
 	 * @throws InterruptedException
+	 *             InterruptedException
 	 */
 	public static void main(final String[] args) throws IOException,
 			InterruptedException {
@@ -84,7 +86,7 @@ public final class Merge {
 
 		assert inputFiles != null : "List of input files may not be null!";
 		MergeReport report = merge(inputFiles);
-		
+
 		assert report != null;
 
 		exit(0);
@@ -95,7 +97,7 @@ public final class Merge {
 	 * 
 	 * @param args
 	 *            command line arguments
-	 * @throws IOException
+	 * @return List of input files
 	 */
 	private static List<File> parseCommandLineArgs(final String[] args) {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
@@ -147,7 +149,7 @@ public final class Merge {
 			if (cmd.hasOption("showconfig")) {
 				showConfig();
 			}
-			
+
 			if (cmd.hasOption("stdout")) {
 				printToStdout = true;
 			}
@@ -257,11 +259,14 @@ public final class Merge {
 	 * 
 	 * @param inputFiles
 	 *            list of files to merge in order left, base, right
+	 * @return MergeReport
 	 * @throws IOException
+	 *             IOException
 	 * @throws InterruptedException
+	 *             InterruptedException
 	 */
-	private static MergeReport merge(final List<File> inputFiles) throws IOException,
-			InterruptedException {
+	private static MergeReport merge(final List<File> inputFiles)
+			throws IOException, InterruptedException {
 		assert inputFiles.size() >= MergeType.MINFILES : "Too few input files!";
 		assert inputFiles.size() <= MergeType.MAXFILES : "Too many input files!";
 
@@ -315,35 +320,47 @@ public final class Merge {
 		} else {
 			try {
 				MergeReport report = mergeTool.merge(mergeType, inputFiles);
-				
+
 				if (printToStdout) {
 					printReport(report);
 				}
-				
+
 				return report;
 			} catch (EngineNotFoundException e) {
 				LOG.fatal(e.getMessage());
 				exit(-1);
 			}
 		}
-		
+
 		// should not happen
 		return null;
 	}
 
+	/**
+	 * Returns the logging level of this class' logger.
+	 * 
+	 * @return logging level
+	 */
 	public static Level getLogLevel() {
 		return LOG.getLevel();
 	}
-	
-	private static void printReport(MergeReport report) {
+
+	/**
+	 * Prints the output of a merge.
+	 * 
+	 * @param report
+	 *            MergeReport
+	 */
+	private static void printReport(final MergeReport report) {
 		StringBuilder sb = new StringBuilder();
 
 		for (File file : report.getInputFiles()) {
 			sb.append(file.getPath());
 			sb.append(" ");
 		}
-		
-		LOG.debug("Output of " + report.getMergeType().name() + " merge of " + sb.toString());
+
+		LOG.debug("Output of " + report.getMergeType().name() + " merge of "
+				+ sb.toString());
 		System.out.println(report.getStdIn());
 	}
 

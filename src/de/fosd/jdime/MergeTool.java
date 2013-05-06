@@ -86,6 +86,7 @@ public enum MergeTool {
 	 *            name of the merge tool
 	 * @return MergeTool
 	 * @throws EngineNotFoundException
+	 *             if the given String cannot be matched to a merge engine
 	 */
 	public static MergeTool parse(final String str)
 			throws EngineNotFoundException {
@@ -107,14 +108,24 @@ public enum MergeTool {
 	}
 
 	/**
-	 * @return 
+	 * Performs a merge operation.
+	 * 
+	 * @param mergeType
+	 *            type of merge
+	 * @param inputFiles
+	 *            list of input files
+	 * @return merge report
 	 * @throws EngineNotFoundException
-	 * @throws IOException 
-	 * @throws InterruptedException 
+	 *             if the merge engine cannot be found
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
 	 * 
 	 */
-	public MergeReport merge(MergeType mergeType, List<File> inputFiles)
-			throws EngineNotFoundException, IOException, InterruptedException {
+	public MergeReport merge(final MergeType mergeType,
+			final List<File> inputFiles) throws EngineNotFoundException,
+			IOException, InterruptedException {
 		assert mergeType != null : "MergeType may not be null!";
 		assert inputFiles != null : "list of input files may not be null";
 

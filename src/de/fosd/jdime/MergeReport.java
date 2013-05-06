@@ -12,64 +12,97 @@ import java.util.List;
  *
  */
 public class MergeReport {
+	
+	/**
+	 * StdIn of a merge operation.
+	 */
 	private StringWriter stdIn;
+	
+	/**
+	 * StdOut of a merge operation.
+	 */
 	private StringWriter stdErr;
+	
+	/**
+	 * Type of merge.
+	 */
 	private MergeType mergeType;
+	
+	/**
+	 * List of input files.
+	 */
 	private List<File> inputFiles;
 
 	/**
-	 * 
+	 * Creates a new instance of MergeReport.
+	 * @param mergeType Type of merge
+	 * @param inputFiles List of input files
 	 */
-	public MergeReport(MergeType mergeType, List<File> inputFiles) {
+	public MergeReport(final MergeType mergeType, final List<File> inputFiles) {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
 		this.mergeType = mergeType;
 		this.inputFiles = inputFiles;
 	}
 	
-	
-	public void write(String s) {
+	/**
+	 * Appends a line to the saved stdin buffer.
+	 * @param line to be appended
+	 */
+	public final void appendLine(final String line) {
 		if (stdIn != null) {
-			stdIn.write(s);
-			stdIn.flush();
-		}
-	}
-	
-	public void appendLine(String s) {
-		if (stdIn != null) {
-			stdIn.append(s);
+			stdIn.append(line);
 			stdIn.append(System.getProperty("line.separator"));
 		}
 	}
 	
-	public void appendErrorLine(String s) {
+	/**
+	 * Appends a line to the saved stderr buffer.
+	 * @param line to be appended
+	 */
+	public final void appendErrorLine(final String line) {
 		if (stdErr != null) {
-			stdErr.append(s);
+			stdErr.append(line);
 			stdErr.append(System.getProperty("line.separator"));
 		}
 	}
 	
+	/**
+	 * Returns the saved stdin buffer.
+	 * @return stdin
+	 */
 	public final String getStdIn() {
 		return stdIn.toString();
 	}
 	
+	/**
+	 * Returns the saved stderr buffer.
+	 * @return stderr
+	 */
 	public final String getStdErr() {
 		return stdErr.toString();
 	}
 	
-	public void flushStreams() {
-		stdIn.flush();
-		stdErr.flush();
-	}
-	
+	/**
+	 * Returns true if stderr is not empty.
+	 * @return true if stderr is not empty
+	 */
 	public final boolean hasErrors() {
 		return stdErr.toString().length() != 0;
 	}
 
+	/**
+	 * Returns merge type.
+	 * @return merge type.
+	 */
 	public final MergeType getMergeType() {
 		return mergeType;
 	}
 	
+	/**
+	 * Returns list of input files.
+	 * @return list of input files
+	 */
 	public final List<File> getInputFiles() {
 		return inputFiles;
 	}
