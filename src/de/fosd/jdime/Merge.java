@@ -4,6 +4,7 @@
 package de.fosd.jdime;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,16 +52,6 @@ public final class Merge {
 	private static final double VERSION = 0.1;
 
 	/**
-	 * At least two input files are needed.
-	 */
-	private static final int MINFILES = 2;
-
-	/**
-	 * More than three input files are not supported at the moment.
-	 */
-	private static final int MAXFILES = 3;
-
-	/**
 	 * Time stamp to be set at program start.
 	 */
 	private static long programStart;
@@ -69,14 +60,19 @@ public final class Merge {
 	 * Tool to be used for merging operations. Linebased is used as default.
 	 */
 	private static MergeTool mergeTool = MergeTool.LINEBASED;
+	
+	private static boolean printToStdout = false;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
 	 * 
 	 * @param args
 	 *            command line arguments
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public static void main(final String[] args) {
+	public static void main(final String[] args) throws IOException,
+			InterruptedException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -84,7 +80,12 @@ public final class Merge {
 		setLogLevel("INFO");
 		LOG.debug("starting program");
 
-		parseCommandLineArgs(args);
+		List<File> inputFiles = parseCommandLineArgs(args);
+
+		assert inputFiles != null : "List of input files may not be null!";
+		MergeReport report = merge(inputFiles);
+		
+		assert report != null;
 
 		exit(0);
 	}
@@ -94,8 +95,9 @@ public final class Merge {
 	 * 
 	 * @param args
 	 *            command line arguments
+	 * @throws IOException
 	 */
-	private static void parseCommandLineArgs(final String[] args) {
+	private static List<File> parseCommandLineArgs(final String[] args) {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -107,6 +109,7 @@ public final class Merge {
 				"set merge mode (textual, structured, combined)");
 		options.addOption("showconfig", false,
 				"print configuration information");
+		options.addOption("stdout", false, "prints merge result to stdout");
 
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -129,7 +132,12 @@ public final class Merge {
 			}
 
 			if (cmd.hasOption("mode")) {
-				mergeTool = MergeTool.parse(cmd.getOptionValue("mode"));
+				try {
+					mergeTool = MergeTool.parse(cmd.getOptionValue("mode"));
+				} catch (EngineNotFoundException e) {
+					LOG.fatal(e.getMessage());
+					exit(-1);
+				}
 
 				if (mergeTool == null) {
 					help(options, -1);
@@ -139,28 +147,34 @@ public final class Merge {
 			if (cmd.hasOption("showconfig")) {
 				showConfig();
 			}
+			
+			if (cmd.hasOption("stdout")) {
+				printToStdout = true;
+			}
 
 			int numInputFiles = cmd.getArgList().size();
 
-			if (numInputFiles < MINFILES || numInputFiles > MAXFILES) {
+			if (numInputFiles < MergeType.MINFILES
+					|| numInputFiles > MergeType.MAXFILES) {
 				// number of input files does not fit
 				help(options, 0);
-			} else {
-				// try to run the merge
-				List<File> inputFiles = new ArrayList<File>();
-
-				for (Object filename : cmd.getArgList()) {
-					inputFiles.add(new File((String) filename));
-				}
-
-				merge(inputFiles);
 			}
+
+			// prepare the list of input files
+			List<File> inputFiles = new ArrayList<File>();
+
+			for (Object filename : cmd.getArgList()) {
+				inputFiles.add(new File((String) filename));
+			}
+
+			return inputFiles;
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
 			LOG.fatal("aborting program");
 			e.printStackTrace();
 			exit(-1);
 		}
+		return null;
 	}
 
 	/**
@@ -243,12 +257,15 @@ public final class Merge {
 	 * 
 	 * @param inputFiles
 	 *            list of files to merge in order left, base, right
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	private static void merge(final List<File> inputFiles) {
-		assert inputFiles.size() >= MINFILES : "Too few input files!";
-		assert inputFiles.size() <= MAXFILES : "Too many input files!";
+	private static MergeReport merge(final List<File> inputFiles) throws IOException,
+			InterruptedException {
+		assert inputFiles.size() >= MergeType.MINFILES : "Too few input files!";
+		assert inputFiles.size() <= MergeType.MAXFILES : "Too many input files!";
 
-		// Determine if we have to perform a 2-way or a 3-way merge.
+		// Determine whether we have to perform a 2-way or a 3-way merge.
 		MergeType mergeType = inputFiles.size() == 2 ? MergeType.TWOWAY
 				: MergeType.THREEWAY;
 
@@ -295,7 +312,39 @@ public final class Merge {
 
 		if (!validInput) {
 			exit(-1);
+		} else {
+			try {
+				MergeReport report = mergeTool.merge(mergeType, inputFiles);
+				
+				if (printToStdout) {
+					printReport(report);
+				}
+				
+				return report;
+			} catch (EngineNotFoundException e) {
+				LOG.fatal(e.getMessage());
+				exit(-1);
+			}
 		}
+		
+		// should not happen
+		return null;
+	}
+
+	public static Level getLogLevel() {
+		return LOG.getLevel();
+	}
+	
+	private static void printReport(MergeReport report) {
+		StringBuilder sb = new StringBuilder();
+
+		for (File file : report.getInputFiles()) {
+			sb.append(file.getPath());
+			sb.append(" ");
+		}
+		
+		LOG.debug("Output of " + report.getMergeType().name() + " merge of " + sb.toString());
+		System.out.println(report.getStdIn());
 	}
 
 }
