@@ -1,16 +1,16 @@
 /**
  * 
  */
-package de.fosd.jdime.merge;
+package de.fosd.jdime.engine;
 
-import java.io.File;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.Merge;
-import de.fosd.jdime.MergeReport;
-import de.fosd.jdime.MergeType;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeType;
 
 /**
  * Performs a structured merge.
@@ -28,19 +28,19 @@ public class Structured implements MergeInterface {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.merge.MergeInterface#merge()
+	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
 	public final MergeReport merge(final MergeType mergeType,
-			final List<File> inputFiles) {
+			final List<Artifact> inputArtifacts) {
 		// TODO Auto-generated method stub
 		LOG.setLevel(Merge.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
 
-		assert inputFiles.size() >= MINFILES : "Too few input files!";
-		assert inputFiles.size() <= MAXFILES : "Too many input files!";
+		assert inputArtifacts.size() >= MINFILES : "Too few input files!";
+		assert inputArtifacts.size() <= MAXFILES : "Too many input files!";
 
-		MergeReport report = new MergeReport(mergeType, inputFiles);
+		MergeReport report = new MergeReport(mergeType, inputArtifacts);
 
 		return report;
 	}

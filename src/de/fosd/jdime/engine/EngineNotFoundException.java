@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.fosd.jdime;
+package de.fosd.jdime.engine;
 
 /**
  * This Exception can be thrown if a merge engine is not found. 

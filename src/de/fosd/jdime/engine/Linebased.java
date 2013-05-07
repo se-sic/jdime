@@ -1,10 +1,9 @@
 /**
  * 
  */
-package de.fosd.jdime.merge;
+package de.fosd.jdime.engine;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -12,8 +11,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.Merge;
-import de.fosd.jdime.MergeReport;
-import de.fosd.jdime.MergeType;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeType;
 
 /**
  * Performs a linebased merge.
@@ -36,39 +36,32 @@ public class Linebased implements MergeInterface {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.merge.MergeInterface#merge()
+	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
 	public final MergeReport merge(final MergeType mergeType,
-			final List<File> inputFiles) throws IOException,
+			final List<Artifact> inputArtifacts) throws IOException,
 			InterruptedException {
 		LOG.setLevel(Merge.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
-		assert inputFiles.size() >= MINFILES : "Too few input files!";
-		assert inputFiles.size() <= MAXFILES : "Too many input files!";
+		assert inputArtifacts.size() >= MINFILES : "Too few input files!";
+		assert inputArtifacts.size() <= MAXFILES : "Too many input files!";
 
-		MergeReport report = new MergeReport(mergeType, inputFiles);
+		MergeReport report = new MergeReport(mergeType, inputArtifacts);
 
 		if (mergeType == MergeType.TWOWAY) {
 			/*
 			 * GNU merge does not handle two-way merges very well: 3 input files
 			 * are required, so in case of a two-way merge, we set the base
-			 * revision to /dev/null FIXME: this won't work on windows. maybe an
-			 * empty file does.
+			 * revision to an empty artifact.
 			 */
-			inputFiles.add(1, new File("/dev/null"));
+			inputArtifacts.add(1, Artifact.createEmptyArtifact());
 
 		}
 
-		StringBuilder cmd = new StringBuilder();
-		cmd.append(BASECMD);
-
-		for (File file : inputFiles) {
-			cmd.append(" ");
-			cmd.append(file.getPath());
-		}
+		String cmd = BASECMD + " " + Artifact.toString(inputArtifacts);
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)

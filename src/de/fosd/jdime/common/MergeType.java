@@ -1,4 +1,4 @@
-package de.fosd.jdime;
+package de.fosd.jdime.common;
 
 /**
  * @author lessenic

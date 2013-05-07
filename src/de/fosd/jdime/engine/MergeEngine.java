@@ -1,22 +1,20 @@
 /**
  * 
  */
-package de.fosd.jdime;
+package de.fosd.jdime.engine;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import de.fosd.jdime.merge.Combined;
-import de.fosd.jdime.merge.Linebased;
-import de.fosd.jdime.merge.MergeInterface;
-import de.fosd.jdime.merge.Structured;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeType;
 
 /**
  * @author lessenic
  * 
  */
-public enum MergeTool {
+public enum MergeEngine {
 	/**
 	 * Performs a textual, line-based merge.
 	 */
@@ -79,28 +77,28 @@ public enum MergeTool {
 	};
 
 	/**
-	 * Parses a String and returns a MergeTool. Null is returned if no
+	 * Parses a String and returns a MergeEngine. Null is returned if no
 	 * appropriate Tool is found.
 	 * 
 	 * @param str
 	 *            name of the merge tool
-	 * @return MergeTool
+	 * @return MergeEngine
 	 * @throws EngineNotFoundException
 	 *             if the given String cannot be matched to a merge engine
 	 */
-	public static MergeTool parse(final String str)
+	public static MergeEngine parse(final String str)
 			throws EngineNotFoundException {
-		assert str != null : "MergeTool may not be null!";
+		assert str != null : "MergeEngine may not be null!";
 
 		String input = str.toLowerCase();
 
 		switch (input) {
 		case "linebased":
-			return MergeTool.LINEBASED;
+			return MergeEngine.LINEBASED;
 		case "structured":
-			return MergeTool.STRUCTURED;
+			return MergeEngine.STRUCTURED;
 		case "combined":
-			return MergeTool.COMBINED;
+			return MergeEngine.COMBINED;
 		default:
 			throw new EngineNotFoundException("Engine missing for " + str
 					+ " merge.");
@@ -112,7 +110,7 @@ public enum MergeTool {
 	 * 
 	 * @param mergeType
 	 *            type of merge
-	 * @param inputFiles
+	 * @param inputArtifacts
 	 *            list of input files
 	 * @return merge report
 	 * @throws EngineNotFoundException
@@ -124,10 +122,10 @@ public enum MergeTool {
 	 * 
 	 */
 	public MergeReport merge(final MergeType mergeType,
-			final List<File> inputFiles) throws EngineNotFoundException,
+			final List<Artifact> inputArtifacts) throws EngineNotFoundException,
 			IOException, InterruptedException {
 		assert mergeType != null : "MergeType may not be null!";
-		assert inputFiles != null : "list of input files may not be null";
+		assert inputArtifacts != null : "list of input files may not be null";
 
 		MergeInterface engine = null;
 
@@ -146,7 +144,7 @@ public enum MergeTool {
 					+ " merge.");
 		}
 
-		return engine.merge(mergeType, inputFiles);
+		return engine.merge(mergeType, inputArtifacts);
 	}
 
 }

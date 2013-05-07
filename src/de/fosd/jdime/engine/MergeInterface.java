@@ -1,11 +1,11 @@
-package de.fosd.jdime.merge;
+package de.fosd.jdime.engine;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import de.fosd.jdime.MergeReport;
-import de.fosd.jdime.MergeType;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeType;
 
 /**
  * Interface for the merge engines.
@@ -26,11 +26,11 @@ public interface MergeInterface {
 	/**
 	 * Performs a merge on the given input files.
 	 * @param mergeType type of merge
-	 * @param inputFiles list of input files
+	 * @param inputArtifacts list of input files
 	 * @return merge report
 	 * @throws IOException IOException
 	 * @throws InterruptedException InterruptedException
 	 */
-	MergeReport merge(MergeType mergeType, List<File> inputFiles)
+	MergeReport merge(MergeType mergeType, List<Artifact> inputArtifacts)
 			throws IOException, InterruptedException;
 }

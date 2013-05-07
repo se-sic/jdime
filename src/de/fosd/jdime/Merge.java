@@ -4,6 +4,7 @@
 package de.fosd.jdime;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,12 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.engine.EngineNotFoundException;
+import de.fosd.jdime.engine.MergeEngine;
 
 /**
  * @author lessenic
@@ -55,13 +62,18 @@ public final class Merge {
 	/**
 	 * Tool to be used for merging operations. Linebased is used as default.
 	 */
-	private static MergeTool mergeTool = MergeTool.LINEBASED;
+	private static MergeEngine mergeEngine = MergeEngine.LINEBASED;
 
 	/**
 	 * If set to true, the results of a merge are printed to STDOUT This can be
 	 * overridden by the command line argument '-stdout'.
 	 */
 	private static boolean printToStdout = false;
+
+	/**
+	 * Merge directories recursively. Can be set with the '-r' argument.
+	 */
+	private static boolean recursive = false;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -82,9 +94,9 @@ public final class Merge {
 		setLogLevel("INFO");
 		LOG.debug("starting program");
 
-		List<File> inputFiles = parseCommandLineArgs(args);
+		List<Artifact> inputFiles = parseCommandLineArgs(args);
 
-		assert inputFiles != null : "List of input files may not be null!";
+		assert inputFiles != null : "List of input artifacts may not be null!";
 		MergeReport report = merge(inputFiles);
 
 		assert report != null;
@@ -99,7 +111,7 @@ public final class Merge {
 	 *            command line arguments
 	 * @return List of input files
 	 */
-	private static List<File> parseCommandLineArgs(final String[] args) {
+	private static List<Artifact> parseCommandLineArgs(final String[] args) {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -109,6 +121,7 @@ public final class Merge {
 		options.addOption("debug", true, "set debug level");
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
+		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
 				"print configuration information");
 		options.addOption("stdout", false, "prints merge result to stdout");
@@ -135,15 +148,19 @@ public final class Merge {
 
 			if (cmd.hasOption("mode")) {
 				try {
-					mergeTool = MergeTool.parse(cmd.getOptionValue("mode"));
+					mergeEngine = MergeEngine.parse(cmd.getOptionValue("mode"));
 				} catch (EngineNotFoundException e) {
 					LOG.fatal(e.getMessage());
 					exit(-1);
 				}
 
-				if (mergeTool == null) {
+				if (mergeEngine == null) {
 					help(options, -1);
 				}
+			}
+
+			if (cmd.hasOption("r")) {
+				recursive = true;
 			}
 
 			if (cmd.hasOption("showconfig")) {
@@ -163,13 +180,19 @@ public final class Merge {
 			}
 
 			// prepare the list of input files
-			List<File> inputFiles = new ArrayList<File>();
+			List<Artifact> inputArtifacts = new ArrayList<Artifact>();
 
 			for (Object filename : cmd.getArgList()) {
-				inputFiles.add(new File((String) filename));
+				try {
+					inputArtifacts
+							.add(new Artifact(new File((String) filename)));
+				} catch (FileNotFoundException e) {
+					System.err.println("Input file not found: "
+							+ (String) filename);
+				}
 			}
 
-			return inputFiles;
+			return inputArtifacts;
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
 			LOG.fatal("aborting program");
@@ -251,13 +274,13 @@ public final class Merge {
 	 * Prints configuration information.
 	 */
 	private static void showConfig() {
-		System.out.println("Merge tool: " + mergeTool);
+		System.out.println("Merge tool: " + mergeEngine);
 	}
 
 	/**
 	 * Merges the input files.
 	 * 
-	 * @param inputFiles
+	 * @param inputArtifacts
 	 *            list of files to merge in order left, base, right
 	 * @return MergeReport
 	 * @throws IOException
@@ -265,61 +288,59 @@ public final class Merge {
 	 * @throws InterruptedException
 	 *             InterruptedException
 	 */
-	private static MergeReport merge(final List<File> inputFiles)
+	private static MergeReport merge(final List<Artifact> inputArtifacts)
 			throws IOException, InterruptedException {
-		assert inputFiles.size() >= MergeType.MINFILES : "Too few input files!";
-		assert inputFiles.size() <= MergeType.MAXFILES : "Too many input files!";
+		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
+		assert inputArtifacts.size() <= MergeType.MAXFILES : "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
-		MergeType mergeType = inputFiles.size() == 2 ? MergeType.TWOWAY
+		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
 				: MergeType.THREEWAY;
 
 		if (LOG.isDebugEnabled()) {
-			StringBuilder sb = new StringBuilder();
-
-			for (File file : inputFiles) {
-				sb.append(file.getPath());
-				sb.append(" ");
-			}
-
-			LOG.debug(mergeType.getClass() + ": " + sb.toString());
+			LOG.debug(mergeType.getClass() + ": "
+					+ Artifact.toString(inputArtifacts));
 		}
 
 		boolean validInput = true;
 		int directories = 0;
 
 		for (int pos = 0; pos < mergeType.getNumFiles(); pos++) {
-			File file = inputFiles.get(pos);
-			if (!file.exists()) {
+			Artifact artifact = inputArtifacts.get(pos);
+			if (!artifact.exists()) {
 				validInput = false;
 				System.err.println(mergeType.getRevision(pos) + " input file"
-						+ " does not exist: " + file.getPath());
-			} else if (file.isDirectory()) {
+						+ " does not exist: " + artifact);
+			} else if (artifact.isDirectory()) {
 				directories++;
 				LOG.debug(mergeType.getRevision(pos) + " is a directory: "
-						+ file.getPath());
-			} else if (file.isFile()) {
+						+ artifact);
+			} else if (artifact.isFile()) {
 				LOG.debug(mergeType.getRevision(pos) + " is a file: "
-						+ file.getPath());
+						+ artifact);
 			}
 		}
 
 		if (!(directories == 0 || directories == mergeType.getNumFiles())) {
 			System.err
 					.println("Merging files with directories is not allowed!");
-			System.err
-					.println("Increase the debug level to get more information!");
+			System.err.println("Increase the debug level to "
+					+ "get more information!");
 
-			if (validInput) {
-				validInput = false;
-			}
+			validInput = false;
+		} else if (directories > 0 && !recursive) {
+			System.err.println("In order to merge directories, "
+					+ "the -r argument has to be specified. "
+					+ "See -help for more information!'");
+			validInput = false;
 		}
 
 		if (!validInput) {
 			exit(-1);
 		} else {
 			try {
-				MergeReport report = mergeTool.merge(mergeType, inputFiles);
+				MergeReport report = mergeEngine.merge(mergeType,
+						inputArtifacts);
 
 				if (printToStdout) {
 					printReport(report);
@@ -352,15 +373,8 @@ public final class Merge {
 	 *            MergeReport
 	 */
 	private static void printReport(final MergeReport report) {
-		StringBuilder sb = new StringBuilder();
-
-		for (File file : report.getInputFiles()) {
-			sb.append(file.getPath());
-			sb.append(" ");
-		}
-
 		LOG.debug("Output of " + report.getMergeType().name() + " merge of "
-				+ sb.toString());
+				+ Artifact.toString(report.getInputArtifacts()));
 		System.out.println(report.getStdIn());
 	}
 
