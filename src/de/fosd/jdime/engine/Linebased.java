@@ -6,13 +6,12 @@ package de.fosd.jdime.engine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.Merge;
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.Main;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 
 /**
@@ -40,28 +39,14 @@ public class Linebased implements MergeInterface {
 	 */
 	@Override
 	public final MergeReport merge(final MergeType mergeType,
-			final List<Artifact> inputArtifacts) throws IOException,
-			InterruptedException {
-		LOG.setLevel(Merge.getLogLevel());
+			final MergeTriple triple) throws IOException, InterruptedException {
+		LOG.setLevel(Main.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
-		assert inputArtifacts.size() >= MINFILES : "Too few input files!";
-		assert inputArtifacts.size() <= MAXFILES : "Too many input files!";
+		MergeReport report = new MergeReport(mergeType, triple);
 
-		MergeReport report = new MergeReport(mergeType, inputArtifacts);
-
-		if (mergeType == MergeType.TWOWAY) {
-			/*
-			 * GNU merge does not handle two-way merges very well: 3 input files
-			 * are required, so in case of a two-way merge, we set the base
-			 * revision to an empty artifact.
-			 */
-			inputArtifacts.add(1, Artifact.createEmptyArtifact());
-
-		}
-
-		String cmd = BASECMD + " " + Artifact.toString(inputArtifacts);
+		String cmd = BASECMD + " " + triple.toString();
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)

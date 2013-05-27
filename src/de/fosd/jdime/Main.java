@@ -21,6 +21,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.DirectoryHandling;
+import de.fosd.jdime.common.Merge;
 import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.engine.EngineNotFoundException;
@@ -30,19 +32,19 @@ import de.fosd.jdime.engine.MergeEngine;
  * @author lessenic
  * 
  */
-public final class Merge {
+public final class Main {
 
 	/**
 	 * Private constructor.
 	 */
-	private Merge() {
+	private Main() {
 
 	}
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Merge.class);
+	private static final Logger LOG = Logger.getLogger(Main.class);
 
 	/**
 	 * Toolname constant.
@@ -76,6 +78,12 @@ public final class Merge {
 	private static boolean recursive = false;
 
 	/**
+	 * Determines where directories should be handled for recursive merges.
+	 */
+	private static DirectoryHandling directoryHandling = 
+			DirectoryHandling.INTERNAL;
+
+	/**
 	 * Perform a merge operation on the input files or directories.
 	 * 
 	 * @param args
@@ -97,9 +105,9 @@ public final class Merge {
 		List<Artifact> inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
-		MergeReport report = merge(inputFiles);
+		List<MergeReport> reports = merge(inputFiles);
 
-		assert report != null;
+		assert reports != null;
 
 		exit(0);
 	}
@@ -122,6 +130,9 @@ public final class Merge {
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
 		options.addOption("r", false, "merge directories recursively");
+		options.addOption("xr", false,
+				"merge directories recursively, " 
+						+ "handled by external merge engine");
 		options.addOption("showconfig", false,
 				"print configuration information");
 		options.addOption("stdout", false, "prints merge result to stdout");
@@ -163,8 +174,13 @@ public final class Merge {
 				recursive = true;
 			}
 
+			if (cmd.hasOption("xr")) {
+				recursive = true;
+				directoryHandling = DirectoryHandling.EXTERNAL;
+			}
+
 			if (cmd.hasOption("showconfig")) {
-				showConfig();
+				showConfig(true);
 			}
 
 			if (cmd.hasOption("stdout")) {
@@ -194,7 +210,8 @@ public final class Merge {
 
 			return inputArtifacts;
 		} catch (ParseException e) {
-			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
+			LOG.fatal("arguments could not be parsed: " 
+					+ Arrays.toString(args));
 			LOG.fatal("aborting program");
 			e.printStackTrace();
 			exit(-1);
@@ -272,9 +289,16 @@ public final class Merge {
 
 	/**
 	 * Prints configuration information.
+	 * 
+	 * @param exit whether to exit after printing the config
 	 */
-	private static void showConfig() {
+	private static void showConfig(final boolean exit) {
 		System.out.println("Merge tool: " + mergeEngine);
+		System.out.println();
+
+		if (exit) {
+			exit(0);
+		}
 	}
 
 	/**
@@ -288,10 +312,12 @@ public final class Merge {
 	 * @throws InterruptedException
 	 *             InterruptedException
 	 */
-	private static MergeReport merge(final List<Artifact> inputArtifacts)
+	private static List<MergeReport> merge(final List<Artifact> inputArtifacts)
 			throws IOException, InterruptedException {
-		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
-		assert inputArtifacts.size() <= MergeType.MAXFILES : "Too many input files!";
+		assert inputArtifacts.size() >= MergeType.MINFILES 
+										: "Too few input files!";
+		assert inputArtifacts.size() <= MergeType.MAXFILES 
+										: "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
 		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
@@ -331,7 +357,7 @@ public final class Merge {
 		} else if (directories > 0 && !recursive) {
 			System.err.println("In order to merge directories, "
 					+ "the -r argument has to be specified. "
-					+ "See -help for more information!'");
+					+ "See -help for more information!");
 			validInput = false;
 		}
 
@@ -339,14 +365,26 @@ public final class Merge {
 			exit(-1);
 		} else {
 			try {
-				MergeReport report = mergeEngine.merge(mergeType,
-						inputArtifacts);
+				List<MergeReport> reports = null;
 
-				if (printToStdout) {
-					printReport(report);
+				if (directoryHandling == DirectoryHandling.EXTERNAL) {
+					// just pipe the input to the engine and rely on its own
+					// directory handling. might be nice for external tools.
+					// TODO
+					throw new UnsupportedOperationException();
+				} else {
+					// kick off the merge using JDime's directory handling.
+					reports = Merge.merge(mergeType, mergeEngine, 
+							inputArtifacts);
 				}
 
-				return report;
+				if (printToStdout) {
+					for (MergeReport report : reports) {
+						printReport(report);
+					}
+				}
+
+				return reports;
 			} catch (EngineNotFoundException e) {
 				LOG.fatal(e.getMessage());
 				exit(-1);
@@ -374,7 +412,7 @@ public final class Merge {
 	 */
 	private static void printReport(final MergeReport report) {
 		LOG.debug("Output of " + report.getMergeType().name() + " merge of "
-				+ Artifact.toString(report.getInputArtifacts()));
+				+ report.getMergeTriple().toString());
 		System.out.println(report.getStdIn());
 	}
 

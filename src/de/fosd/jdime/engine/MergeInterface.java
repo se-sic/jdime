@@ -1,10 +1,9 @@
 package de.fosd.jdime.engine;
 
 import java.io.IOException;
-import java.util.List;
 
-import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 
 /**
@@ -26,11 +25,11 @@ public interface MergeInterface {
 	/**
 	 * Performs a merge on the given input files.
 	 * @param mergeType type of merge
-	 * @param inputArtifacts list of input files
+	 * @param triple the merge triple
 	 * @return merge report
 	 * @throws IOException IOException
 	 * @throws InterruptedException InterruptedException
 	 */
-	MergeReport merge(MergeType mergeType, List<Artifact> inputArtifacts)
+	MergeReport merge(MergeType mergeType, MergeTriple triple)
 			throws IOException, InterruptedException;
 }

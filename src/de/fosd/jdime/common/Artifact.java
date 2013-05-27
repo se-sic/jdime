@@ -23,6 +23,19 @@ public class Artifact {
 	 * Revision the artifact belongs to.
 	 */
 	private Revision revision;
+	
+	/**
+	 * Needed for missing base revisions.
+	 */
+	private boolean emptyDummy = false;
+
+	/**
+	 * Returns true if this artifacy is an empty dummy.
+	 * @return true if this artifact is a empty dummy
+	 */
+	public final boolean isEmptyDummy() {
+		return emptyDummy;
+	}
 
 	/**
 	 * Creates a new instance of an artifact.
@@ -59,7 +72,7 @@ public class Artifact {
 	}
 
 	/**
-	 * Creates an empty artifact.
+	 * Creates an empty artifact. This is needed for empty base revisions.
 	 * 
 	 * @return empty artifact.
 	 * @throws FileNotFoundException
@@ -68,7 +81,9 @@ public class Artifact {
 	public static Artifact createEmptyArtifact() throws FileNotFoundException {
 		// FIXME: The following works only for Unix-like systems. Do something
 		// about it!
-		return new Artifact(new File("/dev/null"));
+		Artifact newEmptyDummy = new Artifact(new File("/dev/null"));
+		newEmptyDummy.emptyDummy = true;
+		return newEmptyDummy;
 	}
 
 	/**

@@ -98,4 +98,47 @@ public class MergeTriple {
 	public final void setRight(final Artifact right) {
 		this.right = right;
 	}
+
+	/**
+	 * Returns a String representing the MergeTriple.
+	 * 
+	 * @param sep
+	 *            separator
+	 * @param humanReadable
+	 *            do not print dummy files if true
+	 * @return String representation
+	 */
+	public final String toString(final String sep, 
+			final boolean humanReadable) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(left.toString() + sep);
+
+		if (!humanReadable || !base.isEmptyDummy()) {
+			sb.append(base.toString() + sep);
+		}
+
+		sb.append(right.toString());
+		return sb.toString();
+	}
+
+	/**
+	 * Returns a String representing the MergeTriple separated by whitespace.
+	 * 
+	 * @return String representation
+	 */
+	public final String toString() {
+		return toString(" ", false);
+	}
+
+	/**
+	 * Returns a String representing the MergeTriple separated by whitespace,
+	 * omitting empty dummy files.
+	 * 
+	 * @param humanReadable
+	 *            do not print dummy files if true
+	 * @return String representation
+	 */
+	public final String toString(final boolean humanReadable) {
+		return toString(" ", humanReadable);
+	}
 }

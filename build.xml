@@ -56,7 +56,7 @@
 			<zipgroupfileset dir="lib/" includes="**/*.jar" />
 			<manifest>
 				<attribute name="Built-By" value="Olaf Lessenich" />
-				<attribute name="Main-Class" value="de.fosd.jdime.Merge" />
+				<attribute name="Main-Class" value="de.fosd.jdime.Main" />
 			</manifest>
 		</jar>
 	</target>

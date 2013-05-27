@@ -3,13 +3,11 @@
  */
 package de.fosd.jdime.engine;
 
-import java.util.List;
-
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.Merge;
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.Main;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 
 /**
@@ -32,17 +30,16 @@ public class Structured implements MergeInterface {
 	 */
 	@Override
 	public final MergeReport merge(final MergeType mergeType,
-			final List<Artifact> inputArtifacts) {
+			final MergeTriple triple) {
 		// TODO Auto-generated method stub
-		LOG.setLevel(Merge.getLogLevel());
+		LOG.setLevel(Main.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
 
-		assert inputArtifacts.size() >= MINFILES : "Too few input files!";
-		assert inputArtifacts.size() <= MAXFILES : "Too many input files!";
+		MergeReport report = new MergeReport(mergeType, triple);
 
-		MergeReport report = new MergeReport(mergeType, inputArtifacts);
-
-		return report;
+		throw new UnsupportedOperationException();
+		
+		//return report;
 	}
 
 }

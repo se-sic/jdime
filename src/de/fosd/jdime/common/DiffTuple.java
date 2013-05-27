@@ -24,7 +24,7 @@ public class DiffTuple {
 	 * @param left artifact
 	 * @param right artifact
 	 */
-	public DiffTuple(Artifact left, final Artifact right) {
+	public DiffTuple(final Artifact left, final Artifact right) {
 		this.left = left;
 		this.right = right;
 	}

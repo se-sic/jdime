@@ -4,10 +4,9 @@
 package de.fosd.jdime.engine;
 
 import java.io.IOException;
-import java.util.List;
 
-import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 
 /**
@@ -110,8 +109,8 @@ public enum MergeEngine {
 	 * 
 	 * @param mergeType
 	 *            type of merge
-	 * @param inputArtifacts
-	 *            list of input files
+	 * @param triple
+	 *            the merge triple
 	 * @return merge report
 	 * @throws EngineNotFoundException
 	 *             if the merge engine cannot be found
@@ -122,10 +121,10 @@ public enum MergeEngine {
 	 * 
 	 */
 	public MergeReport merge(final MergeType mergeType,
-			final List<Artifact> inputArtifacts) throws EngineNotFoundException,
+			final MergeTriple triple) throws EngineNotFoundException,
 			IOException, InterruptedException {
 		assert mergeType != null : "MergeType may not be null!";
-		assert inputArtifacts != null : "list of input files may not be null";
+		assert triple != null : "list of input files may not be null";
 
 		MergeInterface engine = null;
 
@@ -144,7 +143,7 @@ public enum MergeEngine {
 					+ " merge.");
 		}
 
-		return engine.merge(mergeType, inputArtifacts);
+		return engine.merge(mergeType, triple);
 	}
 
 }

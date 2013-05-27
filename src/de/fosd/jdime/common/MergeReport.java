@@ -4,7 +4,6 @@
 package de.fosd.jdime.common;
 
 import java.io.StringWriter;
-import java.util.List;
 
 /**
  * @author lessenic
@@ -30,22 +29,22 @@ public class MergeReport {
 	/**
 	 * List of input files.
 	 */
-	private List<Artifact> inputArtifacts;
+	private MergeTriple mergeTriple;
 
 	/**
 	 * Creates a new instance of MergeReport.
 	 * 
 	 * @param mergeType
 	 *            Type of merge
-	 * @param inputArtifacts
-	 *            List of input files
+	 * @param mergeTriple
+	 *            merge scenario
 	 */
 	public MergeReport(final MergeType mergeType,
-			final List<Artifact> inputArtifacts) {
+			final MergeTriple mergeTriple) {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
 		this.mergeType = mergeType;
-		this.inputArtifacts = inputArtifacts;
+		this.mergeTriple = mergeTriple;
 	}
 
 	/**
@@ -111,12 +110,12 @@ public class MergeReport {
 	}
 
 	/**
-	 * Returns list of input files.
+	 * Returns the merge triple.
 	 * 
-	 * @return list of input files
+	 * @return merge triple
 	 */
-	public final List<Artifact> getInputArtifacts() {
-		return inputArtifacts;
+	public final MergeTriple getMergeTriple() {
+		return mergeTriple;
 	}
 
 }
