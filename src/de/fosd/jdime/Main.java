@@ -16,7 +16,6 @@ package de.fosd.jdime;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,9 +32,11 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.DirectoryHandling;
+import de.fosd.jdime.common.DummyReport;
 import de.fosd.jdime.common.Merge;
 import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
@@ -105,9 +106,10 @@ public final class Main {
 	 * @throws InterruptedException
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException 
+	 * @throws NotYetImplementedException 
 	 */
 	public static void main(final String[] args) throws IOException,
-			InterruptedException, UnsupportedMergeTypeException {
+			InterruptedException, UnsupportedMergeTypeException, NotYetImplementedException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -307,6 +309,9 @@ public final class Main {
 	 */
 	private static void showConfig(final boolean exit) {
 		System.out.println("Merge tool: " + mergeEngine);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("File seperator: " + File.separator);
+		}
 		System.out.println();
 
 		if (exit) {
@@ -325,10 +330,11 @@ public final class Main {
 	 * @throws InterruptedException
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException 
+	 * @throws NotYetImplementedException 
 	 */
 	private static List<MergeReport> merge(final ArtifactList inputArtifacts)
 			throws IOException, InterruptedException, 
-			UnsupportedMergeTypeException {
+			UnsupportedMergeTypeException, NotYetImplementedException {
 		assert inputArtifacts.size() >= MergeType.MINFILES 
 										: "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES 
@@ -426,9 +432,11 @@ public final class Main {
 	 *            MergeReport
 	 */
 	private static void printReport(final MergeReport report) {
-		LOG.debug("Output of " + report.getMergeType().name() + " merge of "
-				+ report.getMergeTriple().toString());
-		System.out.println(report.getStdIn());
+		if (!(report instanceof DummyReport)) {
+			LOG.debug("Output of " + report.getMergeType() + " merge of "
+				+ report.getMergeTriple());
+		}
+		System.out.println(report);
 	}
 
 }

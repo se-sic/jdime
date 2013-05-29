@@ -71,4 +71,8 @@ public enum MergeType {
 	public int getNumFiles() {
 		return numFiles;
 	}
+	
+	public String toString() {
+		return this.name();
+	}
 }

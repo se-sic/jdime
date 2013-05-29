@@ -127,5 +127,9 @@ public class MergeReport {
 	public final MergeTriple getMergeTriple() {
 		return mergeTriple;
 	}
+	
+	public String toString() {
+		return getStdIn();
+	}
 
 }

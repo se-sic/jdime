@@ -13,9 +13,16 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.IOException;
+
+import de.fosd.jdime.engine.EngineNotFoundException;
+
 /**
  * @author Olaf Lessenich
  *
  */
 public abstract class Operation {
+	public MergeReport apply()  throws EngineNotFoundException, IOException, InterruptedException, NotYetImplementedException {
+		throw new NotYetImplementedException();
+	}
 }

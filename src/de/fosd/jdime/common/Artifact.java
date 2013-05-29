@@ -15,6 +15,9 @@ package de.fosd.jdime.common;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class represents an artifact of a program.
@@ -34,10 +37,24 @@ public class Artifact {
 	private Revision revision;
 
 	/**
+	 * @return the revision
+	 */
+	public final Revision getRevision() {
+		return revision;
+	}
+
+	/**
+	 * @param revision the revision to set
+	 */
+	public final void setRevision(final Revision revision) {
+		this.revision = revision;
+	}
+
+	/**
 	 * Needed for missing base revisions.
 	 */
 	private boolean emptyDummy = false;
-	
+
 	/**
 	 * Parent artifact.
 	 */
@@ -51,7 +68,8 @@ public class Artifact {
 	}
 
 	/**
-	 * @param parent the parent to set
+	 * @param parent
+	 *            the parent to set
 	 */
 	public final void setParent(final Artifact parent) {
 		this.parent = parent;
@@ -81,6 +99,7 @@ public class Artifact {
 		assert file != null;
 
 		if (!file.exists()) {
+			System.err.println("File not found: " + file.getAbsolutePath());
 			throw new FileNotFoundException();
 		}
 
@@ -177,25 +196,38 @@ public class Artifact {
 	 * @return list of artifacts contained in this directory
 	 */
 	public final ArtifactList getContent() {
-		if (this.isDirectory()) {
-			ArtifactList contentArtifacts = new ArtifactList();
-			File[] content = file.listFiles();
-
-			for (int i = 0; i < content.length; i++) {
-				try {
-					Artifact child = new Artifact(this.revision, content[i]);
-					child.setParent(this);
-					contentArtifacts.add(child);
-				} catch (FileNotFoundException e) {
-					// this should not happen
-					e.printStackTrace();
-				}
-			}
-
-			return contentArtifacts;
-		} else {
+		if (!this.isDirectory()) {
 			throw new UnsupportedOperationException();
 		}
+
+		ArtifactList contentArtifacts = new ArtifactList();
+		File[] content = file.listFiles();
+
+		for (int i = 0; i < content.length; i++) {
+			try {
+				Artifact child = new Artifact(this.revision, content[i]);
+				child.setParent(this);
+				contentArtifacts.add(child);
+			} catch (FileNotFoundException e) {
+				// this should not happen
+				e.printStackTrace();
+			}
+		}
+
+		return contentArtifacts;
+
+	}
+
+	/**
+	 * Returns the list of (relative) filenames contained in this directory.
+	 * @return list of relative filenames
+	 */
+	public final List<String> getRelativeContent() {
+		if (!this.isDirectory()) {
+			throw new UnsupportedOperationException();
+		}
+		
+		return Arrays.asList(file.list());
 	}
 
 	/**
@@ -216,6 +248,14 @@ public class Artifact {
 			relativePath = relativePath.substring(1);
 		}
 		return relativePath;
+	}
+	
+	/**
+	 * Returns the path of this artifact.
+	 * @return path of the artifact
+	 */
+	public final String getPath() {
+		return file.getPath();
 	}
 
 	/*

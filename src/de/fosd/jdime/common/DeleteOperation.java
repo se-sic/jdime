@@ -32,4 +32,10 @@ public class DeleteOperation extends Operation {
 	public String toString() {
 		return "Deleting " + artifact.toString();
 	}
+	
+	public final MergeReport apply() {
+		//TODO: create a real report
+		System.out.println("IMPLEMENT ME: DeleteOperation.apply()");
+		return new DummyReport();
+	}
 }

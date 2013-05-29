@@ -31,4 +31,10 @@ public class AddOperation extends Operation {
 	public String toString() {
 		return "Adding " + artifact.toString();
 	}
+	
+	public final MergeReport apply() {
+		//TODO: create a real report
+		System.out.println("IMPLEMENT ME: AddOperation.apply()");
+		return new DummyReport();
+	}
 }

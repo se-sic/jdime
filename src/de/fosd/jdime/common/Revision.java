@@ -48,4 +48,14 @@ public class Revision {
 		this.name = name;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return name;
+	}
+	
 }

@@ -13,6 +13,11 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.IOException;
+
+import de.fosd.jdime.engine.EngineNotFoundException;
+import de.fosd.jdime.engine.MergeEngine;
+
 /**
  * @author Olaf Lessenich
  *
@@ -20,10 +25,12 @@ package de.fosd.jdime.common;
 public class MergeOperation extends Operation {
 	private MergeType mergeType;
 	private MergeTriple mergeTriple;
+	private MergeEngine engine;
 	
-	public MergeOperation(MergeType mergeType, MergeTriple mergeTriple) {
+	public MergeOperation(MergeType mergeType, MergeTriple mergeTriple, MergeEngine engine) {
 		this.mergeType = mergeType;
 		this.mergeTriple = mergeTriple;
+		this.engine = engine;
 	}
 
 	public MergeType getMergeType() {
@@ -36,5 +43,9 @@ public class MergeOperation extends Operation {
 	
 	public String toString() {
 		return "Merging " + mergeTriple.toString(true);
+	}
+	
+	public final MergeReport apply() throws EngineNotFoundException, IOException, InterruptedException {
+		return engine.merge(mergeType, mergeTriple);
 	}
 }

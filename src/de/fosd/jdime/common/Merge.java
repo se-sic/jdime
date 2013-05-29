@@ -13,10 +13,15 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -29,6 +34,21 @@ import de.fosd.jdime.engine.MergeEngine;
  * 
  */
 public final class Merge {
+
+	/**
+	 * 
+	 */
+	private static final int LEFTPOS = 0;
+
+	/**
+	 * 
+	 */
+	private static final int BASEPOS = 1;
+
+	/**
+	 * 
+	 */
+	private static final int RIGHTPOS = 2;
 
 	/**
 	 * 
@@ -59,36 +79,31 @@ public final class Merge {
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
+	 * @throws NotYetImplementedException 
 	 */
 	public static List<MergeReport> merge(final MergeType mergeType,
 			final MergeEngine engine, final ArtifactList inputArtifacts)
 			throws EngineNotFoundException, IOException, InterruptedException,
-			UnsupportedMergeTypeException {
+			UnsupportedMergeTypeException, NotYetImplementedException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
 		List<MergeReport> reports = new LinkedList<MergeReport>();
-		OperationList operations = calculateOperations(mergeType,
-				inputArtifacts, 0, "");
+		OperationList operations = calculateOperations(mergeType, engine, 
+				inputArtifacts);
 
 		for (Operation operation : operations) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(operation);
 			}
-			if (operation instanceof MergeOperation) {
-				// FIXME: maybe this can be done nicer with a visitor pattern
-				reports.add(engine.merge(mergeType,
-						((MergeOperation) operation).getMergeTriple()));
-			} else {
-				// TODO
-				throw new UnsupportedOperationException();
-			}
+			reports.add(operation.apply());		
+			
 		}
 
 		return reports;
 	}
-
+	
 	/**
 	 * Extracts the operations that are needed for the merge.
 	 * 
@@ -96,10 +111,6 @@ public final class Merge {
 	 *            type of merge
 	 * @param inputArtifacts
 	 *            input files
-	 * @param depth
-	 *            recursion depth
-	 * @param commonPath
-	 *            common path for the merged file
 	 * @return list of operations
 	 * @throws FileNotFoundException
 	 *             FileNotFoundException
@@ -107,8 +118,7 @@ public final class Merge {
 	 *             UnsupportedMergeTypeException
 	 */
 	private static OperationList calculateOperations(final MergeType mergeType,
-			final ArtifactList inputArtifacts, final int depth,
-			final String commonPath) throws FileNotFoundException,
+			final MergeEngine engine, final ArtifactList inputArtifacts) throws FileNotFoundException,
 			UnsupportedMergeTypeException {
 		OperationList operations = new OperationList();
 
@@ -126,65 +136,191 @@ public final class Merge {
 			throw new UnsupportedMergeTypeException();
 		}
 
-		boolean isDirectory = inputArtifacts.get(0).isDirectory();
+		left.setRevision(new Revision("left"));
+		base.setRevision(new Revision("base"));
+		right.setRevision(new Revision("right"));
+
+		Artifact[] revisions = { left, base, right };
+
+		boolean isDirectory = left.isDirectory();
 
 		if (!isDirectory) {
-			// easiest case: files only - just add a merge operation for them!
+			// To merge files, we just have to create a merge operation.
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Input artifacts are files.");
 			}
+
 			MergeTriple triple = new MergeTriple(left, base, right);
-			operations.add(new MergeOperation(mergeType, triple));
+			operations.add(new MergeOperation(mergeType, triple, engine));
 		} else {
-			// we are merging directories. we need to apply the standard
-			// three-way merge rules to the content of the directories.
-			
-			/* TODO/FIXME: The following code is no good.
-			 * Better would be:
-			 * 	1. hashmap (key: relative path; value: bitset for revisions)
-			 *  2. operationlist from hashmap
-			 *  3. visiting operations  
-			 */
-			
+			// To merge directories, we need to apply the standard three-way
+			// merge rules to the content of the directories.
+
+			for (Artifact artifact : revisions) {
+				assert (artifact.isDirectory() || artifact.isEmptyDummy());
+			}
+
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Input artifacts are directories.");
 			}
 
-			if (mergeType == MergeType.TWOWAY) {
-				;
-			} else if (mergeType == MergeType.THREEWAY) {
-				assert (left.isDirectory() && base.isDirectory() && right
-						.isDirectory());
+			HashMap<String, BitSet> filemap = new HashMap<String, BitSet>();
 
-				ArtifactList leftContent = left.getContent();
-				ArtifactList baseContent = base.getContent();
-				ArtifactList rightContent = right.getContent();
+			// The revisions in which each file exists, are stored in filemap.
+			for (int i = 0; i < revisions.length; i++) {
+				Artifact directory = revisions[i];
 
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Traversing the content of base revision:");
+				if (directory.isEmptyDummy()) {
+					// base is a dummy for 2-way merges
+					continue;
 				}
 
-				for (Artifact artifact : baseContent) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("\t* "
-								+ Artifact.computeRelativePath(artifact, base));
+				List<String> content = directory.getRelativeContent();
+
+				for (String file : content) {
+					BitSet bs;
+
+					if (filemap.containsKey(file)) {
+						bs = filemap.get(file);
+					} else {
+						bs = new BitSet(revisions.length);
+						filemap.put(file, bs);
 					}
 
-					if (leftContent.containsRelative(artifact)) {
-						if (LOG.isDebugEnabled()) {
-							LOG.debug("\t\t(found in left)");
-						}
-						if (rightContent.containsRelative(artifact)) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug("\t\t(found in right)");
-							}
-						}
-					}
+					bs.set(i);
 				}
 			}
 
-			// TODO
-			throw new UnsupportedOperationException();
+			// For each file it has to be decided which operation to perform.
+			// This is done by applying the standard 3-way merge rules.
+			for (Map.Entry<String, BitSet> entry : filemap.entrySet()) {
+				String file = entry.getKey();
+				BitSet bs = entry.getValue();
+
+				if (LOG.isDebugEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					int bits = 0;
+
+					sb.append("[ ");
+
+					for (int i = 0; i < revisions.length; i++) {
+						if (bs.get(i)) {
+							sb.append(revisions[i].getRevision().toString());
+							bits++;
+
+							if (bits < bs.cardinality()) {
+								sb.append(", ");
+							}
+						}
+					}
+
+					sb.append(" ]");
+					LOG.debug(file + "\t" + sb.toString());
+				}
+
+				operations.addAll(applyMergeRule(revisions, file, bs, engine));
+			}
+		}
+
+		return operations;
+	}
+
+	/**
+	 * @param revisions
+	 *            array of revisions
+	 * @param file
+	 *            file
+	 * @param bs
+	 *            bitset
+	 * @return operation
+	 * @throws FileNotFoundException
+	 *             FileNotFoundException
+	 * @throws UnsupportedMergeTypeException
+	 *             UnsupportedMergeTypeException
+	 */
+	private static OperationList applyMergeRule(final Artifact[] revisions,
+			final String file, final BitSet bs, MergeEngine engine) throws FileNotFoundException,
+			UnsupportedMergeTypeException {
+		OperationList operations = new OperationList();
+
+		Artifact left = revisions[LEFTPOS];
+		Artifact base = revisions[BASEPOS];
+		Artifact right = revisions[RIGHTPOS];
+
+		switch (bs.cardinality()) {
+		case 0:
+			// File exists in 0 revisions.
+			// This should never happen and is treated as error.
+			throw new RuntimeException(
+					"Ghost files! I do not know how to merge this!");
+		case 1:
+			// File exists in exactly 1 revision.
+			// This is an addition or a deletion.
+			if (bs.get(BASEPOS)) {
+				// File was deleted in base.
+				Artifact deleted = new Artifact(base.getRevision(), new File(
+						base.getPath() + File.separator + file));
+				operations.add(new DeleteOperation(deleted));
+			} else {
+				// File was added in either left or right revision.
+				Artifact added = bs.get(LEFTPOS) ? new Artifact(
+						left.getRevision(), new File(left.getPath()
+								+ File.separator + file)) : new Artifact(
+						right.getRevision(), new File(right.getPath()
+								+ File.separator + file));
+				operations.add(new AddOperation(added));
+			}
+			break;
+		case 2:
+			// File exists in two revisions.
+			// This is a 2-way merge or a deletion.
+			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
+				// This is a 2-way merge.
+				ArtifactList tuple = new ArtifactList();
+
+				Artifact leftChild = new Artifact(left.getRevision(), new File(
+						left.getPath() + File.separator + file));
+				Artifact rightChild = new Artifact(right.getRevision(),
+						new File(right.getPath() + File.separator + file));
+
+				tuple.add(leftChild);
+				tuple.add(rightChild);
+
+				operations.addAll(calculateOperations(MergeType.TWOWAY, engine, tuple));
+			} else {
+				// File was deleted in either left or right revision.
+				assert (bs.get(BASEPOS));
+
+				Artifact deleted = bs.get(LEFTPOS) ? new Artifact(
+						left.getRevision(), new File(left.getPath()
+								+ File.separator + file)) : new Artifact(
+						right.getRevision(), new File(right.getPath()
+								+ File.separator + file));
+
+				operations.add(new DeleteOperation(deleted));
+			}
+			break;
+		case 3:
+			// File exists in three revisions.
+			// This is a classical 3-way merge.
+			ArtifactList triple = new ArtifactList();
+
+			Artifact leftChild = new Artifact(left.getRevision(), new File(
+					left.getPath() + File.separator + file));
+			Artifact baseChild = new Artifact(base.getRevision(), new File(
+					base.getPath() + File.separator + file));
+			Artifact rightChild = new Artifact(right.getRevision(), new File(
+					right.getPath() + File.separator + file));
+
+			triple.add(leftChild);
+			triple.add(baseChild);
+			triple.add(rightChild);
+
+			operations.addAll(calculateOperations(MergeType.THREEWAY, engine, triple));
+			break;
+		default:
+			break;
 		}
 
 		return operations;
