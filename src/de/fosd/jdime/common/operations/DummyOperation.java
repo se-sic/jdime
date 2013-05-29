@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.common.operations;
 
 /**
  * @author lessenic

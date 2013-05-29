@@ -3,6 +3,9 @@
  */
 package de.fosd.jdime.common;
 
+import de.fosd.jdime.common.operations.DummyOperation;
+import de.fosd.jdime.common.operations.Operation;
+
 /**
  * @author lessenic
  *

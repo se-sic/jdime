@@ -17,8 +17,8 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.Main;
 import de.fosd.jdime.common.DummyReport;
-import de.fosd.jdime.common.MergeOperation;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * Performs a structured merge.

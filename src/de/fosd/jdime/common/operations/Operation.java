@@ -11,10 +11,12 @@
 /**
  * 
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.engine.EngineNotFoundException;
 
 /**

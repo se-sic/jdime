@@ -26,6 +26,11 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.Main;
+import de.fosd.jdime.common.operations.AddOperation;
+import de.fosd.jdime.common.operations.DeleteOperation;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.common.operations.OperationList;
 import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
 

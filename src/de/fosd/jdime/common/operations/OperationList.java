@@ -8,7 +8,7 @@
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
  ******************************************************************************/
-package de.fosd.jdime.common;
+package de.fosd.jdime.common.operations;
 
 import java.util.LinkedList;
 

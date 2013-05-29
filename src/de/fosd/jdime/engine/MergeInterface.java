@@ -12,8 +12,8 @@ package de.fosd.jdime.engine;
 
 import java.io.IOException;
 
-import de.fosd.jdime.common.MergeOperation;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * Interface for the merge engines.

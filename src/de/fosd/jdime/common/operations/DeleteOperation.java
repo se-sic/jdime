@@ -11,7 +11,11 @@
 /**
  * 
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.common.operations;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.DummyReport;
+import de.fosd.jdime.common.MergeReport;
 
 /**
  * @author Olaf Lessenich

@@ -15,6 +15,8 @@ package de.fosd.jdime.common;
 
 import java.io.StringWriter;
 
+import de.fosd.jdime.common.operations.Operation;
+
 /**
  * @author Olaf Lessenich
  * 
