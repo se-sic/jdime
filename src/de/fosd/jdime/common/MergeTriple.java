@@ -14,7 +14,7 @@
 package de.fosd.jdime.common;
 
 /**
- * This class represents a merge scenario.
+ * This class represents a merge scenario for a standard three-way merge.
  * 
  * @author Olaf Lessenich
  * 

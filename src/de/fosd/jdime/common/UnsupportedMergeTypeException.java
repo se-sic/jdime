@@ -23,18 +23,5 @@ public class UnsupportedMergeTypeException extends Exception {
 	 * 
 	 */
 	private static final long serialVersionUID = -4562992040545178701L;
-	
-	/**
-	 * 
-	 */
-	public UnsupportedMergeTypeException() {
-	}
-	
-	/**
-	 * @param message 
-	 */
-	public UnsupportedMergeTypeException(final String message) {
-		super(message);
-	}
 
 }

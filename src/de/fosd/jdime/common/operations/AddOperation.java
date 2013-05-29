@@ -18,30 +18,55 @@ import de.fosd.jdime.common.DummyReport;
 import de.fosd.jdime.common.MergeReport;
 
 /**
+ * The operation adds <code>Artifact</code>s.
+ * 
  * @author Olaf Lessenich
- *
+ * 
  */
 public class AddOperation extends Operation {
+	/**
+	 * The <code>Artifact</code> that is added by the operation.
+	 */
 	private Artifact artifact;
-	
-	public Artifact getArtifact() {
-		return artifact;
-	}
 
-	public AddOperation(Artifact artifact) {
+	/**
+	 * Class constructor.
+	 * 
+	 * @param artifact
+	 *            that is added by the operation.
+	 */
+	public AddOperation(final Artifact artifact) {
 		this.artifact = artifact;
 	}
-	
-	public String toString() {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
 		return "ADD " + artifact.toString();
 	}
-	
-	public String description() {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.operations.Operation#description()
+	 */
+	@Override
+	public final String description() {
 		return "Adding " + artifact.toString();
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.operations.Operation#apply()
+	 */
+	@Override
 	public final MergeReport apply() {
-		//TODO: create a real report
+		// TODO: create a real report
 		System.out.println("IMPLEMENT ME: AddOperation.apply()");
 		return new DummyReport();
 	}

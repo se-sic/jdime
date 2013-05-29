@@ -72,7 +72,11 @@ public enum MergeType {
 		return numFiles;
 	}
 	
-	public String toString() {
+	/* (non-Javadoc)
+	 * @see java.lang.Enum#toString()
+	 */
+	@Override
+	public final String toString() {
 		return this.name();
 	}
 }

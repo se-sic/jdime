@@ -20,15 +20,36 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.engine.EngineNotFoundException;
 
 /**
+ * This class represents an operation that is applied to <code>Artifact</code>s.
+ * 
  * @author Olaf Lessenich
- *
+ * 
  */
 public abstract class Operation {
-	public MergeReport apply()  throws EngineNotFoundException, IOException, InterruptedException, NotYetImplementedException {
-		throw new NotYetImplementedException();
-	}
-	
-	public String description() throws NotYetImplementedException {
-		throw new NotYetImplementedException();
-	}
+	/**
+	 * Applies the operation and returns a report.
+	 * 
+	 * @return report
+	 * @throws EngineNotFoundException
+	 *             If the engine does not exist
+	 * @throws IOException
+	 *             If an input or output exception occurs
+	 * @throws InterruptedException
+	 *             If a thread is interrupted
+	 * @throws NotYetImplementedException
+	 *             If some functions are accessed that have not been implemented
+	 *             yet
+	 */
+	public abstract MergeReport apply() throws EngineNotFoundException,
+			IOException, InterruptedException, NotYetImplementedException;
+
+	/**
+	 * Returns a textual description of the operation.
+	 * 
+	 * @return textual description
+	 * @throws NotYetImplementedException
+	 *             If some functions are accessed that have not been implemented
+	 *             yet
+	 */
+	public abstract String description() throws NotYetImplementedException;
 }

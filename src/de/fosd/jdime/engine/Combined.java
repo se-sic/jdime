@@ -43,9 +43,11 @@ public class Combined implements MergeInterface {
 		
 		MergeReport report = new DummyReport();
 
-		throw new UnsupportedOperationException();
+		if (report instanceof DummyReport) {
+			throw new UnsupportedOperationException();
+		}
 		
-		//return report;
+		return report;
 	}
 
 }

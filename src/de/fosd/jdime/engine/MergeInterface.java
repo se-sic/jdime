@@ -33,8 +33,7 @@ public interface MergeInterface {
 
 	/**
 	 * Performs a merge on the given input files.
-	 * @param mergeType type of merge
-	 * @param triple the merge triple
+	 * @param operation operation that should be applied by the engine
 	 * @return merge report
 	 * @throws IOException IOException
 	 * @throws InterruptedException InterruptedException

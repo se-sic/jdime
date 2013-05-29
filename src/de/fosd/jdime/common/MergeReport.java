@@ -33,15 +33,15 @@ public class MergeReport {
 	 */
 	private StringWriter stdErr;
 	
+	/**
+	 * Operation that was/will be applied.
+	 */
 	private Operation operation;
 
 	/**
 	 * Creates a new instance of MergeReport.
-	 * 
-	 * @param mergeType
-	 *            Type of merge
-	 * @param mergeTriple
-	 *            merge scenario
+	 *
+	 * @param operation operation to apply
 	 */
 	public MergeReport(final Operation operation) {
 		stdIn = new StringWriter();
@@ -112,6 +112,10 @@ public class MergeReport {
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
 	public String toString() {
 		return getStdIn();
 	}

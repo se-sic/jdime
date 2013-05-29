@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +38,26 @@ import de.fosd.jdime.engine.MergeEngine;
  * 
  */
 public final class Merge {
+	
+	/**
+	 * Silencing checkstyle.
+	 */
+	private static final int ZERO = 0;
+	
+	/**
+	 * Silencing checkstyle.
+	 */
+	private static final int ONE = 1;
+	
+	/**
+	 * Silencing checkstyle.
+	 */
+	private static final int TWO = 2;
+	
+	/**
+	 * Silencing checkstyle.
+	 */
+	private static final int THREE = 3;
 
 	/**
 	 * 
@@ -84,7 +103,7 @@ public final class Merge {
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
-	 * @throws NotYetImplementedException 
+	 * @throws NotYetImplementedException NotYetImplementedException
 	 */
 	public static List<MergeReport> merge(final MergeType mergeType,
 			final MergeEngine engine, final ArtifactList inputArtifacts)
@@ -95,25 +114,26 @@ public final class Merge {
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
 		List<MergeReport> reports = new LinkedList<MergeReport>();
-		OperationList operations = calculateOperations(mergeType, engine, 
+		OperationList operations = calculateOperations(mergeType, engine,
 				inputArtifacts);
 
 		for (Operation operation : operations) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(operation.description());
 			}
-			reports.add(operation.apply());		
-			
+			reports.add(operation.apply());
+
 		}
 
 		return reports;
 	}
-	
+
 	/**
 	 * Extracts the operations that are needed for the merge.
 	 * 
 	 * @param mergeType
 	 *            type of merge
+	 * @param engine merge engine
 	 * @param inputArtifacts
 	 *            input files
 	 * @return list of operations
@@ -123,8 +143,8 @@ public final class Merge {
 	 *             UnsupportedMergeTypeException
 	 */
 	private static OperationList calculateOperations(final MergeType mergeType,
-			final MergeEngine engine, final ArtifactList inputArtifacts) throws FileNotFoundException,
-			UnsupportedMergeTypeException {
+			final MergeEngine engine, final ArtifactList inputArtifacts)
+			throws FileNotFoundException, UnsupportedMergeTypeException {
 		OperationList operations = new OperationList();
 
 		Artifact left, base, right;
@@ -238,6 +258,7 @@ public final class Merge {
 	 *            file
 	 * @param bs
 	 *            bitset
+	 * @param engine merge engine
 	 * @return operation
 	 * @throws FileNotFoundException
 	 *             FileNotFoundException
@@ -245,8 +266,8 @@ public final class Merge {
 	 *             UnsupportedMergeTypeException
 	 */
 	private static OperationList applyMergeRule(final Artifact[] revisions,
-			final String file, final BitSet bs, MergeEngine engine) throws FileNotFoundException,
-			UnsupportedMergeTypeException {
+			final String file, final BitSet bs, final MergeEngine engine)
+			throws FileNotFoundException, UnsupportedMergeTypeException {
 		OperationList operations = new OperationList();
 
 		Artifact left = revisions[LEFTPOS];
@@ -254,12 +275,12 @@ public final class Merge {
 		Artifact right = revisions[RIGHTPOS];
 
 		switch (bs.cardinality()) {
-		case 0:
+		case ZERO:
 			// File exists in 0 revisions.
 			// This should never happen and is treated as error.
 			throw new RuntimeException(
 					"Ghost files! I do not know how to merge this!");
-		case 1:
+		case ONE:
 			// File exists in exactly 1 revision.
 			// This is an addition or a deletion.
 			if (bs.get(BASEPOS)) {
@@ -277,7 +298,7 @@ public final class Merge {
 				operations.add(new AddOperation(added));
 			}
 			break;
-		case 2:
+		case TWO:
 			// File exists in two revisions.
 			// This is a 2-way merge or a deletion.
 			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
@@ -292,7 +313,8 @@ public final class Merge {
 				tuple.add(leftChild);
 				tuple.add(rightChild);
 
-				operations.addAll(calculateOperations(MergeType.TWOWAY, engine, tuple));
+				operations.addAll(calculateOperations(MergeType.TWOWAY, engine,
+						tuple));
 			} else {
 				// File was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
@@ -306,7 +328,7 @@ public final class Merge {
 				operations.add(new DeleteOperation(deleted));
 			}
 			break;
-		case 3:
+		case THREE:
 			// File exists in three revisions.
 			// This is a classical 3-way merge.
 			ArtifactList triple = new ArtifactList();
@@ -322,7 +344,8 @@ public final class Merge {
 			triple.add(baseChild);
 			triple.add(rightChild);
 
-			operations.addAll(calculateOperations(MergeType.THREEWAY, engine, triple));
+			operations.addAll(calculateOperations(MergeType.THREEWAY, engine,
+					triple));
 			break;
 		default:
 			break;

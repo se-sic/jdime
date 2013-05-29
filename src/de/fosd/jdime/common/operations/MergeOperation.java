@@ -22,37 +22,84 @@ import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
 
 /**
+ * The operation merges <code>Artifact</code>s.
+ * 
  * @author Olaf Lessenich
- *
+ * 
  */
 public class MergeOperation extends Operation {
+	/**
+	 * Type of merge.
+	 */
 	private MergeType mergeType;
+
+	/**
+	 * The merge triple containing the <code>Artifact</code>s.
+	 */
 	private MergeTriple mergeTriple;
+
+	/**
+	 * The engine used for the merge.
+	 */
 	private MergeEngine engine;
-	
-	public MergeOperation(MergeType mergeType, MergeTriple mergeTriple, MergeEngine engine) {
+
+	/**
+	 * Class constructor.
+	 * 
+	 * @param mergeType
+	 *            type of merge
+	 * @param mergeTriple
+	 *            triple containing <code>Artifact</code>s
+	 * @param engine
+	 *            that is used for the merge
+	 */
+	public MergeOperation(final MergeType mergeType,
+			final MergeTriple mergeTriple, final MergeEngine engine) {
 		this.mergeType = mergeType;
 		this.mergeTriple = mergeTriple;
 		this.engine = engine;
 	}
 
-	public MergeType getMergeType() {
+	/**
+	 * Returns the type of merge.
+	 * 
+	 * @return the type of merge
+	 */
+	public final MergeType getMergeType() {
 		return mergeType;
 	}
 
-	public MergeTriple getMergeTriple() {
+	/**
+	 * Returns the merge triple.
+	 * 
+	 * @return merge triple
+	 */
+	public final MergeTriple getMergeTriple() {
 		return mergeTriple;
 	}
-	
-	public String toString() {
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
 		return "MERGE " + mergeType + " " + mergeTriple.toString(true);
 	}
-	
-	public String description() {
+
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.operations.Operation#description()
+	 */
+	@Override
+	public final String description() {
 		return "Merging " + mergeTriple.toString(true);
 	}
-	
-	public final MergeReport apply() throws EngineNotFoundException, IOException, InterruptedException {
+
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.operations.Operation#apply()
+	 */
+	@Override
+	public final MergeReport apply() throws EngineNotFoundException,
+			IOException, InterruptedException {
 		return engine.merge(this);
 	}
 }

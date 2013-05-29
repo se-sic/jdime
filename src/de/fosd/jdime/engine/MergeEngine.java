@@ -116,10 +116,7 @@ public enum MergeEngine {
 	/**
 	 * Performs a merge operation.
 	 * 
-	 * @param mergeType
-	 *            type of merge
-	 * @param triple
-	 *            the merge triple
+	 * @param operation operation that should be applied by the engine
 	 * @return merge report
 	 * @throws EngineNotFoundException
 	 *             if the merge engine cannot be found
@@ -129,10 +126,11 @@ public enum MergeEngine {
 	 *             InterruptedException
 	 * 
 	 */
-	public MergeReport merge(final MergeOperation operation) throws EngineNotFoundException,
-			IOException, InterruptedException {
+	public MergeReport merge(final MergeOperation operation)
+			throws EngineNotFoundException, IOException, InterruptedException {
 		assert operation.getMergeType() != null : "MergeType may not be null!";
-		assert operation.getMergeTriple() != null : "list of input files may not be null";
+		assert operation.getMergeTriple() != null 
+				: "list of input files may not be null";
 
 		MergeInterface engine = null;
 
@@ -147,8 +145,8 @@ public enum MergeEngine {
 			engine = new Combined();
 			break;
 		default:
-			throw new EngineNotFoundException("Engine missing for " + operation.getMergeType()
-					+ " merge.");
+			throw new EngineNotFoundException("Engine missing for "
+					+ operation.getMergeType() + " merge.");
 		}
 
 		return engine.merge(operation);

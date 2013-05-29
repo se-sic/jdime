@@ -47,7 +47,8 @@ public class Linebased implements MergeInterface {
 	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
-	public final MergeReport merge(final MergeOperation operation) throws IOException, InterruptedException {
+	public final MergeReport merge(final MergeOperation operation)
+			throws IOException, InterruptedException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
 		LOG.debug(operation.getMergeType() + " merge will be performed.");

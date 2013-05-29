@@ -10,6 +10,20 @@
  ******************************************************************************/
 package de.fosd.jdime.common;
 
+/**
+ * This class specifies the different methods to handle directories.
+ * 
+ * @author Olaf Lessenich
+ *
+ */
 public enum DirectoryHandling {
-	INTERNAL, EXTERNAL;
+	/**
+	 * Handle directories within JDime.
+	 */
+	INTERNAL, 
+	
+	/**
+	 * Let external merge engines handle the directories.
+	 */
+	EXTERNAL;
 }

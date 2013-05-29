@@ -93,8 +93,8 @@ public final class Main {
 	/**
 	 * Determines where directories should be handled for recursive merges.
 	 */
-	private static DirectoryHandling directoryHandling = 
-			DirectoryHandling.INTERNAL;
+	private static DirectoryHandling directoryHandling 
+	= DirectoryHandling.INTERNAL;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -102,14 +102,17 @@ public final class Main {
 	 * @param args
 	 *            command line arguments
 	 * @throws IOException
-	 *             IOException
+	 *             If an input or output exception occurs
 	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws UnsupportedMergeTypeException 
-	 * @throws NotYetImplementedException 
+	 *             If a thread is interrupted
+	 * @throws UnsupportedMergeTypeException
+	 *             If an unknown type of merge is selected
+	 * @throws NotYetImplementedException
+	 *             If functions are reached that are not implemented yet
 	 */
 	public static void main(final String[] args) throws IOException,
-			InterruptedException, UnsupportedMergeTypeException, NotYetImplementedException {
+			InterruptedException, UnsupportedMergeTypeException,
+			NotYetImplementedException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -145,9 +148,8 @@ public final class Main {
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
 		options.addOption("r", false, "merge directories recursively");
-		options.addOption("xr", false,
-				"merge directories recursively, " 
-						+ "handled by external merge engine");
+		options.addOption("xr", false, "merge directories recursively, "
+				+ "handled by external merge engine");
 		options.addOption("showconfig", false,
 				"print configuration information");
 		options.addOption("stdout", false, "prints merge result to stdout");
@@ -226,7 +228,7 @@ public final class Main {
 			return inputArtifacts;
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " 
-					+ Arrays.toString(args));
+		+ Arrays.toString(args));
 			LOG.fatal("aborting program");
 			e.printStackTrace();
 			exit(-1);
@@ -305,7 +307,8 @@ public final class Main {
 	/**
 	 * Prints configuration information.
 	 * 
-	 * @param exit whether to exit after printing the config
+	 * @param exit
+	 *            whether to exit after printing the config
 	 */
 	private static void showConfig(final boolean exit) {
 		System.out.println("Merge tool: " + mergeEngine);
@@ -326,19 +329,21 @@ public final class Main {
 	 *            list of files to merge in order left, base, right
 	 * @return MergeReport
 	 * @throws IOException
-	 *             IOException
+	 *             If an input or output exception occurs
 	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws UnsupportedMergeTypeException 
-	 * @throws NotYetImplementedException 
+	 *             If a thread is interrupted
+	 * @throws UnsupportedMergeTypeException
+	 *             If an unknown type of merge is selected
+	 * @throws NotYetImplementedException
+	 *             If functions are reached that are not implemented yet
 	 */
 	private static List<MergeReport> merge(final ArtifactList inputArtifacts)
-			throws IOException, InterruptedException, 
+			throws IOException, InterruptedException,
 			UnsupportedMergeTypeException, NotYetImplementedException {
 		assert inputArtifacts.size() >= MergeType.MINFILES 
-										: "Too few input files!";
+				: "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES 
-										: "Too many input files!";
+				: "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
 		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
@@ -395,7 +400,7 @@ public final class Main {
 					throw new UnsupportedOperationException();
 				} else {
 					// kick off the merge using JDime's directory handling.
-					reports = Merge.merge(mergeType, mergeEngine, 
+					reports = Merge.merge(mergeType, mergeEngine,
 							inputArtifacts);
 				}
 

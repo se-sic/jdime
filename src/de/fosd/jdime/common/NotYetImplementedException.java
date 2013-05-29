@@ -1,10 +1,20 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
 package de.fosd.jdime.common;
 
 /**
- * @author lessenic
+ * @author Olaf Lessenich
  *
  */
 public class NotYetImplementedException extends Exception {
@@ -12,45 +22,6 @@ public class NotYetImplementedException extends Exception {
 	/**
 	 * 
 	 */
-	public NotYetImplementedException() {
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param message
-	 */
-	public NotYetImplementedException(String message) {
-		super(message);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param cause
-	 */
-	public NotYetImplementedException(Throwable cause) {
-		super(cause);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param message
-	 * @param cause
-	 */
-	public NotYetImplementedException(String message, Throwable cause) {
-		super(message, cause);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @param message
-	 * @param cause
-	 * @param enableSuppression
-	 * @param writableStackTrace
-	 */
-	public NotYetImplementedException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-		// TODO Auto-generated constructor stub
-	}
+	private static final long serialVersionUID = -4810070779184281940L;
 
 }

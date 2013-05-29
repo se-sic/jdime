@@ -46,9 +46,11 @@ public class Structured implements MergeInterface {
 
 		MergeReport report = new DummyReport();
 
-		throw new UnsupportedOperationException();
-		
-		//return report;
+		if (report instanceof DummyReport) {
+			throw new UnsupportedOperationException();
+		}
+
+		return report;
 	}
 
 }
