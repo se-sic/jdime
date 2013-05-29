@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -21,15 +31,17 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.DirectoryHandling;
 import de.fosd.jdime.common.Merge;
 import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
 
 /**
- * @author lessenic
+ * @author Olaf Lessenich
  * 
  */
 public final class Main {
@@ -92,9 +104,10 @@ public final class Main {
 	 *             IOException
 	 * @throws InterruptedException
 	 *             InterruptedException
+	 * @throws UnsupportedMergeTypeException 
 	 */
 	public static void main(final String[] args) throws IOException,
-			InterruptedException {
+			InterruptedException, UnsupportedMergeTypeException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -102,7 +115,7 @@ public final class Main {
 		setLogLevel("INFO");
 		LOG.debug("starting program");
 
-		List<Artifact> inputFiles = parseCommandLineArgs(args);
+		ArtifactList inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
 		List<MergeReport> reports = merge(inputFiles);
@@ -119,7 +132,7 @@ public final class Main {
 	 *            command line arguments
 	 * @return List of input files
 	 */
-	private static List<Artifact> parseCommandLineArgs(final String[] args) {
+	private static ArtifactList parseCommandLineArgs(final String[] args) {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -196,7 +209,7 @@ public final class Main {
 			}
 
 			// prepare the list of input files
-			List<Artifact> inputArtifacts = new ArrayList<Artifact>();
+			ArtifactList inputArtifacts = new ArtifactList();
 
 			for (Object filename : cmd.getArgList()) {
 				try {
@@ -311,9 +324,11 @@ public final class Main {
 	 *             IOException
 	 * @throws InterruptedException
 	 *             InterruptedException
+	 * @throws UnsupportedMergeTypeException 
 	 */
-	private static List<MergeReport> merge(final List<Artifact> inputArtifacts)
-			throws IOException, InterruptedException {
+	private static List<MergeReport> merge(final ArtifactList inputArtifacts)
+			throws IOException, InterruptedException, 
+			UnsupportedMergeTypeException {
 		assert inputArtifacts.size() >= MergeType.MINFILES 
 										: "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES 

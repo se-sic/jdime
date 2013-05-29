@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -15,7 +25,7 @@ import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
 
 /**
- * @author lessenic
+ * @author Olaf Lessenich
  * 
  */
 public final class Merge {
@@ -47,10 +57,13 @@ public final class Merge {
 	 *             IOException
 	 * @throws InterruptedException
 	 *             InterruptedException
+	 * @throws UnsupportedMergeTypeException
+	 *             UnsupportedMergeTypeException
 	 */
 	public static List<MergeReport> merge(final MergeType mergeType,
-			final MergeEngine engine, final List<Artifact> inputArtifacts)
-			throws EngineNotFoundException, IOException, InterruptedException {
+			final MergeEngine engine, final ArtifactList inputArtifacts)
+			throws EngineNotFoundException, IOException, InterruptedException,
+			UnsupportedMergeTypeException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
@@ -90,30 +103,86 @@ public final class Merge {
 	 * @return list of operations
 	 * @throws FileNotFoundException
 	 *             FileNotFoundException
+	 * @throws UnsupportedMergeTypeException
+	 *             UnsupportedMergeTypeException
 	 */
 	private static OperationList calculateOperations(final MergeType mergeType,
-			final List<Artifact> inputArtifacts, final int depth,
-			final String commonPath) throws FileNotFoundException {
+			final ArtifactList inputArtifacts, final int depth,
+			final String commonPath) throws FileNotFoundException,
+			UnsupportedMergeTypeException {
 		OperationList operations = new OperationList();
+
+		Artifact left, base, right;
+
+		if (mergeType == MergeType.TWOWAY) {
+			left = inputArtifacts.get(0);
+			base = Artifact.createEmptyArtifact();
+			right = inputArtifacts.get(1);
+		} else if (mergeType == MergeType.THREEWAY) {
+			left = inputArtifacts.get(0);
+			base = inputArtifacts.get(1);
+			right = inputArtifacts.get(2);
+		} else {
+			throw new UnsupportedMergeTypeException();
+		}
+
 		boolean isDirectory = inputArtifacts.get(0).isDirectory();
 
 		if (!isDirectory) {
 			// easiest case: files only - just add a merge operation for them!
-			MergeTriple triple = null;
-
-			if (mergeType == MergeType.TWOWAY) {
-				triple = new MergeTriple(inputArtifacts.get(0),
-						Artifact.createEmptyArtifact(), inputArtifacts.get(1));
-			} else if (mergeType == MergeType.THREEWAY) {
-				triple = new MergeTriple(inputArtifacts.get(0),
-						inputArtifacts.get(1), inputArtifacts.get(2));
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Input artifacts are files.");
 			}
-
-			assert (triple != null);
+			MergeTriple triple = new MergeTriple(left, base, right);
 			operations.add(new MergeOperation(mergeType, triple));
 		} else {
 			// we are merging directories. we need to apply the standard
 			// three-way merge rules to the content of the directories.
+			
+			/* TODO/FIXME: The following code is no good.
+			 * Better would be:
+			 * 	1. hashmap (key: relative path; value: bitset for revisions)
+			 *  2. operationlist from hashmap
+			 *  3. visiting operations  
+			 */
+			
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Input artifacts are directories.");
+			}
+
+			if (mergeType == MergeType.TWOWAY) {
+				;
+			} else if (mergeType == MergeType.THREEWAY) {
+				assert (left.isDirectory() && base.isDirectory() && right
+						.isDirectory());
+
+				ArtifactList leftContent = left.getContent();
+				ArtifactList baseContent = base.getContent();
+				ArtifactList rightContent = right.getContent();
+
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Traversing the content of base revision:");
+				}
+
+				for (Artifact artifact : baseContent) {
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("\t* "
+								+ Artifact.computeRelativePath(artifact, base));
+					}
+
+					if (leftContent.containsRelative(artifact)) {
+						if (LOG.isDebugEnabled()) {
+							LOG.debug("\t\t(found in left)");
+						}
+						if (rightContent.containsRelative(artifact)) {
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("\t\t(found in right)");
+							}
+						}
+					}
+				}
+			}
+
 			// TODO
 			throw new UnsupportedOperationException();
 		}

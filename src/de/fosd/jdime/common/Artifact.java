@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -5,12 +15,11 @@ package de.fosd.jdime.common;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 
 /**
  * This class represents an artifact of a program.
  * 
- * @author lessenic
+ * @author Olaf Lessenich
  * 
  */
 public class Artifact {
@@ -23,14 +32,34 @@ public class Artifact {
 	 * Revision the artifact belongs to.
 	 */
 	private Revision revision;
-	
+
 	/**
 	 * Needed for missing base revisions.
 	 */
 	private boolean emptyDummy = false;
+	
+	/**
+	 * Parent artifact.
+	 */
+	private Artifact parent;
+
+	/**
+	 * @return the parent
+	 */
+	public final Artifact getParent() {
+		return parent;
+	}
+
+	/**
+	 * @param parent the parent to set
+	 */
+	public final void setParent(final Artifact parent) {
+		this.parent = parent;
+	}
 
 	/**
 	 * Returns true if this artifacy is an empty dummy.
+	 * 
 	 * @return true if this artifact is a empty dummy
 	 */
 	public final boolean isEmptyDummy() {
@@ -95,7 +124,7 @@ public class Artifact {
 	 *            separator
 	 * @return String representation
 	 */
-	public static String toString(final List<Artifact> list, final String sep) {
+	public static String toString(final ArtifactList list, final String sep) {
 		StringBuilder sb = new StringBuilder();
 		for (Artifact artifact : list) {
 			sb.append(artifact);
@@ -111,7 +140,7 @@ public class Artifact {
 	 *            of artifacts
 	 * @return comma-separated String
 	 */
-	public static String toString(final List<Artifact> list) {
+	public static String toString(final ArtifactList list) {
 		return Artifact.toString(list, " ");
 	}
 
@@ -140,6 +169,53 @@ public class Artifact {
 	 */
 	public final boolean isDirectory() {
 		return file.isDirectory();
+	}
+
+	/**
+	 * Returns the list of artifacts contained in this directory.
+	 * 
+	 * @return list of artifacts contained in this directory
+	 */
+	public final ArtifactList getContent() {
+		if (this.isDirectory()) {
+			ArtifactList contentArtifacts = new ArtifactList();
+			File[] content = file.listFiles();
+
+			for (int i = 0; i < content.length; i++) {
+				try {
+					Artifact child = new Artifact(this.revision, content[i]);
+					child.setParent(this);
+					contentArtifacts.add(child);
+				} catch (FileNotFoundException e) {
+					// this should not happen
+					e.printStackTrace();
+				}
+			}
+
+			return contentArtifacts;
+		} else {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/**
+	 * Computes the relative path of an artifact using a second artifact as
+	 * base.
+	 * 
+	 * @param artifact
+	 *            artifact whose relative path should be computed
+	 * @param base
+	 *            base artifact
+	 * @return relative path of artifact
+	 */
+	public static String computeRelativePath(final Artifact artifact,
+			final Artifact base) {
+		String relativePath = artifact.toString().substring(
+				base.toString().length());
+		while (relativePath.startsWith("/")) {
+			relativePath = relativePath.substring(1);
+		}
+		return relativePath;
 	}
 
 	/*
