@@ -12,9 +12,8 @@ package de.fosd.jdime.engine;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.MergeOperation;
 import de.fosd.jdime.common.MergeReport;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
 
 /**
  * Interface for the merge engines.
@@ -40,6 +39,6 @@ public interface MergeInterface {
 	 * @throws IOException IOException
 	 * @throws InterruptedException InterruptedException
 	 */
-	MergeReport merge(MergeType mergeType, MergeTriple triple)
+	MergeReport merge(MergeOperation operation)
 			throws IOException, InterruptedException;
 }

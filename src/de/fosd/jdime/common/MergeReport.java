@@ -30,16 +30,8 @@ public class MergeReport {
 	 * StdOut of a merge operation.
 	 */
 	private StringWriter stdErr;
-
-	/**
-	 * Type of merge.
-	 */
-	private MergeType mergeType;
-
-	/**
-	 * List of input files.
-	 */
-	private MergeTriple mergeTriple;
+	
+	private Operation operation;
 
 	/**
 	 * Creates a new instance of MergeReport.
@@ -49,12 +41,10 @@ public class MergeReport {
 	 * @param mergeTriple
 	 *            merge scenario
 	 */
-	public MergeReport(final MergeType mergeType,
-			final MergeTriple mergeTriple) {
+	public MergeReport(final Operation operation) {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
-		this.mergeType = mergeType;
-		this.mergeTriple = mergeTriple;
+		this.operation = operation;
 	}
 
 	/**
@@ -111,22 +101,14 @@ public class MergeReport {
 	}
 
 	/**
-	 * Returns merge type.
+	 * Returns operation.
 	 * 
-	 * @return merge type.
+	 * @return operation.
 	 */
-	public final MergeType getMergeType() {
-		return mergeType;
+	public final Operation getOperation() {
+		return operation;
 	}
 
-	/**
-	 * Returns the merge triple.
-	 * 
-	 * @return merge triple
-	 */
-	public final MergeTriple getMergeTriple() {
-		return mergeTriple;
-	}
 	
 	public String toString() {
 		return getStdIn();

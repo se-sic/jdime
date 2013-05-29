@@ -20,9 +20,8 @@ import java.io.InputStreamReader;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.Main;
+import de.fosd.jdime.common.MergeOperation;
 import de.fosd.jdime.common.MergeReport;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
 
 /**
  * Performs a linebased merge.
@@ -48,15 +47,14 @@ public class Linebased implements MergeInterface {
 	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
-	public final MergeReport merge(final MergeType mergeType,
-			final MergeTriple triple) throws IOException, InterruptedException {
+	public final MergeReport merge(final MergeOperation operation) throws IOException, InterruptedException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug("Engine started: " + this.getClass().getName());
-		LOG.debug(mergeType.name() + " merge will be performed.");
+		LOG.debug(operation.getMergeType() + " merge will be performed.");
 
-		MergeReport report = new MergeReport(mergeType, triple);
+		MergeReport report = new MergeReport(operation);
 
-		String cmd = BASECMD + " " + triple.toString();
+		String cmd = BASECMD + " " + operation.getMergeTriple();
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)

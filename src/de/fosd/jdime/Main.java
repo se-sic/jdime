@@ -433,8 +433,7 @@ public final class Main {
 	 */
 	private static void printReport(final MergeReport report) {
 		if (!(report instanceof DummyReport)) {
-			LOG.debug("Output of " + report.getMergeType() + " merge of "
-				+ report.getMergeTriple());
+			LOG.debug("Output of operation '" + report.getOperation() + "'");
 		}
 		System.out.println(report);
 	}

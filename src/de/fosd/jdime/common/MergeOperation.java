@@ -42,10 +42,14 @@ public class MergeOperation extends Operation {
 	}
 	
 	public String toString() {
+		return "MERGE " + mergeType + " " + mergeTriple.toString(true);
+	}
+	
+	public String description() {
 		return "Merging " + mergeTriple.toString(true);
 	}
 	
 	public final MergeReport apply() throws EngineNotFoundException, IOException, InterruptedException {
-		return engine.merge(mergeType, mergeTriple);
+		return engine.merge(this);
 	}
 }

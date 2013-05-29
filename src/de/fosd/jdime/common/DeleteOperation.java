@@ -27,9 +27,12 @@ public class DeleteOperation extends Operation {
 	public DeleteOperation(Artifact artifact) {
 		this.artifact = artifact;
 	}
-	
-	
+		
 	public String toString() {
+		return "DELETE " + artifact.toString();
+	}
+	
+	public String description() {
 		return "Deleting " + artifact.toString();
 	}
 	

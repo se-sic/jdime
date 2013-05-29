@@ -95,7 +95,7 @@ public final class Merge {
 
 		for (Operation operation : operations) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug(operation);
+				LOG.debug(operation.description());
 			}
 			reports.add(operation.apply());		
 			

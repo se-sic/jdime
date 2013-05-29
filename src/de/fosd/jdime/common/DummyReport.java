@@ -13,13 +13,13 @@ public class DummyReport extends MergeReport {
 	 * @param mergeType
 	 * @param mergeTriple
 	 */
-	public DummyReport(MergeType mergeType, MergeTriple mergeTriple) {
-		super(mergeType, mergeTriple);
+	public DummyReport(Operation operation) {
+		super(operation);
 		// TODO Auto-generated constructor stub
 	}
 	
 	public DummyReport() {
-		super(null, null);
+		super(new DummyOperation());
 	}
 	
 	public String toString() {

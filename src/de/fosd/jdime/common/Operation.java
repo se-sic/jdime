@@ -25,4 +25,8 @@ public abstract class Operation {
 	public MergeReport apply()  throws EngineNotFoundException, IOException, InterruptedException, NotYetImplementedException {
 		throw new NotYetImplementedException();
 	}
+	
+	public String description() throws NotYetImplementedException {
+		throw new NotYetImplementedException();
+	}
 }

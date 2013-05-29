@@ -29,6 +29,10 @@ public class AddOperation extends Operation {
 	}
 	
 	public String toString() {
+		return "ADD " + artifact.toString();
+	}
+	
+	public String description() {
 		return "Adding " + artifact.toString();
 	}
 	
