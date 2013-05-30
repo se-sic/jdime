@@ -13,6 +13,8 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.io.StringWriter;
 
 import de.fosd.jdime.common.operations.Operation;
@@ -37,6 +39,31 @@ public class MergeReport {
 	 * Operation that was/will be applied.
 	 */
 	private Operation operation;
+	
+	/**
+	 * If set to true, no output is saved.
+	 */
+	private boolean quiet;
+	
+	/**
+	 * @return if quiet
+	 */
+	public final boolean isQuiet() {
+		return quiet;
+	}
+
+	/**
+	 * Creates a new instance of MergeReport.
+	 *
+	 * @param operation operation to apply
+	 * @param quiet If true, no output is saved.
+	 */
+	public MergeReport(final Operation operation, final boolean quiet) {
+		stdIn = new StringWriter();
+		stdErr = new StringWriter();
+		this.operation = operation;
+		this.quiet = quiet;
+	}
 
 	/**
 	 * Creates a new instance of MergeReport.
@@ -44,11 +71,9 @@ public class MergeReport {
 	 * @param operation operation to apply
 	 */
 	public MergeReport(final Operation operation) {
-		stdIn = new StringWriter();
-		stdErr = new StringWriter();
-		this.operation = operation;
+		this(operation, false);
 	}
-
+	
 	/**
 	 * Appends a line to the saved stdin buffer.
 	 * 
@@ -91,6 +116,15 @@ public class MergeReport {
 	 */
 	public final String getStdErr() {
 		return stdErr.toString();
+	}
+	/**
+	 * Returns a reader that can be used to retrieve the content of the
+	 * report.
+	 * 
+	 * @return Reader reader
+	 */
+	public final BufferedReader getReader() {
+		return new BufferedReader(new StringReader(stdIn.toString()));
 	}
 
 	/**

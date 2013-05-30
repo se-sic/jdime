@@ -37,6 +37,7 @@ import de.fosd.jdime.common.Merge;
 import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
@@ -86,6 +87,13 @@ public final class Main {
 	private static boolean printToStdout = false;
 
 	/**
+	 * @return if print results to stdout
+	 */
+	public static boolean isPrintToStdout() {
+		return printToStdout;
+	}
+
+	/**
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private static boolean recursive = false;
@@ -95,6 +103,11 @@ public final class Main {
 	 */
 	private static DirectoryHandling directoryHandling 
 	= DirectoryHandling.INTERNAL;
+
+	/**
+	 * Output artifact.
+	 */
+	private static Artifact output = null;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -123,7 +136,7 @@ public final class Main {
 		ArtifactList inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
-		List<MergeReport> reports = merge(inputFiles);
+		List<MergeReport> reports = merge(inputFiles, output);
 
 		assert reports != null;
 
@@ -136,8 +149,11 @@ public final class Main {
 	 * @param args
 	 *            command line arguments
 	 * @return List of input files
+	 * @throws FileNotFoundException
+	 *             If a file is not found
 	 */
-	private static ArtifactList parseCommandLineArgs(final String[] args) {
+	private static ArtifactList parseCommandLineArgs(final String[] args)
+			throws FileNotFoundException {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -147,6 +163,7 @@ public final class Main {
 		options.addOption("debug", true, "set debug level");
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
+		options.addOption("output", true, "output directory/file");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("xr", false, "merge directories recursively, "
 				+ "handled by external merge engine");
@@ -185,6 +202,11 @@ public final class Main {
 				if (mergeEngine == null) {
 					help(options, -1);
 				}
+			}
+
+			if (cmd.hasOption("output")) {
+				output = new Artifact(new Revision("merge"), new File(
+						cmd.getOptionValue("output")), false);
 			}
 
 			if (cmd.hasOption("r")) {
@@ -327,6 +349,7 @@ public final class Main {
 	 * 
 	 * @param inputArtifacts
 	 *            list of files to merge in order left, base, right
+	 * @param output output artifact
 	 * @return MergeReport
 	 * @throws IOException
 	 *             If an input or output exception occurs
@@ -337,7 +360,8 @@ public final class Main {
 	 * @throws NotYetImplementedException
 	 *             If functions are reached that are not implemented yet
 	 */
-	private static List<MergeReport> merge(final ArtifactList inputArtifacts)
+	public static List<MergeReport> merge(final ArtifactList inputArtifacts, 
+			final Artifact output)
 			throws IOException, InterruptedException,
 			UnsupportedMergeTypeException, NotYetImplementedException {
 		assert inputArtifacts.size() >= MergeType.MINFILES 
@@ -401,7 +425,7 @@ public final class Main {
 				} else {
 					// kick off the merge using JDime's directory handling.
 					reports = Merge.merge(mergeType, mergeEngine,
-							inputArtifacts);
+							inputArtifacts, output);
 				}
 
 				if (printToStdout) {

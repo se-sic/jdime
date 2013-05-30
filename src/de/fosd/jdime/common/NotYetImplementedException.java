@@ -20,6 +20,20 @@ package de.fosd.jdime.common;
 public class NotYetImplementedException extends Exception {
 
 	/**
+	 * @param message message
+	 */
+	public NotYetImplementedException(final String message) {
+		super(message);
+	}
+
+	/**
+	 * 
+	 */
+	public NotYetImplementedException() {
+		super();
+	}
+
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -4810070779184281940L;

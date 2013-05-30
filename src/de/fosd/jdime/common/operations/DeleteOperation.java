@@ -13,8 +13,8 @@
  */
 package de.fosd.jdime.common.operations;
 
+import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.DummyReport;
 import de.fosd.jdime.common.MergeReport;
 
 /**
@@ -66,8 +66,12 @@ public class DeleteOperation extends Operation {
 	 */
 	@Override
 	public final MergeReport apply() {
-		// TODO: create a real report
-		System.out.println("IMPLEMENT ME: DeleteOperation.apply()");
-		return new DummyReport();
+		MergeReport deleteReport = new MergeReport(this);
+
+		if (Main.isPrintToStdout()) {
+			deleteReport.appendLine(toString());
+		}
+		
+		return deleteReport;
 	}
 }

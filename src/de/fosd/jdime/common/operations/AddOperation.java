@@ -13,9 +13,13 @@
  */
 package de.fosd.jdime.common.operations;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+
+import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.DummyReport;
 import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.NotYetImplementedException;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -30,13 +34,30 @@ public class AddOperation extends Operation {
 	private Artifact artifact;
 
 	/**
+	 * The output <code>Artifact</code>.
+	 */
+	private Artifact output;
+	
+	/**
+	 * Sets the output <code>Artifact</code>.
+	 * 
+	 * @param output
+	 *            the output to set
+	 */
+	public final void setOutput(final Artifact output) {
+		this.output = output;
+	}
+
+	/**
 	 * Class constructor.
 	 * 
 	 * @param artifact
 	 *            that is added by the operation.
+	 * @param output output artifact
 	 */
-	public AddOperation(final Artifact artifact) {
+	public AddOperation(final Artifact artifact, final Artifact output) {
 		this.artifact = artifact;
+		this.output = output;
 	}
 
 	/*
@@ -65,9 +86,23 @@ public class AddOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final MergeReport apply() {
-		// TODO: create a real report
-		System.out.println("IMPLEMENT ME: AddOperation.apply()");
-		return new DummyReport();
+	public final MergeReport apply() throws NotYetImplementedException,
+			IOException {
+		MergeReport addReport = new MergeReport(this);
+
+		if (output != null) {
+			Artifact.copyArtifact(artifact, output);
+		}
+
+		if (Main.isPrintToStdout()) {
+			BufferedReader reader = artifact.getReader();
+			String line;
+			
+			while ((line = reader.readLine()) != null) {
+				addReport.appendLine(line);
+			}
+		}
+
+		return addReport;
 	}
 }

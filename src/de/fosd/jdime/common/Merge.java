@@ -14,7 +14,6 @@
 package de.fosd.jdime.common;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -38,22 +37,22 @@ import de.fosd.jdime.engine.MergeEngine;
  * 
  */
 public final class Merge {
-	
+
 	/**
 	 * Silencing checkstyle.
 	 */
 	private static final int ZERO = 0;
-	
+
 	/**
 	 * Silencing checkstyle.
 	 */
 	private static final int ONE = 1;
-	
+
 	/**
 	 * Silencing checkstyle.
 	 */
 	private static final int TWO = 2;
-	
+
 	/**
 	 * Silencing checkstyle.
 	 */
@@ -94,6 +93,8 @@ public final class Merge {
 	 *            merge engine
 	 * @param inputArtifacts
 	 *            input files
+	 * @param output
+	 *            output artifact
 	 * @return list of merge reports
 	 * @throws EngineNotFoundException
 	 *             if merge engine cannot be found
@@ -103,19 +104,21 @@ public final class Merge {
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
-	 * @throws NotYetImplementedException NotYetImplementedException
+	 * @throws NotYetImplementedException
+	 *             NotYetImplementedException
 	 */
 	public static List<MergeReport> merge(final MergeType mergeType,
-			final MergeEngine engine, final ArtifactList inputArtifacts)
-			throws EngineNotFoundException, IOException, InterruptedException,
-			UnsupportedMergeTypeException, NotYetImplementedException {
+			final MergeEngine engine, final ArtifactList inputArtifacts,
+			final Artifact output) throws EngineNotFoundException, IOException,
+			InterruptedException, UnsupportedMergeTypeException,
+			NotYetImplementedException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
 		List<MergeReport> reports = new LinkedList<MergeReport>();
 		OperationList operations = calculateOperations(mergeType, engine,
-				inputArtifacts);
+				inputArtifacts, output);
 
 		for (Operation operation : operations) {
 			if (LOG.isDebugEnabled()) {
@@ -133,18 +136,21 @@ public final class Merge {
 	 * 
 	 * @param mergeType
 	 *            type of merge
-	 * @param engine merge engine
+	 * @param engine
+	 *            merge engine
 	 * @param inputArtifacts
 	 *            input files
+	 * @param output
+	 *            output
 	 * @return list of operations
-	 * @throws FileNotFoundException
-	 *             FileNotFoundException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
+	 * @throws IOException If an input output exception occurs
 	 */
 	private static OperationList calculateOperations(final MergeType mergeType,
-			final MergeEngine engine, final ArtifactList inputArtifacts)
-			throws FileNotFoundException, UnsupportedMergeTypeException {
+			final MergeEngine engine, final ArtifactList inputArtifacts,
+			final Artifact output) throws UnsupportedMergeTypeException, 
+			IOException {
 		OperationList operations = new OperationList();
 
 		Artifact left, base, right;
@@ -177,7 +183,9 @@ public final class Merge {
 			}
 
 			MergeTriple triple = new MergeTriple(left, base, right);
-			operations.add(new MergeOperation(mergeType, triple, engine));
+			Artifact.createFile(output, false);
+			operations
+					.add(new MergeOperation(mergeType, triple, engine, output));
 		} else {
 			// To merge directories, we need to apply the standard three-way
 			// merge rules to the content of the directories.
@@ -244,7 +252,8 @@ public final class Merge {
 					LOG.debug(file + "\t" + sb.toString());
 				}
 
-				operations.addAll(applyMergeRule(revisions, file, bs, engine));
+				operations.addAll(applyMergeRule(revisions, output, file, bs,
+						engine));
 			}
 		}
 
@@ -254,20 +263,23 @@ public final class Merge {
 	/**
 	 * @param revisions
 	 *            array of revisions
+	 * @param output
+	 *            output artifact
 	 * @param file
 	 *            file
 	 * @param bs
 	 *            bitset
-	 * @param engine merge engine
+	 * @param engine
+	 *            merge engine
 	 * @return operation
-	 * @throws FileNotFoundException
-	 *             FileNotFoundException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
+	 * @throws IOException  if an input output exception occurs
 	 */
 	private static OperationList applyMergeRule(final Artifact[] revisions,
-			final String file, final BitSet bs, final MergeEngine engine)
-			throws FileNotFoundException, UnsupportedMergeTypeException {
+			final Artifact output, final String file, final BitSet bs,
+			final MergeEngine engine) throws UnsupportedMergeTypeException, 
+			IOException {
 		OperationList operations = new OperationList();
 
 		Artifact left = revisions[LEFTPOS];
@@ -295,7 +307,11 @@ public final class Merge {
 								+ File.separator + file)) : new Artifact(
 						right.getRevision(), new File(right.getPath()
 								+ File.separator + file));
-				operations.add(new AddOperation(added));
+				Artifact outputChild = output == null ? null : new Artifact(
+						output.getRevision(), new File(output.getPath()
+								+ File.separator + file), false);
+				Artifact.createFile(outputChild, added.isDirectory());
+				operations.add(new AddOperation(added, outputChild));
 			}
 			break;
 		case TWO:
@@ -313,8 +329,12 @@ public final class Merge {
 				tuple.add(leftChild);
 				tuple.add(rightChild);
 
+				Artifact outputChild = output == null ? null : new Artifact(
+						output.getRevision(), new File(output.getPath()
+								+ File.separator + file), false);
+
 				operations.addAll(calculateOperations(MergeType.TWOWAY, engine,
-						tuple));
+						tuple, outputChild));
 			} else {
 				// File was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
@@ -344,8 +364,12 @@ public final class Merge {
 			triple.add(baseChild);
 			triple.add(rightChild);
 
+			Artifact outputChild = output == null ? null : new Artifact(
+					output.getRevision(), new File(output.getPath()
+							+ File.separator + file), false);
+
 			operations.addAll(calculateOperations(MergeType.THREEWAY, engine,
-					triple));
+					triple, outputChild));
 			break;
 		default:
 			break;

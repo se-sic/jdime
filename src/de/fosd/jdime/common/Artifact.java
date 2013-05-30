@@ -13,10 +13,16 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * This class represents an artifact of a program.
@@ -43,7 +49,8 @@ public class Artifact {
 	}
 
 	/**
-	 * @param revision the revision to set
+	 * @param revision
+	 *            the revision to set
 	 */
 	public final void setRevision(final Revision revision) {
 		this.revision = revision;
@@ -90,20 +97,37 @@ public class Artifact {
 	 *            the artifact belongs to
 	 * @param file
 	 *            where the artifact is stored
+	 * @param checkPresence
+	 *            If true, an exception is thrown when the file does not exist
 	 * @throws FileNotFoundException
 	 *             FileNotFoundException
 	 */
-	public Artifact(final Revision revision, final File file)
-			throws FileNotFoundException {
+	public Artifact(final Revision revision, final File file,
+			final boolean checkPresence) throws FileNotFoundException {
 		assert file != null;
 
-		if (!file.exists()) {
+		if (checkPresence && !file.exists()) {
 			System.err.println("File not found: " + file.getAbsolutePath());
 			throw new FileNotFoundException();
 		}
 
 		this.revision = revision;
 		this.file = file;
+	}
+
+	/**
+	 * Creates a new instance of an artifact.
+	 * 
+	 * @param revision
+	 *            the artifact belongs to
+	 * @param file
+	 *            where the artifact is stored
+	 * @throws FileNotFoundException
+	 *             FileNotFoundException
+	 */
+	public Artifact(final Revision revision, final File file)
+			throws FileNotFoundException {
+		this(revision, file, true);
 	}
 
 	/**
@@ -219,13 +243,14 @@ public class Artifact {
 
 	/**
 	 * Returns the list of (relative) filenames contained in this directory.
+	 * 
 	 * @return list of relative filenames
 	 */
 	public final List<String> getRelativeContent() {
 		if (!this.isDirectory()) {
 			throw new UnsupportedOperationException();
 		}
-		
+
 		return Arrays.asList(file.list());
 	}
 
@@ -248,9 +273,10 @@ public class Artifact {
 		}
 		return relativePath;
 	}
-	
+
 	/**
 	 * Returns the path of this artifact.
+	 * 
 	 * @return path of the artifact
 	 */
 	public final String getPath() {
@@ -266,4 +292,111 @@ public class Artifact {
 	public final String toString() {
 		return file.getPath();
 	}
+
+	/**
+	 * Returns a reader that can be used to retrieve the content of the
+	 * artifact.
+	 * 
+	 * @return Reader
+	 * @throws FileNotFoundException
+	 *             If the artifact is a file which is not found
+	 * @throws NotYetImplementedException
+	 *             If a functionality is reached that is not implemented yet
+	 */
+	public final BufferedReader getReader() throws FileNotFoundException,
+			NotYetImplementedException {
+		if (isFile()) {
+			return new BufferedReader(new FileReader(file));
+		} else {
+			throw new NotYetImplementedException();
+		}
+	}
+
+	/**
+	 * Copies an <code>Artifact</code>.
+	 * 
+	 * @param source
+	 *            source artifact
+	 * @param destination
+	 *            destination artifact
+	 * @throws IOException
+	 *             If an input or output exception occurs.
+	 * @throws NotYetImplementedException
+	 *             If some functionality is reached that is not implemented yet.
+	 */
+	public static void copyArtifact(final Artifact source,
+			final Artifact destination) throws IOException,
+			NotYetImplementedException {
+		if (destination.isFile()) {
+			if (source.isFile()) {
+				// assert (!destination.exists()) :
+				// "File would be overwritten: "
+				// + destination;
+				FileUtils.copyFile(source.file, destination.file);
+			} else {
+				throw new UnsupportedOperationException(
+						"When copying to a file, "
+								+ "the source must also be a file.");
+			}
+		} else if (destination.isDirectory()) {
+			if (source.isFile()) {
+				assert (destination.exists()) 
+				: "Destination directory does not exist: "
+						+ destination;
+				FileUtils.copyFileToDirectory(source.file, destination.file);
+			} else if (source.isDirectory()) {
+				// assert (!destination.exists()) :
+				// "File would be overwritten: "
+				// + destination;
+				FileUtils.copyDirectory(source.file, destination.file);
+			}
+		} else {
+			throw new NotYetImplementedException(
+					"Only copying files and directories is supported by now.");
+		}
+	}
+
+	/**
+	 * Create a new file or directory.
+	 * 
+	 * @param artifact
+	 *            artifact that should be created
+	 * @param isDirectory
+	 *            if true, a directory is created
+	 * @throws IOException
+	 *             if an input output exception occurs
+	 */
+	public static void createFile(final Artifact artifact,
+			final boolean isDirectory) throws IOException {
+		assert (!artifact.exists()) : "File would be overwritten: " + artifact;
+
+		artifact.file.getParentFile().mkdirs();
+
+		if (isDirectory) {
+			artifact.file.mkdir();
+		} else {
+			artifact.file.createNewFile();
+		}
+	}
+
+	/**
+	 * Writes from a BufferedReader to the artifact.
+	 * 
+	 * @param reader
+	 *            reader
+	 * @throws IOException
+	 *             If an input output exception occurs.
+	 */
+	public final void write(final BufferedReader reader) throws IOException {
+		FileWriter writer = new FileWriter(file);
+
+		String line = "";
+		while ((line = reader.readLine()) != null) {
+			writer.append(line);
+			writer.append(System.getProperty("line.separator"));
+		}
+
+		writer.close();
+	}
+
 }

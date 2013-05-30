@@ -15,6 +15,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
@@ -44,6 +45,30 @@ public class MergeOperation extends Operation {
 	private MergeEngine engine;
 
 	/**
+	 * The output <code>Artifact</code>.
+	 */
+	private Artifact output;
+
+	/**
+	 * Returns the output <code>Artifact</code>.
+	 * 
+	 * @return the output artifact
+	 */
+	public final Artifact getOutput() {
+		return output;
+	}
+
+	/**
+	 * Sets the output <code>Artifact</code>.
+	 * 
+	 * @param output
+	 *            the output to set
+	 */
+	public final void setOutput(final Artifact output) {
+		this.output = output;
+	}
+
+	/**
 	 * Class constructor.
 	 * 
 	 * @param mergeType
@@ -52,12 +77,16 @@ public class MergeOperation extends Operation {
 	 *            triple containing <code>Artifact</code>s
 	 * @param engine
 	 *            that is used for the merge
+	 * @param output
+	 *            output <code>Artifact</code>
 	 */
 	public MergeOperation(final MergeType mergeType,
-			final MergeTriple mergeTriple, final MergeEngine engine) {
+			final MergeTriple mergeTriple, final MergeEngine engine,
+			final Artifact output) {
 		this.mergeType = mergeType;
 		this.mergeTriple = mergeTriple;
 		this.engine = engine;
+		this.output = output;
 	}
 
 	/**
@@ -78,7 +107,9 @@ public class MergeOperation extends Operation {
 		return mergeTriple;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -86,7 +117,9 @@ public class MergeOperation extends Operation {
 		return "MERGE " + mergeType + " " + mergeTriple.toString(true);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.operations.Operation#description()
 	 */
 	@Override
@@ -94,12 +127,21 @@ public class MergeOperation extends Operation {
 		return "Merging " + mergeTriple.toString(true);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
 	public final MergeReport apply() throws EngineNotFoundException,
 			IOException, InterruptedException {
-		return engine.merge(this);
+		MergeReport mergeReport = engine.merge(this);
+
+		if (output != null) {
+			assert (output.isFile()) : "Is not a file: " + output;
+			output.write(mergeReport.getReader());
+		}
+
+		return mergeReport;
 	}
 }
