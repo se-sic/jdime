@@ -25,6 +25,11 @@ import de.fosd.jdime.common.MergeReport;
  */
 public class DeleteOperation extends Operation {
 	/**
+	 * Logger.
+	 */
+	//private static final Logger LOG = Logger.getLogger(DeleteOperation.class);
+	
+	/**
 	 * The <code>Artifact</code> that is deleted by the operation.
 	 */
 	private Artifact artifact;
@@ -66,12 +71,15 @@ public class DeleteOperation extends Operation {
 	 */
 	@Override
 	public final MergeReport apply() {
+		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+		
 		MergeReport deleteReport = new MergeReport(this);
 
 		if (Main.isPrintToStdout()) {
 			deleteReport.appendLine(toString());
 		}
 		
+		assert (deleteReport != null) : "Report must not be null";
 		return deleteReport;
 	}
 }

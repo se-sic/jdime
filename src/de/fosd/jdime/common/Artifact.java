@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
@@ -31,6 +32,11 @@ import org.apache.commons.io.FileUtils;
  * 
  */
 public class Artifact {
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(Artifact.class);
+
 	/**
 	 * File in which the artifact is stored.
 	 */
@@ -113,6 +119,11 @@ public class Artifact {
 
 		this.revision = revision;
 		this.file = file;
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Artifact initialized: " + file.getPath());
+			LOG.trace("Artifact exists: " + file.exists());
+		}
 	}
 
 	/**
@@ -154,6 +165,7 @@ public class Artifact {
 		// about it!
 		Artifact newEmptyDummy = new Artifact(new File("/dev/null"));
 		newEmptyDummy.emptyDummy = true;
+		LOG.trace("Artifact is a dummy artifact.");
 		return newEmptyDummy;
 	}
 
@@ -282,6 +294,15 @@ public class Artifact {
 	public final String getPath() {
 		return file.getPath();
 	}
+	
+	/**
+	 * Returns the absolute path of this artifact.
+	 * 
+	 * @return absolute part of the artifact
+	 */
+	public final String getFullPath() {
+		return file.getAbsolutePath();
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -329,9 +350,13 @@ public class Artifact {
 			NotYetImplementedException {
 		if (destination.isFile()) {
 			if (source.isFile()) {
-				// assert (!destination.exists()) :
-				// "File would be overwritten: "
-				// + destination;
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Copying file " + source + " to file "
+							+ destination);
+					LOG.debug("Destination already exists overwriting: "
+							+ destination.exists());
+				}
+
 				FileUtils.copyFile(source.file, destination.file);
 			} else {
 				throw new UnsupportedOperationException(
@@ -341,13 +366,19 @@ public class Artifact {
 		} else if (destination.isDirectory()) {
 			if (source.isFile()) {
 				assert (destination.exists()) 
-				: "Destination directory does not exist: "
-						+ destination;
+				: "Destination directory does not exist: " + destination;
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Copying file " + source + " to directory "
+							+ destination);
+				}
 				FileUtils.copyFileToDirectory(source.file, destination.file);
 			} else if (source.isDirectory()) {
-				// assert (!destination.exists()) :
-				// "File would be overwritten: "
-				// + destination;
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Copying directory " + source + " to directory "
+							+ destination);
+					LOG.debug("Destination already exists overwriting: "
+							+ destination.exists());
+				}
 				FileUtils.copyDirectory(source.file, destination.file);
 			}
 		} else {
@@ -371,15 +402,58 @@ public class Artifact {
 		if (artifact == null) {
 			return;
 		}
+
+//		assert (!artifact.exists() || Main.isForceOverwriting()) 
+//		: "File would be overwritten: " + artifact;
+//
+//		if (artifact.exists()) {
+//			Artifact.remove(artifact);
+//		}
 		
 		assert (!artifact.exists()) : "File would be overwritten: " + artifact;
 
-		artifact.file.getParentFile().mkdirs();
+		boolean createdParents = artifact.file.getParentFile().mkdirs();
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Had to create parent directories: " + createdParents);
+		}
 
 		if (isDirectory) {
 			artifact.file.mkdir();
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Created directory " + artifact.file);
+			}
 		} else {
 			artifact.file.createNewFile();
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Created file" + artifact.file);
+			}
+		}
+	}
+
+	/**
+	 * Removes the artifact's file.
+	 * 
+	 * @throws IOException
+	 *             If an input output exception occurs
+	 */
+	public final void remove() throws IOException {
+		assert (exists() && !isEmptyDummy()) 
+		: "Tried to remove non-existing file: " + getFullPath();
+
+		if (isDirectory()) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Deleting directory recursively: " + file);
+			}
+			FileUtils.deleteDirectory(file);
+		} else if (isFile()) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Deleting file: " + file);
+			}
+			file.delete();
+		} else {
+			throw new UnsupportedOperationException(
+					"Only files and directories can be removed at the moment");
 		}
 	}
 
@@ -401,6 +475,14 @@ public class Artifact {
 		}
 
 		writer.close();
+	}
+	
+	/**
+	 * Returns true if the artifact is empty.
+	 * @return true if the artifact is empty
+	 */
+	public final boolean isEmpty() {
+		return FileUtils.sizeOf(file) == 0;
 	}
 
 }

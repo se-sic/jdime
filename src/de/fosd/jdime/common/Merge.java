@@ -120,20 +120,21 @@ public final class Merge {
 		while (!stack.isEmpty()) {
 			Operation operation = stack.pop();
 			if (LOG.isDebugEnabled()) {
+				LOG.trace("Popped " + operation.getClass().getSimpleName()
+						+ " from stack.");
 				LOG.debug(operation.description());
 			}
-			
+
 			MergeReport report = operation.apply();
-			
+
 			if (Main.isPrintToStdout()) {
 				System.out.println(report.getStdIn());
-				
+
 				if (report.hasErrors()) {
 					System.err.println(report.getStdErr());
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -183,14 +184,12 @@ public final class Merge {
 
 		if (!isDirectory) {
 			// To merge files, we just have to create a merge operation.
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Input artifacts are files.");
-			}
+			LOG.debug("Input artifacts are files.");
 
 			MergeTriple triple = new MergeTriple(left, base, right);
 			Artifact.createFile(output, false);
 			stack.push(new MergeOperation(mergeType, triple, engine, output));
+			LOG.trace("Pushed MergeOperation to stack");
 		} else {
 			// To merge directories, we need to apply the standard three-way
 			// merge rules to the content of the directories.
@@ -199,9 +198,7 @@ public final class Merge {
 				assert (artifact.isDirectory() || artifact.isEmptyDummy());
 			}
 
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Input artifacts are directories.");
-			}
+			LOG.debug("Input artifacts are directories.");
 
 			HashMap<String, BitSet> filemap = new HashMap<String, BitSet>();
 
@@ -310,6 +307,7 @@ public final class Merge {
 				Artifact deleted = new Artifact(base.getRevision(), new File(
 						base.getPath() + File.separator + file));
 				stack.push(new DeleteOperation(deleted));
+				LOG.trace("Pushed DeleteOperation to stack");
 			} else {
 				// File was added in either left or right revision.
 				Artifact added = bs.get(LEFTPOS) ? new Artifact(
@@ -322,7 +320,9 @@ public final class Merge {
 								+ File.separator + file), false);
 				Artifact.createFile(outputChild, added.isDirectory());
 				stack.push(new AddOperation(added, outputChild));
+				LOG.trace("Pushed AddOperation to stack");
 			}
+			
 			break;
 		case TWO:
 			// File exists in two revisions.
@@ -360,7 +360,9 @@ public final class Merge {
 								+ File.separator + file));
 
 				stack.push(new DeleteOperation(deleted));
+				LOG.trace("Pushed DeleteOperation to stack");
 			}
+			
 			break;
 		case THREE:
 			// File exists in three revisions.
@@ -388,9 +390,10 @@ public final class Merge {
 			while (!substack.isEmpty()) {
 				stack.push(substack.pop());
 			}
+			
 			break;
 		default:
-			break;
+			throw new UnsupportedMergeTypeException();
 		}
 
 		return stack;

@@ -30,6 +30,11 @@ import de.fosd.jdime.engine.MergeEngine;
  */
 public class MergeOperation extends Operation {
 	/**
+	 * Logger.
+	 */
+	//private static final Logger LOG = Logger.getLogger(MergeOperation.class);
+	
+	/**
 	 * Type of merge.
 	 */
 	private MergeType mergeType;
@@ -135,6 +140,14 @@ public class MergeOperation extends Operation {
 	@Override
 	public final MergeReport apply() throws EngineNotFoundException,
 			IOException, InterruptedException {
+		assert (mergeTriple.getLeft().exists()) 
+		: "Left artifact does not exist: " + mergeTriple.getLeft();
+		assert (mergeTriple.getRight().exists()) 
+		: "Right artifact does not exist: " + mergeTriple.getRight();
+		assert (mergeTriple.getBase().isEmptyDummy() 
+				|| mergeTriple.getBase().exists()) 
+				: "Base artifact does not exist: " + mergeTriple.getBase();
+		
 		MergeReport mergeReport = engine.merge(this);
 
 		if (output != null) {
@@ -142,6 +155,7 @@ public class MergeOperation extends Operation {
 			output.write(mergeReport.getReader());
 		}
 	
+		assert (mergeReport != null) : "Report must not be null";
 		return mergeReport;
 	}
 }

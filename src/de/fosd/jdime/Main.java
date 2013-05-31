@@ -13,9 +13,11 @@
  */
 package de.fosd.jdime;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
@@ -94,6 +96,18 @@ public final class Main {
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private static boolean recursive = false;
+	
+	/**
+	 * Force overwriting of existing output files.
+	 */
+	private static boolean forceOverwriting = false;
+
+	/**
+	 * @return the forceOverwriting
+	 */
+	public static boolean isForceOverwriting() {
+		return forceOverwriting;
+	}
 
 	/**
 	 * Determines where directories should be handled for recursive merges.
@@ -144,11 +158,10 @@ public final class Main {
 	 * @param args
 	 *            command line arguments
 	 * @return List of input files
-	 * @throws FileNotFoundException
-	 *             If a file is not found
+	 * @throws IOException 
 	 */
 	private static ArtifactList parseCommandLineArgs(final String[] args)
-			throws FileNotFoundException {
+			throws IOException {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -159,6 +172,7 @@ public final class Main {
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined)");
 		options.addOption("output", true, "output directory/file");
+		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("xr", false, "merge directories recursively, "
 				+ "handled by external merge engine");
@@ -202,6 +216,27 @@ public final class Main {
 			if (cmd.hasOption("output")) {
 				output = new Artifact(new Revision("merge"), new File(
 						cmd.getOptionValue("output")), false);
+				if (output.exists() && !output.isEmpty()) {
+					System.err.println("Output directory is not empty!");
+					System.err.println("Delete '" + output.getFullPath() 
+							+ "'? [y/N]");
+					BufferedReader reader = new BufferedReader(
+							new InputStreamReader(System.in));
+					String response = reader.readLine();
+					
+					if (response.length() == 0 
+							|| response.toLowerCase().charAt(0) != 'y') {
+						System.err.println("File not overwritten. Exiting.");
+						exit(1);
+					} else {
+						output.remove();
+					}
+					
+				}
+			}
+			
+			if (cmd.hasOption("f")) {
+				forceOverwriting = true;
 			}
 
 			if (cmd.hasOption("r")) {
@@ -304,7 +339,7 @@ public final class Main {
 	 *            May be OFF, FATAL, ERROR, WARN, INFO, DEBUG or ALL
 	 */
 	private static void setLogLevel(final String loglevel) {
-		LOG.setLevel(Level.toLevel(loglevel));
+		Logger.getRootLogger().setLevel(Level.toLevel(loglevel));
 	}
 
 	/**
@@ -329,9 +364,6 @@ public final class Main {
 	 */
 	private static void showConfig(final boolean exit) {
 		System.out.println("Merge tool: " + mergeEngine);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("File seperator: " + File.separator);
-		}
 		System.out.println();
 
 		if (exit) {
@@ -367,11 +399,9 @@ public final class Main {
 		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
 				: MergeType.THREEWAY;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(mergeType.getClass() + ": "
+		LOG.debug(mergeType.getClass() + ": "
 					+ Artifact.toString(inputArtifacts));
-		}
-
+		
 		boolean validInput = true;
 		int directories = 0;
 

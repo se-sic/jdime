@@ -29,6 +29,11 @@ import de.fosd.jdime.common.NotYetImplementedException;
  */
 public class AddOperation extends Operation {
 	/**
+	 * Logger.
+	 */
+	//private static final Logger LOG = Logger.getLogger(AddOperation.class);
+	
+	/**
 	 * The <code>Artifact</code> that is added by the operation.
 	 */
 	private Artifact artifact;
@@ -91,6 +96,7 @@ public class AddOperation extends Operation {
 		MergeReport addReport = new MergeReport(this);
 
 		if (output != null) {
+			assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 			Artifact.copyArtifact(artifact, output);
 		}
 
@@ -103,6 +109,7 @@ public class AddOperation extends Operation {
 			}
 		}
 
+		assert (addReport != null) : "Report must not be null";
 		return addReport;
 	}
 }
