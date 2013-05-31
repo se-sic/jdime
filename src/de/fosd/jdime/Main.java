@@ -33,9 +33,9 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.DirectoryHandling;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.Merge;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.engine.EngineNotFoundException;
@@ -118,7 +118,7 @@ public final class Main {
 	/**
 	 * Output artifact.
 	 */
-	private static Artifact output = null;
+	private static FileArtifact output = null;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -131,12 +131,9 @@ public final class Main {
 	 *             If a thread is interrupted
 	 * @throws UnsupportedMergeTypeException
 	 *             If an unknown type of merge is selected
-	 * @throws NotYetImplementedException
-	 *             If functions are reached that are not implemented yet
 	 */
 	public static void main(final String[] args) throws IOException,
-			InterruptedException, UnsupportedMergeTypeException,
-			NotYetImplementedException {
+			InterruptedException, UnsupportedMergeTypeException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -214,7 +211,7 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
-				output = new Artifact(new Revision("merge"), new File(
+				output = new FileArtifact(new Revision("merge"), new File(
 						cmd.getOptionValue("output")), false);
 				if (output.exists() && !output.isEmpty()) {
 					System.err.println("Output directory is not empty!");
@@ -270,7 +267,7 @@ public final class Main {
 			for (Object filename : cmd.getArgList()) {
 				try {
 					inputArtifacts
-							.add(new Artifact(new File((String) filename)));
+							.add(new FileArtifact(new File((String) filename)));
 				} catch (FileNotFoundException e) {
 					System.err.println("Input file not found: "
 							+ (String) filename);
@@ -383,13 +380,11 @@ public final class Main {
 	 *             If a thread is interrupted
 	 * @throws UnsupportedMergeTypeException
 	 *             If an unknown type of merge is selected
-	 * @throws NotYetImplementedException
-	 *             If functions are reached that are not implemented yet
 	 */
 	public static void merge(final ArtifactList inputArtifacts, 
 			final Artifact output)
 			throws IOException, InterruptedException,
-			UnsupportedMergeTypeException, NotYetImplementedException {
+			UnsupportedMergeTypeException {
 		assert inputArtifacts.size() >= MergeType.MINFILES 
 				: "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES 
@@ -400,13 +395,13 @@ public final class Main {
 				: MergeType.THREEWAY;
 
 		LOG.debug(mergeType.getClass() + ": "
-					+ Artifact.toString(inputArtifacts));
+					+ Artifact.getNames(inputArtifacts));
 		
 		boolean validInput = true;
 		int directories = 0;
 
 		for (int pos = 0; pos < mergeType.getNumFiles(); pos++) {
-			Artifact artifact = inputArtifacts.get(pos);
+			FileArtifact artifact = (FileArtifact) inputArtifacts.get(pos);
 			if (!artifact.exists()) {
 				validInput = false;
 				System.err.println(mergeType.getRevision(pos) + " input file"

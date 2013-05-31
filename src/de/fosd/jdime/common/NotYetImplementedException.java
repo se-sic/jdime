@@ -17,7 +17,7 @@ package de.fosd.jdime.common;
  * @author Olaf Lessenich
  *
  */
-public class NotYetImplementedException extends Exception {
+public class NotYetImplementedException extends RuntimeException {
 
 	/**
 	 * @param message message

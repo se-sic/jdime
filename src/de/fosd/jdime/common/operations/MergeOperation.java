@@ -151,7 +151,6 @@ public class MergeOperation extends Operation {
 		MergeReport mergeReport = engine.merge(this);
 
 		if (output != null) {
-			assert (output.isFile()) : "Is not a file: " + output;
 			output.write(mergeReport.getReader());
 		}
 	

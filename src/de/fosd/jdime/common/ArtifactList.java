@@ -25,27 +25,4 @@ public class ArtifactList extends LinkedList<Artifact> {
 	 * 
 	 */
 	private static final long serialVersionUID = 5294838641795231473L;
-
-	/**
-	 * Returns true if this list contains the specified element.
-	 * 
-	 * @param artifact
-	 *            element whose presence in this list is to be tested
-	 * @return true if this list contains the specified element
-	 */
-	public final boolean containsRelative(final Artifact artifact) {
-		String relativeArtifact = Artifact.computeRelativePath(artifact,
-				artifact.getParent());
-		
-		for (Artifact elem : this) {
-			String relativeElem = Artifact.computeRelativePath(elem,
-					elem.getParent());
-
-			if (relativeElem.equals(relativeArtifact)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
 }

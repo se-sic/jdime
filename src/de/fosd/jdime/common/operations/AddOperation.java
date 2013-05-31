@@ -15,6 +15,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 
 import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
@@ -31,8 +32,8 @@ public class AddOperation extends Operation {
 	/**
 	 * Logger.
 	 */
-	//private static final Logger LOG = Logger.getLogger(AddOperation.class);
-	
+	// private static final Logger LOG = Logger.getLogger(AddOperation.class);
+
 	/**
 	 * The <code>Artifact</code> that is added by the operation.
 	 */
@@ -42,7 +43,7 @@ public class AddOperation extends Operation {
 	 * The output <code>Artifact</code>.
 	 */
 	private Artifact output;
-	
+
 	/**
 	 * Sets the output <code>Artifact</code>.
 	 * 
@@ -58,7 +59,8 @@ public class AddOperation extends Operation {
 	 * 
 	 * @param artifact
 	 *            that is added by the operation.
-	 * @param output output artifact
+	 * @param output
+	 *            output artifact
 	 */
 	public AddOperation(final Artifact artifact, final Artifact output) {
 		this.artifact = artifact;
@@ -72,7 +74,7 @@ public class AddOperation extends Operation {
 	 */
 	@Override
 	public final String toString() {
-		return "ADD " + artifact.toString();
+		return "ADD " + artifact;
 	}
 
 	/*
@@ -82,7 +84,7 @@ public class AddOperation extends Operation {
 	 */
 	@Override
 	public final String description() {
-		return "Adding " + artifact.toString();
+		return "Adding " + artifact;
 	}
 
 	/*
@@ -97,13 +99,14 @@ public class AddOperation extends Operation {
 
 		if (output != null) {
 			assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-			Artifact.copyArtifact(artifact, output);
+			artifact.copyArtifact(output);
 		}
 
 		if (Main.isPrintToStdout()) {
-			BufferedReader reader = artifact.getReader();
+			BufferedReader reader = new BufferedReader(new StringReader(
+					artifact.toString()));
 			String line;
-			
+
 			while ((line = reader.readLine()) != null) {
 				addReport.appendLine(line);
 			}

@@ -13,11 +13,9 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -102,14 +100,11 @@ public final class Merge {
 	 *             InterruptedException
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
-	 * @throws NotYetImplementedException
-	 *             NotYetImplementedException
 	 */
 	public static void merge(final MergeType mergeType,
 			final MergeEngine engine, final ArtifactList inputArtifacts,
 			final Artifact output) throws EngineNotFoundException, IOException,
-			InterruptedException, UnsupportedMergeTypeException,
-			NotYetImplementedException {
+			InterruptedException, UnsupportedMergeTypeException {
 		LOG.setLevel(Main.getLogLevel());
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
@@ -164,7 +159,7 @@ public final class Merge {
 
 		if (mergeType == MergeType.TWOWAY) {
 			left = inputArtifacts.get(0);
-			base = Artifact.createEmptyArtifact();
+			base = left.createEmptyDummy();
 			right = inputArtifacts.get(1);
 		} else if (mergeType == MergeType.THREEWAY) {
 			left = inputArtifacts.get(0);
@@ -174,20 +169,23 @@ public final class Merge {
 			throw new UnsupportedMergeTypeException();
 		}
 
+		assert (left.getClass().equals(right.getClass())) 
+				: "Only artifacts of the same type can be merged";
+
 		left.setRevision(new Revision("left"));
 		base.setRevision(new Revision("base"));
 		right.setRevision(new Revision("right"));
 
 		Artifact[] revisions = { left, base, right };
 
-		boolean isDirectory = left.isDirectory();
+		boolean isLeaf = left.isLeaf();
 
-		if (!isDirectory) {
+		if (isLeaf) {
 			// To merge files, we just have to create a merge operation.
 			LOG.debug("Input artifacts are files.");
 
 			MergeTriple triple = new MergeTriple(left, base, right);
-			Artifact.createFile(output, false);
+			left.createArtifact(output, isLeaf);
 			stack.push(new MergeOperation(mergeType, triple, engine, output));
 			LOG.trace("Pushed MergeOperation to stack");
 		} else {
@@ -195,32 +193,32 @@ public final class Merge {
 			// merge rules to the content of the directories.
 
 			for (Artifact artifact : revisions) {
-				assert (artifact.isDirectory() || artifact.isEmptyDummy());
+				assert (!artifact.isLeaf() || artifact.isEmptyDummy());
 			}
 
 			LOG.debug("Input artifacts are directories.");
 
-			HashMap<String, BitSet> filemap = new HashMap<String, BitSet>();
+			HashMap<Artifact, BitSet> map = new HashMap<Artifact, BitSet>();
 
 			// The revisions in which each file exists, are stored in filemap.
 			for (int i = 0; i < revisions.length; i++) {
-				Artifact directory = revisions[i];
+				Artifact cur = revisions[i];
 
-				if (directory.isEmptyDummy()) {
+				if (cur.isEmptyDummy()) {
 					// base is a dummy for 2-way merges
 					continue;
 				}
-
-				List<String> content = directory.getRelativeContent();
-
-				for (String file : content) {
+				
+				ArtifactList children = cur.getChildren();
+				
+				for (Artifact child : children) {
 					BitSet bs;
 
-					if (filemap.containsKey(file)) {
-						bs = filemap.get(file);
+					if (map.containsKey(child)) {
+						bs = map.get(child);
 					} else {
 						bs = new BitSet(revisions.length);
-						filemap.put(file, bs);
+						map.put(child, bs);
 					}
 
 					bs.set(i);
@@ -229,8 +227,8 @@ public final class Merge {
 
 			// For each file it has to be decided which operation to perform.
 			// This is done by applying the standard 3-way merge rules.
-			for (Map.Entry<String, BitSet> entry : filemap.entrySet()) {
-				String file = entry.getKey();
+			for (Map.Entry<Artifact, BitSet> entry : map.entrySet()) {
+				Artifact child = entry.getKey();
 				BitSet bs = entry.getValue();
 
 				if (LOG.isDebugEnabled()) {
@@ -251,11 +249,11 @@ public final class Merge {
 					}
 
 					sb.append(" ]");
-					LOG.debug(file + "\t" + sb.toString());
+					LOG.debug(child.getId() + "\t" + sb.toString());
 				}
 
 				OperationStack substack = applyMergeRule(revisions, output,
-						file, bs, engine);
+						child, bs, engine);
 
 				while (!substack.isEmpty()) {
 					stack.push(substack.pop());
@@ -271,20 +269,20 @@ public final class Merge {
 	 *            array of revisions
 	 * @param output
 	 *            output artifact
-	 * @param file
-	 *            file
+	 * @param child
+	 *            child artifact
 	 * @param bs
 	 *            bitset
 	 * @param engine
 	 *            merge engine
-	 * @return operation stackof operations
+	 * @return operation stack of operations
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
 	 * @throws IOException
 	 *             if an input output exception occurs
 	 */
 	private static OperationStack applyMergeRule(final Artifact[] revisions,
-			final Artifact output, final String file, final BitSet bs,
+			final Artifact output, final Artifact child, final BitSet bs,
 			final MergeEngine engine) throws UnsupportedMergeTypeException,
 			IOException {
 		OperationStack stack = new OperationStack();
@@ -304,25 +302,17 @@ public final class Merge {
 			// This is an addition or a deletion.
 			if (bs.get(BASEPOS)) {
 				// File was deleted in base.
-				Artifact deleted = new Artifact(base.getRevision(), new File(
-						base.getPath() + File.separator + file));
+				Artifact deleted = base.getChild(child);
 				stack.push(new DeleteOperation(deleted));
 				LOG.trace("Pushed DeleteOperation to stack");
 			} else {
 				// File was added in either left or right revision.
-				Artifact added = bs.get(LEFTPOS) ? new Artifact(
-						left.getRevision(), new File(left.getPath()
-								+ File.separator + file)) : new Artifact(
-						right.getRevision(), new File(right.getPath()
-								+ File.separator + file));
-				Artifact outputChild = output == null ? null : new Artifact(
-						output.getRevision(), new File(output.getPath()
-								+ File.separator + file), false);
-				Artifact.createFile(outputChild, added.isDirectory());
-				stack.push(new AddOperation(added, outputChild));
+				Artifact added = bs.get(LEFTPOS) ? left.getChild(child) 
+												 : right.getChild(child);
+				stack.push(new AddOperation(added, output));
 				LOG.trace("Pushed AddOperation to stack");
 			}
-			
+
 			break;
 		case TWO:
 			// File exists in two revisions.
@@ -331,18 +321,14 @@ public final class Merge {
 				// This is a 2-way merge.
 				ArtifactList tuple = new ArtifactList();
 
-				Artifact leftChild = new Artifact(left.getRevision(), new File(
-						left.getPath() + File.separator + file));
-				Artifact rightChild = new Artifact(right.getRevision(),
-						new File(right.getPath() + File.separator + file));
-
+				Artifact leftChild = left.getChild(child);
+				Artifact rightChild = right.getChild(child);
+				Artifact outputChild = output == null ? null
+													  : output.addChild(child);
+				
 				tuple.add(leftChild);
 				tuple.add(rightChild);
-
-				Artifact outputChild = output == null ? null : new Artifact(
-						output.getRevision(), new File(output.getPath()
-								+ File.separator + file), false);
-
+				
 				OperationStack substack = calculateOperations(MergeType.TWOWAY,
 						engine, tuple, outputChild);
 
@@ -353,44 +339,36 @@ public final class Merge {
 				// File was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
 
-				Artifact deleted = bs.get(LEFTPOS) ? new Artifact(
-						left.getRevision(), new File(left.getPath()
-								+ File.separator + file)) : new Artifact(
-						right.getRevision(), new File(right.getPath()
-								+ File.separator + file));
+				Artifact deleted = bs.get(LEFTPOS) ? left.getChild(child)
+												   : right.getChild(child);
 
 				stack.push(new DeleteOperation(deleted));
 				LOG.trace("Pushed DeleteOperation to stack");
 			}
-			
+
 			break;
 		case THREE:
 			// File exists in three revisions.
 			// This is a classical 3-way merge.
 			ArtifactList triple = new ArtifactList();
 
-			Artifact leftChild = new Artifact(left.getRevision(), new File(
-					left.getPath() + File.separator + file));
-			Artifact baseChild = new Artifact(base.getRevision(), new File(
-					base.getPath() + File.separator + file));
-			Artifact rightChild = new Artifact(right.getRevision(), new File(
-					right.getPath() + File.separator + file));
+			Artifact leftChild = left.getChild(child);
+			Artifact baseChild = base.getChild(child);
+			Artifact rightChild = right.getChild(child);
+			Artifact outputChild = output == null ? null 
+												  : output.addChild(child);
 
 			triple.add(leftChild);
 			triple.add(baseChild);
 			triple.add(rightChild);
-
-			Artifact outputChild = output == null ? null : new Artifact(
-					output.getRevision(), new File(output.getPath()
-							+ File.separator + file), false);
-
+			
 			OperationStack substack = calculateOperations(MergeType.THREEWAY,
 					engine, triple, outputChild);
 
 			while (!substack.isEmpty()) {
 				stack.push(substack.pop());
 			}
-			
+
 			break;
 		default:
 			throw new UnsupportedMergeTypeException();

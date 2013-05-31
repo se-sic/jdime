@@ -51,7 +51,7 @@ public class DeleteOperation extends Operation {
 	 */
 	@Override
 	public final String toString() {
-		return "DELETE " + artifact.toString();
+		return "DELETE " + artifact;
 	}
 
 	/*
@@ -61,7 +61,7 @@ public class DeleteOperation extends Operation {
 	 */
 	@Override
 	public final String description() {
-		return "Deleting " + artifact.toString();
+		return "Deleting " + artifact;
 	}
 
 	/*
