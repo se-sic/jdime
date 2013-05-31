@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -32,9 +31,7 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.DirectoryHandling;
-import de.fosd.jdime.common.DummyReport;
 import de.fosd.jdime.common.Merge;
-import de.fosd.jdime.common.MergeReport;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
@@ -136,9 +133,7 @@ public final class Main {
 		ArtifactList inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
-		List<MergeReport> reports = merge(inputFiles, output);
-
-		assert reports != null;
+		merge(inputFiles, output);
 
 		exit(0);
 	}
@@ -350,7 +345,6 @@ public final class Main {
 	 * @param inputArtifacts
 	 *            list of files to merge in order left, base, right
 	 * @param output output artifact
-	 * @return MergeReport
 	 * @throws IOException
 	 *             If an input or output exception occurs
 	 * @throws InterruptedException
@@ -360,7 +354,7 @@ public final class Main {
 	 * @throws NotYetImplementedException
 	 *             If functions are reached that are not implemented yet
 	 */
-	public static List<MergeReport> merge(final ArtifactList inputArtifacts, 
+	public static void merge(final ArtifactList inputArtifacts, 
 			final Artifact output)
 			throws IOException, InterruptedException,
 			UnsupportedMergeTypeException, NotYetImplementedException {
@@ -415,8 +409,6 @@ public final class Main {
 			exit(-1);
 		} else {
 			try {
-				List<MergeReport> reports = null;
-
 				if (directoryHandling == DirectoryHandling.EXTERNAL) {
 					// just pipe the input to the engine and rely on its own
 					// directory handling. might be nice for external tools.
@@ -424,25 +416,14 @@ public final class Main {
 					throw new UnsupportedOperationException();
 				} else {
 					// kick off the merge using JDime's directory handling.
-					reports = Merge.merge(mergeType, mergeEngine,
+					Merge.merge(mergeType, mergeEngine,
 							inputArtifacts, output);
 				}
-
-				if (printToStdout) {
-					for (MergeReport report : reports) {
-						printReport(report);
-					}
-				}
-
-				return reports;
 			} catch (EngineNotFoundException e) {
 				LOG.fatal(e.getMessage());
 				exit(-1);
 			}
 		}
-
-		// should not happen
-		return null;
 	}
 
 	/**
@@ -452,19 +433,6 @@ public final class Main {
 	 */
 	public static Level getLogLevel() {
 		return LOG.getLevel();
-	}
-
-	/**
-	 * Prints the output of a merge.
-	 * 
-	 * @param report
-	 *            MergeReport
-	 */
-	private static void printReport(final MergeReport report) {
-		if (!(report instanceof DummyReport)) {
-			LOG.debug("Output of operation '" + report.getOperation() + "'");
-		}
-		System.out.println(report);
 	}
 
 }

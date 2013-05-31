@@ -368,6 +368,10 @@ public class Artifact {
 	 */
 	public static void createFile(final Artifact artifact,
 			final boolean isDirectory) throws IOException {
+		if (artifact == null) {
+			return;
+		}
+		
 		assert (!artifact.exists()) : "File would be overwritten: " + artifact;
 
 		artifact.file.getParentFile().mkdirs();

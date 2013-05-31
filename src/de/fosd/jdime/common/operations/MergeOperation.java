@@ -141,7 +141,7 @@ public class MergeOperation extends Operation {
 			assert (output.isFile()) : "Is not a file: " + output;
 			output.write(mergeReport.getReader());
 		}
-
+	
 		return mergeReport;
 	}
 }

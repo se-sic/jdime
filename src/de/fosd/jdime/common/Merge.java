@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +27,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.common.operations.OperationList;
+import de.fosd.jdime.common.operations.OperationStack;
 import de.fosd.jdime.engine.EngineNotFoundException;
 import de.fosd.jdime.engine.MergeEngine;
 
@@ -95,7 +94,6 @@ public final class Merge {
 	 *            input files
 	 * @param output
 	 *            output artifact
-	 * @return list of merge reports
 	 * @throws EngineNotFoundException
 	 *             if merge engine cannot be found
 	 * @throws IOException
@@ -107,7 +105,7 @@ public final class Merge {
 	 * @throws NotYetImplementedException
 	 *             NotYetImplementedException
 	 */
-	public static List<MergeReport> merge(final MergeType mergeType,
+	public static void merge(final MergeType mergeType,
 			final MergeEngine engine, final ArtifactList inputArtifacts,
 			final Artifact output) throws EngineNotFoundException, IOException,
 			InterruptedException, UnsupportedMergeTypeException,
@@ -116,19 +114,26 @@ public final class Merge {
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
 
-		List<MergeReport> reports = new LinkedList<MergeReport>();
-		OperationList operations = calculateOperations(mergeType, engine,
+		OperationStack stack = calculateOperations(mergeType, engine,
 				inputArtifacts, output);
 
-		for (Operation operation : operations) {
+		while (!stack.isEmpty()) {
+			Operation operation = stack.pop();
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(operation.description());
 			}
-			reports.add(operation.apply());
-
+			
+			MergeReport report = operation.apply();
+			
+			if (Main.isPrintToStdout()) {
+				System.out.println(report.getStdIn());
+				
+				if (report.hasErrors()) {
+					System.err.println(report.getStdErr());
+				}
+			}
 		}
 
-		return reports;
 	}
 
 	/**
@@ -142,16 +147,17 @@ public final class Merge {
 	 *            input files
 	 * @param output
 	 *            output
-	 * @return list of operations
+	 * @return stack of operations
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
-	 * @throws IOException If an input output exception occurs
+	 * @throws IOException
+	 *             If an input output exception occurs
 	 */
-	private static OperationList calculateOperations(final MergeType mergeType,
-			final MergeEngine engine, final ArtifactList inputArtifacts,
-			final Artifact output) throws UnsupportedMergeTypeException, 
-			IOException {
-		OperationList operations = new OperationList();
+	private static OperationStack calculateOperations(
+			final MergeType mergeType, final MergeEngine engine,
+			final ArtifactList inputArtifacts, final Artifact output)
+			throws UnsupportedMergeTypeException, IOException {
+		OperationStack stack = new OperationStack();
 
 		Artifact left, base, right;
 
@@ -184,8 +190,7 @@ public final class Merge {
 
 			MergeTriple triple = new MergeTriple(left, base, right);
 			Artifact.createFile(output, false);
-			operations
-					.add(new MergeOperation(mergeType, triple, engine, output));
+			stack.push(new MergeOperation(mergeType, triple, engine, output));
 		} else {
 			// To merge directories, we need to apply the standard three-way
 			// merge rules to the content of the directories.
@@ -252,12 +257,16 @@ public final class Merge {
 					LOG.debug(file + "\t" + sb.toString());
 				}
 
-				operations.addAll(applyMergeRule(revisions, output, file, bs,
-						engine));
+				OperationStack substack = applyMergeRule(revisions, output,
+						file, bs, engine);
+
+				while (!substack.isEmpty()) {
+					stack.push(substack.pop());
+				}
 			}
 		}
 
-		return operations;
+		return stack;
 	}
 
 	/**
@@ -271,16 +280,17 @@ public final class Merge {
 	 *            bitset
 	 * @param engine
 	 *            merge engine
-	 * @return operation
+	 * @return operation stackof operations
 	 * @throws UnsupportedMergeTypeException
 	 *             UnsupportedMergeTypeException
-	 * @throws IOException  if an input output exception occurs
+	 * @throws IOException
+	 *             if an input output exception occurs
 	 */
-	private static OperationList applyMergeRule(final Artifact[] revisions,
+	private static OperationStack applyMergeRule(final Artifact[] revisions,
 			final Artifact output, final String file, final BitSet bs,
-			final MergeEngine engine) throws UnsupportedMergeTypeException, 
+			final MergeEngine engine) throws UnsupportedMergeTypeException,
 			IOException {
-		OperationList operations = new OperationList();
+		OperationStack stack = new OperationStack();
 
 		Artifact left = revisions[LEFTPOS];
 		Artifact base = revisions[BASEPOS];
@@ -299,7 +309,7 @@ public final class Merge {
 				// File was deleted in base.
 				Artifact deleted = new Artifact(base.getRevision(), new File(
 						base.getPath() + File.separator + file));
-				operations.add(new DeleteOperation(deleted));
+				stack.push(new DeleteOperation(deleted));
 			} else {
 				// File was added in either left or right revision.
 				Artifact added = bs.get(LEFTPOS) ? new Artifact(
@@ -311,7 +321,7 @@ public final class Merge {
 						output.getRevision(), new File(output.getPath()
 								+ File.separator + file), false);
 				Artifact.createFile(outputChild, added.isDirectory());
-				operations.add(new AddOperation(added, outputChild));
+				stack.push(new AddOperation(added, outputChild));
 			}
 			break;
 		case TWO:
@@ -333,8 +343,12 @@ public final class Merge {
 						output.getRevision(), new File(output.getPath()
 								+ File.separator + file), false);
 
-				operations.addAll(calculateOperations(MergeType.TWOWAY, engine,
-						tuple, outputChild));
+				OperationStack substack = calculateOperations(MergeType.TWOWAY,
+						engine, tuple, outputChild);
+
+				while (!substack.isEmpty()) {
+					stack.push(substack.pop());
+				}
 			} else {
 				// File was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
@@ -345,7 +359,7 @@ public final class Merge {
 						right.getRevision(), new File(right.getPath()
 								+ File.separator + file));
 
-				operations.add(new DeleteOperation(deleted));
+				stack.push(new DeleteOperation(deleted));
 			}
 			break;
 		case THREE:
@@ -368,13 +382,17 @@ public final class Merge {
 					output.getRevision(), new File(output.getPath()
 							+ File.separator + file), false);
 
-			operations.addAll(calculateOperations(MergeType.THREEWAY, engine,
-					triple, outputChild));
+			OperationStack substack = calculateOperations(MergeType.THREEWAY,
+					engine, triple, outputChild);
+
+			while (!substack.isEmpty()) {
+				stack.push(substack.pop());
+			}
 			break;
 		default:
 			break;
 		}
 
-		return operations;
+		return stack;
 	}
 }
