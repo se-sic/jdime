@@ -19,22 +19,26 @@ public abstract class Artifact {
 	private Revision revision;
 
 	/**
-	 * 
+	 * If true, this artifact is an empty dummy.
 	 */
 	private boolean emptyDummy = false;
 
 	/**
-	 * @return the leaf
+	 * Returns true, if the artifact is a leaf.
+	 * 
+	 * @return true, if the artifact is a leaf
 	 */
 	public abstract boolean isLeaf();
 
 	/**
-	 * 
+	 * Children of the artifact.
 	 */
 	private ArtifactList children = null;
 
 	/**
-	 * @return the children
+	 * Returns the children of the artifact.
+	 * 
+	 * @return the children of the artifact
 	 */
 	public final ArtifactList getChildren() {
 		if (children == null) {
@@ -45,14 +49,18 @@ public abstract class Artifact {
 	}
 
 	/**
+	 * Sets the children of the artifact.
+	 * 
 	 * @param children
-	 *            the children to set
+	 *            the new children to set
 	 */
 	public final void setChildren(final ArtifactList children) {
 		this.children = children;
 	}
 
 	/**
+	 * Returns the number of children the artifact has.
+	 * 
 	 * @return number of children
 	 */
 	public final int getNumChildren() {
@@ -108,22 +116,28 @@ public abstract class Artifact {
 	public abstract Artifact addChild(final Artifact child) throws IOException;
 
 	/**
+	 * Set whether the artifact is an empty dummy.
+	 * 
 	 * @param emptyDummy
-	 *            the emptyDummy to set
+	 *            true, if the artifact is an emptyDummy
 	 */
 	public final void setEmptyDummy(final boolean emptyDummy) {
 		this.emptyDummy = emptyDummy;
 	}
 
 	/**
-	 * @return the emptyDummy
+	 * Returns whether the artifact is an empty dummy.
+	 * 
+	 * @return true, if the artifact is an empty dummy.
 	 */
 	public final boolean isEmptyDummy() {
 		return emptyDummy;
 	}
 
 	/**
-	 * @return the revision
+	 * Returns the revision the artifact belongs to.
+	 * 
+	 * @return the revision the artifact belongs to.
 	 */
 	public final Revision getRevision() {
 		return revision;
@@ -143,13 +157,17 @@ public abstract class Artifact {
 	private Artifact parent;
 
 	/**
-	 * @return the parent
+	 * Returns the parent artifact.
+	 * 
+	 * @return the parent artifact
 	 */
 	public final Artifact getParent() {
 		return parent;
 	}
 
 	/**
+	 * Sets the parent artifact.
+	 * 
 	 * @param parent
 	 *            the parent to set
 	 */
@@ -176,11 +194,15 @@ public abstract class Artifact {
 	 * @return String representation
 	 */
 	public static String getNames(final ArtifactList list, final String sep) {
-		StringBuilder sb = new StringBuilder();
+		assert (sep != null);
+		assert (list != null);
+		
+		StringBuilder sb = new StringBuilder("");
 		for (Artifact artifact : list) {
 			sb.append(artifact.getName());
 			sb.append(sep);
 		}
+		
 		return sb.toString();
 	}
 

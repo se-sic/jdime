@@ -105,10 +105,15 @@ public final class Merge {
 			final MergeEngine engine, final ArtifactList inputArtifacts,
 			final Artifact output) throws EngineNotFoundException, IOException,
 			InterruptedException, UnsupportedMergeTypeException {
-		LOG.setLevel(Main.getLogLevel());
+		assert (mergeType != null);
+		assert (engine != null);
+		assert (inputArtifacts != null);
+		assert (inputArtifacts.size() >= MergeType.MINFILES);
+		assert (inputArtifacts.size() <= MergeType.MAXFILES);
+				
 		LOG.debug(Merge.class.getName());
 		LOG.debug(mergeType.name() + " merge will be performed.");
-
+		
 		OperationStack stack = calculateOperations(mergeType, engine,
 				inputArtifacts, output);
 
@@ -130,6 +135,8 @@ public final class Merge {
 				}
 			}
 		}
+		
+		assert (stack.isEmpty());
 	}
 
 	/**
@@ -153,6 +160,12 @@ public final class Merge {
 			final MergeType mergeType, final MergeEngine engine,
 			final ArtifactList inputArtifacts, final Artifact output)
 			throws UnsupportedMergeTypeException, IOException {
+		assert (mergeType != null);
+		assert (engine != null);
+		assert (inputArtifacts != null);
+		assert (inputArtifacts.size() >= MergeType.MINFILES);
+		assert (inputArtifacts.size() <= MergeType.MAXFILES);
+		
 		OperationStack stack = new OperationStack();
 
 		Artifact left, base, right;
@@ -171,6 +184,8 @@ public final class Merge {
 
 		assert (left.getClass().equals(right.getClass())) 
 				: "Only artifacts of the same type can be merged";
+		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass()))
+				: "Only artifacts of the same type can be merged";
 
 		left.setRevision(new Revision("left"));
 		base.setRevision(new Revision("base"));
@@ -182,6 +197,11 @@ public final class Merge {
 
 		if (isLeaf) {
 			// To merge leaves, we just have to create a merge operation.
+			
+			for (Artifact artifact : revisions) {
+				assert (artifact.isLeaf() || artifact.isEmptyDummy());
+			}
+						
 			LOG.debug("Input artifacts are leaves.");
 
 			MergeTriple triple = new MergeTriple(left, base, right);
@@ -211,6 +231,8 @@ public final class Merge {
 				
 				ArtifactList children = cur.getChildren();
 				
+				assert (children != null);
+				
 				for (Artifact child : children) {
 					BitSet bs;
 
@@ -230,6 +252,9 @@ public final class Merge {
 			for (Map.Entry<Artifact, BitSet> entry : map.entrySet()) {
 				Artifact child = entry.getKey();
 				BitSet bs = entry.getValue();
+				
+				assert (child != null);
+				assert (bs != null);
 
 				if (LOG.isDebugEnabled()) {
 					StringBuilder sb = new StringBuilder();
@@ -258,6 +283,8 @@ public final class Merge {
 				while (!substack.isEmpty()) {
 					stack.push(substack.pop());
 				}
+				
+				assert (substack.isEmpty());
 			}
 		}
 
@@ -285,6 +312,13 @@ public final class Merge {
 			final Artifact output, final Artifact child, final BitSet bs,
 			final MergeEngine engine) throws UnsupportedMergeTypeException,
 			IOException {
+		assert (engine != null);
+		assert (revisions != null);
+		assert (revisions.length >= MergeType.MINFILES);
+		assert (revisions.length <= MergeType.MAXFILES);
+		assert (child != null);
+		assert (bs != null);
+		
 		OperationStack stack = new OperationStack();
 
 		Artifact left = revisions[LEFTPOS];
@@ -303,12 +337,14 @@ public final class Merge {
 			if (bs.get(BASEPOS)) {
 				// Artifact was deleted in base.
 				Artifact deleted = base.getChild(child);
+				assert (deleted != null);
 				stack.push(new DeleteOperation(deleted));
 				LOG.trace("Pushed DeleteOperation to stack");
 			} else {
 				// Artifact was added in either left or right revision.
 				Artifact added = bs.get(LEFTPOS) ? left.getChild(child) 
 												 : right.getChild(child);
+				assert (added != null);
 				stack.push(new AddOperation(added, output));
 				LOG.trace("Pushed AddOperation to stack");
 			}
@@ -326,6 +362,10 @@ public final class Merge {
 				Artifact outputChild = output == null ? null
 													  : output.addChild(child);
 				
+				assert (leftChild != null);
+				assert (rightChild != null);
+				assert (output == null || outputChild != null);
+				
 				tuple.add(leftChild);
 				tuple.add(rightChild);
 				
@@ -335,13 +375,15 @@ public final class Merge {
 				while (!substack.isEmpty()) {
 					stack.push(substack.pop());
 				}
+				
+				assert (substack.isEmpty());
 			} else {
 				// Artifact was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
 
 				Artifact deleted = bs.get(LEFTPOS) ? left.getChild(child)
 												   : right.getChild(child);
-
+				assert (deleted != null);
 				stack.push(new DeleteOperation(deleted));
 				LOG.trace("Pushed DeleteOperation to stack");
 			}
@@ -357,7 +399,11 @@ public final class Merge {
 			Artifact rightChild = right.getChild(child);
 			Artifact outputChild = output == null ? null 
 												  : output.addChild(child);
-
+			assert (leftChild != null);
+			assert (baseChild != null);
+			assert (rightChild != null);
+			assert (output == null || outputChild != null);
+			
 			triple.add(leftChild);
 			triple.add(baseChild);
 			triple.add(rightChild);
@@ -368,6 +414,8 @@ public final class Merge {
 			while (!substack.isEmpty()) {
 				stack.push(substack.pop());
 			}
+			
+			assert (substack.isEmpty());
 
 			break;
 		default:

@@ -59,7 +59,7 @@ public class FileArtifact extends Artifact {
 		assert file != null;
 
 		if (checkPresence && !file.exists()) {
-			System.err.println("File not found: " + file.getAbsolutePath());
+			LOG.fatal("File not found: " + file.getAbsolutePath());
 			throw new FileNotFoundException();
 		}
 
@@ -103,18 +103,18 @@ public class FileArtifact extends Artifact {
 	public final Artifact createEmptyDummy() throws FileNotFoundException {
 		// FIXME: The following works only for Unix-like systems. Do something
 		// about it!
-		Artifact myEmptyDummy = new FileArtifact(new File("/dev/null"));
+		File dummyFile = new File("/dev/null");
+		assert (dummyFile.exists());
+		
+		Artifact myEmptyDummy = new FileArtifact(dummyFile);
 		myEmptyDummy.setEmptyDummy(true);
 		LOG.trace("Artifact is a dummy artifact.");
 		return myEmptyDummy;
 	}
 
-	/**
-	 * Returns true if artifact exists.
-	 * 
-	 * @return true if artifact exists
-	 */
+	@Override
 	public final boolean exists() {
+		assert (file != null);
 		return file.exists();
 	}
 
@@ -142,9 +142,7 @@ public class FileArtifact extends Artifact {
 	 * @return list of artifacts contained in this directory
 	 */
 	public final ArtifactList getDirContent() {
-		if (!this.isDirectory()) {
-			throw new UnsupportedOperationException();
-		}
+		assert (isDirectory());
 
 		ArtifactList contentArtifacts = new ArtifactList();
 		File[] content = file.listFiles();
@@ -161,7 +159,6 @@ public class FileArtifact extends Artifact {
 		}
 
 		return contentArtifacts;
-
 	}
 
 	/**
@@ -170,10 +167,7 @@ public class FileArtifact extends Artifact {
 	 * @return list of relative filenames
 	 */
 	public final List<String> getRelativeDirContent() {
-		if (!this.isDirectory()) {
-			throw new UnsupportedOperationException();
-		}
-
+		assert (isDirectory());
 		return Arrays.asList(file.list());
 	}
 
@@ -240,6 +234,8 @@ public class FileArtifact extends Artifact {
 	@Override
 	public final void copyArtifact(final Artifact destination)
 			throws IOException {
+		assert (destination != null);
+		
 		if (((FileArtifact) destination).isFile()) {
 			if (isFile()) {
 				if (LOG.isDebugEnabled()) {
@@ -277,7 +273,7 @@ public class FileArtifact extends Artifact {
 			}
 		} else {
 			throw new NotYetImplementedException(
-					"Only copying files and directories is supported by now.");
+					"Only copying files and directories is supported.");
 		}
 	}
 
@@ -294,6 +290,8 @@ public class FileArtifact extends Artifact {
 		// if (artifact.exists()) {
 		// Artifact.remove(artifact);
 		// }
+		
+		assert (artifact instanceof FileArtifact);
 
 		FileArtifact fileartifact = (FileArtifact) artifact;
 
@@ -318,6 +316,8 @@ public class FileArtifact extends Artifact {
 			}
 			
 		}
+		
+		assert (fileartifact.exists());
 
 		return fileartifact;
 	}
@@ -346,6 +346,8 @@ public class FileArtifact extends Artifact {
 			throw new UnsupportedOperationException(
 					"Only files and directories can be removed at the moment");
 		}
+		
+		assert (!exists());
 	}
 
 	/**
@@ -379,6 +381,8 @@ public class FileArtifact extends Artifact {
 
 	@Override
 	public final void initializeChildren() {
+		assert (exists());
+		
 		if (isDirectory()) {
 			setChildren(getDirContent());
 		} else {
@@ -388,6 +392,8 @@ public class FileArtifact extends Artifact {
 
 	@Override
 	public final Artifact addChild(final Artifact child) throws IOException {
+		assert (child != null);
+		
 		assert (!isLeaf()) 
 					: "Child elements can not be added to leaf artifacts. "
 						+ "isLeaf(" + this + ") = " + isLeaf();
@@ -409,6 +415,10 @@ public class FileArtifact extends Artifact {
 	 */
 	@Override
 	public final Artifact getChild(final Artifact otherChild) {
+		assert (otherChild != null);
+		assert (!isLeaf());
+		assert (exists());
+		
 		for (Artifact myChild : getChildren()) {
 			if (myChild.equals(otherChild)) {
 				return myChild;

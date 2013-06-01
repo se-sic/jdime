@@ -95,10 +95,11 @@ public class AddOperation extends Operation {
 	@Override
 	public final MergeReport apply() throws NotYetImplementedException,
 			IOException {
+		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+		
 		MergeReport addReport = new MergeReport(this);
 
 		if (output != null) {
-			assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 			artifact.copyArtifact(output);
 		}
 
