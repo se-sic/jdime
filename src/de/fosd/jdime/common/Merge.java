@@ -82,14 +82,14 @@ public final class Merge {
 	private static final Logger LOG = Logger.getLogger(Merge.class);
 
 	/**
-	 * Performs a merge on files or directories.
+	 * Performs a merge on artifacts.
 	 * 
 	 * @param mergeType
 	 *            type of merge
 	 * @param engine
 	 *            merge engine
 	 * @param inputArtifacts
-	 *            input files
+	 *            input artifacts
 	 * @param output
 	 *            output artifact
 	 * @throws EngineNotFoundException
@@ -140,7 +140,7 @@ public final class Merge {
 	 * @param engine
 	 *            merge engine
 	 * @param inputArtifacts
-	 *            input files
+	 *            input artifacts
 	 * @param output
 	 *            output
 	 * @return stack of operations
@@ -181,26 +181,26 @@ public final class Merge {
 		boolean isLeaf = left.isLeaf();
 
 		if (isLeaf) {
-			// To merge files, we just have to create a merge operation.
-			LOG.debug("Input artifacts are files.");
+			// To merge leaves, we just have to create a merge operation.
+			LOG.debug("Input artifacts are leaves.");
 
 			MergeTriple triple = new MergeTriple(left, base, right);
 			left.createArtifact(output, isLeaf);
 			stack.push(new MergeOperation(mergeType, triple, engine, output));
 			LOG.trace("Pushed MergeOperation to stack");
 		} else {
-			// To merge directories, we need to apply the standard three-way
-			// merge rules to the content of the directories.
+			// To merge inner nodes, we need to apply the standard three-way
+			// merge rules to the children of the inner nodes.
 
 			for (Artifact artifact : revisions) {
 				assert (!artifact.isLeaf() || artifact.isEmptyDummy());
 			}
 
-			LOG.debug("Input artifacts are directories.");
+			LOG.debug("Input artifacts are inner nodes.");
 
 			HashMap<Artifact, BitSet> map = new HashMap<Artifact, BitSet>();
 
-			// The revisions in which each file exists, are stored in filemap.
+			// The revisions in which each artifact exists, are stored in map.
 			for (int i = 0; i < revisions.length; i++) {
 				Artifact cur = revisions[i];
 
@@ -225,8 +225,8 @@ public final class Merge {
 				}
 			}
 
-			// For each file it has to be decided which operation to perform.
-			// This is done by applying the standard 3-way merge rules.
+			// For each artifact it has to be decided which operation to 
+			// perform. This is done by applying the standard 3-way merge rules.
 			for (Map.Entry<Artifact, BitSet> entry : map.entrySet()) {
 				Artifact child = entry.getKey();
 				BitSet bs = entry.getValue();
@@ -293,20 +293,20 @@ public final class Merge {
 
 		switch (bs.cardinality()) {
 		case ZERO:
-			// File exists in 0 revisions.
+			// Artifact exists in 0 revisions.
 			// This should never happen and is treated as error.
 			throw new RuntimeException(
-					"Ghost files! I do not know how to merge this!");
+					"Ghost artifacts! I do not know how to merge this!");
 		case ONE:
-			// File exists in exactly 1 revision.
+			// Artifact exists in exactly 1 revision.
 			// This is an addition or a deletion.
 			if (bs.get(BASEPOS)) {
-				// File was deleted in base.
+				// Artifact was deleted in base.
 				Artifact deleted = base.getChild(child);
 				stack.push(new DeleteOperation(deleted));
 				LOG.trace("Pushed DeleteOperation to stack");
 			} else {
-				// File was added in either left or right revision.
+				// Artifact was added in either left or right revision.
 				Artifact added = bs.get(LEFTPOS) ? left.getChild(child) 
 												 : right.getChild(child);
 				stack.push(new AddOperation(added, output));
@@ -315,7 +315,7 @@ public final class Merge {
 
 			break;
 		case TWO:
-			// File exists in two revisions.
+			// Artifact exists in two revisions.
 			// This is a 2-way merge or a deletion.
 			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
 				// This is a 2-way merge.
@@ -336,7 +336,7 @@ public final class Merge {
 					stack.push(substack.pop());
 				}
 			} else {
-				// File was deleted in either left or right revision.
+				// Artifact was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
 
 				Artifact deleted = bs.get(LEFTPOS) ? left.getChild(child)
@@ -348,7 +348,7 @@ public final class Merge {
 
 			break;
 		case THREE:
-			// File exists in three revisions.
+			// Artifact exists in three revisions.
 			// This is a classical 3-way merge.
 			ArtifactList triple = new ArtifactList();
 

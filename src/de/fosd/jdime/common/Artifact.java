@@ -183,11 +183,6 @@ public abstract class Artifact {
 		}
 		return sb.toString();
 	}
-	
-	@Override
-	public int hashCode() {
-		throw new UnsupportedOperationException();
-	}
 
 	/**
 	 * Returns a comma-separated String representing a list of artifacts.
@@ -217,6 +212,12 @@ public abstract class Artifact {
 	 */
 	public abstract void copyArtifact(final Artifact destination)
 			throws IOException;
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public abstract int hashCode();
 
 	/*
 	 * (non-Javadoc)
@@ -224,7 +225,7 @@ public abstract class Artifact {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString() {
+	public final String toString() {
 		return this.getName();
 	}
 
