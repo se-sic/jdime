@@ -11,7 +11,7 @@
 /**
  * 
  */
-package de.fosd.jdime.engine;
+package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,8 +19,9 @@ import java.io.InputStreamReader;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.Main;
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
@@ -29,12 +30,12 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * @author Olaf Lessenich
  * 
  */
-public class Linebased implements MergeInterface {
+public class LinebasedStrategy extends MergeStrategy {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Linebased.class);
+	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
 
 	/**
 	 * Constant prefix of the base merge command.
@@ -47,15 +48,34 @@ public class Linebased implements MergeInterface {
 	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
-	public final MergeReport merge(final MergeOperation operation)
+	public final void merge(final MergeOperation operation, 
+			final MergeContext context)
 			throws IOException, InterruptedException {
-		LOG.setLevel(Main.getLogLevel());
-		LOG.debug("Engine started: " + this.getClass().getName());
-		LOG.debug(operation.getMergeType() + " merge will be performed.");
-
-		MergeReport report = new MergeReport(operation);
-
-		String cmd = BASECMD + " " + operation.getMergeTriple();
+		
+		assert (operation != null);
+		assert (context != null);
+		
+		MergeTriple triple = operation.getMergeTriple();
+		
+		assert (triple != null);
+		assert (triple.isValid()) 
+					: "The merge triple is not valid!";
+		assert (triple.getLeft() instanceof FileArtifact);
+		assert (triple.getBase() instanceof FileArtifact);
+		assert (triple.getRight() instanceof FileArtifact);
+		assert (triple.getLeft().isLeaf());
+		assert (triple.getBase().isLeaf() || triple.getBase().isEmptyDummy());
+		assert (triple.getRight().isLeaf());
+		
+		FileArtifact target = null;
+		
+		if (operation.getTarget() != null) {
+			assert (operation.getTarget() instanceof FileArtifact);
+			target = (FileArtifact) operation.getTarget();
+		}
+		
+		String cmd = BASECMD + " " + triple;
+		
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
@@ -71,7 +91,7 @@ public class Linebased implements MergeInterface {
 				pr.getInputStream()));
 		String line = "";
 		while ((line = buf.readLine()) != null) {
-			report.appendLine(line);
+			context.appendLine(line);
 		}
 
 		buf.close();
@@ -79,7 +99,7 @@ public class Linebased implements MergeInterface {
 		// process error stream
 		buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
 		while ((line = buf.readLine()) != null) {
-			report.appendErrorLine(line);
+			context.appendErrorLine(line);
 		}
 
 		buf.close();
@@ -94,11 +114,15 @@ public class Linebased implements MergeInterface {
 		LOG.debug("External command has finished after " + (cmdStop - cmdStart)
 				+ " ms.");
 
-		if (report.hasErrors()) {
-			System.err.println(report.getStdErr());
+		if (context.hasErrors()) {
+			System.err.println(context.getStdErr());
 		}
-
-		return report;
+		
+		// write output
+		if (target != null) {
+			target.write(context.getReader());
+		}
+		
 	}
 
 }

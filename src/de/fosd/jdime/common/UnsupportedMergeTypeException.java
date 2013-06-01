@@ -17,7 +17,7 @@ package de.fosd.jdime.common;
  * @author Olaf Lessenich
  *
  */
-public class UnsupportedMergeTypeException extends Exception {
+public class UnsupportedMergeTypeException extends RuntimeException {
 
 	/**
 	 * 

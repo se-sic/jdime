@@ -13,9 +13,10 @@
  */
 package de.fosd.jdime.common.operations;
 
-import de.fosd.jdime.Main;
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeContext;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -27,7 +28,7 @@ public class DeleteOperation extends Operation {
 	/**
 	 * Logger.
 	 */
-	//private static final Logger LOG = Logger.getLogger(DeleteOperation.class);
+	private static final Logger LOG = Logger.getLogger(DeleteOperation.class);
 	
 	/**
 	 * The <code>Artifact</code> that is deleted by the operation.
@@ -51,17 +52,7 @@ public class DeleteOperation extends Operation {
 	 */
 	@Override
 	public final String toString() {
-		return "DELETE " + artifact;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#description()
-	 */
-	@Override
-	public final String description() {
-		return "Deleting " + artifact;
+		return getName() + " " + artifact;
 	}
 
 	/*
@@ -70,16 +61,17 @@ public class DeleteOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final MergeReport apply() {
+	public final void apply(final MergeContext context) {
+		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 		
-		MergeReport deleteReport = new MergeReport(this);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Applying: " + this);
+		}				
+	}
 
-		if (Main.isPrintToStdout()) {
-			deleteReport.appendLine(toString());
-		}
-		
-		assert (deleteReport != null) : "Report must not be null";
-		return deleteReport;
+	@Override
+	public final String getName() {
+		return "DELETE";
 	}
 }

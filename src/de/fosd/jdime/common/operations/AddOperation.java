@@ -13,14 +13,12 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 
-import de.fosd.jdime.Main;
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeReport;
-import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.MergeContext;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -32,7 +30,7 @@ public class AddOperation extends Operation {
 	/**
 	 * Logger.
 	 */
-	// private static final Logger LOG = Logger.getLogger(AddOperation.class);
+	private static final Logger LOG = Logger.getLogger(AddOperation.class);
 
 	/**
 	 * The <code>Artifact</code> that is added by the operation.
@@ -42,29 +40,26 @@ public class AddOperation extends Operation {
 	/**
 	 * The output <code>Artifact</code>.
 	 */
-	private Artifact output;
+	private Artifact target;
 
 	/**
-	 * Sets the output <code>Artifact</code>.
-	 * 
-	 * @param output
-	 *            the output to set
+	 * @return the target
 	 */
-	public final void setOutput(final Artifact output) {
-		this.output = output;
+	public final Artifact getTarget() {
+		return target;
 	}
-
+	
 	/**
 	 * Class constructor.
 	 * 
 	 * @param artifact
 	 *            that is added by the operation.
-	 * @param output
+	 * @param target
 	 *            output artifact
 	 */
-	public AddOperation(final Artifact artifact, final Artifact output) {
+	public AddOperation(final Artifact artifact, final Artifact target) {
 		this.artifact = artifact;
-		this.output = output;
+		this.target = target;
 	}
 
 	/*
@@ -74,17 +69,7 @@ public class AddOperation extends Operation {
 	 */
 	@Override
 	public final String toString() {
-		return "ADD " + artifact;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#description()
-	 */
-	@Override
-	public final String description() {
-		return "Adding " + artifact;
+		return getName() + " " + artifact;
 	}
 
 	/*
@@ -93,27 +78,28 @@ public class AddOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final MergeReport apply() throws NotYetImplementedException,
-			IOException {
+	public final void apply(final MergeContext context) throws IOException {
+		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 		
-		MergeReport addReport = new MergeReport(this);
-
-		if (output != null) {
-			artifact.copyArtifact(output);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Applying: " + this);
 		}
-
-		if (Main.isPrintToStdout()) {
-			BufferedReader reader = new BufferedReader(new StringReader(
-					artifact.toString()));
-			String line;
-
-			while ((line = reader.readLine()) != null) {
-				addReport.appendLine(line);
+		
+		if (target != null) {
+			if (!target.exists()) {
+				target.createArtifact(false);
 			}
+			
+			assert (target.exists());
+			
+			artifact.copyArtifact(target);
 		}
 
-		assert (addReport != null) : "Report must not be null";
-		return addReport;
+	}
+
+	@Override
+	public final String getName() {
+		return "ADD";
 	}
 }

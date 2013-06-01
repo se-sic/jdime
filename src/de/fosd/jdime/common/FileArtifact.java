@@ -25,6 +25,10 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
+
 /**
  * This class represents an artifact of a program.
  * 
@@ -54,8 +58,7 @@ public class FileArtifact extends Artifact {
 	 *             FileNotFoundException
 	 */
 	public FileArtifact(final Revision revision, final File file,
-			final boolean checkPresence) 
-					throws FileNotFoundException {
+			final boolean checkPresence) throws FileNotFoundException {
 		assert file != null;
 
 		if (checkPresence && !file.exists()) {
@@ -105,7 +108,7 @@ public class FileArtifact extends Artifact {
 		// about it!
 		File dummyFile = new File("/dev/null");
 		assert (dummyFile.exists());
-		
+
 		Artifact myEmptyDummy = new FileArtifact(dummyFile);
 		myEmptyDummy.setEmptyDummy(true);
 		LOG.trace("Artifact is a dummy artifact.");
@@ -235,91 +238,87 @@ public class FileArtifact extends Artifact {
 	public final void copyArtifact(final Artifact destination)
 			throws IOException {
 		assert (destination != null);
+		assert (destination instanceof FileArtifact);
 		
-		if (((FileArtifact) destination).isFile()) {
+		FileArtifact dst = (FileArtifact) destination;
+
+		if (dst.isFile()) {
 			if (isFile()) {
 				if (LOG.isDebugEnabled()) {
-					LOG.debug("Copying file " + this + " to file "
-							+ destination);
+					LOG.debug("Copying file " + this + " to file " + dst);
 					LOG.debug("Destination already exists overwriting: "
-							+ destination.exists());
+							+ dst.exists());
 				}
 
-				FileUtils.copyFile(file, ((FileArtifact) destination).file);
+				FileUtils.copyFile(file, dst.file);
 			} else {
 				throw new UnsupportedOperationException(
 						"When copying to a file, "
 								+ "the source must also be a file.");
 			}
-		} else if (((FileArtifact) destination).isDirectory()) {
+		} else if (dst.isDirectory()) {
 			if (isFile()) {
-				assert (destination.exists()) 
-					: "Destination directory does not exist: " + destination;
+				assert (dst.exists()) 
+				: "Destination directory does not exist: " + destination;
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Copying file " + this + " to directory "
 							+ destination);
 				}
-				FileUtils.copyFileToDirectory(file,
-						((FileArtifact) destination).file);
+				FileUtils.copyFileToDirectory(file, dst.file);
 			} else if (isDirectory()) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Copying directory " + this + " to directory "
-							+ destination);
+							+ dst);
 					LOG.debug("Destination already exists overwriting: "
-							+ destination.exists());
+							+ dst.exists());
 				}
-				FileUtils
-						.copyDirectory(file, ((FileArtifact) destination).file);
+				FileUtils.copyDirectory(file, dst.file);
 			}
 		} else {
+			LOG.fatal("Failed copying " + this + " to " + dst);
+			LOG.fatal("isDirectory(" + this + ") = " + isDirectory());
+			LOG.fatal("isDirectory(" + dst + ") = " + dst.isDirectory());
 			throw new NotYetImplementedException(
 					"Only copying files and directories is supported.");
 		}
 	}
 
 	@Override
-	public final Artifact createArtifact(final Artifact artifact,
-			final boolean isLeaf) throws IOException {
-		if (artifact == null) {
-			return artifact;
-		}
-
+	public final void createArtifact(final boolean isLeaf) 
+			throws IOException {
+		
 		// assert (!artifact.exists() || Main.isForceOverwriting())
 		// : "File would be overwritten: " + artifact;
 		//
 		// if (artifact.exists()) {
 		// Artifact.remove(artifact);
 		// }
-		
-		assert (artifact instanceof FileArtifact);
 
-		FileArtifact fileartifact = (FileArtifact) artifact;
+		assert (!exists()) : "File would be overwritten: " + this;
 
-		assert (!artifact.exists()) : "File would be overwritten: "
-				+ fileartifact;
+		if (file.getParentFile() != null) {
+			boolean createdParents = file.getParentFile().mkdirs();
 
-		boolean createdParents = fileartifact.file.getParentFile().mkdirs();
-
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Had to create parent directories: " + createdParents);
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Had to create parent directories: " 
+							+ createdParents);
+			}
 		}
 
 		if (isLeaf) {
-			fileartifact.file.createNewFile();
+			file.createNewFile();
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Created file" + fileartifact.file);
+				LOG.trace("Created file" + file);
 			}
 		} else {
-			fileartifact.file.mkdir();
+			file.mkdir();
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Created directory " + fileartifact.file);
+				LOG.trace("Created directory " + file);
 			}
-			
-		}
-		
-		assert (fileartifact.exists());
 
-		return fileartifact;
+		}
+
+		assert (exists());
 	}
 
 	/**
@@ -329,8 +328,8 @@ public class FileArtifact extends Artifact {
 	 *             If an input output exception occurs
 	 */
 	public final void remove() throws IOException {
-		assert (exists() && !isEmptyDummy()) 
-					: "Tried to remove non-existing file: " + getFullPath();
+		assert (exists() && !isEmptyDummy())
+				: "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
 			if (LOG.isDebugEnabled()) {
@@ -346,7 +345,7 @@ public class FileArtifact extends Artifact {
 			throw new UnsupportedOperationException(
 					"Only files and directories can be removed at the moment");
 		}
-		
+
 		assert (!exists());
 	}
 
@@ -359,6 +358,8 @@ public class FileArtifact extends Artifact {
 	 *             If an input output exception occurs.
 	 */
 	public final void write(final BufferedReader reader) throws IOException {
+		assert (file != null);
+		
 		FileWriter writer = new FileWriter(file);
 
 		String line = "";
@@ -382,7 +383,7 @@ public class FileArtifact extends Artifact {
 	@Override
 	public final void initializeChildren() {
 		assert (exists());
-		
+
 		if (isDirectory()) {
 			setChildren(getDirContent());
 		} else {
@@ -393,17 +394,17 @@ public class FileArtifact extends Artifact {
 	@Override
 	public final Artifact addChild(final Artifact child) throws IOException {
 		assert (child != null);
-		
+
 		assert (!isLeaf()) 
-					: "Child elements can not be added to leaf artifacts. "
-						+ "isLeaf(" + this + ") = " + isLeaf();
+				: "Child elements can not be added to leaf artifacts. "
+				+ "isLeaf(" + this + ") = " + isLeaf();
 
 		assert (getClass().equals(child.getClass())) 
-					: "Can only add children of same type";
+				: "Can only add children of same type";
 
 		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
 				+ File.separator + child.getId()), false);
-		
+
 		return myChild;
 	}
 
@@ -418,7 +419,7 @@ public class FileArtifact extends Artifact {
 		assert (otherChild != null);
 		assert (!isLeaf());
 		assert (exists());
-		
+
 		for (Artifact myChild : getChildren()) {
 			if (myChild.equals(otherChild)) {
 				return myChild;
@@ -442,4 +443,25 @@ public class FileArtifact extends Artifact {
 	public final String getId() {
 		return file.getName();
 	}
+
+	@Override
+	public final void merge(final MergeOperation operation, 
+			final MergeContext context) throws IOException, 
+			InterruptedException {
+		assert (operation != null);
+		assert (context != null);
+		MergeStrategy strategy = isDirectory() ? new DirectoryStrategy()
+				: context.getMergeStrategy();
+		assert (strategy != null);
+		strategy.merge(operation, context);
+		if (!context.isQuiet()) {
+			BufferedReader reader = context.getReader();
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				System.out.println(line);
+			}
+		}
+
+	}
+
 }

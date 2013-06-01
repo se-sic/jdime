@@ -13,11 +13,8 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
-
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.engine.EngineNotFoundException;
 
 /**
  * @author Olaf Lessenich
@@ -33,14 +30,13 @@ public class DummyOperation extends Operation {
 	}
 
 	@Override
-	public final MergeReport apply() throws EngineNotFoundException,
-			IOException, InterruptedException, NotYetImplementedException {
+	public final void apply(final MergeContext context) {
 		throw new NotYetImplementedException();
 	}
-
+	
 	@Override
-	public final String description() throws NotYetImplementedException {
-		throw new NotYetImplementedException();
+	public final String getName() {
+		return "DUMMY";
 	}
 
 }

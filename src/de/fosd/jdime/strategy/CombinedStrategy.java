@@ -11,43 +11,38 @@
 /**
  * 
  */
-package de.fosd.jdime.engine;
+package de.fosd.jdime.strategy;
 
-import org.apache.log4j.Logger;
-
-import de.fosd.jdime.Main;
-import de.fosd.jdime.common.DummyReport;
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * Performs a structured merge with auto-tuning.
+ * 
  * @author Olaf Lessenich
- *
+ * 
  */
-public class Combined implements MergeInterface {
-	
+public class CombinedStrategy extends MergeStrategy {
+
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Combined.class);
+	// private static final Logger LOG = Logger.getLogger(Combined.class);
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.engine.MergeInterface#merge()
 	 */
 	@Override
-	public final MergeReport merge(final MergeOperation operation) {
+	public final void merge(final MergeOperation operation,
+			final MergeContext context) {
 		// TODO Auto-generated method stub
-		LOG.setLevel(Main.getLogLevel());
-		LOG.debug("Engine started: " + this.getClass().getName());
-		
-		MergeReport report = new DummyReport();
 
-		if (report instanceof DummyReport) {
-			throw new UnsupportedOperationException();
-		}
-		
-		return report;
+		throw new NotYetImplementedException(
+				"Combined Strategy: Implement me!");
+
 	}
 
 }

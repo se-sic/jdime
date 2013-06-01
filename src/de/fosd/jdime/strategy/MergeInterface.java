@@ -8,11 +8,11 @@
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
  ******************************************************************************/
-package de.fosd.jdime.engine;
+package de.fosd.jdime.strategy;
 
 import java.io.IOException;
 
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
@@ -32,12 +32,15 @@ public interface MergeInterface {
 	int MAXFILES = 3;
 
 	/**
-	 * Performs a merge on the given input files.
-	 * @param operation operation that should be applied by the engine
-	 * @return merge report
-	 * @throws IOException IOException
-	 * @throws InterruptedException InterruptedException
+	 * Performs a merge.
+	 * 
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
-	MergeReport merge(MergeOperation operation)
+	void merge(MergeOperation operation, MergeContext context) 
 			throws IOException, InterruptedException;
 }

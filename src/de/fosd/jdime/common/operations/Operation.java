@@ -15,9 +15,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 
-import de.fosd.jdime.common.MergeReport;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.engine.EngineNotFoundException;
+import de.fosd.jdime.common.MergeContext;
 
 /**
  * This class represents an operation that is applied to <code>Artifact</code>s.
@@ -28,28 +26,19 @@ import de.fosd.jdime.engine.EngineNotFoundException;
 public abstract class Operation {
 	/**
 	 * Applies the operation and returns a report.
-	 * 
-	 * @return report
-	 * @throws EngineNotFoundException
-	 *             If the engine does not exist
+	 * @param context merge context
 	 * @throws IOException
 	 *             If an input or output exception occurs
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
-	 * @throws NotYetImplementedException
-	 *             If some functions are accessed that have not been implemented
-	 *             yet
 	 */
-	public abstract MergeReport apply() throws EngineNotFoundException,
-			IOException, InterruptedException, NotYetImplementedException;
+	public abstract void apply(final MergeContext context) throws IOException,
+			InterruptedException;
 
 	/**
-	 * Returns a textual description of the operation.
+	 * Returns the name of the operation.
 	 * 
-	 * @return textual description
-	 * @throws NotYetImplementedException
-	 *             If some functions are accessed that have not been implemented
-	 *             yet
+	 * @return name of the operation
 	 */
-	public abstract String description() throws NotYetImplementedException;
+	public abstract String getName();
 }

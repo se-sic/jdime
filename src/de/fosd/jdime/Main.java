@@ -32,14 +32,14 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.DirectoryHandling;
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.Merge;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.UnsupportedMergeTypeException;
-import de.fosd.jdime.engine.EngineNotFoundException;
-import de.fosd.jdime.engine.MergeEngine;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.StrategyNotFoundException;
 
 /**
  * @author Olaf Lessenich
@@ -75,45 +75,9 @@ public final class Main {
 	private static long programStart;
 
 	/**
-	 * Tool to be used for merging operations. Linebased is used as default.
+	 * Merge context.
 	 */
-	private static MergeEngine mergeEngine = MergeEngine.LINEBASED;
-
-	/**
-	 * If set to true, the results of a merge are printed to STDOUT This can be
-	 * overridden by the command line argument '-stdout'.
-	 */
-	private static boolean printToStdout = false;
-
-	/**
-	 * @return if print results to stdout
-	 */
-	public static boolean isPrintToStdout() {
-		return printToStdout;
-	}
-
-	/**
-	 * Merge directories recursively. Can be set with the '-r' argument.
-	 */
-	private static boolean recursive = false;
-	
-	/**
-	 * Force overwriting of existing output files.
-	 */
-	private static boolean forceOverwriting = false;
-
-	/**
-	 * @return the forceOverwriting
-	 */
-	public static boolean isForceOverwriting() {
-		return forceOverwriting;
-	}
-
-	/**
-	 * Determines where directories should be handled for recursive merges.
-	 */
-	private static DirectoryHandling directoryHandling 
-	= DirectoryHandling.INTERNAL;
+	private static MergeContext context = new MergeContext();;
 
 	/**
 	 * Output artifact.
@@ -129,11 +93,9 @@ public final class Main {
 	 *             If an input or output exception occurs
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
-	 * @throws UnsupportedMergeTypeException
-	 *             If an unknown type of merge is selected
 	 */
 	public static void main(final String[] args) throws IOException,
-			InterruptedException, UnsupportedMergeTypeException {
+			InterruptedException {
 		BasicConfigurator.configure();
 
 		programStart = System.currentTimeMillis();
@@ -155,7 +117,8 @@ public final class Main {
 	 * @param args
 	 *            command line arguments
 	 * @return List of input files
-	 * @throws IOException 
+	 * @throws IOException
+	 *             If an input output exception occurs
 	 */
 	private static ArtifactList parseCommandLineArgs(final String[] args)
 			throws IOException {
@@ -171,8 +134,6 @@ public final class Main {
 		options.addOption("output", true, "output directory/file");
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("r", false, "merge directories recursively");
-		options.addOption("xr", false, "merge directories recursively, "
-				+ "handled by external merge engine");
 		options.addOption("showconfig", false,
 				"print configuration information");
 		options.addOption("stdout", false, "prints merge result to stdout");
@@ -199,13 +160,14 @@ public final class Main {
 
 			if (cmd.hasOption("mode")) {
 				try {
-					mergeEngine = MergeEngine.parse(cmd.getOptionValue("mode"));
-				} catch (EngineNotFoundException e) {
+					context.setMergeStrategy(MergeStrategy.parse(cmd
+							.getOptionValue("mode")));
+				} catch (StrategyNotFoundException e) {
 					LOG.fatal(e.getMessage());
 					exit(-1);
 				}
 
-				if (mergeEngine == null) {
+				if (context.getMergeStrategy() == null) {
 					help(options, -1);
 				}
 			}
@@ -215,42 +177,29 @@ public final class Main {
 						cmd.getOptionValue("output")), false);
 				if (output.exists() && !output.isEmpty()) {
 					System.err.println("Output directory is not empty!");
-					System.err.println("Delete '" + output.getFullPath() 
+					System.err.println("Delete '" + output.getFullPath()
 							+ "'? [y/N]");
 					BufferedReader reader = new BufferedReader(
 							new InputStreamReader(System.in));
 					String response = reader.readLine();
-					
-					if (response.length() == 0 
+
+					if (response.length() == 0
 							|| response.toLowerCase().charAt(0) != 'y') {
 						System.err.println("File not overwritten. Exiting.");
 						exit(1);
 					} else {
 						output.remove();
 					}
-					
+
 				}
 			}
-			
-			if (cmd.hasOption("f")) {
-				forceOverwriting = true;
-			}
 
-			if (cmd.hasOption("r")) {
-				recursive = true;
-			}
-
-			if (cmd.hasOption("xr")) {
-				recursive = true;
-				directoryHandling = DirectoryHandling.EXTERNAL;
-			}
+			context.setForceOverwriting(cmd.hasOption("f"));
+			context.setRecursive(cmd.hasOption("r"));
+			context.setQuiet(!cmd.hasOption("stdout"));
 
 			if (cmd.hasOption("showconfig")) {
 				showConfig(true);
-			}
-
-			if (cmd.hasOption("stdout")) {
-				printToStdout = true;
 			}
 
 			int numInputFiles = cmd.getArgList().size();
@@ -266,8 +215,8 @@ public final class Main {
 
 			for (Object filename : cmd.getArgList()) {
 				try {
-					inputArtifacts
-							.add(new FileArtifact(new File((String) filename)));
+					inputArtifacts.add(new FileArtifact(new File(
+							(String) filename)));
 				} catch (FileNotFoundException e) {
 					System.err.println("Input file not found: "
 							+ (String) filename);
@@ -277,7 +226,7 @@ public final class Main {
 			return inputArtifacts;
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " 
-		+ Arrays.toString(args));
+					+ Arrays.toString(args));
 			LOG.fatal("aborting program");
 			e.printStackTrace();
 			exit(-1);
@@ -360,7 +309,8 @@ public final class Main {
 	 *            whether to exit after printing the config
 	 */
 	private static void showConfig(final boolean exit) {
-		System.out.println("Merge tool: " + mergeEngine);
+		assert (context != null);
+		System.out.println("Merge tool: " + context.getMergeStrategy());
 		System.out.println();
 
 		if (exit) {
@@ -373,82 +323,18 @@ public final class Main {
 	 * 
 	 * @param inputArtifacts
 	 *            list of files to merge in order left, base, right
-	 * @param output output artifact
-	 * @throws IOException
-	 *             If an input or output exception occurs
+	 * @param output
+	 *            output artifact
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
-	 * @throws UnsupportedMergeTypeException
-	 *             If an unknown type of merge is selected
+	 * @throws IOException
+	 *             If an input output exception occurs
 	 */
-	public static void merge(final ArtifactList inputArtifacts, 
-			final Artifact output)
-			throws IOException, InterruptedException,
-			UnsupportedMergeTypeException {
-		assert inputArtifacts.size() >= MergeType.MINFILES 
-				: "Too few input files!";
-		assert inputArtifacts.size() <= MergeType.MAXFILES 
-				: "Too many input files!";
-
-		// Determine whether we have to perform a 2-way or a 3-way merge.
-		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
-				: MergeType.THREEWAY;
-
-		LOG.debug(mergeType.getClass() + ": "
-					+ Artifact.getNames(inputArtifacts));
-		
-		boolean validInput = true;
-		int directories = 0;
-
-		for (int pos = 0; pos < mergeType.getNumFiles(); pos++) {
-			FileArtifact artifact = (FileArtifact) inputArtifacts.get(pos);
-			if (!artifact.exists()) {
-				validInput = false;
-				System.err.println(mergeType.getRevision(pos) + " input file"
-						+ " does not exist: " + artifact);
-			} else if (artifact.isDirectory()) {
-				directories++;
-				LOG.debug(mergeType.getRevision(pos) + " is a directory: "
-						+ artifact);
-			} else if (artifact.isFile()) {
-				LOG.debug(mergeType.getRevision(pos) + " is a file: "
-						+ artifact);
-			}
-		}
-
-		if (!(directories == 0 || directories == mergeType.getNumFiles())) {
-			System.err
-					.println("Merging files with directories is not allowed!");
-			System.err.println("Increase the debug level to "
-					+ "get more information!");
-
-			validInput = false;
-		} else if (directories > 0 && !recursive) {
-			System.err.println("In order to merge directories, "
-					+ "the -r argument has to be specified. "
-					+ "See -help for more information!");
-			validInput = false;
-		}
-
-		if (!validInput) {
-			exit(-1);
-		} else {
-			try {
-				if (directoryHandling == DirectoryHandling.EXTERNAL) {
-					// just pipe the input to the engine and rely on its own
-					// directory handling. might be nice for external tools.
-					// TODO
-					throw new UnsupportedOperationException();
-				} else {
-					// kick off the merge using JDime's directory handling.
-					Merge.merge(mergeType, mergeEngine,
-							inputArtifacts, output);
-				}
-			} catch (EngineNotFoundException e) {
-				LOG.fatal(e.getMessage());
-				exit(-1);
-			}
-		}
+	public static void merge(final ArtifactList inputArtifacts,
+			final Artifact output) throws IOException, InterruptedException {
+		Operation merge = new MergeOperation(inputArtifacts, output);
+		context = new MergeContext();
+		merge.apply(context);
 	}
 
 	/**

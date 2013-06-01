@@ -11,4 +11,4 @@
 /**
  * 
  */
-package de.fosd.jdime.engine;
+package de.fosd.jdime.strategy;

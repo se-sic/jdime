@@ -13,6 +13,10 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.IOException;
+
+import de.fosd.jdime.common.operations.MergeOperation;
+
 /**
  * This class represents a merge scenario for a standard three-way merge.
  * 
@@ -20,6 +24,18 @@ package de.fosd.jdime.common;
  * 
  */
 public class MergeTriple {
+	/**
+	 * Type of merge.
+	 */
+	private MergeType mergeType;
+
+	/**
+	 * @return the mergeType
+	 */
+	public final MergeType getMergeType() {
+		return mergeType;
+	}
+
 	/**
 	 * Left artifact.
 	 */
@@ -38,6 +54,8 @@ public class MergeTriple {
 	/**
 	 * Creates a new merge triple.
 	 * 
+	 * @param mergeType
+	 *            type of merge
 	 * @param left
 	 *            artifact
 	 * @param base
@@ -45,8 +63,9 @@ public class MergeTriple {
 	 * @param right
 	 *            artifact
 	 */
-	public MergeTriple(final Artifact left, final Artifact base,
-			final Artifact right) {
+	public MergeTriple(final MergeType mergeType, final Artifact left,
+			final Artifact base, final Artifact right) {
+		this.mergeType = mergeType;
 		this.left = left;
 		this.base = base;
 		this.right = right;
@@ -120,7 +139,7 @@ public class MergeTriple {
 	 */
 	public final String toString(final String sep, 
 			final boolean humanReadable) {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("");
 		sb.append(left.toString() + sep);
 
 		if (!humanReadable || !base.isEmptyDummy()) {
@@ -150,5 +169,32 @@ public class MergeTriple {
 	 */
 	public final String toString(final boolean humanReadable) {
 		return toString(" ", humanReadable);
+	}
+
+	/**
+	 * Merges this triple.
+	 * 
+	 * @param operation merge operation
+	 * @param context
+	 *            merge context
+	 * @throws InterruptedException If a thread is interrupted
+	 * @throws IOException If an input output exception occurs
+	 */
+	public final void merge(final MergeOperation operation, 
+			final MergeContext context)
+			throws IOException, InterruptedException {
+		operation.getMergeTriple().getLeft().merge(operation, context);
+	}
+	
+	/**
+	 * Returns whether this is a valid merge triple.
+	 * 
+	 * @return true if the merge triple is valid.
+	 */
+	public final boolean isValid() {
+		return left != null && base != null && right != null 
+				&& left.getClass().equals(right.getClass()) 
+				&& (base.isEmptyDummy() 
+						|| base.getClass().equals(left.getClass()));
 	}
 }

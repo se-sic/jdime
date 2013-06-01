@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import de.fosd.jdime.common.operations.MergeOperation;
+
 /**
  * @author Olaf Lessenich
  * 
@@ -91,9 +93,10 @@ public abstract class Artifact {
 	public final boolean hasChildren() {
 		return getNumChildren() > 0;
 	}
-	
+
 	/**
-	 * @param otherChild artifact
+	 * @param otherChild
+	 *            artifact
 	 * 
 	 * @return child if child is contained, else otherwise
 	 */
@@ -181,8 +184,6 @@ public abstract class Artifact {
 	 * @return name of the artifact
 	 */
 	public abstract String getName();
-	
-	
 
 	/**
 	 * Returns a String representing a list of artifacts.
@@ -196,13 +197,13 @@ public abstract class Artifact {
 	public static String getNames(final ArtifactList list, final String sep) {
 		assert (sep != null);
 		assert (list != null);
-		
+
 		StringBuilder sb = new StringBuilder("");
 		for (Artifact artifact : list) {
 			sb.append(artifact.getName());
 			sb.append(sep);
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -234,8 +235,10 @@ public abstract class Artifact {
 	 */
 	public abstract void copyArtifact(final Artifact destination)
 			throws IOException;
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -273,12 +276,12 @@ public abstract class Artifact {
 	/**
 	 * Creates an Artifact.
 	 * 
-	 * @param artifact artifact that should be created.
-	 * @param isLeaf if true, a leaf type artifact will be created
-	 * @return artifact
-	 * @throws IOException If an input output exception occurs
+	 * @param isLeaf
+	 *            if true, a leaf type artifact will be created
+	 * @throws IOException
+	 *             If an input output exception occurs
 	 */
-	public abstract Artifact createArtifact(Artifact artifact, boolean isLeaf)
+	public abstract void createArtifact(boolean isLeaf)
 			throws IOException;
 
 	/**
@@ -287,4 +290,17 @@ public abstract class Artifact {
 	 * @return identifier
 	 */
 	public abstract String getId();
+
+	/**
+	 * Performs a merge on the provided merge triple.
+	 * 
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 */
+	public abstract void merge(MergeOperation operation, MergeContext context) 
+			throws IOException, InterruptedException;
 }

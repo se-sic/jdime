@@ -13,14 +13,18 @@
  */
 package de.fosd.jdime.common.operations;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeReport;
+import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.engine.EngineNotFoundException;
-import de.fosd.jdime.engine.MergeEngine;
+import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.UnsupportedMergeTypeException;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -32,75 +36,87 @@ public class MergeOperation extends Operation {
 	/**
 	 * Logger.
 	 */
-	//private static final Logger LOG = Logger.getLogger(MergeOperation.class);
-	
-	/**
-	 * Type of merge.
-	 */
-	private MergeType mergeType;
+	private static final Logger LOG = Logger.getLogger(MergeOperation.class);
 
 	/**
-	 * The merge triple containing the <code>Artifact</code>s.
+	 * /** The merge triple containing the <code>Artifact</code>s.
 	 */
 	private MergeTriple mergeTriple;
+	
+	/**
+	 * Output Artifact.
+	 */
+	private Artifact target;
 
 	/**
-	 * The engine used for the merge.
+	 * @return the target
 	 */
-	private MergeEngine engine;
-
-	/**
-	 * The output <code>Artifact</code>.
-	 */
-	private Artifact output;
-
-	/**
-	 * Returns the output <code>Artifact</code>.
-	 * 
-	 * @return the output artifact
-	 */
-	public final Artifact getOutput() {
-		return output;
-	}
-
-	/**
-	 * Sets the output <code>Artifact</code>.
-	 * 
-	 * @param output
-	 *            the output to set
-	 */
-	public final void setOutput(final Artifact output) {
-		this.output = output;
+	public final Artifact getTarget() {
+		return target;
 	}
 
 	/**
 	 * Class constructor.
 	 * 
-	 * @param mergeType
-	 *            type of merge
 	 * @param mergeTriple
 	 *            triple containing <code>Artifact</code>s
-	 * @param engine
-	 *            that is used for the merge
-	 * @param output
+	 * @param target
 	 *            output <code>Artifact</code>
 	 */
-	public MergeOperation(final MergeType mergeType,
-			final MergeTriple mergeTriple, final MergeEngine engine,
-			final Artifact output) {
-		this.mergeType = mergeType;
+	public MergeOperation(final MergeTriple mergeTriple, 
+			final Artifact target) {
 		this.mergeTriple = mergeTriple;
-		this.engine = engine;
-		this.output = output;
+		this.target = target;
 	}
 
 	/**
-	 * Returns the type of merge.
+	 * Class constructor.
 	 * 
-	 * @return the type of merge
+	 * @param inputArtifacts input artifacts
+	 * @param target output artifact
+	 * @throws FileNotFoundException If a file cannot be found
 	 */
-	public final MergeType getMergeType() {
-		return mergeType;
+	public MergeOperation(final ArtifactList inputArtifacts, 
+			final Artifact target) 
+			throws FileNotFoundException {
+		assert (inputArtifacts != null);
+		assert inputArtifacts.size() >= MergeType.MINFILES 
+						: "Too few input files!";
+		assert inputArtifacts.size() <= MergeType.MAXFILES 
+						: "Too many input files!";
+
+		// Determine whether we have to perform a 2-way or a 3-way merge.
+		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
+				: MergeType.THREEWAY;
+
+		this.target = target;
+		
+		Artifact left, base, right;
+		
+		if (mergeType == MergeType.TWOWAY) {
+			left = inputArtifacts.get(0);
+			base = left.createEmptyDummy();
+			right = inputArtifacts.get(1);
+		} else if (mergeType == MergeType.THREEWAY) {
+			left = inputArtifacts.get(0);
+			base = inputArtifacts.get(1);
+			right = inputArtifacts.get(2);
+		} else {
+			throw new UnsupportedMergeTypeException();
+		}
+
+		assert (left.getClass().equals(right.getClass())) 
+					: "Only artifacts of the same type can be merged";
+		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) 
+					: "Only artifacts of the same type can be merged";
+
+		left.setRevision(new Revision("left"));
+		base.setRevision(new Revision("base"));
+		right.setRevision(new Revision("right"));
+		
+		mergeTriple = new MergeTriple(mergeType, left, base, right);
+		assert (mergeTriple != null);
+		assert (mergeTriple.isValid());
 	}
 
 	/**
@@ -119,17 +135,9 @@ public class MergeOperation extends Operation {
 	 */
 	@Override
 	public final String toString() {
-		return "MERGE " + mergeType + " " + mergeTriple.toString(true);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#description()
-	 */
-	@Override
-	public final String description() {
-		return "Merging " + mergeTriple.toString(true);
+		assert (mergeTriple != null);
+		return getName() + " " + mergeTriple.getMergeType() + " " 
+				+ mergeTriple.toString(true);
 	}
 
 	/*
@@ -138,23 +146,29 @@ public class MergeOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final MergeReport apply() throws EngineNotFoundException,
-			IOException, InterruptedException {
+	public final void apply(final MergeContext context) throws IOException,
+			InterruptedException {
 		assert (mergeTriple.getLeft().exists()) 
-		: "Left artifact does not exist: " + mergeTriple.getLeft();
+				: "Left artifact does not exist: " + mergeTriple.getLeft();
 		assert (mergeTriple.getRight().exists()) 
-		: "Right artifact does not exist: " + mergeTriple.getRight();
-		assert (mergeTriple.getBase().isEmptyDummy() 
-				|| mergeTriple.getBase().exists()) 
+				: "Right artifact does not exist: " + mergeTriple.getRight();
+		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase()
+				.exists()) 
 				: "Base artifact does not exist: " + mergeTriple.getBase();
 		
-		MergeReport mergeReport = engine.merge(this);
-
-		if (output != null) {
-			output.write(mergeReport.getReader());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Applying: " + this);
 		}
-	
-		assert (mergeReport != null) : "Report must not be null";
-		return mergeReport;
+		
+		if (target != null && !target.exists()) {
+			target.createArtifact(mergeTriple.getLeft().isLeaf());
+		}
+		
+		mergeTriple.merge(this, context);
+	}
+
+	@Override
+	public final String getName() {
+		return "MERGE";
 	}
 }

@@ -11,20 +11,20 @@
 /**
  * 
  */
-package de.fosd.jdime.engine;
+package de.fosd.jdime.strategy;
 
 /**
  * This Exception can be thrown if a merge engine is not found. 
  * @author Olaf Lessenich
  *
  */
-public class EngineNotFoundException extends Exception {
+public class StrategyNotFoundException extends RuntimeException {
 
 	/**
 	 * Class constructor.
 	 * @param string description
 	 */
-	public EngineNotFoundException(final String string) {
+	public StrategyNotFoundException(final String string) {
 		super(string);
 	}
 
