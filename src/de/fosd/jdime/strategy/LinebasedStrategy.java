@@ -67,11 +67,15 @@ public class LinebasedStrategy extends MergeStrategy {
 		assert (triple.getBase().isLeaf() || triple.getBase().isEmptyDummy());
 		assert (triple.getRight().isLeaf());
 		
+		context.resetStreams();
+		
 		FileArtifact target = null;
 		
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
+			assert (!target.exists() || target.isEmpty()) 
+					: "Would be overwritten: " + target;
 		}
 		
 		String cmd = BASECMD + " " + triple;
@@ -120,7 +124,7 @@ public class LinebasedStrategy extends MergeStrategy {
 		
 		// write output
 		if (target != null) {
-			target.write(context.getReader());
+			target.write(context.getStdIn());
 		}
 		
 	}

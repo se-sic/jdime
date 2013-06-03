@@ -71,7 +71,11 @@ public class FileArtifact extends Artifact {
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Artifact initialized: " + file.getPath());
-			LOG.trace("Artifact exists: " + file.exists());
+			LOG.trace("Artifact exists: " + exists());
+			LOG.trace("File exists: " + file.exists());
+			if (exists()) {
+				LOG.trace("Artifact isEmpty: " + isEmpty());
+			}
 		}
 	}
 
@@ -352,22 +356,17 @@ public class FileArtifact extends Artifact {
 	/**
 	 * Writes from a BufferedReader to the artifact.
 	 * 
-	 * @param reader
-	 *            reader
+	 * @param str
+	 *            String to write
 	 * @throws IOException
 	 *             If an input output exception occurs.
 	 */
-	public final void write(final BufferedReader reader) throws IOException {
+	public final void write(final String str) throws IOException {
 		assert (file != null);
+		assert (str != null);
 		
 		FileWriter writer = new FileWriter(file);
-
-		String line = "";
-		while ((line = reader.readLine()) != null) {
-			writer.append(line);
-			writer.append(System.getProperty("line.separator"));
-		}
-
+		writer.write(str);
 		writer.close();
 	}
 
@@ -377,7 +376,12 @@ public class FileArtifact extends Artifact {
 	 * @return true if the artifact is empty
 	 */
 	public final boolean isEmpty() {
-		return FileUtils.sizeOf(file) == 0;
+		assert (exists());
+		if (isDirectory()) {
+			return file.listFiles().length == 0;
+		} else {
+			return FileUtils.sizeOf(file) == 0;
+		}
 	}
 
 	@Override
@@ -455,11 +459,7 @@ public class FileArtifact extends Artifact {
 		assert (strategy != null);
 		strategy.merge(operation, context);
 		if (!context.isQuiet()) {
-			BufferedReader reader = context.getReader();
-			String line = "";
-			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
-			}
+			System.out.println(context.getStdIn());
 		}
 
 	}

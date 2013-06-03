@@ -3,7 +3,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -257,12 +256,12 @@ public abstract class Artifact {
 	/**
 	 * Read from a BufferedReader and writes to the artifact.
 	 * 
-	 * @param reader
-	 *            Reader to read from
-	 * @throws IOException
+	 * @param str
+	 *            String to write
+	 * x@throws IOException
 	 *             If an input output exception occurs
 	 */
-	public abstract void write(BufferedReader reader) throws IOException;
+	public abstract void write(String str) throws IOException;
 
 	/**
 	 * Returns a dummy Artifact.
@@ -281,8 +280,7 @@ public abstract class Artifact {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	public abstract void createArtifact(boolean isLeaf)
-			throws IOException;
+	public abstract void createArtifact(boolean isLeaf) throws IOException;
 
 	/**
 	 * Returns identifier.
@@ -298,9 +296,9 @@ public abstract class Artifact {
 	 *            merge operation
 	 * @param context
 	 *            merge context
-	 * @throws InterruptedException 
-	 * @throws IOException 
+	 * @throws InterruptedException If a thread is interrupted
+	 * @throws IOException If an input output exception occurs
 	 */
-	public abstract void merge(MergeOperation operation, MergeContext context) 
+	public abstract void merge(MergeOperation operation, MergeContext context)
 			throws IOException, InterruptedException;
 }

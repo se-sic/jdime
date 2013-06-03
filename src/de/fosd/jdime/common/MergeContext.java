@@ -3,8 +3,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.io.StringWriter;
 
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -134,17 +132,6 @@ public class MergeContext {
 	}
 	
 	/**
-	 * Returns a reader that can be used to retrieve the content of the
-	 * report.
-	 * 
-	 * @return Reader reader
-	 */
-	public final BufferedReader getReader() {
-		assert (stdIn != null);
-		return new BufferedReader(new StringReader(stdIn.toString()));
-	}
-	
-	/**
 	 * Returns the saved stdin buffer.
 	 * 
 	 * @return stdin
@@ -171,5 +158,13 @@ public class MergeContext {
 	 */
 	public final boolean hasErrors() {
 		return stdErr != null && stdErr.toString().length() != 0;
+	}
+	
+	/**
+	 * Resets the input streams.
+	 */
+	public final void resetStreams() {
+		stdIn = new StringWriter();
+		stdErr = new StringWriter();
 	}
 }

@@ -136,8 +136,9 @@ public class MergeOperation extends Operation {
 	@Override
 	public final String toString() {
 		assert (mergeTriple != null);
+		String dst = target == null ? "" : target.toString();
 		return getName() + " " + mergeTriple.getMergeType() + " " 
-				+ mergeTriple.toString(true);
+				+ mergeTriple.toString(true) + " INTO " + dst;
 	}
 
 	/*
