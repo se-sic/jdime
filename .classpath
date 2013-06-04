@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="lib/log4j-1.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/apache-commons-io.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JastAddJ"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

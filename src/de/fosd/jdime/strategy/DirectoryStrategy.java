@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -36,7 +35,7 @@ import de.fosd.jdime.common.operations.Operation;
  * @author Olaf Lessenich
  * 
  */
-public class DirectoryStrategy extends MergeStrategy {
+public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
 	/**
 	 * Logger.
@@ -86,8 +85,8 @@ public class DirectoryStrategy extends MergeStrategy {
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation operation,
-			final MergeContext context) throws IOException,
+	public final void merge(final MergeOperation<FileArtifact> operation,
+			final MergeContext<FileArtifact> context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
@@ -95,21 +94,21 @@ public class DirectoryStrategy extends MergeStrategy {
 			+ "be enabled in order to merge directories. "
 			+ "Use '-r' or see '-help'!";
 
-		MergeTriple triple = operation.getMergeTriple();
+		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
 
 		assert (triple.getLeft() instanceof FileArtifact);
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
 
-		FileArtifact left = (FileArtifact) triple.getLeft();
-		FileArtifact base = (FileArtifact) triple.getBase();
-		FileArtifact right = (FileArtifact) triple.getRight();
+		FileArtifact left = triple.getLeft();
+		FileArtifact base = triple.getBase();
+		FileArtifact right = triple.getRight();
 
 		FileArtifact target = null;
 
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
-			target = (FileArtifact) operation.getTarget();
+			target = operation.getTarget();
 		}
 
 		FileArtifact[] revisions = { left, base, right };
@@ -118,7 +117,7 @@ public class DirectoryStrategy extends MergeStrategy {
 			assert (dir.isDirectory() || dir.isEmptyDummy());
 		}
 
-		HashMap<Artifact, BitSet> map = new HashMap<Artifact, BitSet>();
+		HashMap<FileArtifact, BitSet> map = new HashMap<FileArtifact, BitSet>();
 
 		// The revisions in which each artifact exists, are stored in map.
 		for (int i = 0; i < revisions.length; i++) {
@@ -129,11 +128,11 @@ public class DirectoryStrategy extends MergeStrategy {
 				continue;
 			}
 
-			ArtifactList children = cur.getChildren();
+			ArtifactList<FileArtifact> children = cur.getChildren();
 
 			assert (children != null);
 
-			for (Artifact child : children) {
+			for (FileArtifact child : children) {
 				BitSet bs;
 
 				if (map.containsKey(child)) {
@@ -149,8 +148,8 @@ public class DirectoryStrategy extends MergeStrategy {
 
 		// For each artifact it has to be decided which operation to
 		// perform. This is done by applying the standard 3-way merge rules.
-		for (Map.Entry<Artifact, BitSet> entry : map.entrySet()) {
-			Artifact child = entry.getKey();
+		for (Map.Entry<FileArtifact, BitSet> entry : map.entrySet()) {
+			FileArtifact child = entry.getKey();
 			BitSet bs = entry.getValue();
 
 			assert (child != null);
@@ -177,8 +176,8 @@ public class DirectoryStrategy extends MergeStrategy {
 				LOG.debug(child.getId() + "\t" + sb.toString());
 			}
 
-			Operation subOperation = applyMergeRules(revisions, target, child,
-					bs, context);
+			Operation<FileArtifact> subOperation 
+				= applyMergeRules(revisions, target, child, bs, context);
 			subOperation.apply(context);
 
 		}
@@ -204,9 +203,10 @@ public class DirectoryStrategy extends MergeStrategy {
 	 * @throws InterruptedException
 	 *             if a thread is interrupted
 	 */
-	private Operation applyMergeRules(final Artifact[] revisions,
-			final Artifact target, final Artifact child, final BitSet bs,
-			final MergeContext context) throws IOException,
+	private Operation<FileArtifact> applyMergeRules(
+			final FileArtifact[] revisions, final FileArtifact target, 
+			final FileArtifact child, final BitSet bs,
+			final MergeContext<FileArtifact> context) throws IOException,
 			InterruptedException {
 		assert (context != null);
 		assert (revisions != null);
@@ -215,9 +215,9 @@ public class DirectoryStrategy extends MergeStrategy {
 		assert (child != null);
 		assert (bs != null);
 
-		Artifact left = revisions[LEFTPOS];
-		Artifact base = revisions[BASEPOS];
-		Artifact right = revisions[RIGHTPOS];
+		FileArtifact left = revisions[LEFTPOS];
+		FileArtifact base = revisions[BASEPOS];
+		FileArtifact right = revisions[RIGHTPOS];
 
 		switch (bs.cardinality()) {
 		case ZERO:
@@ -230,15 +230,15 @@ public class DirectoryStrategy extends MergeStrategy {
 			// This is an addition or a deletion.
 			if (bs.get(BASEPOS)) {
 				// Artifact was deleted in base.
-				Artifact deleted = base.getChild(child);
+				FileArtifact deleted = base.getChild(child);
 				assert (deleted != null);
-				return new DeleteOperation(deleted);
+				return new DeleteOperation<FileArtifact>(deleted);
 			} else {
 				// Artifact was added in either left or right revision.
-				Artifact added = bs.get(LEFTPOS) ? left.getChild(child) : right
-						.getChild(child);
+				FileArtifact added = bs.get(LEFTPOS) ? left.getChild(child) 
+													: right.getChild(child);
 				assert (added != null);
-				return new AddOperation(added, target);
+				return new AddOperation<FileArtifact>(added, target);
 			}
 
 		case TWO:
@@ -246,11 +246,12 @@ public class DirectoryStrategy extends MergeStrategy {
 			// This is a 2-way merge or a deletion.
 			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
 				// This is a 2-way merge.
-				ArtifactList tuple = new ArtifactList();
+				ArtifactList<FileArtifact> tuple 
+						= new ArtifactList<FileArtifact>();
 
-				Artifact leftChild = left.getChild(child);
-				Artifact rightChild = right.getChild(child);
-				Artifact targetChild = target == null ? null : target
+				FileArtifact leftChild = left.getChild(child);
+				FileArtifact rightChild = right.getChild(child);
+				FileArtifact targetChild = target == null ? null : target
 						.addChild(child);
 
 				assert (leftChild != null);
@@ -260,26 +261,27 @@ public class DirectoryStrategy extends MergeStrategy {
 				tuple.add(leftChild);
 				tuple.add(rightChild);
 
-				return new MergeOperation(tuple, targetChild);
+				return new MergeOperation<FileArtifact>(tuple, targetChild);
 			} else {
 				// Artifact was deleted in either left or right revision.
 				assert (bs.get(BASEPOS));
 
-				Artifact deleted = bs.get(LEFTPOS) ? left.getChild(child)
+				FileArtifact deleted = bs.get(LEFTPOS) ? left.getChild(child)
 						: right.getChild(child);
 				assert (deleted != null);
-				return new DeleteOperation(deleted);
+				return new DeleteOperation<FileArtifact>(deleted);
 			}
 
 		case THREE:
 			// Artifact exists in three revisions.
 			// This is a classical 3-way merge.
-			ArtifactList triple = new ArtifactList();
+			ArtifactList<FileArtifact> triple 
+						= new ArtifactList<FileArtifact>();
 
-			Artifact leftChild = left.getChild(child);
-			Artifact baseChild = base.getChild(child);
-			Artifact rightChild = right.getChild(child);
-			Artifact targetChild = target == null ? null : target
+			FileArtifact leftChild = left.getChild(child);
+			FileArtifact baseChild = base.getChild(child);
+			FileArtifact rightChild = right.getChild(child);
+			FileArtifact targetChild = target == null ? null : target
 					.addChild(child);
 			assert (leftChild != null);
 			assert (baseChild != null);
@@ -290,7 +292,7 @@ public class DirectoryStrategy extends MergeStrategy {
 			triple.add(baseChild);
 			triple.add(rightChild);
 
-			return new MergeOperation(triple, targetChild);
+			return new MergeOperation<FileArtifact>(triple, targetChild);
 
 		default:
 			throw new UnsupportedMergeTypeException();

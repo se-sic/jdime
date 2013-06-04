@@ -15,14 +15,18 @@ package de.fosd.jdime.strategy;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
  */
-public abstract class MergeStrategy implements MergeInterface {
+public abstract class MergeStrategy<T extends Artifact<T>> 
+							implements MergeInterface<T> {
 	
 	/**
 	 * Parses a String and returns a strategy. Null is returned if no
@@ -32,7 +36,7 @@ public abstract class MergeStrategy implements MergeInterface {
 	 *            name of the merge tool
 	 * @return MergeStrategy merge strategy
 	 */
-	public static MergeStrategy parse(final String str) {
+	public static MergeStrategy<FileArtifact> parse(final String str) {
 		assert str != null : "Merge strategy may not be null!";
 
 		String input = str.toLowerCase();
@@ -59,8 +63,8 @@ public abstract class MergeStrategy implements MergeInterface {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	public abstract void merge(MergeOperation operation, MergeContext context) 
-			throws IOException, InterruptedException;
+	public abstract void merge(MergeOperation<T> operation, 
+			MergeContext<T> context) throws IOException, InterruptedException;
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

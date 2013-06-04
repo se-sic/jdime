@@ -13,6 +13,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -23,7 +24,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * @author Olaf Lessenich
  * 
  */
-public class StructuredStrategy extends MergeStrategy {
+public class StructuredStrategy extends MergeStrategy<ASTNodeArtifact> {
 
 	/*
 	 * (non-Javadoc)
@@ -34,8 +35,8 @@ public class StructuredStrategy extends MergeStrategy {
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation operation,
-			final MergeContext context) {
+	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
+			final MergeContext<ASTNodeArtifact> context) {
 		// TODO Auto-generated method stub
 
 		throw new NotYetImplementedException(

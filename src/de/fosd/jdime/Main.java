@@ -30,7 +30,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -77,7 +76,8 @@ public final class Main {
 	/**
 	 * Merge context.
 	 */
-	private static MergeContext context = new MergeContext();;
+	private static MergeContext<FileArtifact> context 
+			= new MergeContext<FileArtifact>();;
 
 	/**
 	 * Output artifact.
@@ -97,21 +97,21 @@ public final class Main {
 	public static void main(final String[] args) throws IOException,
 			InterruptedException {
 		BasicConfigurator.configure();
-		context = new MergeContext();
+		context = new MergeContext<FileArtifact>();
 		
 		programStart = System.currentTimeMillis();
 
 		setLogLevel("INFO");
 		LOG.debug("starting program");
 
-		ArtifactList inputFiles = parseCommandLineArgs(args);
+		ArtifactList<FileArtifact> inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
 		
-		for (Artifact inputFile : inputFiles) {
+		for (FileArtifact inputFile : inputFiles) {
 			assert (inputFile != null);
 			assert (inputFile instanceof FileArtifact);
-			if (((FileArtifact) inputFile).isDirectory() 
+			if (inputFile.isDirectory() 
 					&& !context.isRecursive()) {
 				LOG.fatal("To merge directories, the argument '-r' "
 						+ "has to be supplied. "
@@ -152,8 +152,8 @@ public final class Main {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	private static ArtifactList parseCommandLineArgs(final String[] args)
-			throws IOException {
+	private static ArtifactList<FileArtifact> 
+			parseCommandLineArgs(final String[] args) throws IOException {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
@@ -226,7 +226,8 @@ public final class Main {
 			}
 
 			// prepare the list of input files
-			ArtifactList inputArtifacts = new ArtifactList();
+			ArtifactList<FileArtifact> inputArtifacts 
+					= new ArtifactList<FileArtifact>();
 
 			for (Object filename : cmd.getArgList()) {
 				try {
@@ -345,9 +346,11 @@ public final class Main {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	public static void merge(final ArtifactList inputArtifacts,
-			final Artifact output) throws IOException, InterruptedException {
-		Operation merge = new MergeOperation(inputArtifacts, output);
+	public static void merge(final ArtifactList<FileArtifact> inputArtifacts,
+			final FileArtifact output) throws IOException, 
+											InterruptedException {
+		Operation<FileArtifact> merge = new MergeOperation<FileArtifact>(
+											inputArtifacts, output);
 		merge.apply(context);
 	}
 

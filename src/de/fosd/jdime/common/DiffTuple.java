@@ -16,25 +16,27 @@ package de.fosd.jdime.common;
 /**
  * This class represents a tuple of files that are compared to each other.
  * @author Olaf Lessenich
+ * 
+ * @param <T> type of artifact
  *
  */
-public class DiffTuple {
+public class DiffTuple <T extends Artifact<?>> {
 	/**
 	 * Left artifact.
 	 */
-	private Artifact left;
+	private T left;
 	
 	/**
 	 * Right artifact. 
 	 */
-	private Artifact right;
+	private T right;
 	
 	/**
 	 * Creates a new diff tuple.
 	 * @param left artifact
 	 * @param right artifact
 	 */
-	public DiffTuple(final Artifact left, final Artifact right) {
+	public DiffTuple(final T left, final T right) {
 		this.left = left;
 		this.right = right;
 	}
@@ -43,7 +45,7 @@ public class DiffTuple {
 	 * Returns the left artifact.
 	 * @return the left
 	 */
-	public final Artifact getLeft() {
+	public final T getLeft() {
 		return left;
 	}
 
@@ -51,7 +53,7 @@ public class DiffTuple {
 	 * Returns the right artifact.
 	 * @return the right
 	 */
-	public final Artifact getRight() {
+	public final T getRight() {
 		return right;
 	}
 
@@ -59,7 +61,7 @@ public class DiffTuple {
 	 * Sets the left artifact.
 	 * @param left the left to set
 	 */
-	public final void setLeft(final Artifact left) {
+	public final void setLeft(final T left) {
 		this.left = left;
 	}
 
@@ -67,7 +69,7 @@ public class DiffTuple {
 	 * Sets the right artifact.
 	 * @param right the right to set
 	 */
-	public final void setRight(final Artifact right) {
+	public final void setRight(final T right) {
 		this.right = right;
 	}
 }

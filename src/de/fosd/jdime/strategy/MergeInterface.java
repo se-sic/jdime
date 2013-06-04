@@ -12,15 +12,18 @@ package de.fosd.jdime.strategy;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * Interface for the merge strategies.
  * @author Olaf Lessenich
+ * 
+ * @param <T> type of artifact
  *
  */
-public interface MergeInterface {
+public interface MergeInterface<T extends Artifact<T>> {
 	/**
 	 * At least two input files are needed.
 	 */
@@ -41,6 +44,6 @@ public interface MergeInterface {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	void merge(MergeOperation operation, MergeContext context) 
+	void merge(MergeOperation<T> operation, MergeContext<T> context) 
 			throws IOException, InterruptedException;
 }

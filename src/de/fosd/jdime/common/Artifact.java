@@ -21,8 +21,9 @@ import de.fosd.jdime.common.operations.MergeOperation;
 /**
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
  */
-public abstract class Artifact {
+public abstract class Artifact<T extends Artifact<T>> {
 
 	/**
 	 * Revision the artifact belongs to.
@@ -37,12 +38,12 @@ public abstract class Artifact {
 	/**
 	 * Children of the artifact.
 	 */
-	private ArtifactList children = null;
+	private ArtifactList<T> children = null;
 
 	/**
 	 * Parent artifact.
 	 */
-	private Artifact parent;
+	private T parent;
 
 	/**
 	 * Adds a child.
@@ -53,7 +54,8 @@ public abstract class Artifact {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	public abstract Artifact addChild(final Artifact child) throws IOException;
+	public abstract T addChild(final T child) 
+			throws IOException;
 
 	/**
 	 * Copies an @code{Artifact}.
@@ -63,7 +65,7 @@ public abstract class Artifact {
 	 * @throws IOException
 	 *             If an input or output exception occurs.
 	 */
-	public abstract void copyArtifact(final Artifact destination)
+	public abstract void copyArtifact(final T destination)
 			throws IOException;
 
 	/**
@@ -83,7 +85,7 @@ public abstract class Artifact {
 	 * @throws FileNotFoundException
 	 *             If a file is not found
 	 */
-	public abstract Artifact createEmptyDummy() throws FileNotFoundException;
+	public abstract T createEmptyDummy() throws FileNotFoundException;
 
 	/**
 	 * Returns true if this artifact physically exists.
@@ -100,7 +102,7 @@ public abstract class Artifact {
 	 * 
 	 * @return child if child exists, null otherwise
 	 */
-	public abstract Artifact getChild(final Artifact otherChild);
+	public abstract T getChild(final T otherChild);
 
 	/**
 	 * Return child at position i.
@@ -109,7 +111,7 @@ public abstract class Artifact {
 	 *            position of child
 	 * @return child at position i
 	 */
-	public final Artifact getChild(final int i) {
+	public final T getChild(final int i) {
 		assert (children != null);
 		return children.get(i);
 	}
@@ -119,7 +121,7 @@ public abstract class Artifact {
 	 * 
 	 * @return the children of the artifact
 	 */
-	public final ArtifactList getChildren() {
+	public final ArtifactList<T> getChildren() {
 		if (children == null) {
 			initializeChildren();
 		}
@@ -159,7 +161,7 @@ public abstract class Artifact {
 	 * 
 	 * @return the parent artifact
 	 */
-	public final Artifact getParent() {
+	public final T getParent() {
 		return parent;
 	}
 
@@ -220,7 +222,8 @@ public abstract class Artifact {
 	 * @throws InterruptedException If a thread is interrupted
 	 * @throws IOException If an input output exception occurs
 	 */
-	public abstract void merge(MergeOperation operation, MergeContext context)
+	public abstract void merge(MergeOperation<T> operation, 
+			MergeContext<T> context)
 			throws IOException, InterruptedException;
 
 	/**
@@ -229,7 +232,7 @@ public abstract class Artifact {
 	 * @param children
 	 *            the new children to set
 	 */
-	public final void setChildren(final ArtifactList children) {
+	public final void setChildren(final ArtifactList<T> children) {
 		this.children = children;
 	}
 
@@ -249,7 +252,7 @@ public abstract class Artifact {
 	 * @param parent
 	 *            the parent to set
 	 */
-	public final void setParent(final Artifact parent) {
+	public final void setParent(final T parent) {
 		this.parent = parent;
 	}
 

@@ -15,6 +15,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 
+import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 
 /**
@@ -22,8 +23,10 @@ import de.fosd.jdime.common.MergeContext;
  * 
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
+ * 
  */
-public abstract class Operation {
+public abstract class Operation<T extends Artifact<T>> {
 	
 	/**
 	 * Applies the operation and returns a report.
@@ -34,8 +37,8 @@ public abstract class Operation {
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
 	 */
-	public abstract void apply(final MergeContext context) throws IOException,
-			InterruptedException;
+	public abstract void apply(final MergeContext<T> context) 
+			throws IOException, InterruptedException;
 
 	/**
 	 * Returns the name of the operation.

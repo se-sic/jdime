@@ -17,9 +17,9 @@ import java.util.LinkedList;
 
 /**
  * @author Olaf Lessenich
- *
+ * @param <E> artifact element
  */
-public class ArtifactList extends LinkedList<Artifact> {
+public class ArtifactList<E extends Artifact<?>> extends LinkedList<E> {
 
 	/**
 	 * 
@@ -46,8 +46,8 @@ public class ArtifactList extends LinkedList<Artifact> {
 		assert (sep != null);
 
 		StringBuilder sb = new StringBuilder("");
-		for (Artifact artifact : this) {
-			sb.append(artifact.getName());
+		for (E element : this) {
+			sb.append(element.getName());
 			sb.append(sep);
 		}
 

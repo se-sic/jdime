@@ -30,7 +30,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * @author Olaf Lessenich
  * 
  */
-public class LinebasedStrategy extends MergeStrategy {
+public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 	/**
 	 * Logger.
@@ -51,14 +51,14 @@ public class LinebasedStrategy extends MergeStrategy {
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation operation,
-			final MergeContext context) throws IOException,
+	public final void merge(final MergeOperation<FileArtifact> operation,
+			final MergeContext<FileArtifact> context) throws IOException,
 			InterruptedException {
 
 		assert (operation != null);
 		assert (context != null);
 
-		MergeTriple triple = operation.getMergeTriple();
+		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
 
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";

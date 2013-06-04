@@ -23,8 +23,10 @@ import de.fosd.jdime.common.MergeContext;
  * 
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
+ * 
  */
-public class DeleteOperation extends Operation {
+public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	
 	/**
 	 * Logger.
@@ -34,7 +36,7 @@ public class DeleteOperation extends Operation {
 	/**
 	 * The <code>Artifact</code> that is deleted by the operation.
 	 */
-	private Artifact artifact;
+	private T artifact;
 
 	/**
 	 * Class constructor.
@@ -42,7 +44,7 @@ public class DeleteOperation extends Operation {
 	 * @param artifact
 	 *            that is deleted by the operation
 	 */
-	public DeleteOperation(final Artifact artifact) {
+	public DeleteOperation(final T artifact) {
 		this.artifact = artifact;
 	}
 
@@ -52,7 +54,7 @@ public class DeleteOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext context) {
+	public final void apply(final MergeContext<T> context) {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 		

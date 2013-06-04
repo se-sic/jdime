@@ -31,9 +31,11 @@ import de.fosd.jdime.common.UnsupportedMergeTypeException;
  * 
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
+ * 
  */
-public class MergeOperation extends Operation {
-	
+public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
+
 	/**
 	 * Logger.
 	 */
@@ -42,37 +44,40 @@ public class MergeOperation extends Operation {
 	/**
 	 * /** The merge triple containing the <code>Artifact</code>s.
 	 */
-	private MergeTriple mergeTriple;
-	
+	private MergeTriple<T> mergeTriple;
+
 	/**
 	 * Output Artifact.
 	 */
-	private Artifact target;
+	private T target;
 
 	/**
 	 * Class constructor.
 	 * 
-	 * @param inputArtifacts input artifacts
-	 * @param target output artifact
-	 * @throws FileNotFoundException If a file cannot be found
+	 * @param inputArtifacts
+	 *            input artifacts
+	 * @param target
+	 *            output artifact
+	 * @throws FileNotFoundException
+	 *             If a file cannot be found
 	 */
-	public MergeOperation(final ArtifactList inputArtifacts, 
-			final Artifact target) 
-			throws FileNotFoundException {
+	public MergeOperation(
+			final ArtifactList<T> inputArtifacts,
+			final T target) throws FileNotFoundException {
 		assert (inputArtifacts != null);
 		assert inputArtifacts.size() >= MergeType.MINFILES 
-						: "Too few input files!";
+									: "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES 
-						: "Too many input files!";
+									: "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
 		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
 				: MergeType.THREEWAY;
 
 		this.target = target;
-		
-		Artifact left, base, right;
-		
+
+		T left, base, right;
+
 		if (mergeType == MergeType.TWOWAY) {
 			left = inputArtifacts.get(0);
 			base = left.createEmptyDummy();
@@ -86,15 +91,15 @@ public class MergeOperation extends Operation {
 		}
 
 		assert (left.getClass().equals(right.getClass())) 
-					: "Only artifacts of the same type can be merged";
+				: "Only artifacts of the same type can be merged";
 		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) 
-					: "Only artifacts of the same type can be merged";
+				: "Only artifacts of the same type can be merged";
 
 		left.setRevision(new Revision("left"));
 		base.setRevision(new Revision("base"));
 		right.setRevision(new Revision("right"));
-		
-		mergeTriple = new MergeTriple(mergeType, left, base, right);
+
+		mergeTriple = new MergeTriple<T>(mergeType, left, base, right);
 		assert (mergeTriple != null);
 		assert (mergeTriple.isValid());
 	}
@@ -107,8 +112,8 @@ public class MergeOperation extends Operation {
 	 * @param target
 	 *            output <code>Artifact</code>
 	 */
-	public MergeOperation(final MergeTriple mergeTriple, 
-			final Artifact target) {
+	public MergeOperation(final MergeTriple<T> mergeTriple, 
+			final T target) {
 		this.mergeTriple = mergeTriple;
 		this.target = target;
 	}
@@ -119,24 +124,24 @@ public class MergeOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext context) throws IOException,
+	public final void apply(final MergeContext<T> context) throws IOException,
 			InterruptedException {
 		assert (mergeTriple.getLeft().exists()) 
 				: "Left artifact does not exist: " + mergeTriple.getLeft();
 		assert (mergeTriple.getRight().exists()) 
 				: "Right artifact does not exist: " + mergeTriple.getRight();
 		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase()
-				.exists()) 
-				: "Base artifact does not exist: " + mergeTriple.getBase();
-		
+				.exists()) : "Base artifact does not exist: "
+				+ mergeTriple.getBase();
+
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Applying: " + this);
 		}
-		
+
 		if (target != null && !target.exists()) {
 			target.createArtifact(mergeTriple.getLeft().isLeaf());
 		}
-		
+
 		mergeTriple.merge(this, context);
 	}
 
@@ -145,11 +150,13 @@ public class MergeOperation extends Operation {
 	 * 
 	 * @return merge triple
 	 */
-	public final MergeTriple getMergeTriple() {
+	public final MergeTriple<T> getMergeTriple() {
 		return mergeTriple;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.operations.Operation#getName()
 	 */
 	@Override
@@ -162,7 +169,7 @@ public class MergeOperation extends Operation {
 	 * 
 	 * @return the target
 	 */
-	public final Artifact getTarget() {
+	public final T getTarget() {
 		return target;
 	}
 
@@ -175,7 +182,7 @@ public class MergeOperation extends Operation {
 	public final String toString() {
 		assert (mergeTriple != null);
 		String dst = target == null ? "" : target.toString();
-		return getName() + " " + mergeTriple.getMergeType() + " " 
+		return getName() + " " + mergeTriple.getMergeType() + " "
 				+ mergeTriple.toString(true) + " INTO " + dst;
 	}
 }

@@ -22,8 +22,10 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * 
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
+ * 
  */
-public class MergeTriple {
+public class MergeTriple<T extends Artifact<T>> {
 	/**
 	 * Type of merge.
 	 */
@@ -32,17 +34,17 @@ public class MergeTriple {
 	/**
 	 * Left artifact.
 	 */
-	private Artifact left;
+	private T left;
 
 	/**
 	 * Base artifact.
 	 */
-	private Artifact base;
+	private T base;
 
 	/**
 	 * Right artifact.
 	 */
-	private Artifact right;
+	private T right;
 
 	/**
 	 * Creates a new merge triple.
@@ -56,8 +58,8 @@ public class MergeTriple {
 	 * @param right
 	 *            artifact
 	 */
-	public MergeTriple(final MergeType mergeType, final Artifact left,
-			final Artifact base, final Artifact right) {
+	public MergeTriple(final MergeType mergeType, final T left,
+			final T base, final T right) {
 		this.mergeType = mergeType;
 		this.left = left;
 		this.base = base;
@@ -69,7 +71,7 @@ public class MergeTriple {
 	 * 
 	 * @return the base
 	 */
-	public final Artifact getBase() {
+	public final T getBase() {
 		return base;
 	}
 
@@ -78,7 +80,7 @@ public class MergeTriple {
 	 * 
 	 * @return the left
 	 */
-	public final Artifact getLeft() {
+	public final T getLeft() {
 		return left;
 	}
 
@@ -96,7 +98,7 @@ public class MergeTriple {
 	 * 
 	 * @return the right
 	 */
-	public final Artifact getRight() {
+	public final T getRight() {
 		return right;
 	}
 
@@ -121,8 +123,8 @@ public class MergeTriple {
 	 * @throws InterruptedException If a thread is interrupted
 	 * @throws IOException If an input output exception occurs
 	 */
-	public final void merge(final MergeOperation operation, 
-			final MergeContext context)
+	public final void merge(final MergeOperation<T> operation, 
+			final MergeContext<T> context)
 			throws IOException, InterruptedException {
 		operation.getMergeTriple().getLeft().merge(operation, context);
 	}
@@ -133,7 +135,7 @@ public class MergeTriple {
 	 * @param base
 	 *            the base to set
 	 */
-	public final void setBase(final Artifact base) {
+	public final void setBase(final T base) {
 		this.base = base;
 	}
 
@@ -143,7 +145,7 @@ public class MergeTriple {
 	 * @param left
 	 *            the left to set
 	 */
-	public final void setLeft(final Artifact left) {
+	public final void setLeft(final T left) {
 		this.left = left;
 	}
 
@@ -153,7 +155,7 @@ public class MergeTriple {
 	 * @param right
 	 *            the right to set
 	 */
-	public final void setRight(final Artifact right) {
+	public final void setRight(final T right) {
 		this.right = right;
 	}
 

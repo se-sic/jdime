@@ -13,6 +13,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -23,7 +24,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * @author Olaf Lessenich
  * 
  */
-public class CombinedStrategy extends MergeStrategy {
+public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 	/**
 	 * Logger.
@@ -39,8 +40,8 @@ public class CombinedStrategy extends MergeStrategy {
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation operation,
-			final MergeContext context) {
+	public final void merge(final MergeOperation<FileArtifact> operation,
+			final MergeContext<FileArtifact> context) {
 		// TODO Auto-generated method stub
 
 		throw new NotYetImplementedException(

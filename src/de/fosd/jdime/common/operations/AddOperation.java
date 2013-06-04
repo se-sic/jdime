@@ -25,8 +25,10 @@ import de.fosd.jdime.common.MergeContext;
  * 
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
+ * 
  */
-public class AddOperation extends Operation {
+public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	/**
 	 * Logger.
 	 */
@@ -35,12 +37,12 @@ public class AddOperation extends Operation {
 	/**
 	 * The <code>Artifact</code> that is added by the operation.
 	 */
-	private Artifact artifact;
+	private T artifact;
 
 	/**
 	 * The output <code>Artifact</code>.
 	 */
-	private Artifact target;
+	private T target;
 
 	/**
 	 * Class constructor.
@@ -50,7 +52,7 @@ public class AddOperation extends Operation {
 	 * @param target
 	 *            output artifact
 	 */
-	public AddOperation(final Artifact artifact, final Artifact target) {
+	public AddOperation(final T artifact, final T target) {
 		this.artifact = artifact;
 		this.target = target;
 	}
@@ -61,7 +63,7 @@ public class AddOperation extends Operation {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext context) throws IOException {
+	public final void apply(final MergeContext<T> context) throws IOException {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 		
@@ -89,7 +91,7 @@ public class AddOperation extends Operation {
 	/**
 	 * @return the target
 	 */
-	public final Artifact getTarget() {
+	public final T getTarget() {
 		return target;
 	}
 
@@ -102,4 +104,5 @@ public class AddOperation extends Operation {
 	public final String toString() {
 		return getName() + " " + artifact;
 	}
+				
 }

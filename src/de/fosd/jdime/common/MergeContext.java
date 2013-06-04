@@ -21,12 +21,13 @@ import de.fosd.jdime.strategy.MergeStrategy;
 /**
  * @author Olaf Lessenich
  *
+ *@param <T> type of artifact
  */
-public class MergeContext {
+public class MergeContext<T extends Artifact<T>> {
 	/**
 	 * Strategy to apply for the merge.
 	 */
-	private MergeStrategy mergeStrategy = new LinebasedStrategy();
+	private MergeStrategy<FileArtifact> mergeStrategy = new LinebasedStrategy();
 	
 	/**
 	 * StdIn of a merge operation.
@@ -83,7 +84,7 @@ public class MergeContext {
 	 * 
 	 * @return the merge strategy
 	 */
-	public final MergeStrategy getMergeStrategy() {
+	public final MergeStrategy<FileArtifact> getMergeStrategy() {
 		return mergeStrategy;
 	}
 
@@ -166,7 +167,8 @@ public class MergeContext {
 	 * 
 	 * @param mergeStrategy merge strategy
 	 */
-	public final void setMergeStrategy(final MergeStrategy mergeStrategy) {
+	public final void setMergeStrategy(final MergeStrategy<FileArtifact> 
+				mergeStrategy) {
 		this.mergeStrategy = mergeStrategy;
 	}
 	

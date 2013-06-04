@@ -15,11 +15,15 @@ package de.fosd.jdime.common.operations;
 
 import java.util.Stack;
 
+import de.fosd.jdime.common.Artifact;
+
 /**
  * @author Olaf Lessenich
+ * 
+ * @param <T> type of artifact
  *
  */
-public class OperationStack extends Stack<Operation> {
+public class OperationStack<T extends Artifact<T>> extends Stack<Operation<T>> {
 
 	/**
 	 * 
