@@ -25,6 +25,7 @@ import de.fosd.jdime.common.MergeContext;
  * 
  */
 public class DeleteOperation extends Operation {
+	
 	/**
 	 * Logger.
 	 */
@@ -48,16 +49,6 @@ public class DeleteOperation extends Operation {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return getName() + " " + artifact;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
@@ -73,5 +64,15 @@ public class DeleteOperation extends Operation {
 	@Override
 	public final String getName() {
 		return "DELETE";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return getName() + " " + artifact;
 	}
 }

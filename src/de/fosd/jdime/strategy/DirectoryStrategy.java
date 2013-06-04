@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -54,25 +64,26 @@ public class DirectoryStrategy extends MergeStrategy {
 	private static final int THREE = 3;
 
 	/**
-	 * 
+	 * Array position of left revision.
 	 */
 	private static final int LEFTPOS = 0;
 
 	/**
-	 * 
+	 * Array position of base revision.
 	 */
 	private static final int BASEPOS = 1;
 
 	/**
-	 * 
+	 * Array position of right revision.
 	 */
 	private static final int RIGHTPOS = 2;
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge
-	 * (de.fosd.jdime.common.operations .MergeOperation)
+	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation,
+	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
 	public final void merge(final MergeOperation operation,
@@ -80,19 +91,22 @@ public class DirectoryStrategy extends MergeStrategy {
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
+		assert (context.isRecursive()) : "Recursive merging needs to "
+			+ "be enabled in order to merge directories. "
+			+ "Use '-r' or see '-help'!";
 
 		MergeTriple triple = operation.getMergeTriple();
 
 		assert (triple.getLeft() instanceof FileArtifact);
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
-		
+
 		FileArtifact left = (FileArtifact) triple.getLeft();
 		FileArtifact base = (FileArtifact) triple.getBase();
 		FileArtifact right = (FileArtifact) triple.getRight();
-		
+
 		FileArtifact target = null;
-		
+
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
@@ -281,5 +295,10 @@ public class DirectoryStrategy extends MergeStrategy {
 		default:
 			throw new UnsupportedMergeTypeException();
 		}
+	}
+
+	@Override
+	public final String toString() {
+		return "directory";
 	}
 }

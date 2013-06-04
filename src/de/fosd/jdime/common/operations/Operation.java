@@ -24,8 +24,10 @@ import de.fosd.jdime.common.MergeContext;
  * 
  */
 public abstract class Operation {
+	
 	/**
 	 * Applies the operation and returns a report.
+	 * 
 	 * @param context merge context
 	 * @throws IOException
 	 *             If an input or output exception occurs
@@ -41,4 +43,10 @@ public abstract class Operation {
 	 * @return name of the operation
 	 */
 	public abstract String getName();
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public abstract String toString();
 }

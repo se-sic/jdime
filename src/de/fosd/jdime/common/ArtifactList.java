@@ -17,7 +17,7 @@ import java.util.LinkedList;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  */
 public class ArtifactList extends LinkedList<Artifact> {
 
@@ -25,4 +25,32 @@ public class ArtifactList extends LinkedList<Artifact> {
 	 * 
 	 */
 	private static final long serialVersionUID = 5294838641795231473L;
+
+	/**
+	 * Returns a comma-separated String representing a list of artifacts.
+	 * 
+	 * @return comma-separated String
+	 */
+	public final String getNames() {
+		return getNames(" ");
+	}
+
+	/**
+	 * Returns a String representing a list of artifacts.
+	 * 
+	 * @param sep
+	 *            separator
+	 * @return String representation
+	 */
+	public final String getNames(final String sep) {
+		assert (sep != null);
+
+		StringBuilder sb = new StringBuilder("");
+		for (Artifact artifact : this) {
+			sb.append(artifact.getName());
+			sb.append(sep);
+		}
+
+		return sb.toString();
+	}
 }

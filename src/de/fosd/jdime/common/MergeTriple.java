@@ -30,13 +30,6 @@ public class MergeTriple {
 	private MergeType mergeType;
 
 	/**
-	 * @return the mergeType
-	 */
-	public final MergeType getMergeType() {
-		return mergeType;
-	}
-
-	/**
 	 * Left artifact.
 	 */
 	private Artifact left;
@@ -72,6 +65,15 @@ public class MergeTriple {
 	}
 
 	/**
+	 * Returns the base artifact.
+	 * 
+	 * @return the base
+	 */
+	public final Artifact getBase() {
+		return base;
+	}
+
+	/**
 	 * Returns the left artifact.
 	 * 
 	 * @return the left
@@ -81,22 +83,48 @@ public class MergeTriple {
 	}
 
 	/**
-	 * Sets the left artifact.
+	 * Returns the type of merge.
 	 * 
-	 * @param left
-	 *            the left to set
+	 * @return type of merge
 	 */
-	public final void setLeft(final Artifact left) {
-		this.left = left;
+	public final MergeType getMergeType() {
+		return mergeType;
 	}
 
 	/**
-	 * Returns the base artifact.
+	 * Returns the right artifact.
 	 * 
-	 * @return the base
+	 * @return the right
 	 */
-	public final Artifact getBase() {
-		return base;
+	public final Artifact getRight() {
+		return right;
+	}
+
+	/**
+	 * Returns whether this is a valid merge triple.
+	 * 
+	 * @return true if the merge triple is valid.
+	 */
+	public final boolean isValid() {
+		return left != null && base != null && right != null 
+				&& left.getClass().equals(right.getClass()) 
+				&& (base.isEmptyDummy() 
+						|| base.getClass().equals(left.getClass()));
+	}
+
+	/**
+	 * Merges this triple.
+	 * 
+	 * @param operation merge operation
+	 * @param context
+	 *            merge context
+	 * @throws InterruptedException If a thread is interrupted
+	 * @throws IOException If an input output exception occurs
+	 */
+	public final void merge(final MergeOperation operation, 
+			final MergeContext context)
+			throws IOException, InterruptedException {
+		operation.getMergeTriple().getLeft().merge(operation, context);
 	}
 
 	/**
@@ -110,12 +138,13 @@ public class MergeTriple {
 	}
 
 	/**
-	 * Returns the right artifact.
+	 * Sets the left artifact.
 	 * 
-	 * @return the right
+	 * @param left
+	 *            the left to set
 	 */
-	public final Artifact getRight() {
-		return right;
+	public final void setLeft(final Artifact left) {
+		this.left = left;
 	}
 
 	/**
@@ -126,28 +155,6 @@ public class MergeTriple {
 	 */
 	public final void setRight(final Artifact right) {
 		this.right = right;
-	}
-
-	/**
-	 * Returns a String representing the MergeTriple.
-	 * 
-	 * @param sep
-	 *            separator
-	 * @param humanReadable
-	 *            do not print dummy files if true
-	 * @return String representation
-	 */
-	public final String toString(final String sep, 
-			final boolean humanReadable) {
-		StringBuilder sb = new StringBuilder("");
-		sb.append(left.toString() + sep);
-
-		if (!humanReadable || !base.isEmptyDummy()) {
-			sb.append(base.toString() + sep);
-		}
-
-		sb.append(right.toString());
-		return sb.toString();
 	}
 
 	/**
@@ -170,31 +177,26 @@ public class MergeTriple {
 	public final String toString(final boolean humanReadable) {
 		return toString(" ", humanReadable);
 	}
-
-	/**
-	 * Merges this triple.
-	 * 
-	 * @param operation merge operation
-	 * @param context
-	 *            merge context
-	 * @throws InterruptedException If a thread is interrupted
-	 * @throws IOException If an input output exception occurs
-	 */
-	public final void merge(final MergeOperation operation, 
-			final MergeContext context)
-			throws IOException, InterruptedException {
-		operation.getMergeTriple().getLeft().merge(operation, context);
-	}
 	
 	/**
-	 * Returns whether this is a valid merge triple.
+	 * Returns a String representing the MergeTriple.
 	 * 
-	 * @return true if the merge triple is valid.
+	 * @param sep
+	 *            separator
+	 * @param humanReadable
+	 *            do not print dummy files if true
+	 * @return String representation
 	 */
-	public final boolean isValid() {
-		return left != null && base != null && right != null 
-				&& left.getClass().equals(right.getClass()) 
-				&& (base.isEmptyDummy() 
-						|| base.getClass().equals(left.getClass()));
+	public final String toString(final String sep, 
+			final boolean humanReadable) {
+		StringBuilder sb = new StringBuilder("");
+		sb.append(left.toString() + sep);
+
+		if (!humanReadable || !base.isEmptyDummy()) {
+			sb.append(base.toString() + sep);
+		}
+
+		sb.append(right.toString());
+		return sb.toString();
 	}
 }

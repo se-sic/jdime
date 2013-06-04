@@ -43,13 +43,6 @@ public class AddOperation extends Operation {
 	private Artifact target;
 
 	/**
-	 * @return the target
-	 */
-	public final Artifact getTarget() {
-		return target;
-	}
-	
-	/**
 	 * Class constructor.
 	 * 
 	 * @param artifact
@@ -61,17 +54,7 @@ public class AddOperation extends Operation {
 		this.artifact = artifact;
 		this.target = target;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return getName() + " " + artifact;
-	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -101,5 +84,22 @@ public class AddOperation extends Operation {
 	@Override
 	public final String getName() {
 		return "ADD";
+	}
+
+	/**
+	 * @return the target
+	 */
+	public final Artifact getTarget() {
+		return target;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return getName() + " " + artifact;
 	}
 }

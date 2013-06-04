@@ -16,7 +16,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
- * Interface for the merge engines.
+ * Interface for the merge strategies.
  * @author Olaf Lessenich
  *
  */

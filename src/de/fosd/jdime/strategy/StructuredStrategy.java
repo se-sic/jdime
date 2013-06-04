@@ -25,24 +25,32 @@ import de.fosd.jdime.common.operations.MergeOperation;
  */
 public class StructuredStrategy extends MergeStrategy {
 
-	/**
-	 * Logger.
-	 */
-	//private static final Logger LOG = Logger.getLogger(Structured.class);
-
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.engine.MergeInterface#merge()
+	 * @see
+	 * de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
 	public final void merge(final MergeOperation operation,
 			final MergeContext context) {
 		// TODO Auto-generated method stub
-	
+
 		throw new NotYetImplementedException(
 				"StructuredStrategy: Implement me!");
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
+	 */
+	@Override
+	public final String toString() {
+		return "structured";
 	}
 
 }

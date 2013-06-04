@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -39,72 +49,22 @@ public class MergeContext {
 	private boolean recursive = false;
 	
 	/**
-	 * @return the recursive
-	 */
-	public final boolean isRecursive() {
-		return recursive;
-	}
-
-	/**
-	 * @param recursive the recursive to set
-	 */
-	public final void setRecursive(final boolean recursive) {
-		this.recursive = recursive;
-	}
-	/**
 	 * Force overwriting of existing output files.
 	 */
 	private boolean forceOverwriting = false;
 
 	/**
-	 * @param forceOverwriting the forceOverwriting to set
-	 */
-	public final void setForceOverwriting(final boolean forceOverwriting) {
-		this.forceOverwriting = forceOverwriting;
-	}
-
-	/**
-	 * @return the forceOverwriting
-	 */
-	public final boolean isForceOverwriting() {
-		return forceOverwriting;
-	}
-	
-
-	/**
-	 * Returns true if the output is quiet.
+	 * Appends a line to the saved stderr buffer.
 	 * 
-	 * @return if output is quiet
+	 * @param line
+	 *            to be appended
 	 */
-	public final boolean isQuiet() {
-		return quiet;
+	public final void appendErrorLine(final String line) {
+		if (stdErr != null) {
+			stdErr.append(line);
+			stdErr.append(System.getProperty("line.separator"));
+		}
 	}
-
-	/**
-	 * Sets whether the output is quiet or not.
-	 * 
-	 * @param quiet whether output is quiet
-	 */
-	public final void setQuiet(final boolean quiet) {
-		this.quiet = quiet;
-	}
-
-	/**
-	 * Returns the merge strategy.
-	 * @return the merge strategy
-	 */
-	public final MergeStrategy getMergeStrategy() {
-		return mergeStrategy;
-	}
-
-	/**
-	 * Sets the merge strategy.
-	 * @param mergeStrategy the merge strategy to set
-	 */
-	public final void setMergeStrategy(final MergeStrategy mergeStrategy) {
-		this.mergeStrategy = mergeStrategy;
-	}
-	
 	/**
 	 * Appends a line to the saved stdin buffer.
 	 * 
@@ -119,26 +79,12 @@ public class MergeContext {
 	}
 
 	/**
-	 * Appends a line to the saved stderr buffer.
+	 * Returns the merge strategy.
 	 * 
-	 * @param line
-	 *            to be appended
+	 * @return the merge strategy
 	 */
-	public final void appendErrorLine(final String line) {
-		if (stdErr != null) {
-			stdErr.append(line);
-			stdErr.append(System.getProperty("line.separator"));
-		}
-	}
-	
-	/**
-	 * Returns the saved stdin buffer.
-	 * 
-	 * @return stdin
-	 */
-	public final String getStdIn() {
-		assert (stdErr != null);
-		return stdIn.toString();
+	public final MergeStrategy getMergeStrategy() {
+		return mergeStrategy;
 	}
 
 	/**
@@ -151,6 +97,17 @@ public class MergeContext {
 		return stdErr.toString();
 	}
 	
+
+	/**
+	 * Returns the saved stdin buffer.
+	 * 
+	 * @return stdin
+	 */
+	public final String getStdIn() {
+		assert (stdErr != null);
+		return stdIn.toString();
+	}
+
 	/**
 	 * Returns true if stderr is not empty.
 	 * 
@@ -159,12 +116,75 @@ public class MergeContext {
 	public final boolean hasErrors() {
 		return stdErr != null && stdErr.toString().length() != 0;
 	}
+
+	/**
+	 * Returns true if overwriting of files in the output directory is forced.
+	 * 
+	 * @return whether overwriting of output files is forced
+	 */
+	public final boolean isForceOverwriting() {
+		return forceOverwriting;
+	}
+
+	/**
+	 * Returns true if the output is quiet.
+	 * 
+	 * @return if output is quiet
+	 */
+	public final boolean isQuiet() {
+		return quiet;
+	}
 	
+	/**
+	 * Returns whether directories are merged recursively.
+	 * 
+	 * @return true, if directories are merged recursively
+	 */
+	public final boolean isRecursive() {
+		return recursive;
+	}
+
 	/**
 	 * Resets the input streams.
 	 */
 	public final void resetStreams() {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
+	}
+	
+	/**
+	 * Sets whether overwriting of files in the output directory is forced.
+	 * 
+	 * @param forceOverwriting overwrite files in the output directory
+	 */
+	public final void setForceOverwriting(final boolean forceOverwriting) {
+		this.forceOverwriting = forceOverwriting;
+	}
+
+	/**
+	 * Sets the merge strategy.
+	 * 
+	 * @param mergeStrategy merge strategy
+	 */
+	public final void setMergeStrategy(final MergeStrategy mergeStrategy) {
+		this.mergeStrategy = mergeStrategy;
+	}
+	
+	/**
+	 * Sets whether the output is quiet or not.
+	 * 
+	 * @param quiet do not print merge results to stdout
+	 */
+	public final void setQuiet(final boolean quiet) {
+		this.quiet = quiet;
+	}
+	
+	/**
+	 * Set whether directories are merged recursively.
+	 * 
+	 * @param recursive directories are merged recursively
+	 */
+	public final void setRecursive(final boolean recursive) {
+		this.recursive = recursive;
 	}
 }

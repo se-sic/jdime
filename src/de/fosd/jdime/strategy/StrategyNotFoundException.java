@@ -14,23 +14,24 @@
 package de.fosd.jdime.strategy;
 
 /**
- * This Exception can be thrown if a merge engine is not found. 
+ * This Exception can be thrown if a merge strategy is not found. 
  * @author Olaf Lessenich
  *
  */
 public class StrategyNotFoundException extends RuntimeException {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7644611893570243018L;
+
+	/**
 	 * Class constructor.
+	 * 
 	 * @param string description
 	 */
 	public StrategyNotFoundException(final String string) {
 		super(string);
 	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7644611893570243018L;
 
 }

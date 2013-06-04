@@ -97,7 +97,8 @@ public final class Main {
 	public static void main(final String[] args) throws IOException,
 			InterruptedException {
 		BasicConfigurator.configure();
-
+		context = new MergeContext();
+		
 		programStart = System.currentTimeMillis();
 
 		setLogLevel("INFO");
@@ -106,6 +107,37 @@ public final class Main {
 		ArtifactList inputFiles = parseCommandLineArgs(args);
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
+		
+		for (Artifact inputFile : inputFiles) {
+			assert (inputFile != null);
+			assert (inputFile instanceof FileArtifact);
+			if (((FileArtifact) inputFile).isDirectory() 
+					&& !context.isRecursive()) {
+				LOG.fatal("To merge directories, the argument '-r' "
+						+ "has to be supplied. "
+						+ "See '-help' for more information!");
+				exit(-1);
+			}
+		}
+		
+		if (output.exists() && !output.isEmpty()) {
+			System.err.println("Output directory is not empty!");
+			System.err.println("Delete '" + output.getFullPath()
+					+ "'? [y/N]");
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(System.in));
+			String response = reader.readLine();
+
+			if (response.length() == 0
+					|| response.toLowerCase().charAt(0) != 'y') {
+				System.err.println("File not overwritten. Exiting.");
+				exit(1);
+			} else {
+				output.remove();
+			}
+
+		}
+		
 		merge(inputFiles, output);
 
 		exit(0);
@@ -175,23 +207,6 @@ public final class Main {
 			if (cmd.hasOption("output")) {
 				output = new FileArtifact(new Revision("merge"), new File(
 						cmd.getOptionValue("output")), false);
-				if (output.exists() && !output.isEmpty()) {
-					System.err.println("Output directory is not empty!");
-					System.err.println("Delete '" + output.getFullPath()
-							+ "'? [y/N]");
-					BufferedReader reader = new BufferedReader(
-							new InputStreamReader(System.in));
-					String response = reader.readLine();
-
-					if (response.length() == 0
-							|| response.toLowerCase().charAt(0) != 'y') {
-						System.err.println("File not overwritten. Exiting.");
-						exit(1);
-					} else {
-						output.remove();
-					}
-
-				}
 			}
 
 			context.setForceOverwriting(cmd.hasOption("f"));
@@ -333,7 +348,6 @@ public final class Main {
 	public static void merge(final ArtifactList inputArtifacts,
 			final Artifact output) throws IOException, InterruptedException {
 		Operation merge = new MergeOperation(inputArtifacts, output);
-		context = new MergeContext();
 		merge.apply(context);
 	}
 

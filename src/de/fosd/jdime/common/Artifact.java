@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -25,16 +35,84 @@ public abstract class Artifact {
 	private boolean emptyDummy = false;
 
 	/**
-	 * Returns true, if the artifact is a leaf.
-	 * 
-	 * @return true, if the artifact is a leaf
-	 */
-	public abstract boolean isLeaf();
-
-	/**
 	 * Children of the artifact.
 	 */
 	private ArtifactList children = null;
+
+	/**
+	 * Parent artifact.
+	 */
+	private Artifact parent;
+
+	/**
+	 * Adds a child.
+	 * 
+	 * @param child
+	 *            child to add
+	 * @return added child
+	 * @throws IOException
+	 *             If an input output exception occurs
+	 */
+	public abstract Artifact addChild(final Artifact child) throws IOException;
+
+	/**
+	 * Copies an @code{Artifact}.
+	 * 
+	 * @param destination
+	 *            destination artifact
+	 * @throws IOException
+	 *             If an input or output exception occurs.
+	 */
+	public abstract void copyArtifact(final Artifact destination)
+			throws IOException;
+
+	/**
+	 * Creates an @code{Artifact}.
+	 * 
+	 * @param isLeaf
+	 *            if true, a leaf type artifact will be created
+	 * @throws IOException
+	 *             If an input output exception occurs
+	 */
+	public abstract void createArtifact(boolean isLeaf) throws IOException;
+
+	/**
+	 * Returns a dummy @code{Artifact}.
+	 * 
+	 * @return dummy artifact
+	 * @throws FileNotFoundException
+	 *             If a file is not found
+	 */
+	public abstract Artifact createEmptyDummy() throws FileNotFoundException;
+
+	/**
+	 * Returns true if this artifact physically exists.
+	 * 
+	 * @return true if the artifact exists.
+	 */
+	public abstract boolean exists();
+
+	/**
+	 * Returns a child @code{Artifact}.
+	 * 
+	 * @param otherChild
+	 *            artifact
+	 * 
+	 * @return child if child exists, null otherwise
+	 */
+	public abstract Artifact getChild(final Artifact otherChild);
+
+	/**
+	 * Return child at position i.
+	 * 
+	 * @param i
+	 *            position of child
+	 * @return child at position i
+	 */
+	public final Artifact getChild(final int i) {
+		assert (children != null);
+		return children.get(i);
+	}
 
 	/**
 	 * Returns the children of the artifact.
@@ -50,14 +128,18 @@ public abstract class Artifact {
 	}
 
 	/**
-	 * Sets the children of the artifact.
+	 * Returns identifier.
 	 * 
-	 * @param children
-	 *            the new children to set
+	 * @return identifier
 	 */
-	public final void setChildren(final ArtifactList children) {
-		this.children = children;
-	}
+	public abstract String getId();
+
+	/**
+	 * Returns the name of the artifact.
+	 * 
+	 * @return name of the artifact
+	 */
+	public abstract String getName();
 
 	/**
 	 * Returns the number of children the artifact has.
@@ -73,67 +155,12 @@ public abstract class Artifact {
 	}
 
 	/**
-	 * Return child at position i.
+	 * Returns the parent artifact.
 	 * 
-	 * @param i
-	 *            position of child
-	 * @return child at position i
+	 * @return the parent artifact
 	 */
-	public final Artifact getChild(final int i) {
-		assert (children != null);
-		return children.get(i);
-	}
-
-	/**
-	 * Returns true if the artifact has children.
-	 * 
-	 * @return true if the artifact has children
-	 */
-	public final boolean hasChildren() {
-		return getNumChildren() > 0;
-	}
-
-	/**
-	 * @param otherChild
-	 *            artifact
-	 * 
-	 * @return child if child is contained, else otherwise
-	 */
-	public abstract Artifact getChild(final Artifact otherChild);
-
-	/**
-	 * Initializes the children of the artifact.
-	 */
-	public abstract void initializeChildren();
-
-	/**
-	 * Adds a child.
-	 * 
-	 * @param child
-	 *            child to add
-	 * @return added child
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public abstract Artifact addChild(final Artifact child) throws IOException;
-
-	/**
-	 * Set whether the artifact is an empty dummy.
-	 * 
-	 * @param emptyDummy
-	 *            true, if the artifact is an emptyDummy
-	 */
-	public final void setEmptyDummy(final boolean emptyDummy) {
-		this.emptyDummy = emptyDummy;
-	}
-
-	/**
-	 * Returns whether the artifact is an empty dummy.
-	 * 
-	 * @return true, if the artifact is an empty dummy.
-	 */
-	public final boolean isEmptyDummy() {
-		return emptyDummy;
+	public final Artifact getParent() {
+		return parent;
 	}
 
 	/**
@@ -146,25 +173,74 @@ public abstract class Artifact {
 	}
 
 	/**
-	 * @param revision
-	 *            the revision to set
+	 * Returns true if the artifact has children.
+	 * 
+	 * @return true if the artifact has children
 	 */
-	public final void setRevision(final Revision revision) {
-		this.revision = revision;
+	public final boolean hasChildren() {
+		return getNumChildren() > 0;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public abstract int hashCode();
+
+	/**
+	 * Initializes the children of the artifact.
+	 */
+	public abstract void initializeChildren();
+
+	/**
+	 * Returns whether the artifact is an empty dummy.
+	 * 
+	 * @return true, if the artifact is an empty dummy.
+	 */
+	public final boolean isEmptyDummy() {
+		return emptyDummy;
 	}
 
 	/**
-	 * Parent artifact.
+	 * Returns true, if the artifact is a leaf.
+	 * 
+	 * @return true, if the artifact is a leaf
 	 */
-	private Artifact parent;
+	public abstract boolean isLeaf();
 
 	/**
-	 * Returns the parent artifact.
+	 * Performs a merge on the provided merge triple.
 	 * 
-	 * @return the parent artifact
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws InterruptedException If a thread is interrupted
+	 * @throws IOException If an input output exception occurs
 	 */
-	public final Artifact getParent() {
-		return parent;
+	public abstract void merge(MergeOperation operation, MergeContext context)
+			throws IOException, InterruptedException;
+
+	/**
+	 * Sets the children of the artifact.
+	 * 
+	 * @param children
+	 *            the new children to set
+	 */
+	public final void setChildren(final ArtifactList children) {
+		this.children = children;
+	}
+
+	/**
+	 * Set whether the artifact is an empty dummy.
+	 * 
+	 * @param emptyDummy
+	 *            true, if the artifact is an emptyDummy
+	 */
+	public final void setEmptyDummy(final boolean emptyDummy) {
+		this.emptyDummy = emptyDummy;
 	}
 
 	/**
@@ -178,70 +254,14 @@ public abstract class Artifact {
 	}
 
 	/**
-	 * Returns the name of the artifact.
+	 * Sets the revision.
 	 * 
-	 * @return name of the artifact
+	 * @param revision
+	 *            the revision to set
 	 */
-	public abstract String getName();
-
-	/**
-	 * Returns a String representing a list of artifacts.
-	 * 
-	 * @param list
-	 *            of artifacts
-	 * @param sep
-	 *            separator
-	 * @return String representation
-	 */
-	public static String getNames(final ArtifactList list, final String sep) {
-		assert (sep != null);
-		assert (list != null);
-
-		StringBuilder sb = new StringBuilder("");
-		for (Artifact artifact : list) {
-			sb.append(artifact.getName());
-			sb.append(sep);
-		}
-
-		return sb.toString();
+	public final void setRevision(final Revision revision) {
+		this.revision = revision;
 	}
-
-	/**
-	 * Returns a comma-separated String representing a list of artifacts.
-	 * 
-	 * @param list
-	 *            of artifacts
-	 * @return comma-separated String
-	 */
-	public static String getNames(final ArtifactList list) {
-		return Artifact.getNames(list, " ");
-	}
-
-	/**
-	 * Returns true if this artifact physically exists.
-	 * 
-	 * @return true if the artifact exists.
-	 */
-	public abstract boolean exists();
-
-	/**
-	 * Copies an <code>Artifact</code>.
-	 * 
-	 * @param destination
-	 *            destination artifact
-	 * @throws IOException
-	 *             If an input or output exception occurs.
-	 */
-	public abstract void copyArtifact(final Artifact destination)
-			throws IOException;
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public abstract int hashCode();
 
 	/*
 	 * (non-Javadoc)
@@ -262,43 +282,4 @@ public abstract class Artifact {
 	 *             If an input output exception occurs
 	 */
 	public abstract void write(String str) throws IOException;
-
-	/**
-	 * Returns a dummy Artifact.
-	 * 
-	 * @return dummy artifact
-	 * @throws FileNotFoundException
-	 *             If a file is not found
-	 */
-	public abstract Artifact createEmptyDummy() throws FileNotFoundException;
-
-	/**
-	 * Creates an Artifact.
-	 * 
-	 * @param isLeaf
-	 *            if true, a leaf type artifact will be created
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public abstract void createArtifact(boolean isLeaf) throws IOException;
-
-	/**
-	 * Returns identifier.
-	 * 
-	 * @return identifier
-	 */
-	public abstract String getId();
-
-	/**
-	 * Performs a merge on the provided merge triple.
-	 * 
-	 * @param operation
-	 *            merge operation
-	 * @param context
-	 *            merge context
-	 * @throws InterruptedException If a thread is interrupted
-	 * @throws IOException If an input output exception occurs
-	 */
-	public abstract void merge(MergeOperation operation, MergeContext context)
-			throws IOException, InterruptedException;
 }

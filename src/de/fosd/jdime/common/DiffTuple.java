@@ -48,19 +48,19 @@ public class DiffTuple {
 	}
 
 	/**
-	 * Sets the left artifact.
-	 * @param left the left to set
-	 */
-	public final void setLeft(final Artifact left) {
-		this.left = left;
-	}
-
-	/**
 	 * Returns the right artifact.
 	 * @return the right
 	 */
 	public final Artifact getRight() {
 		return right;
+	}
+
+	/**
+	 * Sets the left artifact.
+	 * @param left the left to set
+	 */
+	public final void setLeft(final Artifact left) {
+		this.left = left;
 	}
 
 	/**

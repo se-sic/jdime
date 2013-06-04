@@ -35,6 +35,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
  * @author Olaf Lessenich *
  */
 public class FileArtifact extends Artifact {
+
 	/**
 	 * Logger.
 	 */
@@ -44,7 +45,7 @@ public class FileArtifact extends Artifact {
 	 * File in which the artifact is stored.
 	 */
 	private File file;
-
+	
 	/**
 	 * Creates a new instance of an artifact.
 	 * 
@@ -106,12 +107,18 @@ public class FileArtifact extends Artifact {
 		this(null, file);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
+	 */
 	@Override
 	public final Artifact createEmptyDummy() throws FileNotFoundException {
 		// FIXME: The following works only for Unix-like systems. Do something
 		// about it!
 		File dummyFile = new File("/dev/null");
-		assert (dummyFile.exists());
+		assert (dummyFile.exists()) 
+				: "Currently only Unix systems are supported!";
 
 		Artifact myEmptyDummy = new FileArtifact(dummyFile);
 		myEmptyDummy.setEmptyDummy(true);
@@ -119,6 +126,11 @@ public class FileArtifact extends Artifact {
 		return myEmptyDummy;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#exists()
+	 */
 	@Override
 	public final boolean exists() {
 		assert (file != null);
@@ -151,12 +163,14 @@ public class FileArtifact extends Artifact {
 	public final ArtifactList getDirContent() {
 		assert (isDirectory());
 
-		ArtifactList contentArtifacts = new ArtifactList();
+		ArtifactList contentArtifacts 
+				= new ArtifactList();
 		File[] content = file.listFiles();
 
 		for (int i = 0; i < content.length; i++) {
 			try {
-				Artifact child = new FileArtifact(getRevision(), content[i]);
+				FileArtifact child 
+					= new FileArtifact(getRevision(), content[i]);
 				child.setParent(this);
 				contentArtifacts.add(child);
 			} catch (FileNotFoundException e) {
@@ -229,7 +243,7 @@ public class FileArtifact extends Artifact {
 	 */
 	@Override
 	public final boolean isLeaf() {
-		return file.isFile();
+		return !file.isDirectory();
 	}
 
 	/*
@@ -243,7 +257,7 @@ public class FileArtifact extends Artifact {
 			throws IOException {
 		assert (destination != null);
 		assert (destination instanceof FileArtifact);
-		
+
 		FileArtifact dst = (FileArtifact) destination;
 
 		if (dst.isFile()) {
@@ -262,8 +276,8 @@ public class FileArtifact extends Artifact {
 			}
 		} else if (dst.isDirectory()) {
 			if (isFile()) {
-				assert (dst.exists()) 
-				: "Destination directory does not exist: " + destination;
+				assert (dst.exists()) : "Destination directory does not exist: "
+						+ destination;
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Copying file " + this + " to directory "
 							+ destination);
@@ -287,10 +301,14 @@ public class FileArtifact extends Artifact {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#createArtifact(boolean)
+	 */
 	@Override
-	public final void createArtifact(final boolean isLeaf) 
-			throws IOException {
-		
+	public final void createArtifact(final boolean isLeaf) throws IOException {
+
 		// assert (!artifact.exists() || Main.isForceOverwriting())
 		// : "File would be overwritten: " + artifact;
 		//
@@ -332,7 +350,7 @@ public class FileArtifact extends Artifact {
 	 *             If an input output exception occurs
 	 */
 	public final void remove() throws IOException {
-		assert (exists() && !isEmptyDummy())
+		assert (exists() && !isEmptyDummy()) 
 				: "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
@@ -364,7 +382,7 @@ public class FileArtifact extends Artifact {
 	public final void write(final String str) throws IOException {
 		assert (file != null);
 		assert (str != null);
-		
+
 		FileWriter writer = new FileWriter(file);
 		writer.write(str);
 		writer.close();
@@ -384,6 +402,11 @@ public class FileArtifact extends Artifact {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#initializeChildren()
+	 */
 	@Override
 	public final void initializeChildren() {
 		assert (exists());
@@ -395,6 +418,12 @@ public class FileArtifact extends Artifact {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#addChild(
+	 * de.fosd.jdime.common.Artifact)
+	 */
 	@Override
 	public final Artifact addChild(final Artifact child) throws IOException {
 		assert (child != null);
@@ -409,6 +438,7 @@ public class FileArtifact extends Artifact {
 		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
 				+ File.separator + child.getId()), false);
 
+		assert (myChild != null);
 		return myChild;
 	}
 
@@ -425,6 +455,8 @@ public class FileArtifact extends Artifact {
 		assert (exists());
 
 		for (Artifact myChild : getChildren()) {
+			assert (myChild != null);
+
 			if (myChild.equals(otherChild)) {
 				return myChild;
 			}
@@ -433,30 +465,60 @@ public class FileArtifact extends Artifact {
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#hashCode()
+	 */
 	@Override
 	public final int hashCode() {
+		assert (getId() != null);
 		return getId().hashCode();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public final boolean equals(final Object obj) {
+		assert (getId() != null);
+		assert (obj != null);
+		assert (obj instanceof FileArtifact);
 		return getId().equals(((FileArtifact) obj).getId());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#getId()
+	 */
 	@Override
 	public final String getId() {
+		assert (file != null);
 		return file.getName();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation,
+	 * de.fosd.jdime.common.MergeContext)
+	 */
 	@Override
-	public final void merge(final MergeOperation operation, 
-			final MergeContext context) throws IOException, 
+	public final void merge(final MergeOperation operation,
+			final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
 		MergeStrategy strategy = isDirectory() ? new DirectoryStrategy()
 				: context.getMergeStrategy();
 		assert (strategy != null);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Using strategy: " + strategy.toString());
+		}
 		strategy.merge(operation, context);
 		if (!context.isQuiet()) {
 			System.out.println(context.getStdIn());

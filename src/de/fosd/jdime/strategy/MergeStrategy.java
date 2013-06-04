@@ -15,8 +15,6 @@ package de.fosd.jdime.strategy;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
@@ -25,33 +23,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * 
  */
 public abstract class MergeStrategy implements MergeInterface {
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(MergeStrategy.class);
 	
-	/**
-	 * Class constructor.
-	 */
-	public MergeStrategy() {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Strategy chosen: " + this.getClass().getName());
-		}
-	}
-	
-	/**
-	 * Performs a merge.
-	 * 
-	 * @param operation
-	 *            merge operation
-	 * @param context
-	 *            merge context
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 */
-	public abstract void merge(MergeOperation operation, MergeContext context) 
-			throws IOException, InterruptedException;
-
 	/**
 	 * Parses a String and returns a strategy. Null is returned if no
 	 * appropriate Tool is found.
@@ -61,7 +33,7 @@ public abstract class MergeStrategy implements MergeInterface {
 	 * @return MergeStrategy merge strategy
 	 */
 	public static MergeStrategy parse(final String str) {
-		assert str != null : "MergeEngine may not be null!";
+		assert str != null : "Merge strategy may not be null!";
 
 		String input = str.toLowerCase();
 
@@ -76,5 +48,24 @@ public abstract class MergeStrategy implements MergeInterface {
 			throw new StrategyNotFoundException("Strategy not found: " + str);
 		}
 	}
+
+	/**
+	 * Performs a merge.
+	 * 
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws IOException 
+	 * @throws InterruptedException 
+	 */
+	public abstract void merge(MergeOperation operation, MergeContext context) 
+			throws IOException, InterruptedException;
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public abstract String toString();
 
 }

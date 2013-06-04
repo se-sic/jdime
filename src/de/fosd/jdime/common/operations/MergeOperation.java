@@ -33,6 +33,7 @@ import de.fosd.jdime.common.UnsupportedMergeTypeException;
  * 
  */
 public class MergeOperation extends Operation {
+	
 	/**
 	 * Logger.
 	 */
@@ -47,27 +48,6 @@ public class MergeOperation extends Operation {
 	 * Output Artifact.
 	 */
 	private Artifact target;
-
-	/**
-	 * @return the target
-	 */
-	public final Artifact getTarget() {
-		return target;
-	}
-
-	/**
-	 * Class constructor.
-	 * 
-	 * @param mergeTriple
-	 *            triple containing <code>Artifact</code>s
-	 * @param target
-	 *            output <code>Artifact</code>
-	 */
-	public MergeOperation(final MergeTriple mergeTriple, 
-			final Artifact target) {
-		this.mergeTriple = mergeTriple;
-		this.target = target;
-	}
 
 	/**
 	 * Class constructor.
@@ -120,25 +100,17 @@ public class MergeOperation extends Operation {
 	}
 
 	/**
-	 * Returns the merge triple.
+	 * Class constructor.
 	 * 
-	 * @return merge triple
+	 * @param mergeTriple
+	 *            triple containing <code>Artifact</code>s
+	 * @param target
+	 *            output <code>Artifact</code>
 	 */
-	public final MergeTriple getMergeTriple() {
-		return mergeTriple;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		assert (mergeTriple != null);
-		String dst = target == null ? "" : target.toString();
-		return getName() + " " + mergeTriple.getMergeType() + " " 
-				+ mergeTriple.toString(true) + " INTO " + dst;
+	public MergeOperation(final MergeTriple mergeTriple, 
+			final Artifact target) {
+		this.mergeTriple = mergeTriple;
+		this.target = target;
 	}
 
 	/*
@@ -168,8 +140,42 @@ public class MergeOperation extends Operation {
 		mergeTriple.merge(this, context);
 	}
 
+	/**
+	 * Returns the merge triple.
+	 * 
+	 * @return merge triple
+	 */
+	public final MergeTriple getMergeTriple() {
+		return mergeTriple;
+	}
+
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.operations.Operation#getName()
+	 */
 	@Override
 	public final String getName() {
 		return "MERGE";
+	}
+
+	/**
+	 * Returns the target @code{Artifact}.
+	 * 
+	 * @return the target
+	 */
+	public final Artifact getTarget() {
+		return target;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		assert (mergeTriple != null);
+		String dst = target == null ? "" : target.toString();
+		return getName() + " " + mergeTriple.getMergeType() + " " 
+				+ mergeTriple.toString(true) + " INTO " + dst;
 	}
 }

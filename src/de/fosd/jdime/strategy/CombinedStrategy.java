@@ -33,7 +33,10 @@ public class CombinedStrategy extends MergeStrategy {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.engine.MergeInterface#merge()
+	 * @see
+	 * de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
 	public final void merge(final MergeOperation operation,
@@ -43,6 +46,16 @@ public class CombinedStrategy extends MergeStrategy {
 		throw new NotYetImplementedException(
 				"Combined Strategy: Implement me!");
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
+	 */
+	@Override
+	public final String toString() {
+		return "combined";
 	}
 
 }

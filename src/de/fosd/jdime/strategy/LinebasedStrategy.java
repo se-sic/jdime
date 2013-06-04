@@ -45,41 +45,42 @@ public class LinebasedStrategy extends MergeStrategy {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.engine.MergeInterface#merge()
+	 * @see
+	 * de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation operation, 
-			final MergeContext context)
-			throws IOException, InterruptedException {
-		
+	public final void merge(final MergeOperation operation,
+			final MergeContext context) throws IOException,
+			InterruptedException {
+
 		assert (operation != null);
 		assert (context != null);
-		
+
 		MergeTriple triple = operation.getMergeTriple();
-		
+
 		assert (triple != null);
-		assert (triple.isValid()) 
-					: "The merge triple is not valid!";
+		assert (triple.isValid()) : "The merge triple is not valid!";
 		assert (triple.getLeft() instanceof FileArtifact);
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
 		assert (triple.getLeft().isLeaf());
 		assert (triple.getBase().isLeaf() || triple.getBase().isEmptyDummy());
 		assert (triple.getRight().isLeaf());
-		
+
 		context.resetStreams();
-		
+
 		FileArtifact target = null;
-		
+
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
 			assert (!target.exists() || target.isEmpty()) 
 					: "Would be overwritten: " + target;
 		}
-		
+
 		String cmd = BASECMD + " " + triple;
-		
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
@@ -121,12 +122,22 @@ public class LinebasedStrategy extends MergeStrategy {
 		if (context.hasErrors()) {
 			System.err.println(context.getStdErr());
 		}
-		
+
 		// write output
 		if (target != null) {
 			target.write(context.getStdIn());
 		}
-		
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return "linebased";
 	}
 
 }
