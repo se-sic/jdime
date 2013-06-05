@@ -15,6 +15,7 @@ package de.fosd.jdime.common;
 
 import java.io.StringWriter;
 
+import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 
@@ -52,7 +53,23 @@ public class MergeContext {
 	 * Force overwriting of existing output files.
 	 */
 	private boolean forceOverwriting = false;
+	
+	/**
+	 * Statistical data are stored in a stats object.
+	 */
+	private Stats stats = null;
 
+	/**
+	 * Adds statistical data to already collected data.
+	 * 
+	 * @param other statistical data to add
+	 */
+	public final void addStats(final Stats other) {
+		assert (stats != null);
+		assert (other != null);
+		stats.add(other);
+	}
+	
 	/**
 	 * Appends a line to the saved stderr buffer.
 	 * 
@@ -65,6 +82,7 @@ public class MergeContext {
 			stdErr.append(System.getProperty("line.separator"));
 		}
 	}
+	
 	/**
 	 * Appends a line to the saved stdin buffer.
 	 * 
@@ -77,7 +95,7 @@ public class MergeContext {
 			stdIn.append(System.getProperty("line.separator"));
 		}
 	}
-
+	
 	/**
 	 * Returns the merge strategy.
 	 * 
@@ -85,6 +103,14 @@ public class MergeContext {
 	 */
 	public final MergeStrategy<?> getMergeStrategy() {
 		return mergeStrategy;
+	}
+	/**
+	 * Retrieves the statistical data.
+	 * 
+	 * @return statistical data
+	 */
+	public final Stats getStats() {
+		return stats;
 	}
 
 	/**
@@ -96,7 +122,6 @@ public class MergeContext {
 		assert (stdErr != null);
 		return stdErr.toString();
 	}
-	
 
 	/**
 	 * Returns the saved stdin buffer.
@@ -107,6 +132,7 @@ public class MergeContext {
 		assert (stdErr != null);
 		return stdIn.toString();
 	}
+	
 
 	/**
 	 * Returns true if stderr is not empty.
@@ -134,7 +160,7 @@ public class MergeContext {
 	public final boolean isQuiet() {
 		return quiet;
 	}
-	
+
 	/**
 	 * Returns whether directories are merged recursively.
 	 * 
@@ -143,7 +169,7 @@ public class MergeContext {
 	public final boolean isRecursive() {
 		return recursive;
 	}
-
+	
 	/**
 	 * Resets the input streams.
 	 */
@@ -151,7 +177,7 @@ public class MergeContext {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
 	}
-	
+
 	/**
 	 * Sets whether overwriting of files in the output directory is forced.
 	 * 
@@ -160,7 +186,7 @@ public class MergeContext {
 	public final void setForceOverwriting(final boolean forceOverwriting) {
 		this.forceOverwriting = forceOverwriting;
 	}
-
+	
 	/**
 	 * Sets the merge strategy.
 	 * 
@@ -170,7 +196,7 @@ public class MergeContext {
 				mergeStrategy) {
 		this.mergeStrategy = mergeStrategy;
 	}
-	
+
 	/**
 	 * Sets whether the output is quiet or not.
 	 * 
@@ -187,5 +213,14 @@ public class MergeContext {
 	 */
 	public final void setRecursive(final boolean recursive) {
 		this.recursive = recursive;
+	}
+	
+	/**
+	 * Sets the statistical data object.
+	 * 
+	 * @param stats the stats object to set
+	 */
+	public final void setStats(final Stats stats) {
+		this.stats = stats;
 	}
 }

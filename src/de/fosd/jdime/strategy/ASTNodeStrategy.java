@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 
@@ -28,8 +29,28 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
 			final MergeContext context) 
 					throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
+		assert (operation != null);
+		assert (context != null);
 		
+		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+		
+		assert (triple.isValid());
+		
+		ASTNodeArtifact left = triple.getLeft();
+		ASTNodeArtifact base = triple.getBase();
+		ASTNodeArtifact right = triple.getRight();
+		ASTNodeArtifact target = operation.getTarget();
+		
+		ASTNodeArtifact[] revisions = { left, base, right };
+		
+		for (ASTNodeArtifact node : revisions) {
+			assert (node.exists());
+		}
+		
+		assert (target != null);
+		
+		
+		// FIXME: remove me when implementation is complete
 		throw new NotYetImplementedException(
 				"ASTNodeStrategy: Implement me!");
 
