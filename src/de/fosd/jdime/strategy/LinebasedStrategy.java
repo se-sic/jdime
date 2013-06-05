@@ -126,6 +126,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 		// write output
 		if (target != null) {
+			assert (target.exists());
 			target.write(context.getStdIn());
 		}
 

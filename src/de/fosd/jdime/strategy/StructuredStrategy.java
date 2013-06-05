@@ -16,7 +16,6 @@ package de.fosd.jdime.strategy;
 import java.io.IOException;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -73,26 +72,32 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// ASTNodeArtifacts are created from the input files.
 		// Then, a ASTNodeStrategy can be applied.
 		// The Result is pretty printed and can be written into the output file.
+		
 		ASTNodeArtifact left, base, right;
 
 		left = new ASTNodeArtifact(triple.getLeft());
 		base = new ASTNodeArtifact(triple.getBase());
 		right = new ASTNodeArtifact(triple.getRight());
 		ASTNodeArtifact targetNode = left.createEmptyDummy();
-
-		ArtifactList<ASTNodeArtifact> nodeTriple 
-				= new ArtifactList<ASTNodeArtifact>();
-		nodeTriple.add(left);
-		nodeTriple.add(base);
-		nodeTriple.add(right);
-
+		
+		MergeTriple<ASTNodeArtifact> nodeTriple 
+					= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
+							left, base, right);
+				
 		MergeOperation<ASTNodeArtifact> astMergeOp 
 				= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 		
 		astMergeOp.apply(context);
 		
-		// TODO: write output
-		
+		if (context.hasErrors()) {
+			System.err.println(context.getStdErr());
+		}
+
+		// write output
+		if (target != null) {
+			assert (target.exists());
+			target.write(context.getStdIn());
+		}
 
 		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
