@@ -13,6 +13,8 @@
         <pathelement location="bin"/>
         <pathelement location="lib/commons-cli.jar"/>
         <pathelement location="lib/log4j-1.2.jar"/>
+        <pathelement location="lib/apache-commons-io.jar"/>
+        <pathelement location="lib/JJ7.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
