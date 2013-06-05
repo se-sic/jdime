@@ -41,6 +41,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			final MergeContext context) {
 		// TODO Auto-generated method stub
 
+		
+		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
 				"Combined Strategy: Implement me!");
 

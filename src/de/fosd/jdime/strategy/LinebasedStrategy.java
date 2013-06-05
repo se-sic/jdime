@@ -65,9 +65,10 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getLeft() instanceof FileArtifact);
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
-		assert (triple.getLeft().isLeaf());
-		assert (triple.getBase().isLeaf() || triple.getBase().isEmptyDummy());
-		assert (triple.getRight().isLeaf());
+		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
+				|| triple.getBase().isEmptyDummy());
+		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
 

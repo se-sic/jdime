@@ -95,6 +95,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 			+ "Use '-r' or see '-help'!";
 
 		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+		
+		assert (triple.isValid());
 
 		assert (triple.getLeft() instanceof FileArtifact);
 		assert (triple.getBase() instanceof FileArtifact);
@@ -114,7 +116,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 		FileArtifact[] revisions = { left, base, right };
 
 		for (FileArtifact dir : revisions) {
-			assert (dir.isDirectory() || dir.isEmptyDummy());
+			assert ((dir.exists() && dir.isDirectory()) || dir.isEmptyDummy());
 		}
 
 		HashMap<FileArtifact, BitSet> map = new HashMap<FileArtifact, BitSet>();

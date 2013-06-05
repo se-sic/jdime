@@ -119,7 +119,7 @@ public final class Main {
 			}
 		}
 		
-		if (output.exists() && !output.isEmpty()) {
+		if (output != null && output.exists() && !output.isEmpty()) {
 			System.err.println("Output directory is not empty!");
 			System.err.println("Delete '" + output.getFullPath()
 					+ "'? [y/N]");

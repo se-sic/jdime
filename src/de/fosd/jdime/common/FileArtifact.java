@@ -324,6 +324,15 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	/**
+	 * Returns the encapsulated file.
+	 * 
+	 * @return file
+	 */
+	public final File getFile() {
+		return file;
+	}
+
+	/**
 	 * Returns the absolute path of this artifact.
 	 * 
 	 * @return absolute part of the artifact
