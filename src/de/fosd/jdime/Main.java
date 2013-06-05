@@ -76,8 +76,7 @@ public final class Main {
 	/**
 	 * Merge context.
 	 */
-	private static MergeContext<FileArtifact> context 
-			= new MergeContext<FileArtifact>();;
+	private static MergeContext context = new MergeContext();
 
 	/**
 	 * Output artifact.
@@ -97,7 +96,7 @@ public final class Main {
 	public static void main(final String[] args) throws IOException,
 			InterruptedException {
 		BasicConfigurator.configure();
-		context = new MergeContext<FileArtifact>();
+		context = new MergeContext();
 		
 		programStart = System.currentTimeMillis();
 
@@ -192,6 +191,9 @@ public final class Main {
 
 			if (cmd.hasOption("mode")) {
 				try {
+					if (cmd.getOptionValue("mode").equals("list")) {
+						printStrategies(true);
+					}
 					context.setMergeStrategy(MergeStrategy.parse(cmd
 							.getOptionValue("mode")));
 				} catch (StrategyNotFoundException e) {
@@ -326,9 +328,25 @@ public final class Main {
 	 */
 	private static void showConfig(final boolean exit) {
 		assert (context != null);
-		System.out.println("Merge tool: " + context.getMergeStrategy());
+		System.out.println("Merge strategy: " + context.getMergeStrategy());
 		System.out.println();
 
+		if (exit) {
+			exit(0);
+		}
+	}
+	
+	/**
+	 * Prints the available strategies.
+	 * @param exit whether to exit after printing the strategies
+	 */
+	private static void printStrategies(final boolean exit) {
+		System.out.println("Available merge strategies:");
+		
+		for (String s : MergeStrategy.listStrategies()) {
+			System.out.println("\t- " + s);
+		}
+		
 		if (exit) {
 			exit(0);
 		}
@@ -349,18 +367,10 @@ public final class Main {
 	public static void merge(final ArtifactList<FileArtifact> inputArtifacts,
 			final FileArtifact output) throws IOException, 
 											InterruptedException {
+		assert (inputArtifacts != null);
 		Operation<FileArtifact> merge = new MergeOperation<FileArtifact>(
 											inputArtifacts, output);
 		merge.apply(context);
-	}
-
-	/**
-	 * Returns the logging level of this class' logger.
-	 * 
-	 * @return logging level
-	 */
-	public static Level getLogLevel() {
-		return LOG.getLevel();
 	}
 
 }

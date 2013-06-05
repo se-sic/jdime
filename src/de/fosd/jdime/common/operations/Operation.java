@@ -37,7 +37,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
 	 */
-	public abstract void apply(final MergeContext<T> context) 
+	public abstract void apply(final MergeContext context) 
 			throws IOException, InterruptedException;
 
 	/**

@@ -86,7 +86,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext<FileArtifact> context) throws IOException,
+			final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
@@ -206,7 +206,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	private Operation<FileArtifact> applyMergeRules(
 			final FileArtifact[] revisions, final FileArtifact target, 
 			final FileArtifact child, final BitSet bs,
-			final MergeContext<FileArtifact> context) throws IOException,
+			final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
 		assert (revisions != null);

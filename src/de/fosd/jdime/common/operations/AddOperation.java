@@ -63,7 +63,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext<T> context) throws IOException {
+	public final void apply(final MergeContext context) throws IOException {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 		

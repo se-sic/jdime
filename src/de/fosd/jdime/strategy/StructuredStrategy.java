@@ -13,7 +13,7 @@
  */
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -24,7 +24,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
  * @author Olaf Lessenich
  * 
  */
-public class StructuredStrategy extends MergeStrategy<ASTNodeArtifact> {
+public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 	/*
 	 * (non-Javadoc)
@@ -35,13 +35,16 @@ public class StructuredStrategy extends MergeStrategy<ASTNodeArtifact> {
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
-	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
-			final MergeContext<ASTNodeArtifact> context) {
+	public final void merge(final MergeOperation<FileArtifact> operation,
+			final MergeContext context) {
 		// TODO Auto-generated method stub
 
 		throw new NotYetImplementedException(
 				"StructuredStrategy: Implement me!");
 
+		// ASTNodeArtifacts are created from the input files.
+		// Then, a ASTNodeStrategy can be applied.
+		// The Result is pretty printed and can be written into the output file.
 	}
 
 	/*

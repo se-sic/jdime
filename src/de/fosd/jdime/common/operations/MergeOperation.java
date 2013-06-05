@@ -124,7 +124,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext<T> context) throws IOException,
+	public final void apply(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (mergeTriple.getLeft().exists()) 
 				: "Left artifact does not exist: " + mergeTriple.getLeft();

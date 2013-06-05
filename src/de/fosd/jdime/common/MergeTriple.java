@@ -124,7 +124,7 @@ public class MergeTriple<T extends Artifact<T>> {
 	 * @throws IOException If an input output exception occurs
 	 */
 	public final void merge(final MergeOperation<T> operation, 
-			final MergeContext<T> context)
+			final MergeContext context)
 			throws IOException, InterruptedException {
 		operation.getMergeTriple().getLeft().merge(operation, context);
 	}

@@ -52,7 +52,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext<FileArtifact> context) throws IOException,
+			final MergeContext context) throws IOException,
 			InterruptedException {
 
 		assert (operation != null);

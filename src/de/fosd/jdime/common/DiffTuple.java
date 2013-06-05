@@ -20,7 +20,7 @@ package de.fosd.jdime.common;
  * @param <T> type of artifact
  *
  */
-public class DiffTuple <T extends Artifact<?>> {
+public class DiffTuple <T extends Artifact<T>> {
 	/**
 	 * Left artifact.
 	 */

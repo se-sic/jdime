@@ -223,7 +223,7 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @throws IOException If an input output exception occurs
 	 */
 	public abstract void merge(MergeOperation<T> operation, 
-			MergeContext<T> context)
+			MergeContext context)
 			throws IOException, InterruptedException;
 
 	/**

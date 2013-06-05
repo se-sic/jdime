@@ -30,18 +30,15 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 	 * Logger.
 	 */
 	// private static final Logger LOG = Logger.getLogger(Combined.class);
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.strategy.MergeStrategy#merge(
+	
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
 	 * de.fosd.jdime.common.operations.MergeOperation, 
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext<FileArtifact> context) {
+			final MergeContext context) {
 		// TODO Auto-generated method stub
 
 		throw new NotYetImplementedException(

@@ -466,12 +466,14 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext<FileArtifact> context) throws IOException,
+			final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
-		MergeStrategy<FileArtifact> strategy = isDirectory() 
-				? new DirectoryStrategy() : context.getMergeStrategy();
+
+		MergeStrategy<FileArtifact> strategy 
+				= (MergeStrategy<FileArtifact>) (isDirectory() 
+				? new DirectoryStrategy() : context.getMergeStrategy());
 		assert (strategy != null);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Using strategy: " + strategy.toString());
