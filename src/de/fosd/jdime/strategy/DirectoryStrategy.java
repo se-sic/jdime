@@ -30,6 +30,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.stats.Stats;
 
 /**
  * @author Olaf Lessenich
@@ -299,6 +300,16 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 		default:
 			throw new UnsupportedMergeTypeException();
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final Stats createStats() {
+		return new Stats(new String[] {"directories", "files"});
 	}
 
 	@Override

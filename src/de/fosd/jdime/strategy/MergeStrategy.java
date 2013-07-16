@@ -24,7 +24,7 @@ import de.fosd.jdime.common.Artifact;
  * @param <T> type of artifact
  */
 public abstract class MergeStrategy<T extends Artifact<T>>
-							implements MergeInterface<T> {
+							implements MergeInterface<T>, StatsInterface {
 	
 	/**
 	 * Map holding all strategies.

@@ -23,6 +23,7 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.Stats;
 
 /**
  * Performs a linebased merge.
@@ -130,6 +131,16 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			target.write(context.getStdIn());
 		}
 
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final Stats createStats() {
+		return new Stats(new String[] {"directories", "files", "lines"});
 	}
 
 	/*

@@ -210,6 +210,10 @@ public final class Main {
 				output = new FileArtifact(new Revision("merge"), new File(
 						cmd.getOptionValue("output")), false);
 			}
+			
+			if (cmd.hasOption("stats")) {
+				context.setSaveStats(true);
+			}
 
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));

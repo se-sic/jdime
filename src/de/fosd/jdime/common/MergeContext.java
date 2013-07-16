@@ -55,6 +55,11 @@ public class MergeContext {
 	private boolean forceOverwriting = false;
 	
 	/**
+	 * Save statistical data.
+	 */
+	private boolean saveStats = false;
+	
+	/**
 	 * Statistical data are stored in a stats object.
 	 */
 	private Stats stats = null;
@@ -216,11 +221,20 @@ public class MergeContext {
 	}
 	
 	/**
-	 * Sets the statistical data object.
-	 * 
-	 * @param stats the stats object to set
+	 * @return the saveStats
 	 */
-	public final void setStats(final Stats stats) {
-		this.stats = stats;
+	public final boolean isSaveStats() {
+		return saveStats;
+	}
+
+	/**
+	 * @param saveStats the saveStats to set
+	 */
+	public final void setSaveStats(final boolean saveStats) {
+		this.saveStats = saveStats;
+		
+		if (saveStats) {
+			stats = mergeStrategy.createStats();
+		}
 	}
 }

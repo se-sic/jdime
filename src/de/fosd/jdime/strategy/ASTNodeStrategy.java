@@ -10,6 +10,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.Stats;
 
 /**
  * @author Olaf Lessenich
@@ -65,6 +66,11 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	public final String toString() {
 		// TODO Auto-generated method stub
 		return "astnode";
+	}
+
+	@Override
+	public final Stats createStats() {
+		return new Stats(new String[] {"nodes"});
 	}
 
 }
