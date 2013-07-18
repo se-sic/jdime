@@ -37,6 +37,7 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 
@@ -138,6 +139,10 @@ public final class Main {
 		}
 		
 		merge(inputFiles, output);
+		
+		if (context.hasStats()) {
+			StatsPrinter.print(context);
+		}
 
 		exit(0);
 	}
@@ -168,6 +173,8 @@ public final class Main {
 		options.addOption("showconfig", false,
 				"print configuration information");
 		options.addOption("stdout", false, "prints merge result to stdout");
+		options.addOption("stats", false, 
+				"collects statistical data of the merge");
 
 		CommandLineParser parser = new PosixParser();
 		try {

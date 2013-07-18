@@ -285,4 +285,11 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 *             If an input output exception occurs
 	 */
 	public abstract void write(String str) throws IOException;
+	
+	/**
+	 * Returns key of statistical element.
+	 * @param context merge context
+	 * @return key of statistical element
+	 */
+	public abstract String getStatsKey(final MergeContext context);
 }

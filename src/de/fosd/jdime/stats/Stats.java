@@ -8,16 +8,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import de.fosd.jdime.common.operations.Operation;
+
 /**
  * @author Olaf Lessenich
+ *
+ */
+/**
+ * @author lessenic
  *
  */
 public class Stats {
 	
 	/**
+	 * Number of conflicts. 
+	 */
+	private int conflicts = 0;
+	
+	/**
+	 * Returns the number of conflicts.
+	 * @return number of conflicts
+	 */
+	public final int getConflicts() {
+		return conflicts;
+	}
+
+	/**
+	 * Sets the number of conflicts.
+	 * @param conflicts number of conflicts to set
+	 */
+	public final void setConflicts(final int conflicts) {
+		this.conflicts = conflicts;
+	}
+	
+	/**
+	 * Increases the number of conflicts.
+	 * @param conflicts number of conflicts to add
+	 */
+	public final void addConflicts(final int conflicts) {
+		this.conflicts += conflicts;
+	}
+
+	/**
 	 * Map of elements.
 	 */
 	private HashMap<String, StatsElement> elements;
+	
+	/**
+	 * Map of operations.
+	 */
+	private HashMap<String, Integer> operations;
 	
 	/**
 	 * Creates a new Stats instance from a list of keys.
@@ -26,6 +66,16 @@ public class Stats {
 	public Stats(final List<String> keys) {
 		assert (keys != null);
 		assert (!keys.isEmpty());
+		
+		// If necessary, initialize maps
+		if (elements == null) {
+			elements = new HashMap<String, StatsElement>();
+		}
+		
+		if (operations == null) {
+			operations = new HashMap<String, Integer>();
+		}
+		
 		for (String key : keys) {
 			elements.put(key, new StatsElement());
 		}
@@ -57,6 +107,9 @@ public class Stats {
 				elements.put(otherKey, otherElement);
 			}
 		}
+		
+		this.conflicts += other.conflicts;
+		
 	}
 	
 	/**
@@ -64,6 +117,7 @@ public class Stats {
 	 * @return set of keys
 	 */
 	public final Set<String> getKeys() {
+		assert (elements != null);
 		return elements.keySet();
 	}
 	
@@ -73,8 +127,46 @@ public class Stats {
 	 * @return element
 	 */
 	public final StatsElement getElement(final String key) {
+		assert (elements != null);
 		assert (elements.containsKey(key));
 		return elements.get(key);
+	}
+	
+	/**
+	 * Returns a set of operations.
+	 * @return set of operations
+	 */
+	public final Set<String> getOperations() {
+		assert (operations != null);
+		return operations.keySet();
+	}
+	
+	/**
+	 * Increases the counter of an operation.
+	 * @param op operation
+	 */
+	public final void incrementOperation(final Operation<?> op) {
+		assert (operations != null);
+		String opName = op.getName();
+		
+		if (!operations.containsKey(opName)) {
+			operations.put(opName, 0);
+		}
+		
+		assert (operations.containsKey(opName));
+		
+		operations.put(opName, operations.get(opName) + 1);
+	}
+	
+	/**
+	 * Returns how many times an operation was applied..
+	 * @param opName name of the operation
+	 * @return number of times an operation was applied
+	 */
+	public final int getOperation(final String opName) {
+		assert (operations != null);
+		assert (operations.containsKey(opName));
+		return operations.get(opName);
 	}
 	
 }

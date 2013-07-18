@@ -17,22 +17,25 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
 
 /**
  * The operation deletes <code>Artifact</code>s.
  * 
  * @author Olaf Lessenich
  * 
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  * 
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
-	
+
 	/**
 	 * Logger.
 	 */
 	private static final Logger LOG = Logger.getLogger(DeleteOperation.class);
-	
+
 	/**
 	 * The <code>Artifact</code> that is deleted by the operation.
 	 */
@@ -57,10 +60,18 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	public final void apply(final MergeContext context) {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-		
+
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Applying: " + this);
-		}				
+		}
+
+		if (context.hasStats()) {
+			Stats stats = context.getStats();
+			stats.incrementOperation(this);
+			StatsElement element = stats.getElement(
+					artifact.getStatsKey(context));
+			element.incrementDeleted();
+		}
 	}
 
 	@Override

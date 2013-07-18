@@ -31,10 +31,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 	 * Logger.
 	 */
 	// private static final Logger LOG = Logger.getLogger(Combined.class);
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * de.fosd.jdime.common.operations.MergeOperation,
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
@@ -42,7 +44,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			final MergeContext context) {
 		// TODO Auto-generated method stub
 
-		
 		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
 				"Combined Strategy: Implement me!");
@@ -59,14 +60,20 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		return "combined";
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.strategy.StatsInterface#createStats()
 	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] {
-				"directories", "files", "lines", "nodes"
-				});
+		return new Stats(new String[] { "directories", "files", "lines",
+				"nodes" });
 	}
 
+	@Override
+	public final String getStatsKey(final FileArtifact artifact) {
+		throw new NotYetImplementedException(
+				"Combined Strategy: Implement me!");
+	}
 }

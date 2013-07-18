@@ -19,9 +19,9 @@ public class StatsElement {
 	private int deleted = 0;
 
 	/**
-	 * Number of changed elements.
+	 * Number of merged elements.
 	 */
-	private int changed = 0;
+	private int merged = 0;
 
 	/**
 	 * Number of conflicting elements.
@@ -38,12 +38,12 @@ public class StatsElement {
 	}
 
 	/**
-	 * Returns the number of changed elements.
+	 * Returns the number of merged elements.
 	 * 
-	 * @return the number of changed elements
+	 * @return the number of merged elements
 	 */
-	public final int getChanged() {
-		return changed;
+	public final int getMerged() {
+		return merged;
 	}
 
 	/**
@@ -72,10 +72,10 @@ public class StatsElement {
 	}
 
 	/**
-	 * Increments the number of changed elements.
+	 * Increments the number of merged elements.
 	 */
-	public final void incrementChanged() {
-		changed = changed + 1;
+	public final void incrementMerged() {
+		merged = merged + 1;
 	}
 
 	/**
@@ -103,13 +103,13 @@ public class StatsElement {
 	}
 
 	/**
-	 * Sets the number of changed elements.
+	 * Sets the number of merged elements.
 	 * 
-	 * @param changed
+	 * @param merged
 	 *            elements to set
 	 */
-	public final void setChanged(final int changed) {
-		this.changed = changed;
+	public final void setMerged(final int merged) {
+		this.merged = merged;
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class StatsElement {
 	public final void addStatsElement(final StatsElement other) {
 		added = added + other.added;
 		deleted = deleted + other.deleted;
-		changed = changed + other.changed;
+		merged = merged + other.merged;
 		conflicting = conflicting + other.conflicting;
 	}
 }

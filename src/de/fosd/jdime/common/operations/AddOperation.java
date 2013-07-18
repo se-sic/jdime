@@ -19,6 +19,8 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -79,6 +81,14 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 			assert (target.exists());
 			
 			artifact.copyArtifact(target);
+		}
+		
+		if (context.hasStats()) {
+			Stats stats = context.getStats();
+			stats.incrementOperation(this);
+			StatsElement element = stats.getElement(
+					artifact.getStatsKey(context));
+			element.incrementAdded();
 		}
 
 	}

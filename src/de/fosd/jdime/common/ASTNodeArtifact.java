@@ -254,4 +254,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	}
 
+	@Override
+	public final String getStatsKey(final MergeContext context) {
+		return "nodes";
+	}
+
 }

@@ -123,4 +123,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		return new Stats(new String[] {"directories", "files", "nodes"});
 	}
 
+	@Override
+	public final String getStatsKey(final FileArtifact artifact) {
+		// FIXME: remove me when implementation is complete!
+		throw new NotYetImplementedException(
+				"StructuredStrategy: Implement me!");
+		
+	}
+
 }

@@ -73,4 +73,11 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		return new Stats(new String[] {"nodes"});
 	}
 
+	@Override
+	public final String getStatsKey(final ASTNodeArtifact artifact) {
+		// FIXME: remove me when implementation is complete
+		throw new NotYetImplementedException(
+				"ASTNodeStrategy: Implement me!");
+	}
+
 }

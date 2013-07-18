@@ -316,4 +316,10 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	public final String toString() {
 		return "directory";
 	}
+
+	@Override
+	public final String getStatsKey(final FileArtifact artifact) {
+		return artifact.isDirectory() ? "directories" : "files";
+	}
+
 }

@@ -539,4 +539,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		writer.close();
 	}
 
+	@Override
+	public final String getStatsKey(final MergeContext context) {
+		assert (context != null);
+
+//		MergeStrategy<FileArtifact> strategy 
+//				= (MergeStrategy<FileArtifact>) (isDirectory() 
+//				? new DirectoryStrategy() : context.getMergeStrategy());
+//		assert (strategy != null);
+//		
+//		return strategy.getStatsKey(this);
+		return isDirectory() ? "directories" : "files";
+	}
+
 }

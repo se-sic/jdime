@@ -223,7 +223,7 @@ public class MergeContext {
 	/**
 	 * @return the saveStats
 	 */
-	public final boolean isSaveStats() {
+	public final boolean hasStats() {
 		return saveStats;
 	}
 

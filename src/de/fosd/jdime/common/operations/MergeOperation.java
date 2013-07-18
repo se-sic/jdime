@@ -25,6 +25,8 @@ import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -143,6 +145,14 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		mergeTriple.merge(this, context);
+		
+		if (context.hasStats()) {
+			Stats stats = context.getStats();
+			stats.incrementOperation(this);
+			StatsElement element = stats.getElement(
+					mergeTriple.getLeft().getStatsKey(context));
+			element.incrementMerged();
+		}
 	}
 
 	/**
