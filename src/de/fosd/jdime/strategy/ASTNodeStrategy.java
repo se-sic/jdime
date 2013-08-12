@@ -80,4 +80,9 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 				"ASTNodeStrategy: Implement me!");
 	}
 
+	@Override
+	public void dump(ASTNodeArtifact artifact) throws IOException {
+		throw new NotYetImplementedException();
+	}
+
 }

@@ -131,4 +131,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		
 	}
 
+	@Override
+	public void dump(FileArtifact artifact) throws IOException {
+		throw new NotYetImplementedException();
+	}
+
 }

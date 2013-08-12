@@ -59,6 +59,8 @@ public class MergeContext {
 	 */
 	private boolean saveStats = false;
 	
+	private boolean dump = false;
+	
 	/**
 	 * Statistical data are stored in a stats object.
 	 */
@@ -236,5 +238,19 @@ public class MergeContext {
 		if (saveStats) {
 			stats = mergeStrategy.createStats();
 		}
+	}
+
+	/**
+	 * @return the dumpTree
+	 */
+	public final boolean isDump() {
+		return dump;
+	}
+
+	/**
+	 * @param dumpTree the dumpTree to set
+	 */
+	public final void setDump(final boolean dumpTree) {
+		this.dump = dumpTree;
 	}
 }

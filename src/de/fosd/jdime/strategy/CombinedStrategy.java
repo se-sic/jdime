@@ -13,6 +13,8 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.IOException;
+
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.NotYetImplementedException;
@@ -75,5 +77,10 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 	public final String getStatsKey(final FileArtifact artifact) {
 		throw new NotYetImplementedException(
 				"Combined Strategy: Implement me!");
+	}
+
+	@Override
+	public void dump(FileArtifact artifact) throws IOException {
+		throw new NotYetImplementedException();
 	}
 }
