@@ -258,5 +258,21 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final String getStatsKey(final MergeContext context) {
 		return "nodes";
 	}
+	
+	/**
+	 * @return
+	 */
+	public final String dumpTree() {
+		return astnode.dumpTree();
+	}
+	
+	/**
+	 * @return
+	 */
+	public final String dumpGraphvizTree() {
+		StringBuffer sb = new StringBuffer();
+		
+		return sb.toString();
+	}
 
 }

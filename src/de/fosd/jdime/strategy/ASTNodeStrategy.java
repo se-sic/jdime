@@ -81,8 +81,8 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public void dump(ASTNodeArtifact artifact) throws IOException {
-		throw new NotYetImplementedException();
+	public void dump(final ASTNodeArtifact artifact) throws IOException {
+		System.out.println(artifact.dumpTree());
 	}
 
 }

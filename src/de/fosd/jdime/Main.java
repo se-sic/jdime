@@ -205,14 +205,17 @@ public final class Main {
 					if (cmd.getOptionValue("mode").equals("list")) {
 						printStrategies(true);
 					} else if (cmd.getOptionValue("mode").equals("dumptree")) {
+						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
 						context.setDump(true);
 					} else if (cmd.getOptionValue("mode").equals("dumpfile")) {
+						// User only wants to display the files
 						context.setMergeStrategy(MergeStrategy
 								.parse("linebased"));
 						context.setDump(true);
 					} else {
+						// User wants to merge
 						context.setMergeStrategy(MergeStrategy.parse(cmd
 							.getOptionValue("mode")));
 					}

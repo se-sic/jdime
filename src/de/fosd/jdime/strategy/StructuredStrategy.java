@@ -132,8 +132,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public void dump(FileArtifact artifact) throws IOException {
-		throw new NotYetImplementedException();
+	public void dump(final FileArtifact artifact) throws IOException {
+		new ASTNodeStrategy().dump(new ASTNodeArtifact(artifact));
 	}
 
 }
