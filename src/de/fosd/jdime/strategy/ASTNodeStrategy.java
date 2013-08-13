@@ -81,8 +81,24 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public void dump(final ASTNodeArtifact artifact) throws IOException {
-		System.out.println(artifact.dumpTree());
+	public final void dump(final ASTNodeArtifact artifact) throws IOException {
+		dumpGraphVizTree(artifact);
+	}
+	
+	private final void dumpGraphVizTree(final ASTNodeArtifact artifact) {
+		// header
+		StringBuffer sb = new StringBuffer();
+		sb.append("digraph ast {" + System.lineSeparator());
+		sb.append("node [shape=ellipse];" + System.lineSeparator());
+		sb.append("nodesep=0.8;" + System.lineSeparator());
+		
+		// nodes
+		sb.append(artifact.dumpGraphvizTree(true));
+		
+		// footer
+		sb.append("}");
+		
+		System.out.println(sb.toString());
 	}
 
 }

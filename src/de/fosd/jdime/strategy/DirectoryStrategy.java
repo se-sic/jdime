@@ -325,7 +325,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	
 
 	@Override
-	public void dump(FileArtifact artifact) throws IOException {
+	public final void dump(final FileArtifact artifact) throws IOException {
 		throw new NotYetImplementedException();
 	}
 

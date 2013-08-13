@@ -30,7 +30,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -403,9 +402,9 @@ public final class Main {
 	}
 	
 	/**
-	 * @param inputArtifacts
-	 * @param output
-	 * @throws IOException 
+	 * @param inputArtifacts list of files to dump
+	 * @param output output artifact
+	 * @throws IOException If an input output exception occurs
 	 */
 	public static void dump(final ArtifactList<FileArtifact> inputArtifacts,
 			final FileArtifact output) throws IOException {

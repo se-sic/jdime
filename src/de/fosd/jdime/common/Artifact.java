@@ -38,7 +38,7 @@ public abstract class Artifact<T extends Artifact<T>> {
 	/**
 	 * Children of the artifact.
 	 */
-	private ArtifactList<T> children = null;
+	protected ArtifactList<T> children = null;
 
 	/**
 	 * Parent artifact.
