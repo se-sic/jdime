@@ -14,6 +14,8 @@
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -228,6 +230,19 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	@Override
 	public final String getStatsKey(final FileArtifact artifact) {
 		return "lines";
+	}
+
+	@Override
+	public void dump(final FileArtifact artifact) throws IOException {	
+		BufferedReader buf = new BufferedReader(
+				new FileReader(artifact.getFile()));
+		
+		String line = null;
+		while ((line = buf.readLine()) != null) {
+			System.out.println(line);
+			// TODO: save to outputfile
+		}
+		buf.close();
 	}
 
 }

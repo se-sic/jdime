@@ -34,6 +34,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	private ASTNode<?> astnode = null;
 	
 	/**
+	 * 
+	 */
+	private int number = -1;
+	
+	/**
+	 * 
+	 */
+	private static int count = 1;
+	
+	/**
 	 * Initializes a program.
 	 * @return program
 	 */
@@ -77,6 +87,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public ASTNodeArtifact(final FileArtifact artifact) {
 		assert (artifact != null);
 		
+		ASTNode<?> astnode = null;
 		if (artifact.isEmptyDummy()) {
 			astnode = new ASTNode();
 			setEmptyDummy(true);
@@ -87,8 +98,30 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 		
 		assert (astnode != null);
+		this.astnode = astnode;
+		count = 0;
+		renumber(this);
+	}
+	
+	/**
+	 * @param artifact
+	 */
+	static void renumber(ASTNodeArtifact artifact) {
+		artifact.number = count;
+		count++;
+		for (int i = 0; i < artifact.getNumChildren(); i++) {
+			renumber(artifact.getChild(i));
 		}
-
+	}
+	
+	/**
+	 * @param astnode astnode
+	 */
+	public ASTNodeArtifact(final ASTNode<?> astnode) {
+		assert (astnode != null);	
+		this.astnode = astnode;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -98,8 +131,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		ASTNodeArtifact myChild = new ASTNodeArtifact(child.astnode);
+		myChild.setParent(this);
+		children.add(myChild);
+		return myChild;
 	}
 
 	/*
@@ -202,8 +237,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	@Override
 	public final void initializeChildren() {
-		// TODO Auto-generated method stub
-
+		assert (astnode != null);
+		ArtifactList<ASTNodeArtifact> children 
+			= new ArtifactList<ASTNodeArtifact>();
+		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
+			ASTNodeArtifact child = new ASTNodeArtifact(
+					astnode.getChildNoTransform(i));
+			child.setParent(this);
+			children.add(child);
+		}
+		setChildren(children);
 	}
 
 	/*
@@ -257,6 +300,44 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final String getStatsKey(final MergeContext context) {
 		return "nodes";
+	}
+	
+	/**
+	 * Returns the AST as indented plain text, as provided by JastAddJ. 
+	 * @return AST as indented plain text
+	 */
+	public final String dumpTree() {
+		return astnode.dumpTree();
+	}
+	
+	/**
+	 * Returns the AST in dot-format.
+	 * @param includeNumbers include node number in label if true
+	 * @return AST in dot-format.
+	 */
+	public final String dumpGraphvizTree(final boolean includeNumbers) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(number + "[label=\"");
+		
+		// node label
+		if (includeNumbers) {
+			sb.append(number + " ");
+		}
+		
+		sb.append(astnode.dumpString());
+		sb.append("\"];");
+		sb.append(System.lineSeparator());
+		
+		// children
+		for (ASTNodeArtifact child : getChildren()) {
+			sb.append(child.dumpGraphvizTree(includeNumbers));
+			
+			// edge
+			sb.append(number + "->" + child.number + ";" 
+			+ System.lineSeparator());
+		}
+		
+		return sb.toString();
 	}
 
 }

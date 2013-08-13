@@ -33,12 +33,12 @@ public enum MergeType {
 	/**
 	 * At least two input files are needed.
 	 */
-	public static final int MINFILES = 2;
+	public static final int MINFILES = TWOWAY.numFiles;
 
 	/**
 	 * More than three input files are not supported at the moment.
 	 */
-	public static final int MAXFILES = 3;
+	public static final int MAXFILES = THREEWAY.numFiles;
 	
 	/**
 	 * Names of input revisions.

@@ -25,6 +25,7 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
@@ -320,6 +321,12 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	@Override
 	public final String getStatsKey(final FileArtifact artifact) {
 		return artifact.isDirectory() ? "directories" : "files";
+	}
+	
+
+	@Override
+	public final void dump(final FileArtifact artifact) throws IOException {
+		throw new NotYetImplementedException();
 	}
 
 }

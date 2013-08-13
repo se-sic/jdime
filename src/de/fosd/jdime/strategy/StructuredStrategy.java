@@ -131,4 +131,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		
 	}
 
+	@Override
+	public final void dump(final FileArtifact artifact) throws IOException {
+		new ASTNodeStrategy().dump(new ASTNodeArtifact(artifact));
+	}
+
 }

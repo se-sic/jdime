@@ -21,17 +21,17 @@ import de.fosd.jdime.common.Artifact;
 /**
  * @author Olaf Lessenich
  * 
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
-public abstract class MergeStrategy<T extends Artifact<T>>
-							implements MergeInterface<T>, StatsInterface<T> {
-	
+public abstract class MergeStrategy<T extends Artifact<T>> implements
+		MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
+
 	/**
 	 * Map holding all strategies.
 	 */
-	private static HashMap<String, MergeStrategy<?>> strategyMap 
-			= null;
-	
+	private static HashMap<String, MergeStrategy<?>> strategyMap = null;
+
 	/**
 	 * Initializes the strategy map.
 	 */
@@ -41,21 +41,22 @@ public abstract class MergeStrategy<T extends Artifact<T>>
 		strategyMap.put("structured", new StructuredStrategy());
 		strategyMap.put("combined", new CombinedStrategy());
 	}
-	
+
 	/**
 	 * Returns a set containing the names of available strategies.
+	 * 
 	 * @return names of available strategies
 	 */
 	public static Set<String> listStrategies() {
 		if (strategyMap == null) {
 			initialize();
 		}
-		
+
 		assert (strategyMap != null);
-				
+
 		return strategyMap.keySet();
 	}
-	
+
 	/**
 	 * Parses a String and returns a strategy. Null is returned if no
 	 * appropriate Tool is found.
@@ -72,18 +73,20 @@ public abstract class MergeStrategy<T extends Artifact<T>>
 		if (strategyMap == null) {
 			initialize();
 		}
-		
+
 		assert (strategyMap != null);
-		
+
 		if (strategyMap.containsKey(input)) {
 			return strategyMap.get(input);
 		} else {
 			throw new StrategyNotFoundException("Strategy not found: " + str);
 		}
-		
+
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

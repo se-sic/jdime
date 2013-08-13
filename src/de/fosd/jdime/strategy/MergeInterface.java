@@ -14,6 +14,7 @@ import java.io.IOException;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
@@ -27,12 +28,12 @@ public interface MergeInterface<T extends Artifact<T>> {
 	/**
 	 * At least two input files are needed.
 	 */
-	int MINFILES = 2;
+	int MINFILES = MergeType.MINFILES;
 
 	/**
 	 * More than three input files are not supported at the moment.
 	 */
-	int MAXFILES = 3;
+	int MAXFILES = MergeType.MAXFILES;
 
 	/**
 	 * Performs a merge.
