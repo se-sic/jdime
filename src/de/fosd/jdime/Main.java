@@ -137,7 +137,7 @@ public final class Main {
 		}
 
 		if (context.isDump()) {
-			dump(inputFiles, output);
+			dump(inputFiles, output, context.isGuiDump());
 			
 		} else {
 			merge(inputFiles, output);
@@ -208,6 +208,12 @@ public final class Main {
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
 						context.setDump(true);
+					} else if (cmd.getOptionValue("mode").equals("dumpgraph")) {
+						// User only wants to display the ASTs
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						context.setDump(true);
+						context.setGuiDump(true);
 					} else if (cmd.getOptionValue("mode").equals("dumpfile")) {
 						// User only wants to display the files
 						context.setMergeStrategy(MergeStrategy
@@ -407,11 +413,11 @@ public final class Main {
 	 * @throws IOException If an input output exception occurs
 	 */
 	public static void dump(final ArtifactList<FileArtifact> inputArtifacts,
-			final FileArtifact output) throws IOException {
+			final FileArtifact output, boolean graphical) throws IOException {
 		for (FileArtifact artifact : inputArtifacts) {
 			MergeStrategy<FileArtifact> strategy = 
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
-			strategy.dump(artifact);
+			strategy.dump(artifact, graphical);
 		}
 	}
 

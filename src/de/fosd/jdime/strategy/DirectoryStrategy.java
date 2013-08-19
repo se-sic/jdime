@@ -93,11 +93,11 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 		assert (operation != null);
 		assert (context != null);
 		assert (context.isRecursive()) : "Recursive merging needs to "
-			+ "be enabled in order to merge directories. "
-			+ "Use '-r' or see '-help'!";
+				+ "be enabled in order to merge directories. "
+				+ "Use '-r' or see '-help'!";
 
 		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
-		
+
 		assert (triple.isValid());
 
 		assert (triple.getLeft() instanceof FileArtifact);
@@ -180,8 +180,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 				LOG.debug(child.getId() + "\t" + sb.toString());
 			}
 
-			Operation<FileArtifact> subOperation 
-				= applyMergeRules(revisions, target, child, bs, context);
+			Operation<FileArtifact> subOperation = applyMergeRules(revisions,
+					target, child, bs, context);
 			subOperation.apply(context);
 
 		}
@@ -208,7 +208,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	 *             if a thread is interrupted
 	 */
 	private Operation<FileArtifact> applyMergeRules(
-			final FileArtifact[] revisions, final FileArtifact target, 
+			final FileArtifact[] revisions, final FileArtifact target,
 			final FileArtifact child, final BitSet bs,
 			final MergeContext context) throws IOException,
 			InterruptedException {
@@ -239,8 +239,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 				return new DeleteOperation<FileArtifact>(deleted);
 			} else {
 				// Artifact was added in either left or right revision.
-				FileArtifact added = bs.get(LEFTPOS) ? left.getChild(child) 
-													: right.getChild(child);
+				FileArtifact added = bs.get(LEFTPOS) ? left.getChild(child)
+						: right.getChild(child);
 				assert (added != null);
 				return new AddOperation<FileArtifact>(added, target);
 			}
@@ -250,8 +250,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 			// This is a 2-way merge or a deletion.
 			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
 				// This is a 2-way merge.
-				ArtifactList<FileArtifact> tuple 
-						= new ArtifactList<FileArtifact>();
+				ArtifactList<FileArtifact> tuple = new ArtifactList<FileArtifact>();
 
 				FileArtifact leftChild = left.getChild(child);
 				FileArtifact rightChild = right.getChild(child);
@@ -279,8 +278,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 		case THREE:
 			// Artifact exists in three revisions.
 			// This is a classical 3-way merge.
-			ArtifactList<FileArtifact> triple 
-						= new ArtifactList<FileArtifact>();
+			ArtifactList<FileArtifact> triple = new ArtifactList<FileArtifact>();
 
 			FileArtifact leftChild = left.getChild(child);
 			FileArtifact baseChild = base.getChild(child);
@@ -302,7 +300,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 			throw new UnsupportedMergeTypeException();
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -310,7 +308,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] {"directories", "files"});
+		return new Stats(new String[] { "directories", "files" });
 	}
 
 	@Override
@@ -322,10 +320,10 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	public final String getStatsKey(final FileArtifact artifact) {
 		return artifact.isDirectory() ? "directories" : "files";
 	}
-	
 
 	@Override
-	public final void dump(final FileArtifact artifact) throws IOException {
+	public final void dump(final FileArtifact artifact, final boolean graphical)
+			throws IOException {
 		throw new NotYetImplementedException();
 	}
 

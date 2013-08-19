@@ -49,7 +49,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		}
 		
 		assert (target != null);
-		
+
 		
 		// FIXME: remove me when implementation is complete
 		throw new NotYetImplementedException(
@@ -81,11 +81,18 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final void dump(final ASTNodeArtifact artifact) throws IOException {
-		dumpGraphVizTree(artifact);
+	public final void dump(final ASTNodeArtifact artifact, final boolean graphical) throws IOException {
+		if (graphical) {
+			dumpGraphVizTree(artifact);
+		} else {
+			artifact.dumpTree();
+		}
 	}
 	
-	private final void dumpGraphVizTree(final ASTNodeArtifact artifact) {
+	/**
+	 * @param artifact artifact that should be printed
+	 */
+	private void dumpGraphVizTree(final ASTNodeArtifact artifact) {
 		// header
 		StringBuffer sb = new StringBuffer();
 		sb.append("digraph ast {" + System.lineSeparator());

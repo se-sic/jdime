@@ -49,9 +49,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation,
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
@@ -70,8 +69,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
-				|| triple.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
+				.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -81,8 +80,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) 
-					: "Would be overwritten: " + target;
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
+					+ target;
 		}
 
 		String cmd = BASECMD + " " + triple;
@@ -108,46 +107,46 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		String line = "";
 		while ((line = buf.readLine()) != null) {
 			context.appendLine(line);
-			
+
 			if (context.hasStats()) {
-				if (line.matches("^$") || line.matches("^\\s*$") 
+				if (line.matches("^$") || line.matches("^\\s*$")
 						|| line.matches("^\\s*//.*$")) {
-	        		// skip empty lines and single line comments
-	        		continue;
-	        	} else if (line.matches("^\\s*/\\*.*")) {
-	        		if (line.matches("^\\s*/\\*.*?\\*/")) {
-	        			// one line comment
-	        			continue;
-	        		} else {
-	        			// starting block comment
-	        			comment = true;
-	        			continue;
-	        		}
-	        	} else if (line.matches("^.*?\\*/")) {
-	        		// ending block comment
-	        		comment = false;
-	        		continue;
-	        	}
-	            if (line.matches("^\\s*<<<<<<<.*")) {
-	                conflict = true;
-	                comment = false;
-	                tmp = cloc;
-	                conflicts++;
-	            } else if (line.matches("^\\s*=======.*")) {
-	            	comment = false;
-	            } else if (line.matches("^\\s*>>>>>>>.*")) {
-	                conflict = false;
-	                comment = false;
-	                if (tmp == cloc) {
-	                	// only conflicting comments or empty lines
-	                	conflicts--;
-	                }
-	            } else {
-	                loc++;
-	                if (conflict && !comment) {
-	                    cloc++;
-	                }
-	            }
+					// skip empty lines and single line comments
+					continue;
+				} else if (line.matches("^\\s*/\\*.*")) {
+					if (line.matches("^\\s*/\\*.*?\\*/")) {
+						// one line comment
+						continue;
+					} else {
+						// starting block comment
+						comment = true;
+						continue;
+					}
+				} else if (line.matches("^.*?\\*/")) {
+					// ending block comment
+					comment = false;
+					continue;
+				}
+				if (line.matches("^\\s*<<<<<<<.*")) {
+					conflict = true;
+					comment = false;
+					tmp = cloc;
+					conflicts++;
+				} else if (line.matches("^\\s*=======.*")) {
+					comment = false;
+				} else if (line.matches("^\\s*>>>>>>>.*")) {
+					conflict = false;
+					comment = false;
+					if (tmp == cloc) {
+						// only conflicting comments or empty lines
+						conflicts--;
+					}
+				} else {
+					loc++;
+					if (conflict && !comment) {
+						cloc++;
+					}
+				}
 			}
 		}
 
@@ -180,11 +179,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			assert (target.exists());
 			target.write(context.getStdIn());
 		}
-		
+
 		// add statistical data to context
 		if (context.hasStats()) {
 			assert (cloc <= loc);
-			
+
 			Stats stats = context.getStats();
 			StatsElement linesElement = stats.getElement("lines");
 			assert (linesElement != null);
@@ -192,7 +191,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			newElement.setMerged(loc);
 			newElement.setConflicting(cloc);
 			linesElement.addStatsElement(newElement);
-			
+
 			if (conflicts > 0) {
 				assert (cloc > 0);
 				stats.addConflicts(conflicts);
@@ -202,11 +201,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			} else {
 				assert (cloc == 0);
 			}
-			
+
 		}
 
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -214,7 +213,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] {"directories", "files", "lines"});
+		return new Stats(new String[] { "directories", "files", "lines" });
 	}
 
 	/*
@@ -233,10 +232,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public void dump(final FileArtifact artifact) throws IOException {	
-		BufferedReader buf = new BufferedReader(
-				new FileReader(artifact.getFile()));
-		
+	public void dump(final FileArtifact artifact, final boolean graphical)
+			throws IOException {
+		BufferedReader buf = new BufferedReader(new FileReader(
+				artifact.getFile()));
+
 		String line = null;
 		while ((line = buf.readLine()) != null) {
 			System.out.println(line);
