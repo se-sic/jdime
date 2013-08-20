@@ -250,7 +250,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 			// This is a 2-way merge or a deletion.
 			if (bs.get(LEFTPOS) && bs.get(RIGHTPOS)) {
 				// This is a 2-way merge.
-				ArtifactList<FileArtifact> tuple = new ArtifactList<FileArtifact>();
+				ArtifactList<FileArtifact> tuple 
+						= new ArtifactList<FileArtifact>();
 
 				FileArtifact leftChild = left.getChild(child);
 				FileArtifact rightChild = right.getChild(child);
@@ -278,7 +279,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 		case THREE:
 			// Artifact exists in three revisions.
 			// This is a classical 3-way merge.
-			ArtifactList<FileArtifact> triple = new ArtifactList<FileArtifact>();
+			ArtifactList<FileArtifact> triple 
+				= new ArtifactList<FileArtifact>();
 
 			FileArtifact leftChild = left.getChild(child);
 			FileArtifact baseChild = base.getChild(child);

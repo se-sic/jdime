@@ -24,6 +24,7 @@ import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.ASTMatcher;
+import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.Stats;
 
@@ -65,8 +66,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
+				|| triple.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -76,8 +77,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) 
+				: "Would be overwritten: " + target;
 		}
 
 		// ASTNodeArtifacts are created from the input files.
@@ -92,25 +93,25 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		ASTNodeArtifact targetNode = left.createEmptyDummy();
 
-		MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<ASTNodeArtifact>(
-				triple.getMergeType(), left, base, right);
+		MergeTriple<ASTNodeArtifact> nodeTriple 
+			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
+					left, base, right);
 
 		if (!base.isEmptyDummy()) {
 			// 3-way merge
 
 			// diff base left
-			Matching m = ASTMatcher.match(base, left);
-			ASTMatcher.storeMatching(m);
+			diff(base, left, Color.GREEN);
 
 			// diff base right
-
+			diff(base, right, Color.GREEN);
 		}
 
 		// diff left right
-		diff(left, right);
-
-		MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<ASTNodeArtifact>(
-				nodeTriple, targetNode);
+		diff(left, right, Color.BLUE);
+		
+		MergeOperation<ASTNodeArtifact> astMergeOp 
+			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 
 		astMergeOp.apply(context);
 
@@ -129,7 +130,15 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				"StructuredStrategy: Implement me!");
 	}
 
-	private final Matching diff(ASTNodeArtifact left, ASTNodeArtifact right) {
+	/**
+	 * Compares two nodes.
+	 * @param left left node
+	 * @param right right node
+	 * @param color color of the matching (for debug output only)
+	 * @return Matching of the two nodes
+	 */
+	private Matching diff(final ASTNodeArtifact left, 
+			final ASTNodeArtifact right, final Color color) {
 		ASTMatcher.reset();
 		LOG.trace(left.getRevision() + ".size = " + left.getTreeSize());
 		LOG.trace(right.getRevision() + ".size = " + right.getTreeSize());
@@ -140,7 +149,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				+ ") = " + m.getScore());
 		LOG.trace(ASTMatcher.getLog());
 		LOG.debug("Store matching information within nodes.");
-		ASTMatcher.storeMatching(m);
+		ASTMatcher.storeMatching(m, color);
 		
 		if (LOG.isTraceEnabled()) {
 			LOG.trace(left.getRevision() + ".dumpTree():");

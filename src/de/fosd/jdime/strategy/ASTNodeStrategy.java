@@ -81,7 +81,8 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final void dump(final ASTNodeArtifact artifact, final boolean graphical) throws IOException {
+	public final void dump(final ASTNodeArtifact artifact, 
+			final boolean graphical) throws IOException {
 		if (graphical) {
 			dumpGraphVizTree(artifact);
 		} else {

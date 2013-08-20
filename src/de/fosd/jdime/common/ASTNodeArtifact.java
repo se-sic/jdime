@@ -5,7 +5,8 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -20,6 +21,7 @@ import AST.JavaParser;
 import AST.MethodDecl;
 import AST.Program;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -50,13 +52,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	private static int count = 1;
 	
-	private HashMap<Revision, Matching> matches = new HashMap<Revision, Matching>();
-	
-	protected static final String DEFAULTCOLOR = "\033[0m";
-	protected static final String GREEN = "\033[32m";
-	protected static final String YELLOW = "\033[33m";
-	protected static final String BLUE = "\033[34m";
-	protected static final String RED = "\033[31m";
+	/**
+	 * Map to store matches.
+	 */
+	private LinkedHashMap<Revision, Matching> matches 
+		= new LinkedHashMap<Revision, Matching>();
 	
 	/**
 	 * Initializes a program.
@@ -121,9 +121,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 	
 	/**
-	 * @param artifact
+	 * Recursivley renumbers the node.
+	 * @param artifact node to renumber
 	 */
-	private static void renumber(ASTNodeArtifact artifact) {
+	private static void renumber(final ASTNodeArtifact artifact) {
 		artifact.number = count;
 		count++;
 		for (int i = 0; i < artifact.getNumChildren(); i++) {
@@ -331,21 +332,26 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return dumpTree("");
 	}
 	
-	private final String dumpTree(String indent) {
+	/**
+	 * @param indent String used to indent the current node
+	 * @return ASCII String representing the tree
+	 */
+	private String dumpTree(final String indent) {
 		assert (getRevision() != null);
 		StringBuffer sb = new StringBuffer();
 		
 		// node itself
+		
+		Matching m = null;
 		if (hasMatches()) {
+			Set<Revision> matchingRevisions = matches.keySet();
+			
 			// print color code
 			String color = "";
-			
-			if (hasMatching("base")) {
-				color = GREEN;
-			}
-			
-			if (!getRevision().equals("base") && (hasMatching("left") || hasMatching("right"))) {
-				color = BLUE;
+	
+			for (Revision rev : matchingRevisions) {
+				m = getMatching(rev);
+				color = m.getColor().toShell();
 			}
 			
 			sb.append(color);
@@ -354,7 +360,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		sb.append(indent + "(" + number + ") ");
 		sb.append(astnode.dumpString());
 		if (hasMatches()) {
-			sb.append(DEFAULTCOLOR);
+			assert (m != null);
+			sb.append(" <=> (" + m.getMatchingNode(this).getRevision() + ":" 
+					+ m.getMatchingNode(this).number + ")");
+			sb.append(Color.DEFAULT.toShell());
 		}
 		sb.append(System.lineSeparator());
 
@@ -406,7 +415,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 	
 	/**
-	 * @return
+	 * Returns whether declaration order is significant for this node.
+	 * @return whether declaration order is significant for this node 
 	 */
 	public final boolean isOrdered() {
 		if (astnode instanceof CompilationUnit
@@ -421,7 +431,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return true;
 	}
 	
-	public boolean matches(ASTNodeArtifact other) {
+	/**
+	 * Returns whether a node matches another node.
+	 * @param other node to compare with.
+	 * @return true if the node matches another node.
+	 */
+	public final boolean matches(final ASTNodeArtifact other) {
 		assert (astnode != null);
 		assert (other != null);
 		assert (other.astnode != null);
@@ -429,52 +444,39 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 	
-	public void addMatching(Matching matching) {
+	/**
+	 * Adds a matching.
+	 * @param matching matching to be added
+	 */
+	public final void addMatching(final Matching matching) {
 		assert (matching != null);
-		ASTNodeArtifact left = matching.getLeftNode();
-		Revision rev = left == this ? matching.getRightNode().getRevision() : left.getRevision();
-		matches.put(rev, matching);
+		matches.put(matching.getMatchingNode(this).getRevision(), matching);
 	}
 	
-	public boolean hasMatches() {
+	/**
+	 * Returns whether this node has any matches.
+	 * @return true if the node has matches
+	 */
+	public final boolean hasMatches() {
 		return !matches.isEmpty();
 	}
 	
-	public boolean hasMatching(Revision rev) {
-		return matches.containsKey(rev);
-	}
-	
-	public Matching getMatching(Revision rev) {
+	/**
+	 * Returns the matching for a specific revision or null if there is 
+	 * no such matching.
+	 * @param rev revision
+	 * @return matching with revision
+	 */
+	public final Matching getMatching(final Revision rev) {
 		return matches.get(rev);
 	}
-	
-	public boolean hasMatching(String rev) {
-		for (Revision r : matches.keySet()) {
-			if (r.getName().equals(rev)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public ASTNodeArtifact getMatchingNode(Revision rev) {
-		Matching m = matches.get(rev);
-		
-		if (m == null) {
-			return null;
-		}
-		
-		ASTNodeArtifact left = m.getLeftNode();
-		return left == this ? m.getRightNode() : left;
-	}
-	
 
 	/**
 	 * Returns the size of the subtree. The node itself is not included.
 	 * 
 	 * @return size of subtree
 	 */
-	public int getSubtreeSize() {
+	public final int getSubtreeSize() {
 		int size = getNumChildren();
 
 		for (int i = 0; i < getNumChildren(); i++) {
@@ -485,11 +487,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 	
 	/**
-	 * Returns the size of the tree. The node itself is alsoincluded.
+	 * Returns the size of the tree. The node itself is also included.
 	 * 
 	 * @return size of tree
 	 */
-	public int getTreeSize() {
+	public final int getTreeSize() {
 		return getSubtreeSize() + 1;
 	}
 

@@ -59,8 +59,14 @@ public class MergeContext {
 	 */
 	private boolean saveStats = false;
 	
+	/**
+	 * Whether to dump files/asts instead of merging.
+	 */
 	private boolean dump = false;
 	
+	/**
+	 * Whether to use graphical output while dumping.
+	 */
 	private boolean guiDump = false;
 	
 	/**
@@ -266,7 +272,7 @@ public class MergeContext {
 	/**
 	 * @param guiDump the guiDump to set
 	 */
-	public final void setGuiDump(boolean guiDump) {
+	public final void setGuiDump(final boolean guiDump) {
 		this.guiDump = guiDump;
 	}
 }

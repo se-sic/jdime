@@ -78,7 +78,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public void dump(FileArtifact artifact, final boolean graphical)
+	public final void dump(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
 		throw new NotYetImplementedException();
 	}

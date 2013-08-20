@@ -6,6 +6,7 @@ package de.fosd.jdime.matcher;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -19,9 +20,25 @@ import de.fosd.jdime.common.ASTNodeArtifact;
  * @author Olaf Lessenich
  *
  */
-public class UnorderedASTMatcher {
+public final class UnorderedASTMatcher {
 	
+	/**
+	 * Private constructor.
+	 */
+	private UnorderedASTMatcher() {
+		
+	}
+	
+	/**
+	 * Number of times this method was called.
+	 */
 	static int calls = 0;
+	
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG 
+			= Logger.getLogger(UnorderedASTMatcher.class);
 
 	/**
 	 * Returns the largest common subtree of two unordered trees.
@@ -32,7 +49,8 @@ public class UnorderedASTMatcher {
 	 *            right tree
 	 * @return largest common subtree of left and right tree
 	 */
-	public static Matching match(ASTNodeArtifact left, ASTNodeArtifact right) {
+	public static Matching match(final ASTNodeArtifact left, 
+			final ASTNodeArtifact right) {
 		calls++;
 		// return brokenUnorderedTreeMatching(t1, t2);
 		return bipartiteMatching(left, right);
@@ -49,7 +67,8 @@ public class UnorderedASTMatcher {
 	 *            right tree
 	 * @return largest common subtree
 	 */
-	private static Matching bipartiteMatching(ASTNodeArtifact left, ASTNodeArtifact right) {
+	private static Matching bipartiteMatching(final ASTNodeArtifact left, 
+			final ASTNodeArtifact right) {
 
 		String id = "unordered";
 
@@ -107,7 +126,9 @@ public class UnorderedASTMatcher {
 			// set bounds for column i: 0 <= x <= 1.0
 			// LO = lower, UP = upper, DB = double; superfluous are params
 			// ignored
-			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO, 0.0 /* lower */, 1.0 /* upper */);
+			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO, 
+					0.0 /* lower */, 
+					1.0 /* upper */);
 		}
 
 		/* constraints */
@@ -125,10 +146,13 @@ public class UnorderedASTMatcher {
 			val = GLPK.new_doubleArray(width + 1);
 			for (int j = 1; j <= width; j++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, j, getGlpkIndex(i - 1, j - 1, width) + 1);
+				GLPK.intArray_setitem(ind, j, 
+						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, j, 1.0);
 			}
-			GLPK.glp_set_mat_row(lp, i /* row */, width /* max array index */, ind, val);
+			GLPK.glp_set_mat_row(lp, i /* row */, 
+								width /* max array index */, 
+								ind, val);
 		}
 
 		// column constraints
@@ -138,7 +162,8 @@ public class UnorderedASTMatcher {
 			val = GLPK.new_doubleArray(width + 1);
 			for (int i = 1; i <= width; i++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, i, getGlpkIndex(i - 1, j - 1, width) + 1);
+				GLPK.intArray_setitem(ind, i, 
+						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, i, 1.0);
 			}
 			GLPK.glp_set_mat_row(lp, width + j /* row */, width /*
@@ -224,7 +249,7 @@ public class UnorderedASTMatcher {
 	 *            columns per row in node matrix
 	 * @return index in constraint matrix
 	 */
-	private static int getGlpkIndex(int i, int j, int width) {
+	private static int getGlpkIndex(final int i, final int j, final int width) {
 		return i * width + j;
 	}
 
@@ -237,7 +262,7 @@ public class UnorderedASTMatcher {
 	 *            columns per row in node matrix
 	 * @return index in node matrix
 	 */
-	private static int[] getMyIndices(int x, int width) {
+	private static int[] getMyIndices(final int x, final int width) {
 		return new int[] { (int) x / width, x % width };
 	}
 

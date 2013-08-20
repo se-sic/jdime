@@ -138,7 +138,7 @@ public final class Main {
 
 		if (context.isDump()) {
 			dump(inputFiles, output, context.isGuiDump());
-			
+
 		} else {
 			merge(inputFiles, output);
 		}
@@ -222,7 +222,7 @@ public final class Main {
 					} else {
 						// User wants to merge
 						context.setMergeStrategy(MergeStrategy.parse(cmd
-							.getOptionValue("mode")));
+								.getOptionValue("mode")));
 					}
 				} catch (StrategyNotFoundException e) {
 					LOG.fatal(e.getMessage());
@@ -399,21 +399,26 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	public static void merge(final ArtifactList<FileArtifact> inputArtifacts,
-			final FileArtifact output) 
-					throws IOException, InterruptedException {
+			final FileArtifact output) throws IOException, 
+			InterruptedException {
 		assert (inputArtifacts != null);
 		Operation<FileArtifact> merge = new MergeOperation<FileArtifact>(
 				inputArtifacts, output);
 		merge.apply(context);
 	}
-	
+
 	/**
-	 * @param inputArtifacts list of files to dump
-	 * @param output output artifact
-	 * @throws IOException If an input output exception occurs
+	 * @param inputArtifacts
+	 *            list of files to dump
+	 * @param output
+	 *            output artifact
+	 * @param graphical whether graphical output is preferred 
+	 * @throws IOException
+	 *             If an input output exception occurs
 	 */
 	public static void dump(final ArtifactList<FileArtifact> inputArtifacts,
-			final FileArtifact output, boolean graphical) throws IOException {
+			final FileArtifact output, final boolean graphical)
+			throws IOException {
 		for (FileArtifact artifact : inputArtifacts) {
 			MergeStrategy<FileArtifact> strategy = 
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();

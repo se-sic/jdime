@@ -14,7 +14,6 @@
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -69,8 +68,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
+				|| triple.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -80,8 +79,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) 
+				: "Would be overwritten: " + target;
 		}
 
 		String cmd = BASECMD + " " + triple;
@@ -232,7 +231,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public void dump(final FileArtifact artifact, final boolean graphical)
+	public final void dump(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
 		BufferedReader buf = new BufferedReader(new FileReader(
 				artifact.getFile()));

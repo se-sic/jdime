@@ -6,24 +6,47 @@ package de.fosd.jdime.matcher;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 
 /**
  * @author Olaf Lessenich
- *
+ * 
  */
-public class OrderedASTMatcher {
-	
-	
-	static int calls = 0;
+public final class OrderedASTMatcher {
 
-	public static Matching match(ASTNodeArtifact left, ASTNodeArtifact right) {
+	/**
+	 * Private Constructor.
+	 */
+	private OrderedASTMatcher() {
+
+	}
+
+	static int calls = 0;
+	
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(OrderedASTMatcher.class);
+
+	/**
+	 * Compares two nodes.
+	 * 
+	 * @param left
+	 *            left node
+	 * @param right
+	 *            right node
+	 * @return matching
+	 */
+	public static Matching match(final ASTNodeArtifact left,
+			final ASTNodeArtifact right) {
 		calls++;
 		return simpleTreeMatching(left, right);
 	}
-	
+
 	/**
-	 * Yang's Simple tree matching algorithm
+	 * Yang's Simple tree matching algorithm.
 	 * 
 	 * @param left
 	 *            left tree
@@ -31,7 +54,8 @@ public class OrderedASTMatcher {
 	 *            right tree
 	 * @return maximum matching between left and right tree
 	 */
-	private static Matching simpleTreeMatching(ASTNodeArtifact left, ASTNodeArtifact right) {
+	private static Matching simpleTreeMatching(final ASTNodeArtifact left,
+			final ASTNodeArtifact right) {
 
 		String id = "stm";
 
@@ -62,9 +86,11 @@ public class OrderedASTMatcher {
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
 
-				Matching w = ASTMatcher.match(left.getChild(i - 1), right.getChild(j - 1));
+				Matching w = ASTMatcher.match(left.getChild(i - 1),
+						right.getChild(j - 1));
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
-					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1] + w.getScore()) {
+					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
+							+ w.getScore()) {
 						matrixM[i][j] = matrixM[i][j - 1];
 						matrixT[i][j] = new Entry(Direction.LEFT, w);
 					} else {
@@ -72,7 +98,8 @@ public class OrderedASTMatcher {
 						matrixT[i][j] = new Entry(Direction.DIAG, w);
 					}
 				} else {
-					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1] + w.getScore()) {
+					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1]
+							+ w.getScore()) {
 						matrixM[i][j] = matrixM[i - 1][j];
 						matrixT[i][j] = new Entry(Direction.TOP, w);
 					} else {
@@ -104,6 +131,9 @@ public class OrderedASTMatcher {
 				}
 				i--;
 				j--;
+			default:
+				
+				break;
 			}
 		}
 

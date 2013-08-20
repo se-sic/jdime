@@ -1,12 +1,15 @@
 package de.fosd.jdime.matcher;
 
 /**
- * A helper class used within the matrix of the LCST matcher
+ * A helper class used within the matrix of the LCST matcher.
  * @author lessenic
  *
  */
 public enum Direction {
 
+	/**
+	 * 
+	 */
 	LEFT {
 
 		@Override
@@ -14,6 +17,10 @@ public enum Direction {
 			return "LEFT";
 		}
 	},
+	
+	/**
+	 * 
+	 */
 	TOP {
 
 		@Override
@@ -21,6 +28,10 @@ public enum Direction {
 			return "TOP";
 		}
 	},
+	
+	/**
+	 * 
+	 */
 	DIAG {
 
 		@Override
