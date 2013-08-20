@@ -15,6 +15,7 @@
         <pathelement location="lib/log4j-1.2.jar"/>
         <pathelement location="lib/apache-commons-io.jar"/>
         <pathelement location="lib/JJ7.jar"/>
+        <pathelement location="lib/glpk-java.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>

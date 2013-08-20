@@ -59,7 +59,15 @@ public class MergeContext {
 	 */
 	private boolean saveStats = false;
 	
+	/**
+	 * Whether to dump files/asts instead of merging.
+	 */
 	private boolean dump = false;
+	
+	/**
+	 * Whether to use graphical output while dumping.
+	 */
+	private boolean guiDump = false;
 	
 	/**
 	 * Statistical data are stored in a stats object.
@@ -252,5 +260,19 @@ public class MergeContext {
 	 */
 	public final void setDump(final boolean dumpTree) {
 		this.dump = dumpTree;
+	}
+
+	/**
+	 * @return the guiDump
+	 */
+	public final boolean isGuiDump() {
+		return guiDump;
+	}
+
+	/**
+	 * @param guiDump the guiDump to set
+	 */
+	public final void setGuiDump(final boolean guiDump) {
+		this.guiDump = guiDump;
 	}
 }

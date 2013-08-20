@@ -47,8 +47,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		// TODO Auto-generated method stub
 
 		// FIXME: remove me when implementation is complete!
-		throw new NotYetImplementedException(
-				"Combined Strategy: Implement me!");
+		throw new NotYetImplementedException("Combined Strategy: Implement me!");
 
 	}
 
@@ -75,12 +74,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 	@Override
 	public final String getStatsKey(final FileArtifact artifact) {
-		throw new NotYetImplementedException(
-				"Combined Strategy: Implement me!");
+		throw new NotYetImplementedException("Combined Strategy: Implement me!");
 	}
 
 	@Override
-	public void dump(FileArtifact artifact) throws IOException {
+	public final void dump(final FileArtifact artifact, final boolean graphical)
+			throws IOException {
 		throw new NotYetImplementedException();
 	}
 }

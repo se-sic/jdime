@@ -1,11 +1,8 @@
 package de.fosd.jdime.strategy;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * @author Olaf Lessenich
@@ -14,8 +11,9 @@ import de.fosd.jdime.common.operations.MergeOperation;
  */
 public interface DumpInterface<T extends Artifact<T>> {
 	/**
-	 * @param artifact
+	 * @param artifact artifact to dump
+	 * @param graphical output option
 	 * @throws IOException 
 	 */
-	void dump(final T artifact) throws IOException;
+	void dump(final T artifact, final boolean graphical) throws IOException;
 }
