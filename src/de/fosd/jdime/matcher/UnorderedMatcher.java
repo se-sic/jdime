@@ -14,31 +14,40 @@ import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich
+ * 
+ * @param <T> type of artifact
  *
  */
-public final class UnorderedASTMatcher {
+public class UnorderedMatcher<T extends Artifact<T>> 
+	implements MatchingInterface<T> {
 	
 	/**
-	 * Private constructor.
+	 * 
 	 */
-	private UnorderedASTMatcher() {
-		
-	}
+	private ASTMatcher<T> matcher;
 	
 	/**
 	 * Number of times this method was called.
 	 */
-	static int calls = 0;
+	private int calls = 0;
 	
 	/**
 	 * Logger.
 	 */
 	private static final Logger LOG 
-			= Logger.getLogger(UnorderedASTMatcher.class);
+			= Logger.getLogger(UnorderedMatcher.class);
+	
+	/**
+	 * Creates a new instance of UnorderedMatcher.
+	 * @param matcher matcher
+	 */
+	public UnorderedMatcher(final ASTMatcher<T> matcher) {
+		this.matcher = matcher;
+	}
 
 	/**
 	 * Returns the largest common subtree of two unordered trees.
@@ -49,8 +58,8 @@ public final class UnorderedASTMatcher {
 	 *            right tree
 	 * @return largest common subtree of left and right tree
 	 */
-	public static Matching match(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right) {
+	public final Matching<T> match(final T left, final T right) {
+		assert (matcher != null);
 		calls++;
 		// return brokenUnorderedTreeMatching(t1, t2);
 		return bipartiteMatching(left, right);
@@ -67,13 +76,11 @@ public final class UnorderedASTMatcher {
 	 *            right tree
 	 * @return largest common subtree
 	 */
-	private static Matching bipartiteMatching(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right) {
-
+	private Matching<T> bipartiteMatching(final T left,	final T right) {
 		String id = "unordered";
 
 		if (!left.matches(right)) {
-			return new Matching(left, right, 0);
+			return new Matching<T>(left, right, 0);
 		}
 
 		// number of first-level subtrees of t1
@@ -83,25 +90,25 @@ public final class UnorderedASTMatcher {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return new Matching(left, right, 1);
+			return new Matching<T>(left, right, 1);
 		}
 
-		Matching[][] matching = new Matching[m][n];
+		Matching<T>[][] matching = new Matching[m][n];
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matching[i][j] = new Matching();
+				matching[i][j] = new Matching<T>();
 			}
 		}
 
-		ASTNodeArtifact childT1;
-		ASTNodeArtifact childT2;
+		T childT1;
+		T childT2;
 
 		for (int i = 0; i < m; i++) {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching w = ASTMatcher.match(childT1, childT2);
+				Matching<T> w = matcher.match(childT1, childT2);
 				matching[i][j] = w;
 			}
 		}
@@ -214,7 +221,7 @@ public final class UnorderedASTMatcher {
 		// prevent precision problems
 		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
-		List<Matching> children = new LinkedList<Matching>();
+		List<Matching<T>> children = new LinkedList<Matching<T>>();
 
 		for (int c = 1; c <= cols; c++) {
 			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < 1e-6) {
@@ -222,7 +229,7 @@ public final class UnorderedASTMatcher {
 				int i = indices[0];
 				int j = indices[1];
 				if (i < m && j < n) { // FIXME see above
-					Matching curMatching = matching[i][j];
+					Matching<T> curMatching = matching[i][j];
 					if (curMatching.getScore() > 0) {
 						children.add(curMatching);
 						curMatching.setAlgorithm(id);
@@ -232,7 +239,7 @@ public final class UnorderedASTMatcher {
 		}
 		GLPK.glp_delete_prob(lp);
 
-		Matching rootmatching = new Matching(left, right, objective + 1);
+		Matching<T> rootmatching = new Matching<T>(left, right, objective + 1);
 		rootmatching.setChildren(children);
 
 		return rootmatching;
@@ -265,5 +272,13 @@ public final class UnorderedASTMatcher {
 	private static int[] getMyIndices(final int x, final int width) {
 		return new int[] { (int) x / width, x % width };
 	}
-
+	
+	/**
+	 * Returns the number of calls.
+	 * @return number of calls
+	 */
+	public final int getCalls() {
+		return calls;
+	}
+	
 }

@@ -15,8 +15,10 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
@@ -39,6 +41,12 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * Children of the artifact.
 	 */
 	protected ArtifactList<T> children = null;
+	
+	/**
+	 * Map to store matches.
+	 */
+	private LinkedHashMap<Revision, Matching<T>> matches 
+		= new LinkedHashMap<Revision, Matching<T>>();
 
 	/**
 	 * Parent artifact.
@@ -211,6 +219,19 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return true, if the artifact is a leaf
 	 */
 	public abstract boolean isLeaf();
+	
+	/**
+	 * Returns true, if the artifact matches another artifact.
+	 * @param other other artifact
+	 * @return true, if the artifacts match 
+	 */
+	public abstract boolean matches(final T other);
+	
+	/**
+	 * Returns true if the declaration order of the artifact is essential.
+	 * @return true if the declaration order of the artifact is essential
+	 */
+	public abstract boolean isOrdered();
 
 	/**
 	 * Performs a merge on the provided merge triple.
@@ -292,4 +313,51 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return key of statistical element
 	 */
 	public abstract String getStatsKey(final MergeContext context);
+
+	
+	/**
+	 * Adds a matching.
+	 * @param matching matching to be added
+	 */
+	public final void addMatching(final Matching<T> matching) {
+		assert (matching != null);
+		matches.put(matching.getMatchingArtifact((T) this).getRevision(), 
+				matching);
+	}
+	
+	/**
+	 * Returns whether a matching exists for a specific node.
+	 * @param other other node to search for in matches
+	 * @return whether a matching exists
+	 */
+	public final boolean hasMatching(final T other) {
+		Matching<T> m = matches.get(other.getRevision());
+		return m != null && m.getMatchingArtifact((T) this) == other; 
+	}
+	
+	/**
+	 * Returns the number of matches.
+	 * @return number of matches
+	 */
+	public final int getNumMatches() {
+		return matches.size();
+	}
+	
+	/**
+	 * Returns the matching for a specific revision or null if there is 
+	 * no such matching.
+	 * @param rev revision
+	 * @return matching with revision
+	 */
+	public final Matching<T> getMatching(final Revision rev) {
+		return matches.get(rev);
+	}
+	
+	/**
+	 * Returns whether this node has any matches.
+	 * @return true if the node has matches
+	 */
+	public final boolean hasMatches() {
+		return !matches.isEmpty();
+	}
 }

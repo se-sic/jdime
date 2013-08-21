@@ -17,11 +17,13 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import AST.Program;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.ASTMatcher;
 import de.fosd.jdime.matcher.Color;
@@ -91,11 +93,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		base = new ASTNodeArtifact(triple.getBase());
 		right = new ASTNodeArtifact(triple.getRight());
 
-		ASTNodeArtifact targetNode = left.createEmptyDummy();
-
-		MergeTriple<ASTNodeArtifact> nodeTriple 
-			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
-					left, base, right);
+		// Output tree
+		Program program = new Program();
+		program.state().reset();
+		ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
+		targetNode.setRevision(new Revision("merge"));
+		targetNode.forceRenumbering();
 
 		if (!base.isEmptyDummy()) {
 			// 3-way merge
@@ -109,6 +112,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		// diff left right
 		diff(left, right, Color.BLUE);
+		
+		assert (left.hasMatching(right) && right.hasMatching(left));
+		
+		MergeTriple<ASTNodeArtifact> nodeTriple 
+			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
+					left, base, right);
 		
 		MergeOperation<ASTNodeArtifact> astMergeOp 
 			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
@@ -137,19 +146,19 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 * @param color color of the matching (for debug output only)
 	 * @return Matching of the two nodes
 	 */
-	private Matching diff(final ASTNodeArtifact left, 
+	private Matching<ASTNodeArtifact> diff(final ASTNodeArtifact left, 
 			final ASTNodeArtifact right, final Color color) {
-		ASTMatcher.reset();
+		ASTMatcher<ASTNodeArtifact> matcher = new ASTMatcher<ASTNodeArtifact>();
 		LOG.trace(left.getRevision() + ".size = " + left.getTreeSize());
 		LOG.trace(right.getRevision() + ".size = " + right.getTreeSize());
 		LOG.debug("Compute match(" + left.getRevision() + ", "
 				+ right.getRevision() + ")");
-		Matching m = ASTMatcher.match(left, right);
+		Matching<ASTNodeArtifact> m = matcher.match(left, right);
 		LOG.debug("match(" + left.getRevision() + ", " + right.getRevision()
 				+ ") = " + m.getScore());
-		LOG.trace(ASTMatcher.getLog());
+		LOG.trace(matcher.getLog());
 		LOG.debug("Store matching information within nodes.");
-		ASTMatcher.storeMatching(m, color);
+		matcher.storeMatching(m, color);
 		
 		if (LOG.isTraceEnabled()) {
 			LOG.trace(left.getRevision() + ".dumpTree():");

@@ -6,13 +6,14 @@ package de.fosd.jdime.matcher;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
+ * @param <T> type of artifact
  */
-public class Matching {
+public class Matching<T extends Artifact<T>> {
 
 	/**
 	 * Algorithm that found this matching.
@@ -22,7 +23,7 @@ public class Matching {
 	/**
 	 * List of child matchings.
 	 */
-	private List<Matching> children = new LinkedList<Matching>();
+	private List<Matching<T>> children = new LinkedList<Matching<T>>();
 
 	/**
 	 * String representing a color to highlight the matching in.
@@ -30,14 +31,14 @@ public class Matching {
 	private Color color = null;
 
 	/**
-	 * Left node of the matching.
+	 * Left artifact of the matching.
 	 */
-	private ASTNodeArtifact left;
+	private T left;
 
 	/**
-	 * Right node of the matching.
+	 * Right artifact of the matching.
 	 */
-	private ASTNodeArtifact right;
+	private T right;
 
 	/**
 	 * Matching score. Higher score means more submatches.
@@ -57,13 +58,13 @@ public class Matching {
 	 * Creates a new matching instance.
 	 * 
 	 * @param left
-	 *            left ASTNodeArtifact
+	 *            left T
 	 * @param right
-	 *            right ASTNodeArtifact
+	 *            right T
 	 * @param score
 	 *            number of matches
 	 */
-	public Matching(final ASTNodeArtifact left, final ASTNodeArtifact right,
+	public Matching(final T left, final T right,
 			final int score) {
 		this.left = left;
 		this.right = right;
@@ -81,11 +82,11 @@ public class Matching {
 	}
 
 	/**
-	 * Returns the matchings for child ASTNodeArtifacts.
+	 * Returns the matchings for child Ts.
 	 * 
-	 * @return matchings of child ASTNodeArtifacts
+	 * @return matchings of child Ts
 	 */
-	public final List<Matching> getChildren() {
+	public final List<Matching<T>> getChildren() {
 		return children;
 	}
 
@@ -97,20 +98,20 @@ public class Matching {
 	}
 
 	/**
-	 * Returns the left ASTNodeArtifact of the matching.
+	 * Returns the left T of the matching.
 	 * 
-	 * @return left ASTNodeArtifact
+	 * @return left T
 	 */
-	public final ASTNodeArtifact getLeftNode() {
+	public final T getLeft() {
 		return left;
 	}
 
 	/**
-	 * Returns the right ASTNodeArtifact of the matching.
+	 * Returns the right T of the matching.
 	 * 
-	 * @return right ASTNodeArtifact
+	 * @return right T
 	 */
-	public final ASTNodeArtifact getRightNode() {
+	public final T getRight() {
 		return right;
 	}
 
@@ -135,12 +136,12 @@ public class Matching {
 	}
 
 	/**
-	 * Sets the matchings for the respective child ASTNodeArtifacts.
+	 * Sets the matchings for the respective child Ts.
 	 * 
 	 * @param children
-	 *            matchings of child ASTNodeArtifacts
+	 *            matchings of child Ts
 	 */
-	public final void setChildren(final List<Matching> children) {
+	public final void setChildren(final List<Matching<T>> children) {
 		this.children = children;
 	}
 
@@ -153,13 +154,13 @@ public class Matching {
 	}
 
 	/**
-	 * Returns the matching node for the node passed as argument. If the node is
-	 * not contained in the matching, null is returned.
+	 * Returns the matching artifact for the artifact passed as argument. 
+	 * If the artifact is not contained in the matching, null is returned.
 	 * 
-	 * @param node node for which to return matching node
-	 * @return matching node
+	 * @param artifact artifact for which to return matching artifact
+	 * @return matching artifact
 	 */
-	public final ASTNodeArtifact getMatchingNode(final ASTNodeArtifact node) {
-		return left == node ? right : right == node ? left : null;
+	public final T getMatchingArtifact(final T artifact) {
+		return left == artifact ? right : right == artifact ? left : null;
 	}
 }

@@ -3,21 +3,37 @@
  */
 package de.fosd.jdime.matcher;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
  */
-public final class ASTMatcher {
+public class ASTMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
+
+	
 	/**
 	 * 
 	 */
-	private ASTMatcher() {
-		
-	}
+	private int calls = 0;
 	
-	private static int calls = 0;
+	/**
+	 * 
+	 */
+	private UnorderedMatcher<T> unorderedMatcher;
+	
+	/**
+	 * 
+	 */
+	private OrderedMatcher<T> orderedMatcher;
+	
+	/**
+	 * 
+	 */
+	public ASTMatcher() {
+		unorderedMatcher = new UnorderedMatcher<T>(this);
+	}
 	
 	/**
 	 * Logger.
@@ -29,8 +45,7 @@ public final class ASTMatcher {
 	 * @param right artifact
 	 * @return Matching
 	 */
-	public static Matching match(final ASTNodeArtifact left,
-			final ASTNodeArtifact right) {
+	public final Matching<T> match(final T left, final T right) {
 		boolean isOrdered = false;
 
 		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
@@ -47,8 +62,8 @@ public final class ASTMatcher {
 		
 		calls++;
 
-		return isOrdered ? OrderedASTMatcher.match(left, right)
-				: UnorderedASTMatcher.match(left, right);
+		return isOrdered ? orderedMatcher.match(left, right)
+				: unorderedMatcher.match(left, right);
 	}
 
 	/**
@@ -61,10 +76,10 @@ public final class ASTMatcher {
 	 * @param color
 	 *            color used to highlight the matching in debug output
 	 */
-	public static void storeMatching(final Matching matching, 
+	public final void storeMatching(final Matching<T> matching, 
 			final Color color) {
-		ASTNodeArtifact left = matching.getLeftNode();
-		ASTNodeArtifact right = matching.getRightNode();
+		T left = matching.getLeft();
+		T right = matching.getRight();
 
 		assert (left.matches(right));
 
@@ -74,7 +89,7 @@ public final class ASTMatcher {
 			right.addMatching(matching);
 		}
 
-		for (Matching childMatching : matching.getChildren()) {
+		for (Matching<T> childMatching : matching.getChildren()) {
 			storeMatching(childMatching, color);
 		}
 	}
@@ -82,24 +97,25 @@ public final class ASTMatcher {
 	/**
 	 * Resets the call counter.
 	 */
-	public static void reset() {
+	public final void reset() {
 		calls = 0;
-		OrderedASTMatcher.calls = 0;
-		UnorderedASTMatcher.calls = 0;
+		orderedMatcher = new OrderedMatcher<T>(this);
+		unorderedMatcher = new UnorderedMatcher<T>(this);
 	}
 	
 	/**
 	 * Returns the logged call counts.
 	 * @return logged call counts
 	 */
-	public static String getLog() {
+	public final String getLog() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("matcher calls (all/ordered/unordered): ");
 		sb.append(calls + "/");
-		sb.append(OrderedASTMatcher.calls + "/");
-		sb.append(UnorderedASTMatcher.calls);
-		assert (calls == UnorderedASTMatcher.calls + OrderedASTMatcher.calls) 
-			: "Wrong sum for matcher calls";
+		sb.append(orderedMatcher.getCalls() + "/");
+		sb.append(unorderedMatcher.getCalls());
+		assert (calls == unorderedMatcher.getCalls() 
+				+ orderedMatcher.getCalls()) 
+				: "Wrong sum for matcher calls";
 		return sb.toString();
 	}
 }

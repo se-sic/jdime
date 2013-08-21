@@ -552,4 +552,14 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return isDirectory() ? "directories" : "files";
 	}
 
+	@Override
+	public final boolean matches(final FileArtifact other) {
+		return this.equals(other);
+	}
+
+	@Override
+	public final boolean isOrdered() {
+		return false;
+	}
+
 }

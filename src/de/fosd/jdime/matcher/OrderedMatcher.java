@@ -8,27 +8,38 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich
  * 
+ * @param <T> type of artifact
  */
-public final class OrderedASTMatcher {
+public class OrderedMatcher<T extends Artifact<T>> 
+	implements MatchingInterface<T> {
+	
+	/**
+	 * Matcher.
+	 */
+	private ASTMatcher<T> matcher;
 
 	/**
-	 * Private Constructor.
+	 * Creates a new instance of OrderedMatcher.
+	 * @param matcher matcher
 	 */
-	private OrderedASTMatcher() {
-
+	public OrderedMatcher(final ASTMatcher<T> matcher) {
+		this.matcher = matcher;
 	}
 
-	static int calls = 0;
+	/**
+	 * Number of calls.
+	 */
+	private int calls = 0;
 	
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(OrderedASTMatcher.class);
+	private static final Logger LOG = Logger.getLogger(OrderedMatcher.class);
 
 	/**
 	 * Compares two nodes.
@@ -39,8 +50,7 @@ public final class OrderedASTMatcher {
 	 *            right node
 	 * @return matching
 	 */
-	public static Matching match(final ASTNodeArtifact left,
-			final ASTNodeArtifact right) {
+	public final Matching<T> match(final T left, final T right) {
 		calls++;
 		return simpleTreeMatching(left, right);
 	}
@@ -54,14 +64,12 @@ public final class OrderedASTMatcher {
 	 *            right tree
 	 * @return maximum matching between left and right tree
 	 */
-	private static Matching simpleTreeMatching(final ASTNodeArtifact left,
-			final ASTNodeArtifact right) {
-
+	private Matching<T> simpleTreeMatching(final T left, final T right) {
 		String id = "stm";
 
 		if (!left.matches(right)) {
 			// roots contain distinct symbols
-			return new Matching(left, right, 0);
+			return new Matching<T>(left, right, 0);
 		}
 
 		// number of first-level subtrees of t1
@@ -71,7 +79,7 @@ public final class OrderedASTMatcher {
 		int n = right.getNumChildren();
 
 		int[][] matrixM = new int[m + 1][n + 1];
-		Entry[][] matrixT = new Entry[m + 1][n + 1];
+		Entry<T>[][] matrixT = new Entry[m + 1][n + 1];
 
 		// initialize first column matrix
 		for (int i = 0; i <= m; i++) {
@@ -86,25 +94,25 @@ public final class OrderedASTMatcher {
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
 
-				Matching w = ASTMatcher.match(left.getChild(i - 1),
+				Matching<T> w = matcher.match(left.getChild(i - 1),
 						right.getChild(j - 1));
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
 							+ w.getScore()) {
 						matrixM[i][j] = matrixM[i][j - 1];
-						matrixT[i][j] = new Entry(Direction.LEFT, w);
+						matrixT[i][j] = new Entry<T>(Direction.LEFT, w);
 					} else {
 						matrixM[i][j] = matrixM[i - 1][j - 1] + w.getScore();
-						matrixT[i][j] = new Entry(Direction.DIAG, w);
+						matrixT[i][j] = new Entry<T>(Direction.DIAG, w);
 					}
 				} else {
 					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1]
 							+ w.getScore()) {
 						matrixM[i][j] = matrixM[i - 1][j];
-						matrixT[i][j] = new Entry(Direction.TOP, w);
+						matrixT[i][j] = new Entry<T>(Direction.TOP, w);
 					} else {
 						matrixM[i][j] = matrixM[i - 1][j - 1] + w.getScore();
-						matrixT[i][j] = new Entry(Direction.DIAG, w);
+						matrixT[i][j] = new Entry<T>(Direction.DIAG, w);
 					}
 				}
 			}
@@ -112,10 +120,10 @@ public final class OrderedASTMatcher {
 
 		int i = m;
 		int j = n;
-		List<Matching> children = new LinkedList<Matching>();
+		List<Matching<T>> children = new LinkedList<Matching<T>>();
 
 		while (i >= 1 && j >= 1) {
-			switch (matrixT[i][j].direction) {
+			switch (matrixT[i][j].getDirection()) {
 			case TOP:
 				i--;
 				break;
@@ -126,8 +134,8 @@ public final class OrderedASTMatcher {
 				if (matrixM[i][j] > matrixM[i - 1][j - 1]) {
 					// markMatching("stm", matrixM[i][j]-matrixM[i - 1][j - 1],
 					// t1.getChild(i - 1), t2.getChild(j - 1));
-					children.add(matrixT[i][j].matching);
-					matrixT[i][j].matching.setAlgorithm(id);
+					children.add(matrixT[i][j].getMatching());
+					matrixT[i][j].getMatching().setAlgorithm(id);
 				}
 				i--;
 				j--;
@@ -137,9 +145,18 @@ public final class OrderedASTMatcher {
 			}
 		}
 
-		Matching matching = new Matching(left, right, matrixM[m][n] + 1);
+		Matching<T> matching = new Matching<T>(left, right, matrixM[m][n] + 1);
 		matching.setChildren(children);
 		return matching;
+	}
+	
+	
+	/**
+	 * Returns the number of calls.
+	 * @return number of calls
+	 */
+	public final int getCalls() {
+		return calls;
 	}
 
 }

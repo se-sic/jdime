@@ -53,10 +53,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	private static int count = 1;
 	
 	/**
+	 * 
+	 */
+	private boolean merged = false;
+	
+	/**
 	 * Map to store matches.
 	 */
-	private LinkedHashMap<Revision, Matching> matches 
-		= new LinkedHashMap<Revision, Matching>();
+	private LinkedHashMap<Revision, Matching<ASTNodeArtifact>> matches 
+		= new LinkedHashMap<Revision, Matching<ASTNodeArtifact>>();
 	
 	/**
 	 * Initializes a program.
@@ -106,7 +111,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		
 		ASTNode<?> astnode = null;
 		if (artifact.isEmptyDummy()) {
-			astnode = new ASTNode();
+			astnode = new ASTNode<>();
 			setEmptyDummy(true);
 		} else {
 			Program p = initProgram();
@@ -118,6 +123,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		this.astnode = astnode;
 		count = 1;
 		renumber(this);
+		
 	}
 	
 	/**
@@ -149,11 +155,19 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
 			throws IOException {
-		ASTNodeArtifact myChild = new ASTNodeArtifact(child.astnode);
-		myChild.setParent(this);
-		myChild.setRevision(getRevision());
-		children.add(myChild);
-		return myChild;
+		ASTNodeArtifact myChild;
+		try {
+			myChild = new ASTNodeArtifact((ASTNode<?>) child.astnode.clone());
+			myChild.setParent(this);
+			myChild.setRevision(getRevision());
+			children.add(myChild);
+			return myChild;
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new NotYetImplementedException();
+		}
+		
 	}
 
 	/*
@@ -165,6 +179,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final void copyArtifact(final ASTNodeArtifact destination)
 			throws IOException {
+		
 		// TODO Auto-generated method stub
 
 	}
@@ -189,7 +204,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final ASTNodeArtifact createEmptyDummy()
 			throws FileNotFoundException {
 		ASTNodeArtifact dummy = new ASTNodeArtifact();
-		dummy.astnode = new ASTNode();
+		dummy.astnode = new ASTNode<>();
 		dummy.setEmptyDummy(true);
 		dummy.setRevision(getRevision());
 		return dummy;
@@ -235,8 +250,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	@Override
 	public final String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getRevision().toString() + ":" + number;
 	}
 
 	/*
@@ -342,7 +356,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		
 		// node itself
 		
-		Matching m = null;
+		Matching<ASTNodeArtifact> m = null;
 		if (hasMatches()) {
 			Set<Revision> matchingRevisions = matches.keySet();
 			
@@ -361,8 +375,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		sb.append(astnode.dumpString());
 		if (hasMatches()) {
 			assert (m != null);
-			sb.append(" <=> (" + m.getMatchingNode(this).getRevision() + ":" 
-					+ m.getMatchingNode(this).number + ")");
+			sb.append(" <=> (" + m.getMatchingArtifact(this).getRevision() 
+					+ ":" + m.getMatchingArtifact(this).number + ")");
 			sb.append(Color.DEFAULT.toShell());
 		}
 		sb.append(System.lineSeparator());
@@ -443,33 +457,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
-	
-	/**
-	 * Adds a matching.
-	 * @param matching matching to be added
-	 */
-	public final void addMatching(final Matching matching) {
-		assert (matching != null);
-		matches.put(matching.getMatchingNode(this).getRevision(), matching);
-	}
-	
-	/**
-	 * Returns whether this node has any matches.
-	 * @return true if the node has matches
-	 */
-	public final boolean hasMatches() {
-		return !matches.isEmpty();
-	}
-	
-	/**
-	 * Returns the matching for a specific revision or null if there is 
-	 * no such matching.
-	 * @param rev revision
-	 * @return matching with revision
-	 */
-	public final Matching getMatching(final Revision rev) {
-		return matches.get(rev);
-	}
 
 	/**
 	 * Returns the size of the subtree. The node itself is not included.
@@ -493,6 +480,42 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	public final int getTreeSize() {
 		return getSubtreeSize() + 1;
+	}
+	
+	/**
+	 * Force renumbering of the tree.
+	 */
+	public final void forceRenumbering() {
+		count = 1;
+		renumber(this);
+	}
+
+	/**
+	 * @return the merged
+	 */
+	public final boolean isMerged() {
+		return merged;
+	}
+
+	/**
+	 * @param merged the merged to set
+	 */
+	public final void setMerged(final boolean merged) {
+		this.merged = merged;
+	}
+	
+	/**
+	 * Returns whether the subtree has changes.
+	 * @return whether subtree has changes
+	 */
+	public final boolean hasChanges() {
+		boolean hasChanges = !hasMatches();
+		
+		for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
+			hasChanges = getChild(i).hasChanges();
+		}
+		
+		return hasChanges;
 	}
 
 }
