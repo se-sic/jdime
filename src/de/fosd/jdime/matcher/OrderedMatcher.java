@@ -21,13 +21,13 @@ public class OrderedMatcher<T extends Artifact<T>>
 	/**
 	 * Matcher.
 	 */
-	private ASTMatcher<T> matcher;
+	private Matcher<T> matcher;
 
 	/**
 	 * Creates a new instance of OrderedMatcher.
 	 * @param matcher matcher
 	 */
-	public OrderedMatcher(final ASTMatcher<T> matcher) {
+	public OrderedMatcher(final Matcher<T> matcher) {
 		this.matcher = matcher;
 	}
 

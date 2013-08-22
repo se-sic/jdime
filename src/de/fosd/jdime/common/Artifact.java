@@ -45,8 +45,7 @@ public abstract class Artifact<T extends Artifact<T>> {
 	/**
 	 * Map to store matches.
 	 */
-	private LinkedHashMap<Revision, Matching<T>> matches 
-		= new LinkedHashMap<Revision, Matching<T>>();
+	private LinkedHashMap<Revision, Matching<T>> matches = null;
 
 	/**
 	 * Parent artifact.
@@ -101,16 +100,6 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return true if the artifact exists.
 	 */
 	public abstract boolean exists();
-
-	/**
-	 * Returns a child @code{Artifact}.
-	 * 
-	 * @param otherChild
-	 *            artifact
-	 * 
-	 * @return child if child exists, null otherwise
-	 */
-	public abstract T getChild(final T otherChild);
 
 	/**
 	 * Return child at position i.
@@ -212,6 +201,12 @@ public abstract class Artifact<T extends Artifact<T>> {
 	public final boolean isEmptyDummy() {
 		return emptyDummy;
 	}
+	
+	/**
+	 * Returns true if the artifact is empty.
+	 * @return true if the artifact is empty
+	 */
+	public abstract boolean isEmpty();
 
 	/**
 	 * Returns true, if the artifact is a leaf.
@@ -320,6 +315,10 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @param matching matching to be added
 	 */
 	public final void addMatching(final Matching<T> matching) {
+		if (matches == null) {
+			matches = new LinkedHashMap<>();
+		}
+		
 		assert (matching != null);
 		matches.put(matching.getMatchingArtifact((T) this).getRevision(), 
 				matching);
@@ -331,6 +330,10 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return whether a matching exists
 	 */
 	public final boolean hasMatching(final T other) {
+		if (matches == null) {
+			return false;
+		}
+		
 		Matching<T> m = matches.get(other.getRevision());
 		return m != null && m.getMatchingArtifact((T) this) == other; 
 	}
@@ -340,7 +343,7 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return number of matches
 	 */
 	public final int getNumMatches() {
-		return matches.size();
+		return matches == null ? 0 : matches.size();
 	}
 	
 	/**
@@ -350,7 +353,7 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return matching with revision
 	 */
 	public final Matching<T> getMatching(final Revision rev) {
-		return matches.get(rev);
+		return matches == null ? null : matches.get(rev);
 	}
 	
 	/**
@@ -358,6 +361,29 @@ public abstract class Artifact<T extends Artifact<T>> {
 	 * @return true if the node has matches
 	 */
 	public final boolean hasMatches() {
-		return !matches.isEmpty();
+		return matches != null && !matches.isEmpty();
+	}
+	
+	/**
+	 * Returns true if matches were previously computed.
+	 * @return true if matches were already computed
+	 */
+	public final boolean matchingComputed() {
+		return matches != null;
+	}
+	
+	
+	/**
+	 * Returns whether the subtree has changes.
+	 * @return whether subtree has changes
+	 */
+	public final boolean hasChanges() {
+		boolean hasChanges = !hasMatches();
+		
+		for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
+			hasChanges = getChild(i).hasChanges();
+		}
+		
+		return hasChanges;
 	}
 }

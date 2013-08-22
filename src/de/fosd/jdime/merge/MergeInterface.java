@@ -8,7 +8,7 @@
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
  ******************************************************************************/
-package de.fosd.jdime.strategy;
+package de.fosd.jdime.merge;
 
 import java.io.IOException;
 

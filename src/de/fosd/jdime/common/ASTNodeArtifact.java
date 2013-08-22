@@ -209,6 +209,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		dummy.setRevision(getRevision());
 		return dummy;
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public final boolean equals(final Object obj) {
+		assert (astnode != null);
+		assert (obj != null);
+		assert (obj instanceof ASTNodeArtifact);
+		return astnode.dumpString().equals(((ASTNodeArtifact) obj)
+				.astnode.dumpString());
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -223,24 +237,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#getChild(de.fosd.jdime.common.Artifact)
-	 */
-	@Override
-	public final ASTNodeArtifact getChild(final ASTNodeArtifact otherChild) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.fosd.jdime.common.Artifact#getId()
 	 */
 	@Override
-	public final String getId() {
-		// TODO Auto-generated method stub
-		return null;
+	public final String getId() { 
+		return getName();
 	}
 
 	/*
@@ -260,8 +261,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	@Override
 	public final int hashCode() {
-		// TODO Auto-generated method stub
-		return 0;
+		return astnode.dumpString().hashCode();
 	}
 
 	/*
@@ -457,6 +457,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
+	
+	
 
 	/**
 	 * Returns the size of the subtree. The node itself is not included.
@@ -503,19 +505,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final void setMerged(final boolean merged) {
 		this.merged = merged;
 	}
-	
-	/**
-	 * Returns whether the subtree has changes.
-	 * @return whether subtree has changes
+
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.Artifact#isEmpty()
 	 */
-	public final boolean hasChanges() {
-		boolean hasChanges = !hasMatches();
-		
-		for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-			hasChanges = getChild(i).hasChanges();
-		}
-		
-		return hasChanges;
+	@Override
+	public final boolean isEmpty() {
+		return !hasChildren();
 	}
 
 }

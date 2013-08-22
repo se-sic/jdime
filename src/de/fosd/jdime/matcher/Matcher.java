@@ -10,7 +10,7 @@ import de.fosd.jdime.common.Artifact;
  * 
  * @param <T> type of artifact
  */
-public class ASTMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
+public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	
 	/**
@@ -31,8 +31,9 @@ public class ASTMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	/**
 	 * 
 	 */
-	public ASTMatcher() {
+	public Matcher() {
 		unorderedMatcher = new UnorderedMatcher<T>(this);
+		orderedMatcher = new OrderedMatcher<T>(this);
 	}
 	
 	/**
@@ -81,17 +82,17 @@ public class ASTMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		T left = matching.getLeft();
 		T right = matching.getRight();
 
-		assert (left.matches(right));
-
 		if (matching.getScore() > 0) {
+			assert (left.matches(right));
 			matching.setColor(color);
 			left.addMatching(matching);
 			right.addMatching(matching);
+			for (Matching<T> childMatching : matching.getChildren()) {
+				storeMatching(childMatching, color);
+			}
 		}
 
-		for (Matching<T> childMatching : matching.getChildren()) {
-			storeMatching(childMatching, color);
-		}
+		
 	}
 	
 	/**
@@ -111,10 +112,16 @@ public class ASTMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		StringBuffer sb = new StringBuffer();
 		sb.append("matcher calls (all/ordered/unordered): ");
 		sb.append(calls + "/");
-		sb.append(orderedMatcher.getCalls() + "/");
-		sb.append(unorderedMatcher.getCalls());
-		assert (calls == unorderedMatcher.getCalls() 
-				+ orderedMatcher.getCalls()) 
+		int orderedCalls = orderedMatcher == null ? 0 
+					: orderedMatcher.getCalls();
+		int unorderedCalls = unorderedMatcher == null ? 0 
+					: unorderedMatcher.getCalls();
+		
+		sb.append(orderedCalls + "/");
+		
+		sb.append(unorderedCalls);
+		assert (calls == unorderedCalls 
+				+ orderedCalls) 
 				: "Wrong sum for matcher calls";
 		return sb.toString();
 	}

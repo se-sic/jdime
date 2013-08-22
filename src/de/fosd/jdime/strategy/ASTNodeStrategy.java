@@ -10,11 +10,9 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -28,6 +26,11 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	 */
 	private static final Logger LOG = Logger
 			.getLogger(ASTNodeStrategy.class);
+	
+	/**
+	 * 
+	 */
+	private static Merge<ASTNodeArtifact> merge = null;
 
 	/*
 	 * (non-Javadoc)
@@ -59,34 +62,16 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		}
 
 		assert (target != null);
-		assert (left.hasMatching(right) && right.hasMatching(left));
-
-		// determine whether we have to respect the order of children
-		boolean isOrdered = false;
-
-		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
-			if (left.getChild(i).isOrdered()) {
-				isOrdered = true;
-			}
+		
+		if (merge == null) {
+			merge = new Merge<ASTNodeArtifact>();
 		}
-
-		for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
-			if (right.getChild(i).isOrdered()) {
-				isOrdered = true;
-			}
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("merge(operation, context)");
 		}
-
-		if (isOrdered) {
-			orderedMerge(context, triple.getMergeType(), left, base, right,
-					target);
-		} else {
-			unorderedMerge(context, triple.getMergeType(), left, base, right,
-					target);
-		}
-
-		// FIXME: remove me when implementation is complete
-		throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
-
+		
+		merge.merge(operation, context);
 	}
 
 	/*
@@ -96,7 +81,6 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	 */
 	@Override
 	public final String toString() {
-		// TODO Auto-generated method stub
 		return "astnode";
 	}
 
@@ -139,101 +123,5 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		sb.append("}");
 
 		System.out.println(sb.toString());
-	}
-
-	/**
-	 * @param context
-	 * @param type
-	 * @param left
-	 * @param base
-	 * @param right
-	 * @param target
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private void unorderedMerge(final MergeContext context,
-			final MergeType type, final ASTNodeArtifact left,
-			final ASTNodeArtifact base, final ASTNodeArtifact right,
-			final ASTNodeArtifact target) throws IOException,
-			InterruptedException {
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Performing unordered merge.");
-		}
-
-		ASTNodeArtifact[] revisions = { left, right };
-		for (int i = 0; i < revisions.length; i++) {
-			ASTNodeArtifact myNode = revisions[i];
-			ASTNodeArtifact otherNode = revisions[(i + 1) % 2];
-			
-			for (ASTNodeArtifact myChild : myNode.getChildren()) {
-				if (myChild.hasMatches()) {
-					// is not a change
-					Matching<ASTNodeArtifact> mOther 
-					= myChild.getMatching(otherNode.getRevision());
-					if (mOther != null) {
-						// child is in both left and right -> merge it
-						ASTNodeArtifact otherChild = mOther
-								.getMatchingArtifact(myChild);
-
-						// determine whether the child is 2 or 3-way merged
-						Matching<ASTNodeArtifact> mBase 
-						= myChild.getMatching(base.getRevision());
-						ASTNodeArtifact baseChild = mBase == null ? base : mBase
-								.getMatchingArtifact(myChild);
-						MergeType childType = mBase == null ? MergeType.TWOWAY
-								: MergeType.THREEWAY;
-
-						ASTNodeArtifact targetChild = target.addChild(myChild);
-						MergeTriple<ASTNodeArtifact> childTriple = new MergeTriple<ASTNodeArtifact>(
-								childType, myChild, baseChild, otherChild);
-
-						MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<ASTNodeArtifact>(
-								childTriple, targetChild);
-
-						astMergeOp.apply(context);
-					} else {
-						// child is in my revision and base. It was deleted by other.
-						// we have to check if an inner node was changed by me
-						Matching mLB = myChild.getMatching(base.getRevision());
-						assert (mLB != null);
-						if (myChild.hasChanges()) {
-							// we need to report a conflict between leftNode and
-							// its deletion
-							throw new NotYetImplementedException();
-						} else {
-							// Node can safely be deleted
-							DeleteOperation<ASTNodeArtifact> astDelOp = new DeleteOperation<ASTNodeArtifact>(
-									myChild);
-							astDelOp.apply(context);
-						}
-					}
-				} else {
-					// is a change
-					throw new NotYetImplementedException();
-				}
-			}
-		}
-	}
-	
-	/**
-	 * @param context
-	 * @param type
-	 * @param left
-	 * @param base
-	 * @param right
-	 * @param target
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private void orderedMerge(final MergeContext context,
-			final MergeType type, final ASTNodeArtifact left,
-			final ASTNodeArtifact base, final ASTNodeArtifact right,
-			final ASTNodeArtifact target) throws IOException,
-			InterruptedException {
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Performing ordered merge.");
-		}
 	}
 }

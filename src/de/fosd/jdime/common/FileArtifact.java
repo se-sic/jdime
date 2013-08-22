@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * File in which the artifact is stored.
 	 */
 	private File file;
-	
+
 	/**
 	 * Creates a new instance of an artifact.
 	 * 
@@ -114,16 +115,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * de.fosd.jdime.common.Artifact)
 	 */
 	@Override
-	public final FileArtifact addChild(final FileArtifact child) 
+	public final FileArtifact addChild(final FileArtifact child)
 			throws IOException {
 		assert (child != null);
 
 		assert (!isLeaf()) 
-				: "Child elements can not be added to leaf artifacts. "
+			: "Child elements can not be added to leaf artifacts. "
 				+ "isLeaf(" + this + ") = " + isLeaf();
 
 		assert (getClass().equals(child.getClass())) 
-				: "Can only add children of same type";
+			: "Can only add children of same type";
 
 		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
 				+ File.separator + child.getId()), false);
@@ -209,7 +210,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Had to create parent directories: " 
-							+ createdParents);
+						+ createdParents);
 			}
 		}
 
@@ -235,13 +236,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
 	 */
 	@Override
-	public final FileArtifact createEmptyDummy() 
-			throws FileNotFoundException {
+	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
 		// FIXME: The following works only for Unix-like systems. Do something
 		// about it!
 		File dummyFile = new File("/dev/null");
 		assert (dummyFile.exists()) 
-				: "Currently only Unix systems are supported!";
+			: "Currently only Unix systems are supported!";
 
 		FileArtifact myEmptyDummy = new FileArtifact(dummyFile);
 		myEmptyDummy.setEmptyDummy(true);
@@ -273,29 +273,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file.exists();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#hasChild(de.fosd.jdime.common.Artifact)
-	 */
-	@Override
-	public final FileArtifact getChild(final FileArtifact otherChild) {
-		assert (otherChild != null);
-		assert (!isLeaf());
-		assert (exists());
-
-		for (FileArtifact myChild : getChildren()) {
-			assert (myChild != null);
-
-			if (myChild.equals(otherChild)) {
-				return myChild;
-			}
-		}
-
-		return null;
-	}
-
 	/**
 	 * Returns the list of artifacts contained in this directory.
 	 * 
@@ -305,7 +282,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (isDirectory());
 
 		ArtifactList<FileArtifact> contentArtifacts 
-				= new ArtifactList<FileArtifact>();
+			= new ArtifactList<FileArtifact>();
 		File[] content = file.listFiles();
 
 		for (int i = 0; i < content.length; i++) {
@@ -479,11 +456,25 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
+		assert (exists());
 
-		MergeStrategy<FileArtifact> strategy 
-				= (MergeStrategy<FileArtifact>) (isDirectory() 
-				? new DirectoryStrategy() : context.getMergeStrategy());
+		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) 
+				(isDirectory() ? new DirectoryStrategy()
+				: context.getMergeStrategy());
 		assert (strategy != null);
+
+		if (!isDirectory()) {
+			String contentType = getContentType();
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(getName() + " has content type: " + contentType);
+			}
+
+			if (!contentType.equals("text/x-java")) {
+				LOG.debug("Skipping non-java file.");
+				return;
+			}
+		}
+
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Using strategy: " + strategy.toString());
 		}
@@ -502,7 +493,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 */
 	public final void remove() throws IOException {
 		assert (exists() && !isEmptyDummy()) 
-				: "Tried to remove non-existing file: " + getFullPath();
+			: "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
 			if (LOG.isDebugEnabled()) {
@@ -543,12 +534,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	public final String getStatsKey(final MergeContext context) {
 		assert (context != null);
 
-//		MergeStrategy<FileArtifact> strategy 
-//				= (MergeStrategy<FileArtifact>) (isDirectory() 
-//				? new DirectoryStrategy() : context.getMergeStrategy());
-//		assert (strategy != null);
-//		
-//		return strategy.getStatsKey(this);
+		// MergeStrategy<FileArtifact> strategy
+		// = (MergeStrategy<FileArtifact>) (isDirectory()
+		// ? new DirectoryStrategy() : context.getMergeStrategy());
+		// assert (strategy != null);
+		//
+		// return strategy.getStatsKey(this);
 		return isDirectory() ? "directories" : "files";
 	}
 
@@ -562,4 +553,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return false;
 	}
 
+	/**
+	 * Returns content type of file.
+	 * @return content type of file
+	 * @throws IOException If an input output exception occurs.
+	 */
+	public final String getContentType() throws IOException {
+		assert (exists());
+		return Files.probeContentType(file.toPath());
+	}
 }

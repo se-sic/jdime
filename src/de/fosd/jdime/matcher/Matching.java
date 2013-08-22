@@ -163,4 +163,46 @@ public class Matching<T extends Artifact<T>> {
 	public final T getMatchingArtifact(final T artifact) {
 		return left == artifact ? right : right == artifact ? left : null;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return "(" + left.getId() + ", " + right.getId() + ") = " + score;
+	}
+	
+	/**
+	 * Returns the tree of matches as indented plain text. 
+	 * @return tree of matches as indented plain text
+	 */
+	public final String dumpTree() {
+		return dumpTree("");
+	}
+	
+	/**
+	 * @param indent String used to indent the current matching
+	 * @return ASCII String representing the tree of matches
+	 */
+	private String dumpTree(final String indent) {
+		StringBuffer sb = new StringBuffer();
+		
+		// node itself
+		if (color != null) {
+			sb.append(color.toShell());
+		}
+		
+		sb.append(indent + toString());
+		if (color != null) {
+			sb.append(Color.DEFAULT.toShell());
+		}
+		sb.append(System.lineSeparator());
+
+		// children
+		for (Matching<T> child : getChildren()) {
+			sb.append(child.dumpTree(indent + "  "));
+		}
+
+		return sb.toString();
+	}
 }

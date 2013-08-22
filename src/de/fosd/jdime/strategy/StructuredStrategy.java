@@ -25,9 +25,6 @@ import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.ASTMatcher;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -100,21 +97,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		targetNode.setRevision(new Revision("merge"));
 		targetNode.forceRenumbering();
 
-		if (!base.isEmptyDummy()) {
-			// 3-way merge
-
-			// diff base left
-			diff(base, left, Color.GREEN);
-
-			// diff base right
-			diff(base, right, Color.GREEN);
-		}
-
-		// diff left right
-		diff(left, right, Color.BLUE);
-		
-		assert (left.hasMatching(right) && right.hasMatching(left));
-		
 		MergeTriple<ASTNodeArtifact> nodeTriple 
 			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
 					left, base, right);
@@ -122,6 +104,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		MergeOperation<ASTNodeArtifact> astMergeOp 
 			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("ASTMOperation.apply(context)");
+		}
 		astMergeOp.apply(context);
 
 		if (context.hasErrors()) {
@@ -137,37 +122,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
 				"StructuredStrategy: Implement me!");
-	}
-
-	/**
-	 * Compares two nodes.
-	 * @param left left node
-	 * @param right right node
-	 * @param color color of the matching (for debug output only)
-	 * @return Matching of the two nodes
-	 */
-	private Matching<ASTNodeArtifact> diff(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right, final Color color) {
-		ASTMatcher<ASTNodeArtifact> matcher = new ASTMatcher<ASTNodeArtifact>();
-		LOG.trace(left.getRevision() + ".size = " + left.getTreeSize());
-		LOG.trace(right.getRevision() + ".size = " + right.getTreeSize());
-		LOG.debug("Compute match(" + left.getRevision() + ", "
-				+ right.getRevision() + ")");
-		Matching<ASTNodeArtifact> m = matcher.match(left, right);
-		LOG.debug("match(" + left.getRevision() + ", " + right.getRevision()
-				+ ") = " + m.getScore());
-		LOG.trace(matcher.getLog());
-		LOG.debug("Store matching information within nodes.");
-		matcher.storeMatching(m, color);
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(left.getRevision() + ".dumpTree():");
-			System.out.println(left.dumpTree());
-			System.out.println();
-			LOG.trace(right.getRevision() + ".dumpTree():");
-			System.out.println(right.dumpTree());
-		}
-		return m;
 	}
 
 	/*

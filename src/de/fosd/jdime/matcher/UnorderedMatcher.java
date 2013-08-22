@@ -28,7 +28,7 @@ public class UnorderedMatcher<T extends Artifact<T>>
 	/**
 	 * 
 	 */
-	private ASTMatcher<T> matcher;
+	private Matcher<T> matcher;
 	
 	/**
 	 * Number of times this method was called.
@@ -45,7 +45,7 @@ public class UnorderedMatcher<T extends Artifact<T>>
 	 * Creates a new instance of UnorderedMatcher.
 	 * @param matcher matcher
 	 */
-	public UnorderedMatcher(final ASTMatcher<T> matcher) {
+	public UnorderedMatcher(final Matcher<T> matcher) {
 		this.matcher = matcher;
 	}
 
