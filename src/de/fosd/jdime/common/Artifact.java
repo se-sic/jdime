@@ -365,6 +365,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 	
 	/**
+	 * Returns whether this node has a matching for a specific revision.
+	 * @param rev revision
+	 * @return true if node has a matching with revision
+	 */
+	public final boolean hasMatching(final Revision rev) {
+		return matches.containsKey(rev);
+	}
+	
+	/**
 	 * Returns true if matches were previously computed.
 	 * @return true if matches were already computed
 	 */

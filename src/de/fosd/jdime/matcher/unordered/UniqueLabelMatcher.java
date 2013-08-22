@@ -90,32 +90,6 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 			}
 		}
 
-		// do {
-		// while (leftChild.compareTo(rightChild) < 0 && leftIt.hasNext()) {
-		// leftChild = leftIt.next();
-		// }
-		//
-		// while (leftChild.compareTo(rightChild) == 0
-		// && (leftIt.hasNext() || rightIt.hasNext())) {
-		// Matching<T> childMatching
-		// = matcher.match(leftChild, rightChild);
-		// childrenMatchings.add(childMatching);
-		// sum += childMatching.getScore();
-		//
-		// if (leftIt.hasNext()) {
-		// leftChild = leftIt.next();
-		// }
-		//
-		// if (rightIt.hasNext()) {
-		// rightChild = rightIt.next();
-		// }
-		// }
-		//
-		// while (leftChild.compareTo(rightChild) > 0 && rightIt.hasNext()) {
-		// rightChild = rightIt.next();
-		// }
-		// } while (leftIt.hasNext() || rightIt.hasNext());
-
 		Matching<T> rootmatching = new Matching<T>(left, right, sum + 1);
 		rootmatching.setChildren(childrenMatchings);
 		return rootmatching;

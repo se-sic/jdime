@@ -101,7 +101,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		if (graphical) {
 			dumpGraphVizTree(artifact);
 		} else {
-			artifact.dumpTree();
+			System.out.println(artifact.dumpTree());
 		}
 	}
 

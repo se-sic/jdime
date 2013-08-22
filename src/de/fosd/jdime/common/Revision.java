@@ -58,4 +58,13 @@ public class Revision {
 		return name;
 	}
 	
+	/**
+	 * Returns whether an artifact is contained in this revision.
+	 * @param artifact artifact
+	 * @return true if the artifact is contained in this revision 
+	 */
+	public final boolean contains(final Artifact<?> artifact) {
+		return artifact.hasMatching(this);
+	}
+	
 }

@@ -16,6 +16,7 @@ import AST.CompilationUnit;
 import AST.ConstructorDecl;
 import AST.FieldDecl;
 import AST.FieldDeclaration;
+import AST.ImportDecl;
 import AST.InterfaceDecl;
 import AST.JavaParser;
 import AST.MethodDecl;
@@ -159,6 +160,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		try {
 			myChild = new ASTNodeArtifact((ASTNode<?>) child.astnode.clone());
 			myChild.setParent(this);
+			myChild.astnode.setParent(astnode);
 			myChild.setRevision(getRevision());
 			children.add(myChild);
 			return myChild;
@@ -351,7 +353,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @return ASCII String representing the tree
 	 */
 	private String dumpTree(final String indent) {
-		assert (getRevision() != null);
 		StringBuffer sb = new StringBuffer();
 		
 		// node itself
@@ -373,6 +374,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		
 		sb.append(indent + "(" + number + ") ");
 		sb.append(astnode.dumpString());
+		
 		if (hasMatches()) {
 			assert (m != null);
 			sb.append(" <=> (" + m.getMatchingArtifact(this).getRevision() 
@@ -386,7 +388,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			sb.append(child.dumpTree(indent + "  "));
 		}
 		
-		//return astnode.dumpTree();
 		return sb.toString();
 	}
 	
@@ -438,11 +439,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				|| astnode instanceof MethodDecl
 				|| astnode instanceof InterfaceDecl
 				|| astnode instanceof FieldDecl
-				|| astnode instanceof FieldDeclaration) {
+				|| astnode instanceof FieldDeclaration
+				|| astnode instanceof ImportDecl) {
 			return false;
 		}
 		
 		return true;
+	}
+
+	@Override
+	public final boolean hasUniqueLabels() {
+		return false;
 	}
 	
 	/**
@@ -515,13 +522,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final boolean hasUniqueLabels() {
-		return false;
-	}
-
-	@Override
 	public final int compareTo(final ASTNodeArtifact o) {
-		throw new RuntimeException("This artifact is not comparable.");
+		if (hasUniqueLabels()) {
+			return astnode.dumpString().compareTo(o.astnode.dumpString());
+		} else {
+			throw new RuntimeException("This artifact is not comparable.");
+		}
 	}
 
 }

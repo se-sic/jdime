@@ -208,6 +208,7 @@ public final class Main {
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
 						context.setDump(true);
+						context.setGuiDump(false);
 					} else if (cmd.getOptionValue("mode").equals("dumpgraph")) {
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
