@@ -562,4 +562,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (exists());
 		return Files.probeContentType(file.toPath());
 	}
+
+	@Override
+	public final boolean hasUniqueLabels() {
+		return true;
+	}
 }

@@ -1,70 +1,34 @@
 /**
  * 
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.ordered;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Direction;
+import de.fosd.jdime.matcher.Entry;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
- * 
- * @param <T> type of artifact
+ *
+ * @param <T> type if artifacts
  */
-public class OrderedMatcher<T extends Artifact<T>> 
-	implements MatchingInterface<T> {
-	
-	/**
-	 * Matcher.
-	 */
-	private Matcher<T> matcher;
+public class SimpleTreeMatcher<T extends Artifact<T>> 
+	extends OrderedMatcher<T> {
 
 	/**
-	 * Creates a new instance of OrderedMatcher.
 	 * @param matcher matcher
 	 */
-	public OrderedMatcher(final Matcher<T> matcher) {
-		this.matcher = matcher;
+	public SimpleTreeMatcher(final Matcher<T> matcher) {
+		super(matcher);
 	}
 
-	/**
-	 * Number of calls.
-	 */
-	private int calls = 0;
-	
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(OrderedMatcher.class);
-
-	/**
-	 * Compares two nodes.
-	 * 
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
-	 */
+	@Override
 	public final Matching<T> match(final T left, final T right) {
-		calls++;
-		return simpleTreeMatching(left, right);
-	}
-
-	/**
-	 * Yang's Simple tree matching algorithm.
-	 * 
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return maximum matching between left and right tree
-	 */
-	private Matching<T> simpleTreeMatching(final T left, final T right) {
 		String id = "stm";
 
 		if (!left.matches(right)) {
@@ -148,15 +112,6 @@ public class OrderedMatcher<T extends Artifact<T>>
 		Matching<T> matching = new Matching<T>(left, right, matrixM[m][n] + 1);
 		matching.setChildren(children);
 		return matching;
-	}
-	
-	
-	/**
-	 * Returns the number of calls.
-	 * @return number of calls
-	 */
-	public final int getCalls() {
-		return calls;
 	}
 
 }

@@ -386,4 +386,10 @@ public abstract class Artifact<T extends Artifact<T>> {
 		
 		return hasChanges;
 	}
+	
+	/**
+	 * Returns whether this artifact has unique labels.
+	 * @return whether the artifact has unique labels
+	 */
+	public abstract boolean hasUniqueLabels();
 }

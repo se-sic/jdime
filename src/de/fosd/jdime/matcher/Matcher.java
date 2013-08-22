@@ -4,6 +4,10 @@
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.ordered.OrderedMatcher;
+import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
+import de.fosd.jdime.matcher.unordered.LPMatcher;
+import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
  * @author Olaf Lessenich
@@ -21,6 +25,16 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	/**
 	 * 
 	 */
+	private int orderedCalls = 0;
+	
+	/**
+	 * 
+	 */
+	private int unorderedCalls = 0;
+	
+	/**
+	 * 
+	 */
 	private UnorderedMatcher<T> unorderedMatcher;
 	
 	/**
@@ -30,10 +44,13 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	
 	/**
 	 * 
+	 * @param uniqueLabels whether the matcher can assume unique labels
 	 */
-	public Matcher() {
-		unorderedMatcher = new UnorderedMatcher<T>(this);
-		orderedMatcher = new OrderedMatcher<T>(this);
+	public Matcher(final boolean uniqueLabels) {
+		unorderedMatcher = uniqueLabels ? new LPMatcher<T>(this) 
+										: new LPMatcher<T>(this);
+		orderedMatcher = uniqueLabels ? new SimpleTreeMatcher<T>(this)
+										: new SimpleTreeMatcher<T>(this);
 	}
 	
 	/**
@@ -62,6 +79,12 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		}
 		
 		calls++;
+		
+		if (isOrdered) {
+			orderedCalls++;
+		} else {
+			unorderedCalls++;
+		}
 
 		return isOrdered ? orderedMatcher.match(left, right)
 				: unorderedMatcher.match(left, right);
@@ -100,8 +123,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 */
 	public final void reset() {
 		calls = 0;
-		orderedMatcher = new OrderedMatcher<T>(this);
-		unorderedMatcher = new UnorderedMatcher<T>(this);
+		unorderedCalls = 0;
+		orderedCalls = 0;
 	}
 	
 	/**
@@ -112,13 +135,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		StringBuffer sb = new StringBuffer();
 		sb.append("matcher calls (all/ordered/unordered): ");
 		sb.append(calls + "/");
-		int orderedCalls = orderedMatcher == null ? 0 
-					: orderedMatcher.getCalls();
-		int unorderedCalls = unorderedMatcher == null ? 0 
-					: unorderedMatcher.getCalls();
-		
 		sb.append(orderedCalls + "/");
-		
 		sb.append(unorderedCalls);
 		assert (calls == unorderedCalls 
 				+ orderedCalls) 

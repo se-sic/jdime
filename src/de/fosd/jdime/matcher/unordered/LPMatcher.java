@@ -1,12 +1,11 @@
 /**
  * 
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.unordered;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -15,68 +14,26 @@ import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
  * 
- * @param <T> type of artifact
- *
+ * @param <T>
+ *            type of artifact
  */
-public class UnorderedMatcher<T extends Artifact<T>> 
-	implements MatchingInterface<T> {
-	
-	/**
-	 * 
-	 */
-	private Matcher<T> matcher;
-	
-	/**
-	 * Number of times this method was called.
-	 */
-	private int calls = 0;
-	
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG 
-			= Logger.getLogger(UnorderedMatcher.class);
-	
-	/**
-	 * Creates a new instance of UnorderedMatcher.
-	 * @param matcher matcher
-	 */
-	public UnorderedMatcher(final Matcher<T> matcher) {
-		this.matcher = matcher;
-	}
+public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 	/**
-	 * Returns the largest common subtree of two unordered trees.
-	 * 
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree of left and right tree
+	 * @param matcher matcher
 	 */
-	public final Matching<T> match(final T left, final T right) {
-		assert (matcher != null);
-		calls++;
-		// return brokenUnorderedTreeMatching(t1, t2);
-		return bipartiteMatching(left, right);
-		//return hungarianMatching(t1, t2);
+	public LPMatcher(final Matcher<T> matcher) {
+		super(matcher);
 	}
-	
-	/**
-	 * Computes the largest common subtree of two unordered trees by computing
-	 * the maximum matching on weighted, bipartite graphs.
-	 * 
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree
-	 */
-	private Matching<T> bipartiteMatching(final T left,	final T right) {
+
+	@Override
+	public Matching<T> match(final T left, final T right) {
 		String id = "unordered";
 
 		if (!left.matches(right)) {
@@ -133,9 +90,8 @@ public class UnorderedMatcher<T extends Artifact<T>>
 			// set bounds for column i: 0 <= x <= 1.0
 			// LO = lower, UP = upper, DB = double; superfluous are params
 			// ignored
-			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO, 
-					0.0 /* lower */, 
-					1.0 /* upper */);
+			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO,
+					0.0 /* lower */, 1.0 /* upper */);
 		}
 
 		/* constraints */
@@ -153,13 +109,12 @@ public class UnorderedMatcher<T extends Artifact<T>>
 			val = GLPK.new_doubleArray(width + 1);
 			for (int j = 1; j <= width; j++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, j, 
+				GLPK.intArray_setitem(ind, j,
 						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, j, 1.0);
 			}
-			GLPK.glp_set_mat_row(lp, i /* row */, 
-								width /* max array index */, 
-								ind, val);
+			GLPK.glp_set_mat_row(lp, i /* row */, width /* max array index */,
+					ind, val);
 		}
 
 		// column constraints
@@ -169,7 +124,7 @@ public class UnorderedMatcher<T extends Artifact<T>>
 			val = GLPK.new_doubleArray(width + 1);
 			for (int i = 1; i <= width; i++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, i, 
+				GLPK.intArray_setitem(ind, i,
 						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, i, 1.0);
 			}
@@ -244,7 +199,7 @@ public class UnorderedMatcher<T extends Artifact<T>>
 
 		return rootmatching;
 	}
-	
+
 	/**
 	 * Computes indices in the constraint matrix.
 	 * 
@@ -272,13 +227,5 @@ public class UnorderedMatcher<T extends Artifact<T>>
 	private static int[] getMyIndices(final int x, final int width) {
 		return new int[] { (int) x / width, x % width };
 	}
-	
-	/**
-	 * Returns the number of calls.
-	 * @return number of calls
-	 */
-	public final int getCalls() {
-		return calls;
-	}
-	
+
 }

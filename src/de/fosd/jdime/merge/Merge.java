@@ -106,7 +106,8 @@ public class Merge <T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return Matching of the two nodes
 	 */
 	private Matching<T> diff(final T left, final T right, final Color color) {
-		Matcher<T> matcher = new Matcher<T>();
+		Matcher<T> matcher = new Matcher<T>(left.hasUniqueLabels() 
+							&& right.hasUniqueLabels());
 		Matching<T> m = matcher.match(left, right);
 		
 		if (LOG.isDebugEnabled()) {

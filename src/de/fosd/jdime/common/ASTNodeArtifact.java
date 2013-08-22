@@ -514,4 +514,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return !hasChildren();
 	}
 
+	@Override
+	public final boolean hasUniqueLabels() {
+		return false;
+	}
+
 }
