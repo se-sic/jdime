@@ -25,7 +25,7 @@ import de.fosd.jdime.matcher.Matching;
  * 
  * @param <T> type of artifact
  */
-public abstract class Artifact<T extends Artifact<T>> {
+public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	/**
 	 * Revision the artifact belongs to.

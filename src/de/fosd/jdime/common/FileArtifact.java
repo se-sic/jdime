@@ -35,7 +35,8 @@ import de.fosd.jdime.strategy.MergeStrategy;
  * 
  * @author Olaf Lessenich *
  */
-public class FileArtifact extends Artifact<FileArtifact> {
+public class FileArtifact extends Artifact<FileArtifact> 
+		implements Comparable<FileArtifact> {
 
 	/**
 	 * Logger.
@@ -567,4 +568,15 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	public final boolean hasUniqueLabels() {
 		return true;
 	}
+
+	@Override
+	public final int compareTo(final FileArtifact o) {
+		if (o == this) {
+			return 0;
+		}
+		
+		return getId().compareTo(o.getId());
+	}
+	
+	
 }

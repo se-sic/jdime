@@ -3,10 +3,13 @@
  */
 package de.fosd.jdime.matcher;
 
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
+import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
@@ -15,8 +18,12 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
  * @param <T> type of artifact
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
-
 	
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(Matcher.class);
+
 	/**
 	 * 
 	 */
@@ -47,8 +54,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @param uniqueLabels whether the matcher can assume unique labels
 	 */
 	public Matcher(final boolean uniqueLabels) {
-		unorderedMatcher = uniqueLabels ? new LPMatcher<T>(this) 
-										: new LPMatcher<T>(this);
+		unorderedMatcher = uniqueLabels ? new UniqueLabelMatcher<T>(this) 
+								: new LPMatcher<T>(this);
 		orderedMatcher = uniqueLabels ? new SimpleTreeMatcher<T>(this)
 										: new SimpleTreeMatcher<T>(this);
 	}
@@ -82,12 +89,23 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		
 		if (isOrdered) {
 			orderedCalls++;
+			if (LOG.isTraceEnabled()) {
+				
+				LOG.trace("Matcher: " 
+						+ orderedMatcher.getClass().getSimpleName());
+			}
+			
+			return orderedMatcher.match(left, right);
 		} else {
 			unorderedCalls++;
+			
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Matcher: " 
+						+ unorderedMatcher.getClass().getSimpleName());
+			}
+			
+			return unorderedMatcher.match(left, right);
 		}
-
-		return isOrdered ? orderedMatcher.match(left, right)
-				: unorderedMatcher.match(left, right);
 	}
 
 	/**

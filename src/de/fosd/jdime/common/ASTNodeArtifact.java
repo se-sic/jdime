@@ -519,4 +519,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return false;
 	}
 
+	@Override
+	public final int compareTo(final ASTNodeArtifact o) {
+		throw new RuntimeException("This artifact is not comparable.");
+	}
+
 }
