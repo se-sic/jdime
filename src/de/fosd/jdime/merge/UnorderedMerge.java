@@ -1,10 +1,19 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.merge;
 
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -21,7 +30,8 @@ import de.fosd.jdime.matcher.Matching;
  * @param <T>
  *            type of artifact
  */
-public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
+public class UnorderedMerge<T extends Artifact<T>> 
+		implements MergeInterface<T> {
 
 	/**
 	 * Logger.
@@ -61,12 +71,9 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						+ myNode.getNumChildren() + " children)");
 			}
 
-			if (LOG.isTraceEnabled()) {
-				if (target instanceof ASTNodeArtifact) {
-					LOG.trace("target.dumpTree() before merge:");
-					System.out.println(((ASTNodeArtifact) target)
-							.dumpRootTree());
-				}
+			if (LOG.isTraceEnabled() && target != null) {
+				LOG.trace("target.dumpTree() before merge:");
+					System.out.println(target.dumpRootTree());
 			}
 
 			for (T myChild : myNode.getChildren()) {
@@ -142,17 +149,18 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					if (LOG.isTraceEnabled()) {
 						LOG.trace("Child is a change");
 					}
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Add the change");
+					}
 					// is a change.
-					AddOperation<T> addOp = new AddOperation<T>(myChild, target);
+					AddOperation<T> addOp 
+						= new AddOperation<T>(myChild, target);
 					myChild.setMerged(true);
 					addOp.apply(context);
 				}
-				if (LOG.isTraceEnabled()) {
-					if (target instanceof ASTNodeArtifact) {
-						LOG.trace("target.dumpTree() after processing child:");
-						System.out.println(((ASTNodeArtifact) target)
-								.dumpRootTree());
-					}
+				if (LOG.isTraceEnabled() && target != null) {
+					LOG.trace("target.dumpTree() after processing child:");
+						System.out.println(target.dumpRootTree());
 				}
 			}
 		}

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -90,9 +100,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		if (isOrdered) {
 			orderedCalls++;
 			if (LOG.isTraceEnabled()) {
-				
-				LOG.trace("Matcher: " 
-						+ orderedMatcher.getClass().getSimpleName());
+				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
+						+ left.getId() + ", " + right.getId() + ")");
 			}
 			
 			return orderedMatcher.match(left, right);
@@ -100,8 +109,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 			unorderedCalls++;
 			
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Matcher: " 
-						+ unorderedMatcher.getClass().getSimpleName());
+				LOG.trace(unorderedMatcher.getClass().getSimpleName() + ".match("
+						+ left.getId() + ", " + right.getId() + ")");
 			}
 			
 			return unorderedMatcher.match(left, right);

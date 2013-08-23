@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -47,21 +57,41 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T base = triple.getBase();
 		T right = triple.getRight();
 
+		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge
 
 				// diff base left
-				diff(base, left, Color.GREEN);
+				m = diff(base, left, Color.GREEN);
+				if (LOG.isDebugEnabled()) {
+					if (m.getScore() == 0) {
+						LOG.debug(base.getId() + " and " + left.getId() 
+							+ " have no matches.");
+					}
+				}
 
 				// diff base right
-				diff(base, right, Color.GREEN);
+				m = diff(base, right, Color.GREEN);
+				if (LOG.isDebugEnabled()) {
+					if (m.getScore() == 0) {
+						LOG.debug(base.getId() + " and " + right.getId() 
+							+ " have no matches.");
+					}
+				}
 			}
 
 			// diff left right
-			diff(left, right, Color.BLUE);
+			m = diff(left, right, Color.BLUE);
+			if (m.getScore() == 0) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(left.getId() + " and " + right.getId() 
+						+ " have no matches.");
+				}
+				return;
+			}
 		}
-
+		
 		assert (left.hasMatching(right) && right.hasMatching(left));
 
 		// determine whether we have to respect the order of children
@@ -111,24 +141,24 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				&& right.hasUniqueLabels());
 		Matching<T> m = matcher.match(left, right);
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("match(" + left.getRevision() + ", "
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("match(" + left.getRevision() + ", "
 					+ right.getRevision() + ") = " + m.getScore());
 			LOG.trace(matcher.getLog());
-			LOG.debug("Store matching information within nodes.");
+			LOG.trace("Store matching information within nodes.");
 		}
 
 		matcher.storeMatching(m, color);
 		if (LOG.isTraceEnabled()) {
-			// LOG.trace("Dumping matching of " + left.getRevision() + " and "
-			// + right.getRevision());
-			// System.out.println(m.dumpTree());
-			if (left instanceof ASTNodeArtifact) {
-				LOG.trace("left.dumpTree():");
-				System.out.println(((ASTNodeArtifact) left).dumpTree());
-				LOG.trace("right.dumpTree():");
-				System.out.println(((ASTNodeArtifact) right).dumpTree());
-			}
+			LOG.trace("Dumping matching of " + left.getRevision() + " and "
+					+ right.getRevision());
+			System.out.println(m.dumpTree());
+			
+			LOG.trace("left.dumpTree():");
+			System.out.println(left.dumpTree());
+			
+			LOG.trace("right.dumpTree():");
+			System.out.println(right.dumpTree());
 		}
 
 		return m;

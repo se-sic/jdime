@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -18,6 +28,7 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
 /**
+ * This unordered matcher calls an LP-Solver to solve the assignment problem.
  * @author Olaf Lessenich
  * 
  * @param <T>
@@ -31,10 +42,20 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	public LPMatcher(final Matcher<T> matcher) {
 		super(matcher);
 	}
-
+	
+	/**
+	 * 
+	 */
+	private static String id = "unordered";
+	
+	/**
+	 * Threshold for rounding errors.
+	 */
+	private static final double THRESHOLD = 1e-6;
+	
 	@Override
-	public Matching<T> match(final T left, final T right) {
-		String id = "unordered";
+	public final Matching<T> match(final T left, final T right) {
+		
 
 		if (!left.matches(right)) {
 			return new Matching<T>(left, right, 0);
@@ -70,6 +91,20 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			}
 		}
 
+		return solveLP(left, right, matching);
+	}
+	
+	/**
+	 * Invokes the LP-Solver and solves the assignment problem.
+	 * @param left left artifact
+	 * @param right right artifact
+	 * @param matching matrix of matchings
+	 * @return rootmatching
+	 */
+	private Matching<T> solveLP(final T left, final T right, 
+			final Matching<T>[][] matching) {
+		int m = matching.length;
+		int n = matching[0].length;
 		int width = m > n ? m : n;
 		int cols = width * width;
 
@@ -179,7 +214,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		List<Matching<T>> children = new LinkedList<Matching<T>>();
 
 		for (int c = 1; c <= cols; c++) {
-			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < 1e-6) {
+			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
 				int[] indices = getMyIndices(c - 1, width);
 				int i = indices[0];
 				int j = indices[1];

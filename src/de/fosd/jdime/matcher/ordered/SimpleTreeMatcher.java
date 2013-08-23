@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -13,9 +23,11 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
 /**
+ * This ordered matcher implements a variant of Yang's Simple Tree Matching.
+ * 
  * @author Olaf Lessenich
  *
- * @param <T> type if artifacts
+ * @param <T> type of artifacts
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> 
 	extends OrderedMatcher<T> {

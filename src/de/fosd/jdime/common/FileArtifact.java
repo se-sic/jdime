@@ -22,21 +22,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 
 /**
  * This class represents an artifact of a program.
  * 
- * @author Olaf Lessenich *
+ * @author Olaf Lessenich
  */
-public class FileArtifact extends Artifact<FileArtifact> 
-		implements Comparable<FileArtifact> {
+public class FileArtifact extends Artifact<FileArtifact> implements
+		Comparable<FileArtifact> {
 
 	/**
 	 * Logger.
@@ -128,10 +131,19 @@ public class FileArtifact extends Artifact<FileArtifact>
 			: "Can only add children of same type";
 
 		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
-				+ File.separator + child.getId()), false);
+				+ File.separator + child), false);
 
 		assert (myChild != null);
 		return myChild;
+	}
+
+	@Override
+	public final int compareTo(final FileArtifact o) {
+		if (o == this) {
+			return 0;
+		}
+
+		return this.toString().compareTo(o.toString());
 	}
 
 	/*
@@ -250,6 +262,45 @@ public class FileArtifact extends Artifact<FileArtifact>
 		return myEmptyDummy;
 	}
 
+	@Override
+	protected final String dumpTree(final String indent) {
+		StringBuffer sb = new StringBuffer();
+
+		Matching<FileArtifact> m = null;
+		if (hasMatches()) {
+			Set<Revision> matchingRevisions = matches.keySet();
+
+			// print color code
+			String color = "";
+
+			for (Revision rev : matchingRevisions) {
+				m = getMatching(rev);
+				color = m.getColor().toShell();
+			}
+
+			sb.append(color);
+		}
+
+		sb.append(indent + "(" + getId() + ") ");
+		sb.append(this);
+
+		if (hasMatches()) {
+			assert (m != null);
+			sb.append(" <=> (" + m.getMatchingArtifact(this) + ")");
+			sb.append(Color.DEFAULT.toShell());
+		}
+		sb.append(System.lineSeparator());
+
+		if (!isLeaf()) {
+			// children
+			for (FileArtifact child : getChildren()) {
+				sb.append(child.dumpTree(indent + "  "));
+			}
+		}
+
+		return sb.toString();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -257,10 +308,12 @@ public class FileArtifact extends Artifact<FileArtifact>
 	 */
 	@Override
 	public final boolean equals(final Object obj) {
-		assert (getId() != null);
 		assert (obj != null);
 		assert (obj instanceof FileArtifact);
-		return getId().equals(((FileArtifact) obj).getId());
+		if (this == obj) {
+			return true;
+		}
+		return this.toString().equals(((FileArtifact) obj).toString());
 	}
 
 	/*
@@ -272,6 +325,18 @@ public class FileArtifact extends Artifact<FileArtifact>
 	public final boolean exists() {
 		assert (file != null);
 		return file.exists();
+	}
+
+	/**
+	 * Returns content type of file.
+	 * 
+	 * @return content type of file
+	 * @throws IOException
+	 *             If an input output exception occurs.
+	 */
+	public final String getContentType() throws IOException {
+		assert (exists());
+		return Files.probeContentType(file.toPath());
 	}
 
 	/**
@@ -316,28 +381,16 @@ public class FileArtifact extends Artifact<FileArtifact>
 	 * @return absolute part of the artifact
 	 */
 	public final String getFullPath() {
+		assert (file != null);
 		return file.getAbsolutePath();
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
+	
+	/* (non-Javadoc)
 	 * @see de.fosd.jdime.common.Artifact#getId()
 	 */
 	@Override
 	public final String getId() {
-		assert (file != null);
-		return file.getName();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#getName()
-	 */
-	@Override
-	public final String getName() {
-		return file.getPath();
+		return getPath();
 	}
 
 	/**
@@ -346,6 +399,7 @@ public class FileArtifact extends Artifact<FileArtifact>
 	 * @return path of the artifact
 	 */
 	public final String getPath() {
+		assert (file != null);
 		return file.getPath();
 	}
 
@@ -375,6 +429,19 @@ public class FileArtifact extends Artifact<FileArtifact>
 		return Arrays.asList(file.list());
 	}
 
+	@Override
+	public final String getStatsKey(final MergeContext context) {
+		assert (context != null);
+
+		// MergeStrategy<FileArtifact> strategy
+		// = (MergeStrategy<FileArtifact>) (isDirectory()
+		// ? new DirectoryStrategy() : context.getMergeStrategy());
+		// assert (strategy != null);
+		//
+		// return strategy.getStatsKey(this);
+		return isDirectory() ? "directories" : "files";
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -382,8 +449,12 @@ public class FileArtifact extends Artifact<FileArtifact>
 	 */
 	@Override
 	public final int hashCode() {
-		assert (getId() != null);
-		return getId().hashCode();
+		return toString().hashCode();
+	}
+
+	@Override
+	public final boolean hasUniqueLabels() {
+		return true;
 	}
 
 	/*
@@ -444,6 +515,16 @@ public class FileArtifact extends Artifact<FileArtifact>
 		return !file.isDirectory();
 	}
 
+	@Override
+	public final boolean isOrdered() {
+		return false;
+	}
+
+	@Override
+	public final boolean matches(final FileArtifact other) {
+		return this.equals(other);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -459,15 +540,17 @@ public class FileArtifact extends Artifact<FileArtifact>
 		assert (context != null);
 		assert (exists());
 
-		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) 
-				(isDirectory() ? new DirectoryStrategy()
+		MergeStrategy<FileArtifact> strategy 
+				= (MergeStrategy<FileArtifact>) (isDirectory() 
+				? new DirectoryStrategy()
 				: context.getMergeStrategy());
 		assert (strategy != null);
 
 		if (!isDirectory()) {
 			String contentType = getContentType();
 			if (LOG.isTraceEnabled()) {
-				LOG.trace(getName() + " has content type: " + contentType);
+				LOG.trace(getId() + "(" + this + "+ has content type: "
+						+ contentType);
 			}
 
 			if (!contentType.equals("text/x-java")) {
@@ -514,6 +597,17 @@ public class FileArtifact extends Artifact<FileArtifact>
 		assert (!exists());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#toString()
+	 */
+	@Override
+	public final String toString() {
+		assert (file != null);
+		return file.getName();
+	}
+
 	/**
 	 * Writes from a BufferedReader to the artifact.
 	 * 
@@ -531,52 +625,4 @@ public class FileArtifact extends Artifact<FileArtifact>
 		writer.close();
 	}
 
-	@Override
-	public final String getStatsKey(final MergeContext context) {
-		assert (context != null);
-
-		// MergeStrategy<FileArtifact> strategy
-		// = (MergeStrategy<FileArtifact>) (isDirectory()
-		// ? new DirectoryStrategy() : context.getMergeStrategy());
-		// assert (strategy != null);
-		//
-		// return strategy.getStatsKey(this);
-		return isDirectory() ? "directories" : "files";
-	}
-
-	@Override
-	public final boolean matches(final FileArtifact other) {
-		return this.equals(other);
-	}
-
-	@Override
-	public final boolean isOrdered() {
-		return false;
-	}
-
-	/**
-	 * Returns content type of file.
-	 * @return content type of file
-	 * @throws IOException If an input output exception occurs.
-	 */
-	public final String getContentType() throws IOException {
-		assert (exists());
-		return Files.probeContentType(file.toPath());
-	}
-
-	@Override
-	public final boolean hasUniqueLabels() {
-		return true;
-	}
-
-	@Override
-	public final int compareTo(final FileArtifact o) {
-		if (o == this) {
-			return 0;
-		}
-		
-		return getId().compareTo(o.getId());
-	}
-	
-	
 }

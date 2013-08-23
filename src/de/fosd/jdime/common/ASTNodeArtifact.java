@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -29,7 +39,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
@@ -37,34 +47,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * Logger.
 	 */
 	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class);
-
-	/**
-	 * Encapsulated ASTNode.
-	 */
-	private ASTNode<?> astnode = null;
-
-	/**
-	 * 
-	 */
-	private int number = -1;
-
-	/**
-	 * 
-	 */
-	private static int count = 1;
-
-	/**
-	 * Initializes a program.
-	 * 
-	 * @return program
-	 */
-	private static Program initProgram() {
-		Program program = new Program();
-		program.state().reset();
-		program.initBytecodeReader(new BytecodeParser());
-		initParser(program);
-		return program;
-	}
 
 	/**
 	 * Initializes parser.
@@ -85,10 +67,37 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	/**
+	 * Initializes a program.
+	 * 
+	 * @return program
+	 */
+	private static Program initProgram() {
+		Program program = new Program();
+		program.state().reset();
+		program.initBytecodeReader(new BytecodeParser());
+		initParser(program);
+		return program;
+	}
+
+	/**
+	 * Encapsulated ASTNode.
+	 */
+	private ASTNode<?> astnode = null;
+
+	/**
 	 * Constructor class.
 	 */
 	public ASTNodeArtifact() {
 
+	}
+
+	/**
+	 * @param astnode
+	 *            astnode
+	 */
+	public ASTNodeArtifact(final ASTNode<?> astnode) {
+		assert (astnode != null);
+		this.astnode = astnode;
 	}
 
 	/**
@@ -114,32 +123,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		assert (astnode != null);
 		this.astnode = astnode;
-		count = 1;
-		renumber(this);
+		renumber(1, this);
 
-	}
-
-	/**
-	 * Recursivley renumbers the node.
-	 * 
-	 * @param artifact
-	 *            node to renumber
-	 */
-	private static void renumber(final ASTNodeArtifact artifact) {
-		artifact.number = count;
-		count++;
-		for (int i = 0; i < artifact.getNumChildren(); i++) {
-			renumber(artifact.getChild(i));
-		}
-	}
-
-	/**
-	 * @param astnode
-	 *            astnode
-	 */
-	public ASTNodeArtifact(final ASTNode<?> astnode) {
-		assert (astnode != null);
-		this.astnode = astnode;
 	}
 
 	/*
@@ -159,7 +144,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			myChild.setParent(this);
 			myChild.astnode.setParent(astnode);
 			myChild.setRevision(child.getRevision());
-			myChild.number = child.number;
+			myChild.setNumber(child.getNumber());
 			myChild.cloneMatches(child);
 
 			if (children == null) {
@@ -181,14 +166,31 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	/**
-	 * 
+	 * Clones matches from another artifact.
+	 * @param other artifact to clone matches from
 	 */
-	public final void deleteChildren() {
-		while (hasChildren()) {
-			ASTNodeArtifact child = getChild(0);
-			child.astnode = null;
-			child = null;
-			children.remove(0);
+	private void cloneMatches(final ASTNodeArtifact other) {
+		if (other.matches != null) {
+			matches = new LinkedHashMap<Revision, Matching<ASTNodeArtifact>>();
+
+			Set<Revision> matchingRevisions = other.matches.keySet();
+
+			for (Revision rev : matchingRevisions) {
+				Matching<ASTNodeArtifact> m 
+					= (Matching<ASTNodeArtifact>) other.matches
+					.get(rev).clone();
+				m.updateMatching(this);
+				matches.put(rev, m);
+			}
+		}
+	}
+
+	@Override
+	public final int compareTo(final ASTNodeArtifact o) {
+		if (hasUniqueLabels()) {
+			return astnode.dumpString().compareTo(o.astnode.dumpString());
+		} else {
+			throw new RuntimeException("This artifact is not comparable.");
 		}
 	}
 
@@ -237,6 +239,102 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return dummy;
 	}
 
+	/**
+	 * 
+	 */
+	public final void deleteChildren() {
+		while (hasChildren()) {
+			ASTNodeArtifact child = getChild(0);
+			child.astnode = null;
+			child = null;
+			children.remove(0);
+		}
+	}
+
+	/**
+	 * Returns the AST in dot-format.
+	 * 
+	 * @param includeNumbers
+	 *            include node number in label if true
+	 * @return AST in dot-format.
+	 */
+	public final String dumpGraphvizTree(final boolean includeNumbers) {
+		assert (astnode != null);
+		StringBuffer sb = new StringBuffer();
+		sb.append(getNumber() + "[label=\"");
+
+		// node label
+		if (includeNumbers) {
+			sb.append("(" + getNumber() + ") ");
+		}
+
+		sb.append(astnode.dumpString());
+
+		sb.append("\"");
+
+		if (hasMatches()) {
+			sb.append(", fillcolor = green, style = filled");
+		}
+
+		sb.append("];");
+		sb.append(System.lineSeparator());
+
+		// children
+		for (ASTNodeArtifact child : getChildren()) {
+			sb.append(child.dumpGraphvizTree(includeNumbers));
+
+			// edge
+			sb.append(getNumber() + "->" + child.getNumber() + ";"
+					+ System.lineSeparator());
+		}
+
+		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.Artifact#dumpTree(java.lang.String)
+	 */
+	@Override
+	protected final String dumpTree(final String indent) {
+		assert (astnode != null);
+		StringBuffer sb = new StringBuffer();
+
+		// node itself
+
+		Matching<ASTNodeArtifact> m = null;
+		if (hasMatches()) {
+
+			Set<Revision> matchingRevisions = matches.keySet();
+
+			// print color code
+			String color = "";
+
+			for (Revision rev : matchingRevisions) {
+				m = getMatching(rev);
+				color = m.getColor().toShell();
+			}
+
+			sb.append(color);
+		}
+
+		sb.append(indent + "(" + getId() + ") ");
+		sb.append(this);
+
+		if (hasMatches()) {
+			assert (m != null);
+			sb.append(" <=> (" + m.getMatchingArtifact(this).getId() + ")");
+			sb.append(Color.DEFAULT.toShell());
+		}
+		sb.append(System.lineSeparator());
+
+		// children
+		for (ASTNodeArtifact child : getChildren()) {
+			sb.append(child.dumpTree(indent + "  "));
+		}
+
+		return sb.toString();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -260,25 +358,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final boolean exists() {
 		return astnode != null;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
+	
+	/* (non-Javadoc)
 	 * @see de.fosd.jdime.common.Artifact#getId()
 	 */
 	@Override
 	public final String getId() {
-		return getName();
+		return getRevision() + ":" + getNumber();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#getName()
-	 */
 	@Override
-	public final String getName() {
-		return getRevision().toString() + ":" + number;
+	public final String getStatsKey(final MergeContext context) {
+		return "nodes";
 	}
 
 	/*
@@ -291,6 +382,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode.dumpString().hashCode();
 	}
 
+	@Override
+	public final boolean hasUniqueLabels() {
+		return false;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -299,7 +395,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final void initializeChildren() {
 		assert (astnode != null);
-		ArtifactList<ASTNodeArtifact> children = new ArtifactList<ASTNodeArtifact>();
+		ArtifactList<ASTNodeArtifact> children 
+				= new ArtifactList<ASTNodeArtifact>();
 		for (int i = 0; i < astnode.getNumChild(); i++) {
 			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
 			child.setParent(this);
@@ -312,12 +409,56 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see de.fosd.jdime.common.Artifact#isEmpty()
+	 */
+	@Override
+	public final boolean isEmpty() {
+		return !hasChildren();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.Artifact#isLeaf()
 	 */
 	@Override
 	public final boolean isLeaf() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	/**
+	 * Returns whether declaration order is significant for this node.
+	 * 
+	 * @return whether declaration order is significant for this node
+	 */
+	public final boolean isOrdered() {
+		if (astnode instanceof CompilationUnit
+				|| astnode instanceof ConstructorDecl
+				|| astnode instanceof MethodDecl
+				|| astnode instanceof InterfaceDecl
+				|| astnode instanceof FieldDecl
+				|| astnode instanceof FieldDeclaration
+				|| astnode instanceof ImportDecl) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns whether a node matches another node.
+	 * 
+	 * @param other
+	 *            node to compare with.
+	 * @return true if the node matches another node.
+	 */
+	public final boolean matches(final ASTNodeArtifact other) {
+		assert (astnode != null);
+		assert (other != null);
+		assert (other.astnode != null);
+
+		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 
 	/*
@@ -346,234 +487,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#write(java.lang.String)
-	 */
-	@Override
-	public final void write(final String str) throws IOException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public final String getStatsKey(final MergeContext context) {
-		return "nodes";
-	}
-
-	public final String dumpRootTree() {
-		if (getParent() != null) {
-			return getParent().dumpRootTree();
-		} else {
-			return dumpTree();
-		}
-	}
-
 	/**
-	 * Returns the AST as indented plain text, as provided by JastAddJ.
-	 * 
-	 * @return AST as indented plain text
+	 * Pretty-prints the AST to source code.
+	 * @return Pretty-printed AST (source code) 
 	 */
-	public final String dumpTree() {
+	public final String prettyPrint() {
 		assert (astnode != null);
-		return dumpTree("");
+		rebuildAST();
+		astnode.flushCaches();
+		System.out.println(astnode.dumpTree());
+		return astnode.toString();
 	}
 
-	/**
-	 * @param indent
-	 *            String used to indent the current node
-	 * @return ASCII String representing the tree
-	 */
-	private String dumpTree(final String indent) {
-		StringBuffer sb = new StringBuffer();
-
-		// node itself
-
-		Matching<ASTNodeArtifact> m = null;
-		if (hasMatches()) {
-
-			Set<Revision> matchingRevisions = matches.keySet();
-
-			// print color code
-			String color = "";
-
-			for (Revision rev : matchingRevisions) {
-				m = getMatching(rev);
-				color = m.getColor().toShell();
-			}
-
-			sb.append(color);
-		}
-
-		sb.append(indent + "(" + getId() + ") ");
-		sb.append(astnode.dumpString());
-
-		if (hasMatches()) {
-			assert (m != null);
-			sb.append(" <=> (" + m.getMatchingArtifact(this).getId() + ")");
-			sb.append(Color.DEFAULT.toShell());
-		}
-		sb.append(System.lineSeparator());
-
-		// children
-		for (ASTNodeArtifact child : getChildren()) {
-			sb.append(child.dumpTree(indent + "  "));
-		}
-
-		return sb.toString();
-	}
-
-	/**
-	 * Returns the AST in dot-format.
-	 * 
-	 * @param includeNumbers
-	 *            include node number in label if true
-	 * @return AST in dot-format.
-	 */
-	public final String dumpGraphvizTree(final boolean includeNumbers) {
-		assert (astnode != null);
-		StringBuffer sb = new StringBuffer();
-		sb.append(number + "[label=\"");
-
-		// node label
-		if (includeNumbers) {
-			sb.append("(" + number + ") ");
-		}
-
-		sb.append(astnode.dumpString());
-
-		sb.append("\"");
-
-		if (hasMatches()) {
-			sb.append(", fillcolor = green, style = filled");
-		}
-
-		sb.append("];");
-		sb.append(System.lineSeparator());
-
-		// children
-		for (ASTNodeArtifact child : getChildren()) {
-			sb.append(child.dumpGraphvizTree(includeNumbers));
-
-			// edge
-			sb.append(number + "->" + child.number + ";"
-					+ System.lineSeparator());
-		}
-
-		return sb.toString();
-	}
-
-	/**
-	 * Returns whether declaration order is significant for this node.
-	 * 
-	 * @return whether declaration order is significant for this node
-	 */
-	public final boolean isOrdered() {
-		if (astnode instanceof CompilationUnit
-				|| astnode instanceof ConstructorDecl
-				|| astnode instanceof MethodDecl
-				|| astnode instanceof InterfaceDecl
-				|| astnode instanceof FieldDecl
-				|| astnode instanceof FieldDeclaration
-				|| astnode instanceof ImportDecl) {
-			return false;
-		}
-
-		return true;
-	}
-
-	@Override
-	public final boolean hasUniqueLabels() {
-		return false;
-	}
-
-	/**
-	 * Returns whether a node matches another node.
-	 * 
-	 * @param other
-	 *            node to compare with.
-	 * @return true if the node matches another node.
-	 */
-	public final boolean matches(final ASTNodeArtifact other) {
-		assert (astnode != null);
-		assert (other != null);
-		assert (other.astnode != null);
-
-		return astnode.dumpString().equals(other.astnode.dumpString());
-	}
-
-	/**
-	 * Returns the size of the subtree. The node itself is not included.
-	 * 
-	 * @return size of subtree
-	 */
-	public final int getSubtreeSize() {
-		int size = getNumChildren();
-
-		for (int i = 0; i < getNumChildren(); i++) {
-			size += getChild(i).getSubtreeSize();
-		}
-
-		return size;
-	}
-
-	/**
-	 * Returns the size of the tree. The node itself is also included.
-	 * 
-	 * @return size of tree
-	 */
-	public final int getTreeSize() {
-		return getSubtreeSize() + 1;
-	}
-
-	/**
-	 * Force renumbering of the tree.
-	 */
-	public final void forceRenumbering() {
-		count = 1;
-		renumber(this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#isEmpty()
-	 */
-	@Override
-	public final boolean isEmpty() {
-		return !hasChildren();
-	}
-
-	@Override
-	public final int compareTo(final ASTNodeArtifact o) {
-		if (hasUniqueLabels()) {
-			return astnode.dumpString().compareTo(o.astnode.dumpString());
-		} else {
-			throw new RuntimeException("This artifact is not comparable.");
-		}
-	}
-
-	private void cloneMatches(ASTNodeArtifact other) {
-		if (other.matches != null) {
-			matches = new LinkedHashMap<Revision, Matching<ASTNodeArtifact>>();
-
-			Set<Revision> matchingRevisions = other.matches.keySet();
-
-			for (Revision rev : matchingRevisions) {
-				Matching<ASTNodeArtifact> m = (Matching<ASTNodeArtifact>) other.matches
-						.get(rev).clone();
-				m.updateMatching(this);
-				matches.put(rev, m);
-			}
-		}
-	}
-	
 	/**
 	 * Rebuild the encapsulated ASTNode tree top down.
 	 * This should be only called at the root node
 	 */
-	public void rebuildAST() {
+	public final void rebuildAST() {
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
 
 		for (int i = 0; i < getNumChildren(); i++) {
@@ -586,16 +516,25 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		astnode.setChildren(newchildren);
 		astnode.flushCache();
 	}
-
-
-	public final String prettyPrint() {
+	
+	/* (non-Javadoc)
+	 * @see de.fosd.jdime.common.Artifact#toString()
+	 */
+	@Override
+	public final String toString() {
 		assert (astnode != null);
-		rebuildAST();
-		astnode.flushCaches();
-		System.out.println(astnode.dumpTree());
-		return astnode.toString();
+		return astnode.dumpString();
 	}
-	
-	
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.Artifact#write(java.lang.String)
+	 */
+	@Override
+	public final void write(final String str) throws IOException {
+		// TODO Auto-generated method stub
+
+	}
 
 }
