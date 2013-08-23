@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -17,34 +18,35 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
- *
- * @param <T> type of artifact
+ * 
+ * @param <T>
+ *            type of artifact
  */
-public class Merge <T extends Artifact<T>> implements MergeInterface<T> {
+public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * Logger.
 	 */
 	private static final Logger LOG = Logger.getLogger(Merge.class);
-	
+
 	/**
 	 * 
 	 */
 	private UnorderedMerge<T> unorderedMerge = null;
-	
+
 	/**
 	 * 
 	 */
 	private OrderedMerge<T> orderedMerge = null;
-	
+
 	@Override
-	public final void merge(final MergeOperation<T> operation, 
-			final MergeContext context) 
-					throws IOException, InterruptedException {
+	public final void merge(final MergeOperation<T> operation,
+			final MergeContext context) throws IOException,
+			InterruptedException {
 		MergeTriple<T> triple = operation.getMergeTriple();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
-		
+
 		if (!left.matchingComputed() && !right.matchingComputed()) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge
@@ -61,7 +63,7 @@ public class Merge <T extends Artifact<T>> implements MergeInterface<T> {
 		}
 
 		assert (left.hasMatching(right) && right.hasMatching(left));
-		
+
 		// determine whether we have to respect the order of children
 
 		boolean isOrdered = false;
@@ -82,17 +84,16 @@ public class Merge <T extends Artifact<T>> implements MergeInterface<T> {
 			if (orderedMerge == null) {
 				orderedMerge = new OrderedMerge<T>();
 			}
-			
+
 			orderedMerge.merge(operation, context);
 		} else {
 			if (unorderedMerge == null) {
 				unorderedMerge = new UnorderedMerge<T>();
 			}
-			
+
 			unorderedMerge.merge(operation, context);
 		}
 	}
-	
 
 	/**
 	 * Compares two nodes.
@@ -106,22 +107,28 @@ public class Merge <T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return Matching of the two nodes
 	 */
 	private Matching<T> diff(final T left, final T right, final Color color) {
-		Matcher<T> matcher = new Matcher<T>(left.hasUniqueLabels() 
-							&& right.hasUniqueLabels());
+		Matcher<T> matcher = new Matcher<T>(left.hasUniqueLabels()
+				&& right.hasUniqueLabels());
 		Matching<T> m = matcher.match(left, right);
-		
+
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("match(" + left.getRevision() + ", " + right.getRevision()
-					+ ") = " + m.getScore());
+			LOG.debug("match(" + left.getRevision() + ", "
+					+ right.getRevision() + ") = " + m.getScore());
 			LOG.trace(matcher.getLog());
 			LOG.debug("Store matching information within nodes.");
 		}
-		
+
 		matcher.storeMatching(m, color);
 		if (LOG.isTraceEnabled()) {
-			LOG.trace("Dumping matching of " + left.getRevision() + " and " 
-					+ right.getRevision());
-			System.out.println(m.dumpTree());
+			// LOG.trace("Dumping matching of " + left.getRevision() + " and "
+			// + right.getRevision());
+			// System.out.println(m.dumpTree());
+			if (left instanceof ASTNodeArtifact) {
+				LOG.trace("left.dumpTree():");
+				System.out.println(((ASTNodeArtifact) left).dumpTree());
+				LOG.trace("right.dumpTree():");
+				System.out.println(((ASTNodeArtifact) right).dumpTree());
+			}
 		}
 
 		return m;

@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -25,6 +28,11 @@ import de.fosd.jdime.matcher.Matching;
  *            type of artifact
  */
 public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
+
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(OrderedMerge.class);
 
 	@Override
 	public final void merge(final MergeOperation<T> operation,
@@ -82,6 +90,13 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		T leftChild = (T) leftIt.next();
 		T rightChild = (T) rightIt.next();
 
+		if (LOG.isTraceEnabled()) {
+			if (target instanceof ASTNodeArtifact) {
+				LOG.trace("target.dumpTree() before merge:");
+				System.out.println(((ASTNodeArtifact) target).dumpRootTree());
+			}
+		}
+
 		boolean leftdone = false;
 		boolean rightdone = false;
 		while (!leftdone && !rightdone) {
@@ -109,6 +124,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								// add the change
 								AddOperation<T> addOp = new AddOperation<T>(
 										leftChild, target);
+								leftChild.setMerged(true);
 								addOp.apply(context);
 							}
 						} else {
@@ -120,6 +136,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						// add the change
 						AddOperation<T> addOp = new AddOperation<T>(leftChild,
 								target);
+						leftChild.setMerged(true);
 						addOp.apply(context);
 					}
 				}
@@ -155,6 +172,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								// add the change
 								AddOperation<T> addOp = new AddOperation<T>(
 										rightChild, target);
+								rightChild.setMerged(true);
 								addOp.apply(context);
 							}
 						} else {
@@ -166,7 +184,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						// add the change
 						AddOperation<T> addOp = new AddOperation<T>(rightChild,
 								target);
+						rightChild.setMerged(true);
 						addOp.apply(context);
+						
 					}
 				}
 
@@ -179,23 +199,48 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 			} else if (l.contains(rightChild) && r.contains(leftChild)) {
 				assert (leftChild.hasMatching(rightChild) && rightChild
 						.hasMatching(leftChild));
-				// determine whether the child is 2 or 3-way merged
-				Matching<T> mBase = leftChild.getMatching(base.getRevision());
 
-				MergeType childType = mBase == null ? MergeType.TWOWAY
-						: MergeType.THREEWAY;
-				T baseChild = mBase == null ? leftChild.createEmptyDummy()
-						: mBase.getMatchingArtifact(leftChild);
+				if (!leftChild.isMerged() && !rightChild.isMerged()) {
+					// determine whether the child is 2 or 3-way merged
+					Matching<T> mBase = leftChild.getMatching(base
+							.getRevision());
 
-				T targetChild = target == null ? null
-						: target.addChild(leftChild);
-				MergeTriple<T> childTriple = new MergeTriple<T>(childType, 
-								leftChild, baseChild, rightChild);
+					MergeType childType = mBase == null ? MergeType.TWOWAY
+							: MergeType.THREEWAY;
+					T baseChild = mBase == null ? leftChild.createEmptyDummy()
+							: mBase.getMatchingArtifact(leftChild);
 
-				MergeOperation<T> mergeOp = new MergeOperation<T>(
-						childTriple, targetChild);
+					T targetChild = target == null ? null : target
+							.addChild(leftChild);
+					MergeTriple<T> childTriple = new MergeTriple<T>(childType,
+							leftChild, baseChild, rightChild);
 
-				mergeOp.apply(context);
+					MergeOperation<T> mergeOp = new MergeOperation<T>(
+							childTriple, targetChild);
+
+					leftChild.setMerged(true);
+					rightChild.setMerged(true);
+					mergeOp.apply(context);
+				}
+
+				if (leftIt.hasNext()) {
+					leftChild = leftIt.next();
+				} else {
+					leftdone = true;
+				}
+
+				if (rightIt.hasNext()) {
+					rightChild = rightIt.next();
+				} else {
+					rightdone = true;
+				}
+			}
+			if (LOG.isTraceEnabled()) {
+				if (target instanceof ASTNodeArtifact) {
+					LOG.trace("target.dumpTree() after processing child:");
+					System.out.println(((ASTNodeArtifact) target)
+							.dumpRootTree());
+				}
 			}
 		}
 	}

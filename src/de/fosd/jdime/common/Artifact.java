@@ -45,7 +45,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Map to store matches.
 	 */
-	private LinkedHashMap<Revision, Matching<T>> matches = null;
+	protected LinkedHashMap<Revision, Matching<T>> matches = null;
+	
+	private boolean merged;
 
 	/**
 	 * Parent artifact.
@@ -401,4 +403,20 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return whether the artifact has unique labels
 	 */
 	public abstract boolean hasUniqueLabels();
+	
+
+	/**
+	 * @return the merged
+	 */
+	public final boolean isMerged() {
+		return merged;
+	}
+
+	/**
+	 * @param merged
+	 *            the merged to set
+	 */
+	public final void setMerged(final boolean merged) {
+		this.merged = merged;
+	}
 }

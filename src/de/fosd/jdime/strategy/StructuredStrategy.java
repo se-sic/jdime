@@ -94,8 +94,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		Program program = new Program();
 		program.state().reset();
 		ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
-		targetNode.setRevision(new Revision("merge"));
+		targetNode.deleteChildren();
+		targetNode.setRevision(left.getRevision());
 		targetNode.forceRenumbering();
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("target.dumpTree(:");
+			System.out.println(targetNode.dumpTree());
+		}
 
 		MergeTriple<ASTNodeArtifact> nodeTriple 
 			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
@@ -108,6 +114,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			LOG.trace("ASTMOperation.apply(context)");
 		}
 		astMergeOp.apply(context);
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Structured merge finished.");
+			LOG.trace("target.dumpTree():");
+			System.out.println(targetNode.dumpTree());
+		}
+		
+		context.append(targetNode.prettyPrint());
 
 		if (context.hasErrors()) {
 			System.err.println(context.getStdErr());
@@ -120,8 +134,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		// FIXME: remove me when implementation is complete!
-		throw new NotYetImplementedException(
-				"StructuredStrategy: Implement me!");
+		//throw new NotYetImplementedException(
+		//		"StructuredStrategy: Implement me!");
 	}
 
 	/*

@@ -2,6 +2,9 @@ package de.fosd.jdime.merge;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -18,62 +21,103 @@ import de.fosd.jdime.matcher.Matching;
  * @param <T>
  *            type of artifact
  */
-public class UnorderedMerge<T extends Artifact<T>> 
-	implements MergeInterface<T> {
+public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
+
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(UnorderedMerge.class);
+
 	@Override
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
-		
+
 		MergeTriple<T> triple = operation.getMergeTriple();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
-		
+
 		assert (left.matches(right));
 		assert (left.hasMatching(right)) && right.hasMatching(left);
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(this.getClass().getSimpleName() + ".merge("
+					+ left.getId() + ", " + base.getId() + ", " + right.getId()
+					+ ")");
+		}
 
 		Object[] revisions = { left, right };
 		for (int i = 0; i < revisions.length; i++) {
 			T myNode = (T) revisions[i];
 			T otherNode = (T) revisions[(i + 1) % 2];
 
+			int j = 0;
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Traversing children of " + myNode.getId() + " ("
+						+ myNode.getNumChildren() + " children)");
+			}
+
+			if (LOG.isTraceEnabled()) {
+				if (target instanceof ASTNodeArtifact) {
+					LOG.trace("target.dumpTree() before merge:");
+					System.out.println(((ASTNodeArtifact) target)
+							.dumpRootTree());
+				}
+			}
+
 			for (T myChild : myNode.getChildren()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("Processing child " + (i + 1) + " of "
+							+ myNode.getNumChildren() + ": " + myChild.getId()
+							+ " (Parent: " + myNode.getId() + ")");
+				}
 				if (myChild.hasMatches()) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Child is not a change");
+					}
 					// is not a change
-					Matching<T> mOther = myChild
-							.getMatching(otherNode.getRevision());
+					Matching<T> mOther = myChild.getMatching(otherNode
+							.getRevision());
 					if (mOther != null) {
+						if (LOG.isTraceEnabled()) {
+							LOG.trace("Child is in left and right");
+						}
 						// child is in both left and right -> merge it
-						T otherChild = mOther
-								.getMatchingArtifact(myChild);
+						T otherChild = mOther.getMatchingArtifact(myChild);
 
-						// determine whether the child is 2 or 3-way merged
-						Matching<T> mBase = myChild.getMatching(base
-								.getRevision());
+						if (!myChild.isMerged() && !otherChild.isMerged()) {
+							// determine whether the child is 2 or 3-way merged
+							Matching<T> mBase = myChild.getMatching(base
+									.getRevision());
 
-						MergeType childType = mBase == null ? MergeType.TWOWAY
-								: MergeType.THREEWAY;
-						T baseChild = mBase == null ? myChild
-								.createEmptyDummy() : mBase
-								.getMatchingArtifact(myChild);
+							MergeType childType = mBase == null ? MergeType.TWOWAY
+									: MergeType.THREEWAY;
+							T baseChild = mBase == null ? myChild
+									.createEmptyDummy() : mBase
+									.getMatchingArtifact(myChild);
 
-						T targetChild = target == null ? null
-								: target.addChild(myChild);
-						MergeTriple<T> childTriple = myNode == revisions[0] 
-								? new MergeTriple<T>(childType, 
-										myChild, baseChild, otherChild)
-								: new MergeTriple<T>(childType,
-										otherChild, baseChild, myChild);
+							T targetChild = target == null ? null : target
+									.addChild(myChild);
 
-						MergeOperation<T> mergeOp = new MergeOperation<T>(
-								childTriple, targetChild);
+							MergeTriple<T> childTriple = myNode == revisions[0] ? new MergeTriple<T>(
+									childType, myChild, baseChild, otherChild)
+									: new MergeTriple<T>(childType, otherChild,
+											baseChild, myChild);
 
-						mergeOp.apply(context);
+							MergeOperation<T> mergeOp = new MergeOperation<T>(
+									childTriple, targetChild);
+							myChild.setMerged(true);
+							otherChild.setMerged(true);
+							mergeOp.apply(context);
+						}
 					} else {
+						if (LOG.isTraceEnabled()) {
+							LOG.trace("Child was deleted by the other revision");
+						}
 						// child is in my revision and base. It was deleted by
 						// other.
 						// we have to check if an inner node was changed by me
@@ -81,6 +125,9 @@ public class UnorderedMerge<T extends Artifact<T>>
 								.getRevision());
 						assert (mLB != null);
 						if (myChild.hasChanges()) {
+							if (LOG.isTraceEnabled()) {
+								LOG.trace("Child has changes in subtree.");
+							}
 							// we need to report a conflict between leftNode and
 							// its deletion
 							throw new NotYetImplementedException();
@@ -92,12 +139,28 @@ public class UnorderedMerge<T extends Artifact<T>>
 						}
 					}
 				} else {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Child is a change");
+					}
 					// is a change.
-					AddOperation<T> addOp = new AddOperation<T>(
-							myChild, target);
+					AddOperation<T> addOp = new AddOperation<T>(myChild, target);
+					myChild.setMerged(true);
 					addOp.apply(context);
 				}
+				if (LOG.isTraceEnabled()) {
+					if (target instanceof ASTNodeArtifact) {
+						LOG.trace("target.dumpTree() after processing child:");
+						System.out.println(((ASTNodeArtifact) target)
+								.dumpRootTree());
+					}
+				}
 			}
+		}
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(this.getClass().getSimpleName() + ".merge("
+					+ left.getId() + ", " + base.getId() + ", " + right.getId()
+					+ ") finished");
 		}
 	}
 }

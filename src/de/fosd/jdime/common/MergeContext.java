@@ -111,6 +111,12 @@ public class MergeContext {
 		}
 	}
 	
+	public final void append(final String s) {
+		if (stdIn != null) {
+			stdIn.append(s);
+		}
+	}
+	
 	/**
 	 * Returns the merge strategy.
 	 * 

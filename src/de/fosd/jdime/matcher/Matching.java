@@ -164,6 +164,14 @@ public class Matching<T extends Artifact<T>> {
 		return left == artifact ? right : right == artifact ? left : null;
 	}
 	
+	public final void updateMatching(final T artifact) {
+		if (left.getId().equals(artifact.getId())) {
+			left = artifact;
+		} else if (right.getId().equals(artifact.getId())) {
+			right = artifact;
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -204,5 +212,12 @@ public class Matching<T extends Artifact<T>> {
 		}
 
 		return sb.toString();
+	}
+	
+	public Object clone() {
+		Matching<T> clone = new Matching<T>(left, right, score);
+		clone.setChildren(children);
+		clone.color = color;
+		return clone;
 	}
 }
