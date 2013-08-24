@@ -66,6 +66,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	public MergeOperation(
 			final ArtifactList<T> inputArtifacts,
 			final T target) throws FileNotFoundException {
+		super();
 		assert (inputArtifacts != null);
 		assert inputArtifacts.size() >= MergeType.MINFILES 
 									: "Too few input files!";
@@ -103,7 +104,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		mergeTriple = new MergeTriple<T>(mergeType, left, base, right);
 		assert (mergeTriple != null);
-		assert (mergeTriple.isValid());
+		assert (mergeTriple.isValid());	
 	}
 
 	/**
@@ -116,6 +117,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	public MergeOperation(final MergeTriple<T> mergeTriple, 
 			final T target) {
+		super();
 		this.mergeTriple = mergeTriple;
 		this.target = target;
 	}
@@ -191,8 +193,9 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	@Override
 	public final String toString() {
 		assert (mergeTriple != null);
-		String dst = target == null ? "" : target.toString();
-		return getName() + " " + mergeTriple.getMergeType() + " "
+		String dst = target == null ? "" : target.getId();
+		return getId() + ": " + getName() + " " 
+				+ mergeTriple.getMergeType() + " "
 				+ mergeTriple.toString(true) + " INTO " + dst;
 	}
 }

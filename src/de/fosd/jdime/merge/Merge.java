@@ -56,6 +56,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
+		T target = operation.getTarget();
 
 		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
@@ -93,6 +94,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		}
 		
 		assert (left.hasMatching(right) && right.hasMatching(left));
+		
+		if (target != null && target.isRoot() && !target.hasMatches()) {
+			// hack to fix the matches for the merged root node
+			target.cloneMatches(left);
+		}
 
 		// determine whether we have to respect the order of children
 
@@ -141,23 +147,23 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				&& right.hasUniqueLabels());
 		Matching<T> m = matcher.match(left, right);
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("match(" + left.getRevision() + ", "
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("match(" + left.getRevision() + ", "
 					+ right.getRevision() + ") = " + m.getScore());
-			LOG.trace(matcher.getLog());
+			LOG.debug(matcher.getLog());
 			LOG.trace("Store matching information within nodes.");
 		}
 
 		matcher.storeMatching(m, color);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Dumping matching of " + left.getRevision() + " and "
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Dumping matching of " + left.getRevision() + " and "
 					+ right.getRevision());
 			System.out.println(m.dumpTree());
 			
-			LOG.trace("left.dumpTree():");
+			LOG.debug("left.dumpTree():");
 			System.out.println(left.dumpTree());
 			
-			LOG.trace("right.dumpTree():");
+			LOG.debug("right.dumpTree():");
 			System.out.println(right.dumpTree());
 		}
 

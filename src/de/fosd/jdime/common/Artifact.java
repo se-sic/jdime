@@ -16,6 +16,7 @@ package de.fosd.jdime.common;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
@@ -121,6 +122,25 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		assert (matching != null);
 		matches.put(matching.getMatchingArtifact((T) this).getRevision(),
 				matching);
+	}
+
+	/**
+	 * Clones matches from another artifact.
+	 * @param other artifact to clone matches from
+	 */
+	public final void cloneMatches(final T other) {
+		if (other.matches != null) {
+			matches = new LinkedHashMap<Revision, Matching<T>>();
+
+			Set<Revision> matchingRevisions = other.matches.keySet();
+
+			for (Revision rev : matchingRevisions) {
+				Matching<T> m 
+					= (Matching<T>) other.matches.get(rev).clone();
+				m.updateMatching((T) this);
+				matches.put(rev, m);
+			}
+		}
 	}
 
 	/**
@@ -377,7 +397,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if node has a matching with revision
 	 */
 	public final boolean hasMatching(final Revision rev) {
-		return matches.containsKey(rev);
+		return matches != null && matches.containsKey(rev);
 	}
 
 	/**
@@ -444,6 +464,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if the declaration order of the artifact is essential
 	 */
 	public abstract boolean isOrdered();
+	
+	/**
+	 * Returns true if the artifact is the root node.
+	 * @return true if the artifact is the root node
+	 */
+	public final boolean isRoot() {
+		return getParent() == null;
+	}
 
 	/**
 	 * Returns true, if the artifact matches another artifact.

@@ -46,7 +46,7 @@ public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 
 		StringBuilder sb = new StringBuilder("");
 		for (E element : this) {
-			sb.append(element);
+			sb.append(element.getId());
 			sb.append(sep);
 		}
 

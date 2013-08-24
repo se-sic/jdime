@@ -165,26 +165,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	}
 
-	/**
-	 * Clones matches from another artifact.
-	 * @param other artifact to clone matches from
-	 */
-	private void cloneMatches(final ASTNodeArtifact other) {
-		if (other.matches != null) {
-			matches = new LinkedHashMap<Revision, Matching<ASTNodeArtifact>>();
-
-			Set<Revision> matchingRevisions = other.matches.keySet();
-
-			for (Revision rev : matchingRevisions) {
-				Matching<ASTNodeArtifact> m 
-					= (Matching<ASTNodeArtifact>) other.matches
-					.get(rev).clone();
-				m.updateMatching(this);
-				matches.put(rev, m);
-			}
-		}
-	}
-
 	@Override
 	public final int compareTo(final ASTNodeArtifact o) {
 		if (hasUniqueLabels()) {

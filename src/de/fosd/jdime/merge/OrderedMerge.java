@@ -53,27 +53,51 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
+		String logprefix = operation.getId() + " - ";
 
 		assert (left.matches(right));
 		assert (left.hasMatching(right)) && right.hasMatching(left);
-		
+
 		if (LOG.isTraceEnabled()) {
-			LOG.trace(this.getClass().getSimpleName() + ".merge("
+			LOG.trace(logprefix + this.getClass().getSimpleName() + ".merge("
 					+ left.getId() + ", " + base.getId() + ", " + right.getId()
 					+ ")");
 		}
 
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(logprefix + "Children that need to be merged:");
+			LOG.trace(logprefix + left.getId() + " -> (" + leftChildren + ")");
+			LOG.trace(logprefix + right.getId() + "-> (" + rightChildren + ")");
+		}
 
 		if (leftChildren.isEmpty() || rightChildren.isEmpty()) {
 			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(logprefix + left.getId() + " and " + right.getId()
+							+ " have no children.");
+				}
 				return;
 			} else if (leftChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(logprefix + left.getId() + " has no children.");
+				}
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(logprefix + right.getId() 
+							+ " was deleted by left");
+				}
 				if (right.hasChanges()) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(logprefix + right.getId() 
+								+ " has changes in subtree");
+					}
 					throw new NotYetImplementedException("Conflict needed");
 				} else {
+
 					for (T rightChild : rightChildren) {
+
 						DeleteOperation<T> delOp = new DeleteOperation<T>(
 								rightChild);
 						delOp.apply(context);
@@ -81,7 +105,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					return;
 				}
 			} else if (rightChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(logprefix + right.getId() + " has no children.");
+				}
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(logprefix + left.getId() 
+							+ " was deleted by left");
+				}
 				if (left.hasChanges()) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(logprefix + 
+								left.getId() + " has changes in subtree");
+					}
 					throw new NotYetImplementedException("Conflict needed");
 				} else {
 					for (T leftChild : leftChildren) {
@@ -105,26 +140,29 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		T rightChild = (T) rightIt.next();
 
 		if (LOG.isTraceEnabled() && target != null) {
-			LOG.trace("target.dumpTree() before merge:");
+			LOG.trace(logprefix + "target.dumpTree() before merge:");
 			System.out.println(target.dumpRootTree());
 		}
 
 		boolean leftdone = false;
 		boolean rightdone = false;
-		while (!leftdone && !rightdone) {
+		while (!leftdone || !rightdone) {
 			if (!r.contains(leftChild)) {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace("leftChild is not in right");
+					LOG.trace(logprefix + leftChild.getId() 
+							+ " is not in right");
 				}
 				if (b.contains(leftChild)) {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("leftChild was deleted by right");
+						LOG.trace(logprefix + leftChild.getId() 
+								+ " was deleted by right");
 					}
 					// was deleted in right
 					if (leftChild.hasChanges()) {
 						// insertion-deletion-conflict
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("leftChild has changes in subtree.");
+							LOG.trace(leftChild.getId()
+									+ " has changes in subtree.");
 						}
 						throw new NotYetImplementedException("Conflict needed");
 					} else {
@@ -135,21 +173,24 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 				} else {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("leftChild is a change");
+						LOG.trace(logprefix + leftChild.getId() 
+								+ " is a change");
 					}
 					// leftChild is a change
 					if (!l.contains(rightChild)) {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("rightChild is not in left");
+							LOG.trace(logprefix + rightChild.getId() + " is not in left");
 						}
 						if (b.contains(rightChild)) {
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("rightChild was deleted by left");
+								LOG.trace(logprefix + rightChild.getId()
+										+ " was deleted by left");
 							}
 							// rightChild was deleted in left
 							if (rightChild.hasChanges()) {
 								if (LOG.isTraceEnabled()) {
-									LOG.trace("rightChild has changes in subtree.");
+									LOG.trace(logprefix + rightChild.getId()
+											+ " has changes in subtree.");
 								}
 								// deletion-insertion conflict
 								throw new NotYetImplementedException(
@@ -163,7 +204,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 						} else {
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("rightChild is a change");
+								LOG.trace(logprefix + rightChild.getId() 
+										+ " is a change");
 							}
 							// rightChild is a change
 							throw new NotYetImplementedException(
@@ -171,7 +213,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						}
 					} else {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("Add the left change");
+							LOG.trace(logprefix + "Add change: " 
+						+ leftChild.getId());
 						}
 						// add the left change
 						AddOperation<T> addOp = new AddOperation<T>(leftChild,
@@ -190,17 +233,20 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
 			if (!l.contains(rightChild)) {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace("rightChild is not in left");
+					LOG.trace(logprefix + rightChild.getId() 
+							+ " is not in left");
 				}
 				if (b.contains(rightChild)) {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("rightChild was deleted by left");
+						LOG.trace(logprefix + rightChild.getId() 
+								+ " was deleted by left");
 					}
-					
+
 					// was deleted in left
 					if (rightChild.hasChanges()) {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("rightChild has changes in subtree.");
+							LOG.trace(logprefix + rightChild.getId()
+									+ " has changes in subtree.");
 						}
 						// insertion-deletion-conflict
 						throw new NotYetImplementedException("Conflict needed");
@@ -212,27 +258,32 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 				} else {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("rightChild is a change");
+						LOG.trace(logprefix + rightChild.getId() 
+								+ " is a change");
 					}
 					// rightChild is a change
 					if (!r.contains(leftChild)) {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("leftChild is not in right");
+							LOG.trace(logprefix + leftChild.getId() 
+									+ " is not in right");
 						}
 						if (b.contains(leftChild)) {
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("leftChild was deleted by right");
+								LOG.trace(logprefix + leftChild.getId()
+										+ " was deleted by right");
 							}
 							if (leftChild.hasChanges()) {
 								if (LOG.isTraceEnabled()) {
-									LOG.trace("leftChild has changes in subtree.");
+									LOG.trace(logprefix + leftChild.getId()
+											+ " has changes in subtree.");
 								}
 								// deletion-insertion conflict
 								throw new NotYetImplementedException(
 										"Conflict needed");
 							} else {
 								if (LOG.isTraceEnabled()) {
-									LOG.trace("add the right change");
+									LOG.trace(logprefix + "add the change: "
+											+ rightChild.getId());
 								}
 								// add the right change
 								AddOperation<T> addOp = new AddOperation<T>(
@@ -242,7 +293,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 						} else {
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("leftChild is a change");
+								LOG.trace(logprefix + leftChild.getId() 
+										+ " is a change");
 							}
 							// leftChild is a change
 							throw new NotYetImplementedException(
@@ -250,13 +302,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						}
 					} else {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("Add the right change");
+							LOG.trace(logprefix + "Add the change: " 
+						+ rightChild.getId());
 						}
 						// add the right change
 						AddOperation<T> addOp = new AddOperation<T>(rightChild,
 								target);
 						rightChild.setMerged(true);
-						addOp.apply(context);				
+						addOp.apply(context);
 					}
 				}
 
@@ -269,7 +322,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 			} else if (l.contains(rightChild) && r.contains(leftChild)) {
 				// left and right have the artifact. merge it.
 				if (LOG.isTraceEnabled()) {
-					LOG.trace("Child is in left and right");
+					LOG.trace(logprefix + "Child is in left and right: " 
+				+ left.getId());
 				}
 				assert (leftChild.hasMatching(rightChild) && rightChild
 						.hasMatching(leftChild));
@@ -284,7 +338,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							: mBase.getMatchingArtifact(leftChild);
 					T targetChild = target == null ? null : target
 							.addChild(leftChild);
-					
+
 					MergeTriple<T> childTriple = new MergeTriple<T>(childType,
 							leftChild, baseChild, rightChild);
 
@@ -309,13 +363,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 				}
 			}
 			if (LOG.isTraceEnabled() && target != null) {
-				LOG.trace("target.dumpTree() after processing child:");
+				LOG.trace(logprefix 
+						+ "target.dumpTree() after processing child:");
 				System.out.println(target.dumpRootTree());
 			}
 		}
-		
+
 		if (LOG.isTraceEnabled()) {
-			LOG.trace(this.getClass().getSimpleName() + ".merge("
+			LOG.trace(logprefix + this.getClass().getSimpleName() + ".merge("
 					+ left.getId() + ", " + base.getId() + ", " + right.getId()
 					+ ") finished");
 		}

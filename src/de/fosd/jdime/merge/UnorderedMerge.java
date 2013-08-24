@@ -50,14 +50,21 @@ public class UnorderedMerge<T extends Artifact<T>>
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
+		String logprefix = operation.getId() + " - ";
 
 		assert (left.matches(right));
 		assert (left.hasMatching(right)) && right.hasMatching(left);
 
 		if (LOG.isTraceEnabled()) {
-			LOG.trace(this.getClass().getSimpleName() + ".merge("
+			LOG.trace(logprefix + this.getClass().getSimpleName() + ".merge("
 					+ left.getId() + ", " + base.getId() + ", " + right.getId()
 					+ ")");
+		}
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(logprefix + "Children that need to be merged:");
+			LOG.trace(logprefix + left.getId() + " -> (" + left.getChildren() + ")");
+			LOG.trace(logprefix + right.getId() + "-> (" + right.getChildren() + ")");
 		}
 
 		Object[] revisions = { left, right };
@@ -67,31 +74,33 @@ public class UnorderedMerge<T extends Artifact<T>>
 
 			int j = 0;
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Traversing children of " + myNode.getId() + " ("
+				LOG.trace(logprefix + "Traversing children of " + myNode.getId() + " ("
 						+ myNode.getNumChildren() + " children)");
 			}
 
 			if (LOG.isTraceEnabled() && target != null) {
-				LOG.trace("target.dumpTree() before merge:");
+				LOG.trace(logprefix + "target.dumpTree() before merge:");
 					System.out.println(target.dumpRootTree());
 			}
 
 			for (T myChild : myNode.getChildren()) {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace("Processing child " + (i + 1) + " of "
+					LOG.trace(logprefix + "Processing child " + (i + 1) + " of "
 							+ myNode.getNumChildren() + ": " + myChild.getId()
 							+ " (Parent: " + myNode.getId() + ")");
 				}
 				if (myChild.hasMatches()) {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("Child is not a change");
+						LOG.trace(logprefix + myChild.getId() 
+								+ " is not a change");
 					}
 					// is not a change
 					Matching<T> mOther = myChild.getMatching(otherNode
 							.getRevision());
 					if (mOther != null) {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("Child is in left and right");
+							LOG.trace(logprefix + myChild.getId() 
+									+ " is in left and right");
 						}
 						// child is in both left and right -> merge it
 						T otherChild = mOther.getMatchingArtifact(myChild);
@@ -123,7 +132,8 @@ public class UnorderedMerge<T extends Artifact<T>>
 						}
 					} else {
 						if (LOG.isTraceEnabled()) {
-							LOG.trace("Child was deleted by the other revision");
+							LOG.trace(logprefix + myChild.getId() 
+									+ " was deleted by the other revision");
 						}
 						// child is in my revision and base. It was deleted by
 						// other.
@@ -133,7 +143,8 @@ public class UnorderedMerge<T extends Artifact<T>>
 						assert (mLB != null);
 						if (myChild.hasChanges()) {
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("Child has changes in subtree.");
+								LOG.trace(logprefix + myChild.getId() 
+										+ " has changes in subtree.");
 							}
 							// we need to report a conflict between leftNode and
 							// its deletion
@@ -147,10 +158,11 @@ public class UnorderedMerge<T extends Artifact<T>>
 					}
 				} else {
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("Child is a change");
+						LOG.trace(logprefix + myChild.getId() + " is a change");
 					}
 					if (LOG.isTraceEnabled()) {
-						LOG.trace("Add the change");
+						LOG.trace(logprefix + "Add the change: " 
+								+ myChild.getId());
 					}
 					// is a change.
 					AddOperation<T> addOp 
@@ -159,14 +171,15 @@ public class UnorderedMerge<T extends Artifact<T>>
 					addOp.apply(context);
 				}
 				if (LOG.isTraceEnabled() && target != null) {
-					LOG.trace("target.dumpTree() after processing child:");
+					LOG.trace(logprefix 
+							+ "target.dumpTree() after processing child:");
 						System.out.println(target.dumpRootTree());
 				}
 			}
 		}
 
 		if (LOG.isTraceEnabled()) {
-			LOG.trace(this.getClass().getSimpleName() + ".merge("
+			LOG.trace(logprefix + this.getClass().getSimpleName() + ".merge("
 					+ left.getId() + ", " + base.getId() + ", " + right.getId()
 					+ ") finished");
 		}
