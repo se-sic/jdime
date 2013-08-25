@@ -151,7 +151,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				initializeChildren();
 			}
 			children.add(myChild);
-			astnode.flushCaches();
+			//astnode.flushCaches();
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Added child " + myChild.getId() + " to parent node "
 						+ getId());
@@ -492,9 +492,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			newchildren[i].setParent(astnode);
 			child.rebuildAST();
 		}
-
+		astnode.jdimeId = getId();
 		astnode.setChildren(newchildren);
-		astnode.flushCache();
+		//astnode.flushCache();
+		if (getParent() == null) {
+			astnode.flushCaches();
+			if (astnode instanceof Program) {
+				((Program) astnode).state().reset();
+			}
+		}
 	}
 	
 	/* (non-Javadoc)

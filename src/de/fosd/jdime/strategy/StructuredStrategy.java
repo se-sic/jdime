@@ -119,8 +119,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			LOG.trace("Structured merge finished.");
 			LOG.trace("target.dumpTree():");
 			System.out.println(targetNode.dumpTree());
+			
+			LOG.trace("Prettyprinting left:");
+			System.out.println(left.prettyPrint());
+			LOG.trace("Prettyprinting right:");
+			System.out.println(right.prettyPrint());
+			LOG.trace("Prettyprinting merge:");
 		}
-		
+
 		context.append(targetNode.prettyPrint());
 
 		if (context.hasErrors()) {

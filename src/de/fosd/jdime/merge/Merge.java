@@ -14,13 +14,15 @@
 package de.fosd.jdime.merge;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
@@ -47,11 +49,17 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	 * 
 	 */
 	private OrderedMerge<T> orderedMerge = null;
+	
+	/**
+	 * Logging prefix.
+	 */
+	private String logprefix;
 
 	@Override
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,
 			InterruptedException {
+		logprefix = operation.getId() + " - ";
 		MergeTriple<T> triple = operation.getMergeTriple();
 		T left = triple.getLeft();
 		T base = triple.getBase();
@@ -99,6 +107,66 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			// hack to fix the matches for the merged root node
 			target.cloneMatches(left);
 		}
+		
+		// check if one or both the nodes have no children
+		List<T> leftChildren = left.getChildren();
+		List<T> rightChildren = right.getChildren();
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(prefix() + "Children that need to be merged:");
+			LOG.trace(prefix(left) + "-> (" + leftChildren + ")");
+			LOG.trace(prefix(right) + "-> (" + rightChildren + ")");
+		}
+
+		if (leftChildren.isEmpty() || rightChildren.isEmpty()) {
+			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(prefix(left) + "and [" + right.getId()
+							+ "] have no children.");
+				}
+				return;
+			} else if (leftChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(prefix(left) + "has no children.");
+					LOG.trace(prefix(right)	+ "was deleted by left");
+				}
+				if (right.hasChanges()) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(prefix(right)	+ "has changes in subtree");
+					}
+					throw new NotYetImplementedException("Conflict needed");
+				} else {
+
+					for (T rightChild : rightChildren) {
+
+						DeleteOperation<T> delOp = new DeleteOperation<T>(
+								rightChild);
+						delOp.apply(context);
+					}
+					return;
+				}
+			} else if (rightChildren.isEmpty()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(prefix(right) + "has no children.");
+					LOG.trace(prefix(left) + " was deleted by left");
+				}
+				if (left.hasChanges()) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(prefix(left) + " has changes in subtree");
+					}
+					throw new NotYetImplementedException("Conflict needed");
+				} else {
+					for (T leftChild : leftChildren) {
+						DeleteOperation<T> delOp = new DeleteOperation<T>(
+								leftChild);
+						delOp.apply(context);
+					}
+					return;
+				}
+			} else {
+				throw new RuntimeException("Something is very broken.");
+			}
+		}
 
 		// determine whether we have to respect the order of children
 
@@ -114,6 +182,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			if (right.getChild(i).isOrdered()) {
 				isOrdered = true;
 			}
+		}
+		
+		if (LOG.isTraceEnabled() && target != null) {
+			LOG.trace(logprefix + "target.dumpTree() before merge:");
+			System.out.println(target.dumpRootTree());
 		}
 
 		if (isOrdered) {
@@ -168,5 +241,23 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		}
 
 		return m;
+	}
+	
+	
+	/**
+	 * Returns the logging prefix.
+	 * @return logging prefix
+	 */
+	private String prefix() {
+		return logprefix;
+	}
+	
+	/**
+	 * Returns the logging prefix.
+	 * @param artifact artifact that is subject of the logging
+	 * @return logging prefix
+	 */
+	private String prefix(final T artifact) {
+		return logprefix + "[" + artifact.getId() + "] ";
 	}
 }
