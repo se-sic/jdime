@@ -91,10 +91,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		right = new ASTNodeArtifact(triple.getRight());
 
 		// Output tree
-		Program program = new Program();
-		program.state().reset();
-		ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
-		targetNode.deleteChildren();
+		//Program program = new Program();
+		//program.state().reset();
+		//ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
+		ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 		targetNode.setRevision(left.getRevision());
 		targetNode.forceRenumbering();
 		

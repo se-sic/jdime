@@ -15,7 +15,8 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -124,7 +125,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		this.astnode = astnode;
 		renumber(1, this);
-
 	}
 
 	/*
@@ -377,7 +377,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		ArtifactList<ASTNodeArtifact> children 
 				= new ArtifactList<ASTNodeArtifact>();
-		for (int i = 0; i < astnode.getNumChild(); i++) {
+		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
 			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
 			child.setParent(this);
 			child.setRevision(getRevision());
@@ -460,7 +460,66 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			LOG.debug("Using strategy: " + strategy.toString());
 		}
 
+//		if (astnode instanceof Program) {
+//			if (LOG.isDebugEnabled()) {
+//				LOG.debug("Merging Programs");
+//			}
+//			MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+//			assert (triple != null);
+//			
+//			ASTNodeArtifact left, base, right, target;
+//
+//			left = triple.getLeft();
+//			base = triple.getBase();
+//			right = triple.getRight();
+//			target = operation.getTarget();
+//			Iterator<ASTNodeArtifact> leftIt = left.getChild(0).getChildren().iterator();
+//			Iterator<ASTNodeArtifact> baseIt = base.isEmptyDummy()
+//					? null : base.getChild(0).getChildren().iterator();
+//			Iterator<ASTNodeArtifact> rightIt = right.getChild(0).getChildren().iterator();
+//			Iterator<ASTNodeArtifact> targetIt 
+//					= target.getChild(0).getChildren().iterator();
+//			
+//			while (leftIt.hasNext() && rightIt.hasNext()) {
+//				ASTNodeArtifact leftCu = leftIt.next();
+//				ASTNodeArtifact baseCu = baseIt == null ? null : baseIt.next();
+//				ASTNodeArtifact rightCu = rightIt.next();
+//				ASTNodeArtifact targetCu = targetIt.next();
+//				
+//				if (!((CompilationUnit) leftCu.astnode).fromSource()) {
+//					assert (baseCu == null 
+//						|| !((CompilationUnit) baseCu.astnode).fromSource());
+//					assert (!((CompilationUnit) rightCu.astnode).fromSource());
+//					continue;
+//				}
+//				
+//				for (int i = 0; i < targetCu.getNumChildren(); i++) {
+//					// a CU has exactly 2 children: 
+//					// a list of import declarations 
+//					// and a list of type declarations
+//					ASTNodeArtifact leftChild = leftCu.getChild(i);
+//					ASTNodeArtifact baseChild = baseIt == null ? base 
+//								: baseCu.getChild(i);
+//					ASTNodeArtifact rightChild = rightCu.getChild(i);
+//					ASTNodeArtifact targetChild = targetCu.getChild(i);
+//					ArtifactList<ASTNodeArtifact> inputArtifacts = new ArtifactList<>();
+//					inputArtifacts.add(leftChild);
+//					inputArtifacts.add(baseChild);
+//					inputArtifacts.add(rightChild);
+//					
+//					MergeOperation<ASTNodeArtifact> cuOp = new MergeOperation<>(inputArtifacts, targetChild);
+//					if (LOG.isTraceEnabled()) {
+//						LOG.trace("Added merge operation for children of "
+//								+ "compilation units:");
+//						LOG.trace(cuOp);
+//					}
+//					cuOp.apply(context);
+//				}
+//			}
+//			
+//		} else {
 		strategy.merge(operation, context);
+//		}
 
 		if (!context.isQuiet()) {
 			System.out.println(context.getStdIn());
@@ -475,7 +534,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		rebuildAST();
 		astnode.flushCaches();
-		System.out.println(astnode.dumpTree());
+		//System.out.println(astnode.dumpTree());
 		return astnode.toString();
 	}
 
@@ -485,7 +544,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	public final void rebuildAST() {
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
-
+		
 		for (int i = 0; i < getNumChildren(); i++) {
 			ASTNodeArtifact child = getChild(i);
 			newchildren[i] = child.astnode;
@@ -494,13 +553,37 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 		astnode.jdimeId = getId();
 		astnode.setChildren(newchildren);
-		//astnode.flushCache();
-		if (getParent() == null) {
-			astnode.flushCaches();
-			if (astnode instanceof Program) {
-				((Program) astnode).state().reset();
-			}
-		}
+		
+//		astnode.flushCache();
+//		
+//		if (getParent() == null) {
+//			// this is the root node
+//			if (astnode instanceof Program) {
+//				Program p = (Program) astnode;
+//				LinkedList<CompilationUnit> cus 
+//					= new LinkedList<CompilationUnit>();
+//				
+//				Iterator<CompilationUnit> it = p.compilationUnitIterator();
+//				while (it.hasNext()) {
+//					cus.add(it.next());
+//				}
+//				
+//				p = new Program();
+//				p.state().reset();
+//				p.flushCaches();
+//				
+//				
+//				for (CompilationUnit cu : cus) {
+//					
+//					cu.flushCaches();
+//					p.addCompilationUnit(cu);
+//				}
+//				
+//				astnode = p;
+//			}
+//		}
+		
+		assert (getNumChildren() == astnode.getNumChildNoTransform());
 	}
 	
 	/* (non-Javadoc)
@@ -521,6 +604,30 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final void write(final String str) throws IOException {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @param artifact artifact to create program from
+	 * @return ASTNodeArtifact
+	 */
+	public static ASTNodeArtifact createProgram(
+				final ASTNodeArtifact artifact) {
+		assert (artifact.astnode != null);
+		assert (artifact.astnode instanceof Program);
+		
+		Program program = (Program) artifact.astnode.copy();
+//		Iterator<CompilationUnit> it = program.compilationUnitIterator();
+//		while (it.hasNext()) {
+//			CompilationUnit cu = it.next();
+//			for (int i = 0; i < cu.getNumChild(); i++) {
+//				cu.getImportDeclList().removeChildren();
+//				cu.getTypeDeclList().removeChildren();
+//			}
+//		}
+		ASTNodeArtifact p = new ASTNodeArtifact(program);
+		p.deleteChildren();
+		
+		return p;
 	}
 
 }

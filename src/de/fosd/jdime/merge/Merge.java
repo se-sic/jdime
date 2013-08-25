@@ -233,10 +233,10 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					+ right.getRevision());
 			System.out.println(m.dumpTree());
 			
-			LOG.debug("left.dumpTree():");
+			LOG.debug(left.getRevision() + ".dumpTree():");
 			System.out.println(left.dumpTree());
 			
-			LOG.debug("right.dumpTree():");
+			LOG.debug(right.getRevision() + ".dumpTree():");
 			System.out.println(right.dumpTree());
 		}
 
