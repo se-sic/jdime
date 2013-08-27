@@ -13,9 +13,11 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.apache.log4j.Logger;
 
@@ -41,8 +43,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	private static final Logger LOG = Logger
 			.getLogger(StructuredStrategy.class);
 
-	private static File errorlog = new File("/home/lessenic/jdime-errors.log");
-	private static FileWriter errorWriter;
+	private static String errorlog = "/home/lessenic/jdime-errors.log";
 
 	/*
 	 * (non-Javadoc)
@@ -153,17 +154,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			}
 
 		} catch (Exception e) {
-			assert (errorlog.exists());
-			if (errorWriter == null) {
-				errorWriter = new FileWriter(errorlog);
-			}
-			errorWriter.write(triple.getLeft().getPath() + " "
+			File errorfile = new File(errorlog);
+			assert (errorfile.exists());
+			PrintWriter errorprinter = new PrintWriter(new BufferedWriter(new FileWriter(errorfile, true)));
+			errorprinter.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
 					+ triple.getBase().getPath() + " "
-					+ triple.getRight().getPath() + System.lineSeparator());
-			errorWriter.write(e.getMessage() + System.lineSeparator());
-			errorWriter.write(e.getStackTrace().toString()
-					+ System.lineSeparator());
-			errorWriter.write(System.lineSeparator());
+					+ triple.getRight().getPath());
+			errorprinter.close();
 
 		}
 
