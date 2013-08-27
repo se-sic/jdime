@@ -66,7 +66,22 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Children of the artifact.
 	 */
 	protected ArtifactList<T> children = null;
+	
+	/**
+	 * Left side of a conflict.
+	 */
+	protected T left = null;
+	
+	/**
+	 * Right side of a conflict.
+	 */
+	protected T right = null;
 
+	/**
+	 * Whether this artifact represents a conflict.
+	 */
+	private boolean conflict = false;
+	
 	/**
 	 * If true, this artifact is an empty dummy.
 	 */
@@ -162,6 +177,19 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *             If an input output exception occurs
 	 */
 	public abstract void createArtifact(boolean isLeaf) throws IOException;
+	
+	/**
+	 * Returns a conflict artifact.
+	 * 
+	 * @param type of node
+	 * @param left left alternatives
+	 * @param right right alternatives
+	 * @return conflict artifact
+	 * @throws FileNotFoundException If a file is not found
+	 */
+	public abstract T createConflictDummy(final T type, 
+			final T left,
+			final T right) throws FileNotFoundException;
 
 	/**
 	 * Returns a dummy @code{Artifact}.
@@ -362,6 +390,26 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 		return hasChanges;
 	}
+	
+	/**
+	 * Returns whether the artifact has changes.
+	 * 
+	 * @param recursive If true, the whole subtree is checked
+	 * @return whether artifact has changes
+	 */
+	public final boolean hasChanges(final boolean recursive) {
+		if (recursive) {
+			return hasChanges();
+		} else {
+			boolean hasChanges = !hasMatches();
+
+			for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
+				hasChanges = !getChild(i).hasMatches();
+			}
+			
+			return hasChanges;
+		}
+	}
 
 	/**
 	 * Returns true if the artifact has children.
@@ -427,6 +475,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Initializes the children of the artifact.
 	 */
 	public abstract void initializeChildren();
+	
+	/**
+	 * Returns true if the artifact is a conflict node.
+	 * @return true if the artifact represents a conflict
+	 */
+	public final boolean isConflict() {
+		return conflict;
+	}
 
 	/**
 	 * Returns true if the artifact is empty.
@@ -515,6 +571,17 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	public final void setChildren(final ArtifactList<T> children) {
 		this.children = children;
+	}
+	
+	/**
+	 * Marks this artifact as a conflict.
+	 * @param left left alternatives
+	 * @param right right alternatives 
+	 */
+	public final void setConflict(final T left, final T right) {
+		this.conflict = true;
+		this.left= left;
+		this.right= right;
 	}
 
 	/**

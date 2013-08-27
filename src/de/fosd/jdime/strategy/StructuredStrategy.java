@@ -120,11 +120,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			LOG.trace("target.dumpTree():");
 			System.out.println(targetNode.dumpTree());
 			
-			LOG.trace("Prettyprinting left:");
+			LOG.trace("Pretty-printing left:");
 			System.out.println(left.prettyPrint());
-			LOG.trace("Prettyprinting right:");
+			LOG.trace("Pretty-printing right:");
 			System.out.println(right.prettyPrint());
-			LOG.trace("Prettyprinting merge:");
+			LOG.trace("Pretty-printing merge:");
+			if (context.isQuiet()) {
+				System.out.println(targetNode.prettyPrint());
+			}
 		}
 
 		context.append(targetNode.prettyPrint());
@@ -169,7 +172,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
 				"StructuredStrategy: Implement me!");
-
 	}
 
 	@Override

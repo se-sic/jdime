@@ -15,7 +15,6 @@ package de.fosd.jdime.merge;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -23,9 +22,9 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.AddOperation;
+import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
@@ -95,7 +94,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							LOG.trace(prefix(leftChild)
 									+ "has changes in subtree.");
 						}
-						throw new NotYetImplementedException("Conflict needed");
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(leftChild, leftChild, null, target);
+						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<T>(
@@ -123,8 +124,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 											+ "has changes in subtree.");
 								}
 								// deletion-insertion conflict
-								throw new NotYetImplementedException(
-										"Conflict needed");
+								ConflictOperation<T> conflictOp 
+									= new ConflictOperation<T>(rightChild, null, 
+											rightChild, target);
+								conflictOp.apply(context);
 							} else {
 								// add the left change
 								AddOperation<T> addOp = new AddOperation<T>(
@@ -137,8 +140,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.trace(prefix(rightChild) + "is a change");
 							}
 							// rightChild is a change
-							throw new NotYetImplementedException(
-									"Conflict needed");
+							ConflictOperation<T> conflictOp 
+								= new ConflictOperation<T>(leftChild, leftChild, 
+									rightChild, target);
+							conflictOp.apply(context);
+							
+							if (rightIt.hasNext()) {
+								rightChild = rightIt.next();
+							} else {
+								rightdone = true;
+							}
 						}
 					} else {
 						if (LOG.isTraceEnabled()) {
@@ -175,7 +186,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 									+ "has changes in subtree.");
 						}
 						// insertion-deletion-conflict
-						throw new NotYetImplementedException("Conflict needed");
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(rightChild, null, 
+									rightChild, target);
+						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<T>(
@@ -202,8 +216,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 											+ "has changes in subtree.");
 								}
 								// deletion-insertion conflict
-								throw new NotYetImplementedException(
-										"Conflict needed");
+								ConflictOperation<T> conflictOp 
+									= new ConflictOperation<T>(leftChild, leftChild, null, 
+											target);
+								conflictOp.apply(context);
 							} else {
 								if (LOG.isTraceEnabled()) {
 									LOG.trace(prefix(rightChild) 
@@ -220,8 +236,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.trace(prefix(leftChild) + "is a change");
 							}
 							// leftChild is a change
-							throw new NotYetImplementedException(
-									"Conflict needed");
+							ConflictOperation<T> conflictOp 
+								= new ConflictOperation<T>(leftChild, leftChild, 
+										rightChild, target);
+							conflictOp.apply(context);
+						
+							if (leftIt.hasNext()) {
+								leftChild = leftIt.next();
+							} else {
+								leftdone = true;
+							}
 						}
 					} else {
 						if (LOG.isTraceEnabled()) {

@@ -22,6 +22,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
@@ -134,9 +135,15 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace(prefix(right)	+ "has changes in subtree");
 					}
-					throw new NotYetImplementedException("Conflict needed");
+					
+					for (T rightChild : right.getChildren()) {
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(rightChild, null, 
+									rightChild,	target);
+						conflictOp.apply(context);
+					}
+					return;
 				} else {
-
 					for (T rightChild : rightChildren) {
 
 						DeleteOperation<T> delOp = new DeleteOperation<T>(
@@ -154,7 +161,13 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace(prefix(left) + " has changes in subtree");
 					}
-					throw new NotYetImplementedException("Conflict needed");
+					for (T leftChild : left.getChildren()) {
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(leftChild, leftChild, 
+									null, target);
+						conflictOp.apply(context);
+					}
+					return;
 				} else {
 					for (T leftChild : leftChildren) {
 						DeleteOperation<T> delOp = new DeleteOperation<T>(

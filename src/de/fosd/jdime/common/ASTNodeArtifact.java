@@ -15,8 +15,8 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -32,6 +32,7 @@ import AST.InterfaceDecl;
 import AST.JavaParser;
 import AST.MethodDecl;
 import AST.Program;
+import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
@@ -40,7 +41,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 
 /**
  * @author Olaf Lessenich
- *
+ * 
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
@@ -136,6 +137,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
 			throws IOException {
+		if (child.isConflict()) {
+			child.setParent(this);
+			children.add(child);
+			return child;
+		}
+
 		ASTNodeArtifact myChild;
 		try {
 			myChild = new ASTNodeArtifact((ASTNode<?>) child.astnode.clone());
@@ -151,7 +158,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				initializeChildren();
 			}
 			children.add(myChild);
-			//astnode.flushCaches();
+			// astnode.flushCaches();
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Added child " + myChild.getId() + " to parent node "
 						+ getId());
@@ -183,9 +190,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final void copyArtifact(final ASTNodeArtifact destination)
 			throws IOException {
-
 		ASTNodeArtifact copy = destination.addChild(this);
-		if (hasChildren()) {
+		if (!isConflict() && hasChildren()) {
 			for (ASTNodeArtifact child : getChildren()) {
 				child.copyArtifact(copy);
 			}
@@ -271,7 +277,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return sb.toString();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.Artifact#dumpTree(java.lang.String)
 	 */
 	@Override
@@ -282,7 +290,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		// node itself
 
 		Matching<ASTNodeArtifact> m = null;
-		if (hasMatches()) {
+
+		// color
+		if (!isConflict() && hasMatches()) {
 
 			Set<Revision> matchingRevisions = matches.keySet();
 
@@ -297,19 +307,44 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			sb.append(color);
 		}
 
-		sb.append(indent + "(" + getId() + ") ");
-		sb.append(this);
+		if (isConflict()) {
+			sb.append(Color.RED.toShell());
+			sb.append(indent + "(" + getId() + ") ");
+			sb.append(this);
+			sb.append(System.lineSeparator());
+			sb.append(Color.RED.toShell());
+			sb.append("<<<<<<< ");
+			sb.append(System.lineSeparator());
+			// children
+			if (left != null) {
+				sb.append(left.dumpTree(indent));
+			}
+			sb.append(Color.RED.toShell());
+			sb.append("======= ");
+			sb.append(System.lineSeparator());
+			// children
+			if (right != null) {
+				sb.append(right.dumpTree(indent));
+			}
+			
+			sb.append(Color.RED.toShell());
+			sb.append(">>>>>>> ");
+			sb.append(System.lineSeparator());
+		} else {
+			sb.append(indent + "(" + getId() + ") ");
+			sb.append(this);
 
-		if (hasMatches()) {
-			assert (m != null);
-			sb.append(" <=> (" + m.getMatchingArtifact(this).getId() + ")");
-			sb.append(Color.DEFAULT.toShell());
-		}
-		sb.append(System.lineSeparator());
+			if (hasMatches()) {
+				assert (m != null);
+				sb.append(" <=> (" + m.getMatchingArtifact(this).getId() + ")");
+				sb.append(Color.DEFAULT.toShell());
+			}
+			sb.append(System.lineSeparator());
 
-		// children
-		for (ASTNodeArtifact child : getChildren()) {
-			sb.append(child.dumpTree(indent + "  "));
+			// children
+			for (ASTNodeArtifact child : getChildren()) {
+				sb.append(child.dumpTree(indent + "  "));
+			}
 		}
 
 		return sb.toString();
@@ -320,14 +355,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	@Override
-	public final boolean equals(final Object obj) {
-		assert (astnode != null);
-		assert (obj != null);
-		assert (obj instanceof ASTNodeArtifact);
-		return astnode.dumpString().equals(
-				((ASTNodeArtifact) obj).astnode.dumpString());
-	}
+//	@Override
+//	public final boolean equals(final Object obj) {
+//		assert (astnode != null);
+//		assert (obj != null);
+//		assert (obj instanceof ASTNodeArtifact);
+//		return astnode.dumpString().equals(
+//				((ASTNodeArtifact) obj).astnode.dumpString());
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -338,8 +373,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final boolean exists() {
 		return astnode != null;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.Artifact#getId()
 	 */
 	@Override
@@ -375,8 +412,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final void initializeChildren() {
 		assert (astnode != null);
-		ArtifactList<ASTNodeArtifact> children 
-				= new ArtifactList<ASTNodeArtifact>();
+		ArtifactList<ASTNodeArtifact> children = new ArtifactList<ASTNodeArtifact>();
 		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
 			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
 			child.setParent(this);
@@ -460,89 +496,118 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			LOG.debug("Using strategy: " + strategy.toString());
 		}
 
-//		if (astnode instanceof Program) {
-//			if (LOG.isDebugEnabled()) {
-//				LOG.debug("Merging Programs");
-//			}
-//			MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
-//			assert (triple != null);
-//			
-//			ASTNodeArtifact left, base, right, target;
-//
-//			left = triple.getLeft();
-//			base = triple.getBase();
-//			right = triple.getRight();
-//			target = operation.getTarget();
-//			Iterator<ASTNodeArtifact> leftIt = left.getChild(0).getChildren().iterator();
-//			Iterator<ASTNodeArtifact> baseIt = base.isEmptyDummy()
-//					? null : base.getChild(0).getChildren().iterator();
-//			Iterator<ASTNodeArtifact> rightIt = right.getChild(0).getChildren().iterator();
-//			Iterator<ASTNodeArtifact> targetIt 
-//					= target.getChild(0).getChildren().iterator();
-//			
-//			while (leftIt.hasNext() && rightIt.hasNext()) {
-//				ASTNodeArtifact leftCu = leftIt.next();
-//				ASTNodeArtifact baseCu = baseIt == null ? null : baseIt.next();
-//				ASTNodeArtifact rightCu = rightIt.next();
-//				ASTNodeArtifact targetCu = targetIt.next();
-//				
-//				if (!((CompilationUnit) leftCu.astnode).fromSource()) {
-//					assert (baseCu == null 
-//						|| !((CompilationUnit) baseCu.astnode).fromSource());
-//					assert (!((CompilationUnit) rightCu.astnode).fromSource());
-//					continue;
-//				}
-//				
-//				for (int i = 0; i < targetCu.getNumChildren(); i++) {
-//					// a CU has exactly 2 children: 
-//					// a list of import declarations 
-//					// and a list of type declarations
-//					ASTNodeArtifact leftChild = leftCu.getChild(i);
-//					ASTNodeArtifact baseChild = baseIt == null ? base 
-//								: baseCu.getChild(i);
-//					ASTNodeArtifact rightChild = rightCu.getChild(i);
-//					ASTNodeArtifact targetChild = targetCu.getChild(i);
-//					ArtifactList<ASTNodeArtifact> inputArtifacts = new ArtifactList<>();
-//					inputArtifacts.add(leftChild);
-//					inputArtifacts.add(baseChild);
-//					inputArtifacts.add(rightChild);
-//					
-//					MergeOperation<ASTNodeArtifact> cuOp = new MergeOperation<>(inputArtifacts, targetChild);
-//					if (LOG.isTraceEnabled()) {
-//						LOG.trace("Added merge operation for children of "
-//								+ "compilation units:");
-//						LOG.trace(cuOp);
-//					}
-//					cuOp.apply(context);
-//				}
-//			}
-//			
-//		} else {
-		strategy.merge(operation, context);
-//		}
+		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+		assert (triple != null);
+		ASTNodeArtifact left, right, target;
+		left = triple.getLeft();
+		right = triple.getRight();
+		target = operation.getTarget();
 
-		if (!context.isQuiet()) {
+		boolean safeMerge = true;
+
+		try {
+			if (!isRoot()
+					&& target.astnode.getClass().newInstance()
+							.getNumChildNoTransform() > 0) {
+				// this language element has a fixed number of children
+				// we need to be careful with this one
+				boolean leftChanges = left.hasChanges(false);
+				boolean rightChanges = right.hasChanges(false);
+
+				if (leftChanges || rightChanges) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("target " + target.getId()
+								+ " expects a fixed amount of children.");
+						LOG.trace("changes in " + left.getId() + ": "
+								+ leftChanges);
+						LOG.trace("changes in " + right.getId() + ": "
+								+ rightChanges);
+						LOG.trace("We will report a conflict instead of performing the merge");
+					}
+					safeMerge = false;
+					// to be safe, we will report a conflict instead of merging
+					ASTNodeArtifact targetParent = target.getParent();
+					targetParent.removeChild(target);
+					ConflictOperation conflictOp = new ConflictOperation<>(
+							left, left, right, targetParent);
+					conflictOp.apply(context);
+				}
+			}
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
+
+		if (safeMerge) {
+			strategy.merge(operation, context);
+		}
+
+		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.println(context.getStdIn());
+		}
+	}
+
+	public final void removeChild(ASTNodeArtifact child) {
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("[" + getId() + "] removing child " + child.getId());
+			LOG.trace("children before removal: " + getChildren());
+		}
+		
+		Iterator<ASTNodeArtifact> it = children.iterator();
+		ASTNodeArtifact elem;
+		while (it.hasNext()) {
+			elem = it.next();
+			if (elem == child) {
+				it.remove();
+			}
+		}
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("children after removal: " + getChildren());
 		}
 	}
 
 	/**
 	 * Pretty-prints the AST to source code.
-	 * @return Pretty-printed AST (source code) 
+	 * 
+	 * @return Pretty-printed AST (source code)
 	 */
 	public final String prettyPrint() {
 		assert (astnode != null);
 		rebuildAST();
 		astnode.flushCaches();
-		//System.out.println(astnode.dumpTree());
-		return astnode.toString();
+		// System.out.println(astnode.dumpTree());
+		return astnode.prettyPrint();
 	}
 
 	/**
-	 * Rebuild the encapsulated ASTNode tree top down.
-	 * This should be only called at the root node
+	 * Rebuild the encapsulated ASTNode tree top down. This should be only
+	 * called at the root node
 	 */
 	public final void rebuildAST() {
+
+		if (isConflict()) {
+			astnode.isConflict = true;
+			astnode.jdimeId = getId();
+
+			if (left != null) {
+				left.rebuildAST();
+				astnode.left = left.astnode;
+			}
+
+			if (right != null) {
+				right.rebuildAST();
+				astnode.right= right.astnode;
+			}
+			
+			
+		}
+		
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
 		
 		for (int i = 0; i < getNumChildren(); i++) {
@@ -550,43 +615,64 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			newchildren[i] = child.astnode;
 			newchildren[i].setParent(astnode);
 			child.rebuildAST();
+			astnode.jdimeId = getId();
 		}
-		astnode.jdimeId = getId();
 		astnode.setChildren(newchildren);
-		
-//		astnode.flushCache();
-//		
-//		if (getParent() == null) {
-//			// this is the root node
-//			if (astnode instanceof Program) {
-//				Program p = (Program) astnode;
-//				LinkedList<CompilationUnit> cus 
-//					= new LinkedList<CompilationUnit>();
-//				
-//				Iterator<CompilationUnit> it = p.compilationUnitIterator();
-//				while (it.hasNext()) {
-//					cus.add(it.next());
-//				}
-//				
-//				p = new Program();
-//				p.state().reset();
-//				p.flushCaches();
-//				
-//				
-//				for (CompilationUnit cu : cus) {
-//					
-//					cu.flushCaches();
-//					p.addCompilationUnit(cu);
-//				}
-//				
-//				astnode = p;
-//			}
-//		}
-		
-		assert (getNumChildren() == astnode.getNumChildNoTransform());
+		// astnode.flushCache();
+		//
+		// if (getParent() == null) {
+		// // this is the root node
+		// if (astnode instanceof Program) {
+		// Program p = (Program) astnode;
+		// LinkedList<CompilationUnit> cus
+		// = new LinkedList<CompilationUnit>();
+		//
+		// Iterator<CompilationUnit> it = p.compilationUnitIterator();
+		// while (it.hasNext()) {
+		// cus.add(it.next());
+		// }
+		//
+		// p = new Program();
+		// p.state().reset();
+		// p.flushCaches();
+		//
+		//
+		// for (CompilationUnit cu : cus) {
+		//
+		// cu.flushCaches();
+		// p.addCompilationUnit(cu);
+		// }
+		//
+		// astnode = p;
+		// }
+		// }
+
+		if (LOG.isTraceEnabled()) {
+			if (getNumChildren() != astnode.getNumChildNoTransform()) {
+				LOG.trace("ASTNodeArtifact has " + getNumChildren()
+						+ " children: {" + getChildren() + "}");
+				StringBuilder sb = new StringBuilder();
+				sb.append("astnode has " + astnode.getNumChildNoTransform()
+						+ " children: {");
+				
+				ASTNode[] astnodechildren = new ASTNode[astnode.getNumChild()];
+				for (int i = 0; i < astnode.getNumChild(); i++) {
+					astnodechildren[i] = astnode.getChild(i);
+				}
+				sb.append(Arrays.toString(astnodechildren));
+				sb.append("}");
+				LOG.trace(sb);
+			}
+		}
+
+		assert (isConflict() || getNumChildren() == astnode
+				.getNumChildNoTransform());
+
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.fosd.jdime.common.Artifact#toString()
 	 */
 	@Override
@@ -607,27 +693,41 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	/**
-	 * @param artifact artifact to create program from
+	 * @param artifact
+	 *            artifact to create program from
 	 * @return ASTNodeArtifact
 	 */
-	public static ASTNodeArtifact createProgram(
-				final ASTNodeArtifact artifact) {
+	public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
 		assert (artifact.astnode != null);
 		assert (artifact.astnode instanceof Program);
-		
+
 		Program program = (Program) artifact.astnode.copy();
-//		Iterator<CompilationUnit> it = program.compilationUnitIterator();
-//		while (it.hasNext()) {
-//			CompilationUnit cu = it.next();
-//			for (int i = 0; i < cu.getNumChild(); i++) {
-//				cu.getImportDeclList().removeChildren();
-//				cu.getTypeDeclList().removeChildren();
-//			}
-//		}
+		// Iterator<CompilationUnit> it = program.compilationUnitIterator();
+		// while (it.hasNext()) {
+		// CompilationUnit cu = it.next();
+		// for (int i = 0; i < cu.getNumChild(); i++) {
+		// cu.getImportDeclList().removeChildren();
+		// cu.getTypeDeclList().removeChildren();
+		// }
+		// }
 		ASTNodeArtifact p = new ASTNodeArtifact(program);
 		p.deleteChildren();
-		
+
 		return p;
+	}
+
+	@Override
+	public final ASTNodeArtifact createConflictDummy(
+			final ASTNodeArtifact type,
+			final ASTNodeArtifact left,
+			final ASTNodeArtifact right)
+			throws FileNotFoundException {
+			ASTNodeArtifact conflict;
+		
+			conflict = new ASTNodeArtifact(type.astnode.fullCopy());
+			conflict.setConflict(left, right);
+	
+		return conflict;
 	}
 
 }

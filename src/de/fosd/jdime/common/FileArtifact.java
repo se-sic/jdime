@@ -563,7 +563,7 @@ public class FileArtifact extends Artifact<FileArtifact> implements
 			LOG.debug("Using strategy: " + strategy.toString());
 		}
 		strategy.merge(operation, context);
-		if (!context.isQuiet()) {
+		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.println(context.getStdIn());
 		}
 
@@ -623,6 +623,14 @@ public class FileArtifact extends Artifact<FileArtifact> implements
 		FileWriter writer = new FileWriter(file);
 		writer.write(str);
 		writer.close();
+	}
+
+	@Override
+	public final FileArtifact createConflictDummy(final FileArtifact type,
+			final FileArtifact left, 
+			final FileArtifact right)
+			throws FileNotFoundException {
+		throw new NotYetImplementedException();
 	}
 
 }

@@ -22,6 +22,7 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.AddOperation;
+import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
@@ -94,7 +95,10 @@ public class UnorderedMerge<T extends Artifact<T>>
 							LOG.trace(prefix(leftChild)
 									+ "has changes in subtree.");
 						}
-						throw new NotYetImplementedException("Conflict needed");
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(leftChild, leftChild, 
+									null, target);
+						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<T>(
@@ -141,7 +145,10 @@ public class UnorderedMerge<T extends Artifact<T>>
 									+ "has changes in subtree.");
 						}
 						// insertion-deletion-conflict
-						throw new NotYetImplementedException("Conflict needed");
+						ConflictOperation<T> conflictOp 
+							= new ConflictOperation<T>(rightChild, null, rightChild, 
+									target);
+						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<T>(

@@ -154,6 +154,14 @@ public class MergeContext {
 		return stdIn.toString();
 	}
 	
+	/**
+	 * Returns true if stdin is not empty.
+	 * @return true if stdin is not empty
+	 */
+	public final boolean hasOutput() {
+		return stdIn != null && stdIn.toString().length() != 0;
+	}
+	
 
 	/**
 	 * Returns true if stderr is not empty.
