@@ -13,17 +13,17 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import AST.Program;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.Stats;
 
@@ -40,6 +40,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	private static final Logger LOG = Logger
 			.getLogger(StructuredStrategy.class);
+
+	private static File errorlog = new File("/home/lessenic/jdime-errors.log");
+	private static FileWriter errorWriter;
 
 	/*
 	 * (non-Javadoc)
@@ -65,8 +68,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
-				|| triple.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
+				.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -76,8 +79,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) 
-				: "Would be overwritten: " + target;
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
+					+ target;
 		}
 
 		// ASTNodeArtifacts are created from the input files.
@@ -85,9 +88,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// The Result is pretty printed and can be written into the output file.
 
 		ASTNodeArtifact left, base, right;
-		
+
 		if (LOG.isInfoEnabled()) {
-			LOG.info("Merging: " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " " + triple.getRight().getPath());
+			LOG.info("Merging: " + triple.getLeft().getPath() + " "
+					+ triple.getBase().getPath() + " "
+					+ triple.getRight().getPath());
 		}
 
 		left = new ASTNodeArtifact(triple.getLeft());
@@ -95,60 +100,76 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		right = new ASTNodeArtifact(triple.getRight());
 
 		// Output tree
-		//Program program = new Program();
-		//program.state().reset();
-		//ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
+		// Program program = new Program();
+		// program.state().reset();
+		// ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
 		ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 		targetNode.setRevision(left.getRevision());
 		targetNode.forceRenumbering();
-		
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("target.dumpTree(:");
 			System.out.println(targetNode.dumpTree());
 		}
 
-		MergeTriple<ASTNodeArtifact> nodeTriple 
-			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
-					left, base, right);
-		
-		MergeOperation<ASTNodeArtifact> astMergeOp 
-			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
+		MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<ASTNodeArtifact>(
+				triple.getMergeType(), left, base, right);
+
+		MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<ASTNodeArtifact>(
+				nodeTriple, targetNode);
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("ASTMOperation.apply(context)");
 		}
-		astMergeOp.apply(context);
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Structured merge finished.");
-			LOG.trace("target.dumpTree():");
-			System.out.println(targetNode.dumpTree());
-			
-			LOG.trace("Pretty-printing left:");
-			System.out.println(left.prettyPrint());
-			LOG.trace("Pretty-printing right:");
-			System.out.println(right.prettyPrint());
-			LOG.trace("Pretty-printing merge:");
-			if (context.isQuiet()) {
-				System.out.println(targetNode.prettyPrint());
+
+		try {
+			astMergeOp.apply(context);
+
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Structured merge finished.");
+				LOG.trace("target.dumpTree():");
+				System.out.println(targetNode.dumpTree());
+
+				LOG.trace("Pretty-printing left:");
+				System.out.println(left.prettyPrint());
+				LOG.trace("Pretty-printing right:");
+				System.out.println(right.prettyPrint());
+				LOG.trace("Pretty-printing merge:");
+				if (context.isQuiet()) {
+					System.out.println(targetNode.prettyPrint());
+				}
 			}
-		}
 
-		context.append(targetNode.prettyPrint());
+			context.append(targetNode.prettyPrint());
 
-		if (context.hasErrors()) {
-			System.err.println(context.getStdErr());
-		}
+			if (context.hasErrors()) {
+				System.err.println(context.getStdErr());
+			}
 
-		// write output
-		if (target != null) {
-			assert (target.exists());
-			target.write(context.getStdIn());
+			// write output
+			if (target != null) {
+				assert (target.exists());
+				target.write(context.getStdIn());
+			}
+
+		} catch (Exception e) {
+			assert (errorlog.exists());
+			if (errorWriter == null) {
+				errorWriter = new FileWriter(errorlog);
+			}
+			errorWriter.write(triple.getLeft().getPath() + " "
+					+ triple.getBase().getPath() + " "
+					+ triple.getRight().getPath() + System.lineSeparator());
+			errorWriter.write(e.getMessage() + System.lineSeparator());
+			errorWriter.write(e.getStackTrace().toString()
+					+ System.lineSeparator());
+			errorWriter.write(System.lineSeparator());
+
 		}
 
 		// FIXME: remove me when implementation is complete!
-		//throw new NotYetImplementedException(
-		//		"StructuredStrategy: Implement me!");
+		// throw new NotYetImplementedException(
+		// "StructuredStrategy: Implement me!");
 	}
 
 	/*
