@@ -175,8 +175,8 @@ public class Stats {
 	 */
 	public final int getOperation(final String opName) {
 		assert (operations != null);
-		assert (operations.containsKey(opName));
-		return operations.get(opName);
+		Integer op = operations.get(opName);
+		return op == null ? 0 : op;
 	}
 	
 }
