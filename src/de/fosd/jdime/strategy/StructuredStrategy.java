@@ -161,6 +161,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					+ triple.getBase().getPath() + " "
 					+ triple.getRight().getPath());
 			errorprinter.close();
+			System.err.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
+					+ triple.getBase().getPath() + " "
+					+ triple.getRight().getPath());
 
 		}
 
