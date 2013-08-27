@@ -1,12 +1,21 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.unordered;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -14,66 +23,42 @@ import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 
 /**
+ * This unordered matcher calls an LP-Solver to solve the assignment problem.
  * @author Olaf Lessenich
- *
+ * 
+ * @param <T>
+ *            type of artifact
  */
-public final class UnorderedASTMatcher {
+public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
+
+	/**
+	 * @param matcher matcher
+	 */
+	public LPMatcher(final Matcher<T> matcher) {
+		super(matcher);
+	}
 	
 	/**
-	 * Private constructor.
+	 * 
 	 */
-	private UnorderedASTMatcher() {
+	private static String id = "unordered";
+	
+	/**
+	 * Threshold for rounding errors.
+	 */
+	private static final double THRESHOLD = 1e-6;
+	
+	@Override
+	public final Matching<T> match(final T left, final T right) {
 		
-	}
-	
-	/**
-	 * Number of times this method was called.
-	 */
-	static int calls = 0;
-	
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG 
-			= Logger.getLogger(UnorderedASTMatcher.class);
-
-	/**
-	 * Returns the largest common subtree of two unordered trees.
-	 * 
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree of left and right tree
-	 */
-	public static Matching match(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right) {
-		calls++;
-		// return brokenUnorderedTreeMatching(t1, t2);
-		return bipartiteMatching(left, right);
-		//return hungarianMatching(t1, t2);
-	}
-	
-	/**
-	 * Computes the largest common subtree of two unordered trees by computing
-	 * the maximum matching on weighted, bipartite graphs.
-	 * 
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree
-	 */
-	private static Matching bipartiteMatching(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right) {
-
-		String id = "unordered";
 
 		if (!left.matches(right)) {
-			return new Matching(left, right, 0);
+			return new Matching<T>(left, right, 0);
 		}
 
 		// number of first-level subtrees of t1
@@ -83,29 +68,43 @@ public final class UnorderedASTMatcher {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return new Matching(left, right, 1);
+			return new Matching<T>(left, right, 1);
 		}
 
-		Matching[][] matching = new Matching[m][n];
+		Matching<T>[][] matching = new Matching[m][n];
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matching[i][j] = new Matching();
+				matching[i][j] = new Matching<T>();
 			}
 		}
 
-		ASTNodeArtifact childT1;
-		ASTNodeArtifact childT2;
+		T childT1;
+		T childT2;
 
 		for (int i = 0; i < m; i++) {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching w = ASTMatcher.match(childT1, childT2);
+				Matching<T> w = matcher.match(childT1, childT2);
 				matching[i][j] = w;
 			}
 		}
 
+		return solveLP(left, right, matching);
+	}
+	
+	/**
+	 * Invokes the LP-Solver and solves the assignment problem.
+	 * @param left left artifact
+	 * @param right right artifact
+	 * @param matching matrix of matchings
+	 * @return rootmatching
+	 */
+	private Matching<T> solveLP(final T left, final T right, 
+			final Matching<T>[][] matching) {
+		int m = matching.length;
+		int n = matching[0].length;
 		int width = m > n ? m : n;
 		int cols = width * width;
 
@@ -126,9 +125,8 @@ public final class UnorderedASTMatcher {
 			// set bounds for column i: 0 <= x <= 1.0
 			// LO = lower, UP = upper, DB = double; superfluous are params
 			// ignored
-			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO, 
-					0.0 /* lower */, 
-					1.0 /* upper */);
+			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO,
+					0.0 /* lower */, 1.0 /* upper */);
 		}
 
 		/* constraints */
@@ -146,13 +144,12 @@ public final class UnorderedASTMatcher {
 			val = GLPK.new_doubleArray(width + 1);
 			for (int j = 1; j <= width; j++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, j, 
+				GLPK.intArray_setitem(ind, j,
 						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, j, 1.0);
 			}
-			GLPK.glp_set_mat_row(lp, i /* row */, 
-								width /* max array index */, 
-								ind, val);
+			GLPK.glp_set_mat_row(lp, i /* row */, width /* max array index */,
+					ind, val);
 		}
 
 		// column constraints
@@ -162,7 +159,7 @@ public final class UnorderedASTMatcher {
 			val = GLPK.new_doubleArray(width + 1);
 			for (int i = 1; i <= width; i++) {
 				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, i, 
+				GLPK.intArray_setitem(ind, i,
 						getGlpkIndex(i - 1, j - 1, width) + 1);
 				GLPK.doubleArray_setitem(val, i, 1.0);
 			}
@@ -214,15 +211,15 @@ public final class UnorderedASTMatcher {
 		// prevent precision problems
 		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
-		List<Matching> children = new LinkedList<Matching>();
+		List<Matching<T>> children = new LinkedList<Matching<T>>();
 
 		for (int c = 1; c <= cols; c++) {
-			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < 1e-6) {
+			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
 				int[] indices = getMyIndices(c - 1, width);
 				int i = indices[0];
 				int j = indices[1];
 				if (i < m && j < n) { // FIXME see above
-					Matching curMatching = matching[i][j];
+					Matching<T> curMatching = matching[i][j];
 					if (curMatching.getScore() > 0) {
 						children.add(curMatching);
 						curMatching.setAlgorithm(id);
@@ -232,12 +229,12 @@ public final class UnorderedASTMatcher {
 		}
 		GLPK.glp_delete_prob(lp);
 
-		Matching rootmatching = new Matching(left, right, objective + 1);
+		Matching<T> rootmatching = new Matching<T>(left, right, objective + 1);
 		rootmatching.setChildren(children);
 
 		return rootmatching;
 	}
-	
+
 	/**
 	 * Computes indices in the constraint matrix.
 	 * 

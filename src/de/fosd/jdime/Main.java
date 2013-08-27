@@ -30,6 +30,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -83,6 +84,11 @@ public final class Main {
 	 * Output artifact.
 	 */
 	private static FileArtifact output = null;
+	
+	/**
+	 * FIXME: remove me when implementation is complete.
+	 */
+	private static boolean bugfixing = false;
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -135,10 +141,11 @@ public final class Main {
 			}
 
 		}
-
-		if (context.isDump()) {
+		
+		if (bugfixing) {
+			bugfixing();
+		} else if (context.isDump()) {
 			dump(inputFiles, output, context.isGuiDump());
-
 		} else {
 			merge(inputFiles, output);
 		}
@@ -169,7 +176,8 @@ public final class Main {
 				"print the version information and exit");
 		options.addOption("debug", true, "set debug level");
 		options.addOption("mode", true,
-				"set merge mode (textual, structured, combined)");
+				"set merge mode (textual, structured, combined, dumptree" 
+						+ ", dumpgraph, dumpfile, bugfixing)");
 		options.addOption("output", true, "output directory/file");
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("r", false, "merge directories recursively");
@@ -203,11 +211,16 @@ public final class Main {
 				try {
 					if (cmd.getOptionValue("mode").equals("list")) {
 						printStrategies(true);
+					} else if (cmd.getOptionValue("mode").equals("bugfixing")) {
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						bugfixing = true;
 					} else if (cmd.getOptionValue("mode").equals("dumptree")) {
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
 						context.setDump(true);
+						context.setGuiDump(false);
 					} else if (cmd.getOptionValue("mode").equals("dumpgraph")) {
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
@@ -253,7 +266,8 @@ public final class Main {
 
 			int numInputFiles = cmd.getArgList().size();
 
-			if (!context.isDump() && numInputFiles < MergeType.MINFILES
+			if (!context.isDump() && !bugfixing 
+					&& numInputFiles < MergeType.MINFILES
 					|| numInputFiles > MergeType.MAXFILES) {
 				// number of input files does not fit
 				help(options, 0);
@@ -424,6 +438,31 @@ public final class Main {
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
 			strategy.dump(artifact, graphical);
 		}
+	}
+	
+	/**
+	 * @throws InterruptedException 
+	 * @throws IOException 
+	 * 
+	 */
+	private static void bugfixing() throws IOException, InterruptedException {
+		context.setQuiet(false);
+		setLogLevel("trace");
+		String postfix = "/SimpleTests/Bag/Bag2.java";
+		File[] files = new File[] { new File("left" + postfix),
+									new File("base" + postfix),
+									new File("right" + postfix)};
+		ArtifactList<FileArtifact> input = new ArtifactList<>();
+		
+		for (int i = 0; i < files.length; i++) {
+			File file = files[i];
+			assert (file.exists());
+			FileArtifact artifact = new FileArtifact(file);
+			input.add(artifact);
+		}
+		
+
+		merge(input, null);
 	}
 
 }

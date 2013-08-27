@@ -111,6 +111,12 @@ public class MergeContext {
 		}
 	}
 	
+	public final void append(final String s) {
+		if (stdIn != null) {
+			stdIn.append(s);
+		}
+	}
+	
 	/**
 	 * Returns the merge strategy.
 	 * 
@@ -146,6 +152,14 @@ public class MergeContext {
 	public final String getStdIn() {
 		assert (stdErr != null);
 		return stdIn.toString();
+	}
+	
+	/**
+	 * Returns true if stdin is not empty.
+	 * @return true if stdin is not empty
+	 */
+	public final boolean hasOutput() {
+		return stdIn != null && stdIn.toString().length() != 0;
 	}
 	
 

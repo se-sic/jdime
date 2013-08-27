@@ -17,15 +17,14 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import AST.Program;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.ASTMatcher;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -91,29 +90,47 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		base = new ASTNodeArtifact(triple.getBase());
 		right = new ASTNodeArtifact(triple.getRight());
 
-		ASTNodeArtifact targetNode = left.createEmptyDummy();
+		// Output tree
+		//Program program = new Program();
+		//program.state().reset();
+		//ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
+		ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
+		targetNode.setRevision(left.getRevision());
+		targetNode.forceRenumbering();
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("target.dumpTree(:");
+			System.out.println(targetNode.dumpTree());
+		}
 
 		MergeTriple<ASTNodeArtifact> nodeTriple 
 			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
 					left, base, right);
-
-		if (!base.isEmptyDummy()) {
-			// 3-way merge
-
-			// diff base left
-			diff(base, left, Color.GREEN);
-
-			// diff base right
-			diff(base, right, Color.GREEN);
-		}
-
-		// diff left right
-		diff(left, right, Color.BLUE);
 		
 		MergeOperation<ASTNodeArtifact> astMergeOp 
 			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("ASTMOperation.apply(context)");
+		}
 		astMergeOp.apply(context);
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Structured merge finished.");
+			LOG.trace("target.dumpTree():");
+			System.out.println(targetNode.dumpTree());
+			
+			LOG.trace("Pretty-printing left:");
+			System.out.println(left.prettyPrint());
+			LOG.trace("Pretty-printing right:");
+			System.out.println(right.prettyPrint());
+			LOG.trace("Pretty-printing merge:");
+			if (context.isQuiet()) {
+				System.out.println(targetNode.prettyPrint());
+			}
+		}
+
+		context.append(targetNode.prettyPrint());
 
 		if (context.hasErrors()) {
 			System.err.println(context.getStdErr());
@@ -126,39 +143,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		// FIXME: remove me when implementation is complete!
-		throw new NotYetImplementedException(
-				"StructuredStrategy: Implement me!");
-	}
-
-	/**
-	 * Compares two nodes.
-	 * @param left left node
-	 * @param right right node
-	 * @param color color of the matching (for debug output only)
-	 * @return Matching of the two nodes
-	 */
-	private Matching diff(final ASTNodeArtifact left, 
-			final ASTNodeArtifact right, final Color color) {
-		ASTMatcher.reset();
-		LOG.trace(left.getRevision() + ".size = " + left.getTreeSize());
-		LOG.trace(right.getRevision() + ".size = " + right.getTreeSize());
-		LOG.debug("Compute match(" + left.getRevision() + ", "
-				+ right.getRevision() + ")");
-		Matching m = ASTMatcher.match(left, right);
-		LOG.debug("match(" + left.getRevision() + ", " + right.getRevision()
-				+ ") = " + m.getScore());
-		LOG.trace(ASTMatcher.getLog());
-		LOG.debug("Store matching information within nodes.");
-		ASTMatcher.storeMatching(m, color);
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(left.getRevision() + ".dumpTree():");
-			System.out.println(left.dumpTree());
-			System.out.println();
-			LOG.trace(right.getRevision() + ".dumpTree():");
-			System.out.println(right.dumpTree());
-		}
-		return m;
+		//throw new NotYetImplementedException(
+		//		"StructuredStrategy: Implement me!");
 	}
 
 	/*
@@ -186,7 +172,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// FIXME: remove me when implementation is complete!
 		throw new NotYetImplementedException(
 				"StructuredStrategy: Implement me!");
-
 	}
 
 	@Override
