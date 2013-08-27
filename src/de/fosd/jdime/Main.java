@@ -143,7 +143,7 @@ public final class Main {
 		}
 		
 		if (bugfixing) {
-			bugfixing();
+			bugfixing(inputFiles);
 		} else if (context.isDump()) {
 			dump(inputFiles, output, context.isGuiDump());
 		} else {
@@ -445,24 +445,29 @@ public final class Main {
 	 * @throws IOException 
 	 * 
 	 */
-	private static void bugfixing() throws IOException, InterruptedException {
+	private static void bugfixing(final ArtifactList<FileArtifact> inputArtifacts) throws IOException, InterruptedException {
 		context.setQuiet(false);
 		setLogLevel("trace");
-		String postfix = "/SimpleTests/Bag/Bag2.java";
-		File[] files = new File[] { new File("left" + postfix),
-									new File("base" + postfix),
-									new File("right" + postfix)};
-		ArtifactList<FileArtifact> input = new ArtifactList<>();
+		//String postfix = "/SimpleTests/Bag/Bag2.java";
+		//File[] files = new File[] { new File("left" + postfix),
+		//							new File("base" + postfix),
+		//							new File("right" + postfix)};
+		//ArtifactList<FileArtifact> input = new ArtifactList<>();
 		
-		for (int i = 0; i < files.length; i++) {
-			File file = files[i];
-			assert (file.exists());
-			FileArtifact artifact = new FileArtifact(file);
-			input.add(artifact);
-		}
+		//for (int i = 0; i < files.length; i++) {
+		//	File file = files[i];
+		//	assert (file.exists());
+		//	FileArtifact artifact = new FileArtifact(file);
+		//	input.add(artifact);
+		//}
 		
 
-		merge(input, null);
+		//merge(input, null);
+		
+		for (FileArtifact artifact : inputArtifacts) {
+		    ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
+		    System.out.println(ast.prettyPrint());
+		}
 	}
 
 }

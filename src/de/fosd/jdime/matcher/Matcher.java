@@ -99,19 +99,19 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		
 		if (isOrdered) {
 			orderedCalls++;
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
-						+ left.getId() + ", " + right.getId() + ")");
-			}
+			//if (LOG.isTraceEnabled()) {
+			//	LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
+			//			+ left.getId() + ", " + right.getId() + ")");
+			//}
 			
 			return orderedMatcher.match(left, right);
 		} else {
 			unorderedCalls++;
 			
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(unorderedMatcher.getClass().getSimpleName() + ".match("
-						+ left.getId() + ", " + right.getId() + ")");
-			}
+			//if (LOG.isTraceEnabled()) {
+			//	LOG.trace(unorderedMatcher.getClass().getSimpleName() + ".match("
+			//			+ left.getId() + ", " + right.getId() + ")");
+			//}
 			
 			return unorderedMatcher.match(left, right);
 		}

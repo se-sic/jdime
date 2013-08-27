@@ -585,7 +585,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		rebuildAST();
 		astnode.flushCaches();
-		// System.out.println(astnode.dumpTree());
+		if (LOG.isDebugEnabled()) {
+		    System.out.println(dumpTree());
+		}
 		return astnode.prettyPrint();
 	}
 
