@@ -619,37 +619,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			newchildren[i] = child.astnode;
 			newchildren[i].setParent(astnode);
 			child.rebuildAST();
-			astnode.jdimeId = getId();
+			
 		}
+		astnode.jdimeChanges = hasChanges();
+		astnode.jdimeId = getId();
 		astnode.setChildren(newchildren);
-		// astnode.flushCache();
-		//
-		// if (getParent() == null) {
-		// // this is the root node
-		// if (astnode instanceof Program) {
-		// Program p = (Program) astnode;
-		// LinkedList<CompilationUnit> cus
-		// = new LinkedList<CompilationUnit>();
-		//
-		// Iterator<CompilationUnit> it = p.compilationUnitIterator();
-		// while (it.hasNext()) {
-		// cus.add(it.next());
-		// }
-		//
-		// p = new Program();
-		// p.state().reset();
-		// p.flushCaches();
-		//
-		//
-		// for (CompilationUnit cu : cus) {
-		//
-		// cu.flushCaches();
-		// p.addCompilationUnit(cu);
-		// }
-		//
-		// astnode = p;
-		// }
-		// }
+
 
 		if (LOG.isTraceEnabled()) {
 			if (getNumChildren() != astnode.getNumChildNoTransform()) {

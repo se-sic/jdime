@@ -123,7 +123,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			LOG.trace("ASTMOperation.apply(context)");
 		}
 
-		try {
+//		try {
 			astMergeOp.apply(context);
 
 			if (LOG.isTraceEnabled()) {
@@ -153,19 +153,19 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				target.write(context.getStdIn());
 			}
 
-		} catch (Exception e) {
-			File errorfile = new File(errorlog);
-			assert (errorfile.exists());
-			PrintWriter errorprinter = new PrintWriter(new BufferedWriter(new FileWriter(errorfile, true)));
-			errorprinter.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
-					+ triple.getBase().getPath() + " "
-					+ triple.getRight().getPath());
-			errorprinter.close();
-			System.err.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
-					+ triple.getBase().getPath() + " "
-					+ triple.getRight().getPath());
-
-		}
+//		} catch (Exception e) {
+//			File errorfile = new File(errorlog);
+//			assert (errorfile.exists());
+//			PrintWriter errorprinter = new PrintWriter(new BufferedWriter(new FileWriter(errorfile, true)));
+//			errorprinter.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
+//					+ triple.getBase().getPath() + " "
+//					+ triple.getRight().getPath());
+//			errorprinter.close();
+//			System.err.println(e.toString()+ ": " + triple.getLeft().getPath() + " "
+//					+ triple.getBase().getPath() + " "
+//					+ triple.getRight().getPath());
+//
+//		}
 
 		// FIXME: remove me when implementation is complete!
 		// throw new NotYetImplementedException(
