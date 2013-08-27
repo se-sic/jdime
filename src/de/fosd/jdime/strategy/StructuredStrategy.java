@@ -85,6 +85,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		// The Result is pretty printed and can be written into the output file.
 
 		ASTNodeArtifact left, base, right;
+		
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Merging: " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " " + triple.getRight().getPath());
+		}
 
 		left = new ASTNodeArtifact(triple.getLeft());
 		base = new ASTNodeArtifact(triple.getBase());

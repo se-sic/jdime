@@ -474,6 +474,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
+		if (astnode instanceof ImportDecl && other.astnode instanceof ImportDecl) {
+			return astnode.toString().equals(other.astnode.toString());
+		}
+		
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 

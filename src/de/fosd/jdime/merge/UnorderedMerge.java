@@ -180,13 +180,17 @@ public class UnorderedMerge<T extends Artifact<T>>
 			} else if (l.contains(rightChild) && r.contains(leftChild)) {
 				// left and right have the artifact. merge it.
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(leftChild) + "is in both revisions [" 
-							+ rightChild.getId() + "]");
+					LOG.trace(prefix(leftChild) + "is in both revisions, [" 
+							+ rightChild.getId() + "] too");
+					
 				}
-				assert (leftChild.hasMatching(rightChild) && rightChild
-						.hasMatching(leftChild));
-
-				if (!leftChild.isMerged() && !rightChild.isMerged()) {
+				
+				//merge left
+				
+				if (!leftChild.isMerged()) {
+					Matching<T> mRight = leftChild.getMatching(r);
+					T rightMatch = mRight.getMatchingArtifact(leftChild);
+					
 					// determine whether the child is 2 or 3-way merged
 					Matching<T> mBase = leftChild.getMatching(b);
 
@@ -198,13 +202,13 @@ public class UnorderedMerge<T extends Artifact<T>>
 							.addChild(leftChild);
 
 					MergeTriple<T> childTriple = new MergeTriple<T>(childType,
-							leftChild, baseChild, rightChild);
+							leftChild, baseChild, rightMatch);
 
 					MergeOperation<T> mergeOp = new MergeOperation<T>(
 							childTriple, targetChild);
 
 					leftChild.setMerged(true);
-					rightChild.setMerged(true);
+					rightMatch.setMerged(true);
 					mergeOp.apply(context);
 				}
 
@@ -212,6 +216,32 @@ public class UnorderedMerge<T extends Artifact<T>>
 					leftChild = leftIt.next();
 				} else {
 					leftdone = true;
+				}
+				
+				// merge right
+				if (!rightChild.isMerged()) {
+					Matching<T> mLeft = rightChild.getMatching(l);
+					T leftMatch = mLeft.getMatchingArtifact(rightChild);
+					
+					// determine whether the child is 2 or 3-way merged
+					Matching<T> mBase = rightChild.getMatching(b);
+
+					MergeType childType = mBase == null ? MergeType.TWOWAY
+							: MergeType.THREEWAY;
+					T baseChild = mBase == null ? rightChild.createEmptyDummy()
+							: mBase.getMatchingArtifact(rightChild);
+					T targetChild = target == null ? null : target
+							.addChild(rightChild);
+
+					MergeTriple<T> childTriple = new MergeTriple<T>(childType,
+							leftMatch, baseChild, rightChild);
+
+					MergeOperation<T> mergeOp = new MergeOperation<T>(
+							childTriple, targetChild);
+
+					leftMatch.setMerged(true);
+					rightChild.setMerged(true);
+					mergeOp.apply(context);
 				}
 
 				if (rightIt.hasNext()) {
