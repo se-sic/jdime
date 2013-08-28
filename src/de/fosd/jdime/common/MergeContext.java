@@ -148,7 +148,7 @@ public class MergeContext {
 	public final void appendLine(final String line) {
 		if (stdIn != null) {
 			stdIn.append(line);
-			stdIn.append(System.getProperty("line.separator"));
+			stdIn.append(System.lineSeparator());
 		}
 	}
 

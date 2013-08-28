@@ -566,6 +566,7 @@ public class FileArtifact extends Artifact<FileArtifact> implements
 		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.println(context.getStdIn());
 		}
+		context.resetStreams();
 
 	}
 

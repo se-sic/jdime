@@ -83,7 +83,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(leftChild) + "is not in right");
 				}
-				if (b.contains(leftChild)) {
+				if (b != null && b.contains(leftChild)) {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace(prefix(leftChild) + "was deleted by right");
 					}
@@ -112,7 +112,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						if (LOG.isTraceEnabled()) {
 							LOG.trace(prefix(rightChild) + "is not in left");
 						}
-						if (b.contains(rightChild)) {
+						if (b != null && b.contains(rightChild)) {
 							if (LOG.isTraceEnabled()) {
 								LOG.trace(prefix(rightChild)
 										+ "was deleted by left");
@@ -174,7 +174,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(rightChild) + "is not in left");
 				}
-				if (b.contains(rightChild)) {
+				if (b != null && b.contains(rightChild)) {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace(prefix(rightChild) + "was deleted by left");
 					}
@@ -205,7 +205,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						if (LOG.isTraceEnabled()) {
 							LOG.trace(prefix(leftChild) + "is not in right");
 						}
-						if (b.contains(leftChild)) {
+						if (b != null && b.contains(leftChild)) {
 							if (LOG.isTraceEnabled()) {
 								LOG.trace(prefix(leftChild)
 										+ "was deleted by right");

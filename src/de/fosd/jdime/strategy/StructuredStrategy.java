@@ -13,11 +13,9 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.StringReader;
 
 import org.apache.log4j.Logger;
 
@@ -28,6 +26,7 @@ import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
 
 /**
  * Performs a structured merge.
@@ -69,8 +68,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
+				|| triple.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -80,8 +79,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) 
+				: "Would be overwritten: " + target;
 		}
 
 		// ASTNodeArtifacts are created from the input files.
@@ -95,6 +94,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					+ triple.getBase().getPath() + " "
 					+ triple.getRight().getPath());
 		}
+		
+		long cmdStart = System.currentTimeMillis();
 
 		left = new ASTNodeArtifact(triple.getLeft());
 		base = new ASTNodeArtifact(triple.getBase());
@@ -113,11 +114,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			System.out.println(targetNode.dumpTree());
 		}
 
-		MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<ASTNodeArtifact>(
-				triple.getMergeType(), left, base, right);
+		MergeTriple<ASTNodeArtifact> nodeTriple 
+			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
+					left, base, right);
 
-		MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<ASTNodeArtifact>(
-				nodeTriple, targetNode);
+		MergeOperation<ASTNodeArtifact> astMergeOp 
+			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("ASTMOperation.apply(context)");
@@ -141,7 +143,84 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 			}
 
-			context.append(targetNode.prettyPrint());
+			// process input stream
+			BufferedReader buf = new BufferedReader(new StringReader(
+					targetNode.prettyPrint()));
+			boolean conflict = false;
+			boolean afterconflict = false;
+			boolean inleft = false;
+			boolean inright = false;
+			
+			int conflicts = 0;
+			int loc = 0;
+			int cloc = 0;
+			int tmp = 0;
+			String line = "";
+			StringBuffer leftlines = null;
+			StringBuffer rightlines = null;
+			
+			while ((line = buf.readLine()) != null) {
+				if (line.matches("^$") || line.matches("^\\s*$")) {
+					// skip empty lines
+					if (!conflict && !afterconflict) {
+						context.appendLine(line);
+					}
+					continue;
+				}
+				
+				if (line.matches("^\\s*<<<<<<<.*")) {
+					conflict = true;
+					tmp = cloc;
+					conflicts++;
+					inleft = true;
+					
+					if (!afterconflict) {
+						// new conflict or new chain of conflicts
+						leftlines = new StringBuffer();
+						rightlines = new StringBuffer();
+					} else {
+						// is directly after a previous conflict
+						// lets merge them
+						conflicts--;
+					}
+				} else if (line.matches("^\\s*=======.*")) {
+					inleft = false;
+					inright = true;
+				} else if (line.matches("^\\s*>>>>>>>.*")) {
+					conflict = false;
+					afterconflict = true;
+					if (tmp == cloc) {
+						// only empty lines
+						conflicts--;
+					}
+					inright = false;
+				} else {
+					loc++;
+					if (conflict) {
+						cloc++;
+						if (inleft) {
+							leftlines.append(line + System.lineSeparator());
+						} else if (inright) {
+							rightlines.append(line + System.lineSeparator());
+						}
+					} else {
+						if (afterconflict) {
+							// need to print the previous conflict(s)
+							context.appendLine("<<<<<<< ");
+							context.append(leftlines.toString());
+							context.appendLine("======= ");
+							context.append(rightlines.toString());
+							context.appendLine(">>>>>>> ");
+						}
+						afterconflict = false;
+						context.appendLine(line);
+					}
+				}
+			}
+			
+			long cmdStop = System.currentTimeMillis();
+			LOG.debug("Structured merge finished after " + (cmdStop - cmdStart)
+					+ " ms.");
 
 			if (context.hasErrors()) {
 				System.err.println(context.getStdErr());
@@ -152,6 +231,30 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				assert (target.exists());
 				target.write(context.getStdIn());
 			}
+			// add statistical data to context
+			if (context.hasStats()) {
+				assert (cloc <= loc);
+
+				Stats stats = context.getStats();
+				StatsElement linesElement = stats.getElement("lines");
+				assert (linesElement != null);
+				StatsElement newElement = new StatsElement();
+				newElement.setMerged(loc);
+				newElement.setConflicting(cloc);
+				linesElement.addStatsElement(newElement);
+
+				if (conflicts > 0) {
+					assert (cloc > 0);
+					stats.addConflicts(conflicts);
+					StatsElement filesElement = stats.getElement("files");
+					assert (filesElement != null);
+					filesElement.incrementConflicting();
+				} else {
+					assert (cloc == 0);
+				}
+
+			}
+			
 
 //		} catch (Exception e) {
 //			File errorfile = new File(errorlog);
@@ -166,10 +269,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 //					+ triple.getRight().getPath());
 //
 //		}
-
-		// FIXME: remove me when implementation is complete!
-		// throw new NotYetImplementedException(
-		// "StructuredStrategy: Implement me!");
 	}
 
 	/*
@@ -189,7 +288,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files", "nodes" });
+		return new Stats(new String[] { "directories", "files", "lines", 
+				"nodes" });
 	}
 
 	@Override
