@@ -612,7 +612,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			if (right != null) {
 				right.rebuildAST();
-				astnode.right= right.astnode;
+				astnode.right = right.astnode;
 			}
 			
 			
@@ -640,7 +640,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				sb.append("astnode has " + astnode.getNumChildNoTransform()
 						+ " children: {");
 				
-				ASTNode[] astnodechildren = new ASTNode[astnode.getNumChild()];
+				ASTNode<?>[] astnodechildren 
+					= new ASTNode[astnode.getNumChild()];
 				for (int i = 0; i < astnode.getNumChild(); i++) {
 					astnodechildren[i] = astnode.getChild(i);
 				}
