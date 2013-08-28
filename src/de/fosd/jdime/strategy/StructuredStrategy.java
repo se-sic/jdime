@@ -231,6 +231,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				assert (target.exists());
 				target.write(context.getStdIn());
 			}
+			
 			// add statistical data to context
 			if (context.hasStats()) {
 				assert (cloc <= loc);

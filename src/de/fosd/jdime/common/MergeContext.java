@@ -125,6 +125,18 @@ public class MergeContext {
 			stdIn.append(s);
 		}
 	}
+	
+	/**
+	 * Append a String to stdERR.
+	 * 
+	 * @param s
+	 *            String to append
+	 */
+	public final void appendError(final String s) {
+		if (stdErr != null) {
+			stdErr.append(s);
+		}
+	}
 
 	/**
 	 * Appends a line to the saved stderr buffer.
@@ -150,6 +162,22 @@ public class MergeContext {
 			stdIn.append(line);
 			stdIn.append(System.lineSeparator());
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public final Object clone() {
+		MergeContext clone = new MergeContext();
+		clone.forceOverwriting = forceOverwriting;
+		clone.mergeStrategy = mergeStrategy;
+		clone.inputFiles = inputFiles;
+		clone.outputFile = outputFile;
+		clone.quiet = quiet;
+		clone.recursive = recursive;
+		clone.saveStats = saveStats;
+		return clone;
 	}
 
 	/**
