@@ -401,6 +401,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final boolean hasUniqueLabels() {
+		if (astnode instanceof ImportDecl) {
+			return true;
+		}
+		
 		return false;
 	}
 
