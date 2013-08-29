@@ -17,7 +17,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -41,9 +44,14 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
 
 	/**
-	 * Constant prefix of the base merge command.
+	 * Basic merge command.
 	 */
-	private static final String BASECMD = "merge -q -p";
+	private static final String BASECMD = "/usr/bin/merge";
+	
+	/**
+	 * Basic merge arguments.
+	 */
+	private static final String BASEARGS = "-q -p";
 
 	/*
 	 * (non-Javadoc)
@@ -82,17 +90,27 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			assert (!target.exists() || target.isEmpty()) 
 				: "Would be overwritten: " + target;
 		}
-
-		String cmd = BASECMD + " " + triple;
+		
+		List<String> cmd = new LinkedList<>();
+		
+		cmd.add(BASECMD);
+		cmd.add(BASEARGS);
+		for (FileArtifact file : triple.getList()) {
+			cmd.add(file.getPath());
+		}
+		
+		ProcessBuilder pb = new ProcessBuilder(cmd);
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
-		LOG.debug("Running external command: " + cmd);
+		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
 
 		long cmdStart = System.currentTimeMillis();
 
-		Runtime run = Runtime.getRuntime();
-		Process pr = run.exec(cmd.toString());
+		//Runtime run = Runtime.getRuntime();
+		//Process pr = run.exec(cmd.toString());
+		Process pr = pb.start();
+		
 
 		// process input stream
 		BufferedReader buf = new BufferedReader(new InputStreamReader(
@@ -170,6 +188,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 				+ " ms.");
 
 		if (context.hasErrors()) {
+			LOG.fatal("Errors occured while calling '" + cmd + "')");
 			System.err.println(context.getStdErr());
 		}
 

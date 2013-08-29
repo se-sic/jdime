@@ -201,4 +201,17 @@ public class MergeTriple<T extends Artifact<T>> {
 		sb.append(right.getId());
 		return sb.toString();
 	}
+	
+	/**
+	 * Returns a list containing all three revision. 
+	 * Empty dummies for base are included.
+	 * @return list of artifacts
+	 */
+	public final ArtifactList<T> getList() {
+		ArtifactList<T> list = new ArtifactList<>();
+		list.add(left);
+		list.add(base);
+		list.add(right);
+		return list;
+	}
 }
