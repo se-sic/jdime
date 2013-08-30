@@ -710,12 +710,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		//Program program = new Program();
 		//program.state().reset();
 		Program old = (Program) artifact.astnode;
-		Program program = new Program();
+		Program program = null;
 		try {
 			program = old.clone();
 		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			program = new Program();
 		}
 		
 		ASTNodeArtifact p = new ASTNodeArtifact(program);
