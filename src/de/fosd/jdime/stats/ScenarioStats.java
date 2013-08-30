@@ -3,6 +3,7 @@
  */
 package de.fosd.jdime.stats;
 
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeTriple;
 
 /**
@@ -13,7 +14,7 @@ public class ScenarioStats {
 	/**
 	 * 
 	 */
-	private MergeTriple<?> triple;
+	private MergeTriple<FileArtifact> triple;
 
 	/**
 	 * 
@@ -37,14 +38,21 @@ public class ScenarioStats {
 
 	/**
 	 * Class Constructor.
-	 * @param triple merge triple
-	 * @param conflicts number of conflicts
-	 * @param conflictingLines number of conflicting lines
-	 * @param lines number of lines
-	 * @param runtime runtime for the scenario
+	 * 
+	 * @param triple
+	 *            merge triple
+	 * @param conflicts
+	 *            number of conflicts
+	 * @param conflictingLines
+	 *            number of conflicting lines
+	 * @param lines
+	 *            number of lines
+	 * @param runtime
+	 *            runtime for the scenario
 	 */
-	public ScenarioStats(final MergeTriple<?> triple, final int conflicts,
-			final int conflictingLines, final int lines, final long runtime) {
+	public ScenarioStats(final MergeTriple<FileArtifact> triple,
+			final int conflicts, final int conflictingLines, final int lines,
+			final long runtime) {
 		this.triple = triple;
 		this.conflicts = conflicts;
 		this.conflictingLines = conflictingLines;
@@ -86,11 +94,10 @@ public class ScenarioStats {
 	public final long getRuntime() {
 		return runtime;
 	}
-	
+
 	public String toString() {
 		return triple.toString() + ": " + conflicts + " conflicts, "
-				+ conflictingLines + " cloc, "
-				+ lines + " loc, "
-				+ runtime + " ms.";
+				+ conflictingLines + " cloc, " + lines + " loc, " + runtime
+				+ " ms.";
 	}
 }
