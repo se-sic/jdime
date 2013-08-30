@@ -258,7 +258,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			}
 		} catch (Throwable t) {
 			if (!context.isKeepGoing()) {
-				throw t;
+				throw new Error(t);
 			} else {
 				LOG.fatal(t + "  while merging " 
 						+ triple.getLeft().getPath() + " "
