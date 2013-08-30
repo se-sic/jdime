@@ -87,8 +87,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		ASTNodeArtifact left, base, right;
 
-		if (LOG.isInfoEnabled()) {
-			LOG.info("Merging: " + triple.getLeft().getPath() + " "
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Merging: " + triple.getLeft().getPath() + " "
 					+ triple.getBase().getPath() + " "
 					+ triple.getRight().getPath());
 		}

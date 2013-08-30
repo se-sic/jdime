@@ -241,11 +241,13 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		}
 
 		matcher.storeMatching(m, color);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Dumping matching of " + left.getRevision() + " and "
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Dumping matching of " + left.getRevision() + " and "
 					+ right.getRevision());
 			System.out.println(m.dumpTree());
-			
+		}
+		
+		if (LOG.isDebugEnabled()) {
 			LOG.debug(left.getRevision() + ".dumpTree():");
 			System.out.println(left.dumpTree());
 			

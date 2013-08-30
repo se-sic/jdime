@@ -51,7 +51,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	/**
 	 * Basic merge arguments.
 	 */
-	private static final String BASEARGS = "-q -p";
+	private static final String[] BASEARGS = {"-q",  "-p"};
 
 	/*
 	 * (non-Javadoc)
@@ -94,7 +94,10 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		List<String> cmd = new LinkedList<>();
 		
 		cmd.add(BASECMD);
-		cmd.add(BASEARGS);
+		for (int i = 0; i < BASEARGS.length; i++) {
+			cmd.add(BASEARGS[i]);
+		}
+		
 		for (FileArtifact file : triple.getList()) {
 			cmd.add(file.getPath());
 		}
@@ -106,12 +109,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
 
 		long cmdStart = System.currentTimeMillis();
-
-		//Runtime run = Runtime.getRuntime();
-		//Process pr = run.exec(cmd.toString());
 		Process pr = pb.start();
 		
-
 		// process input stream
 		BufferedReader buf = new BufferedReader(new InputStreamReader(
 				pr.getInputStream()));
@@ -145,6 +144,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 					continue;
 				}
 				if (line.matches("^\\s*<<<<<<<.*")) {
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("CONFLICT in " + triple);
+					}
 					conflict = true;
 					comment = false;
 					tmp = cloc;
