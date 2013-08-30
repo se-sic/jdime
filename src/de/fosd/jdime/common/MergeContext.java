@@ -101,6 +101,8 @@ public class MergeContext {
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
+	
+	private boolean keepGoing = false;
 
 	/**
 	 * Adds statistical data to already collected data.
@@ -411,5 +413,19 @@ public class MergeContext {
 		if (saveStats) {
 			stats = mergeStrategy.createStats();
 		}
+	}
+
+	/**
+	 * @return the keepGoing
+	 */
+	public final boolean isKeepGoing() {
+		return keepGoing;
+	}
+
+	/**
+	 * @param keepGoing the keepGoing to set
+	 */
+	public final void setKeepGoing(boolean keepGoing) {
+		this.keepGoing = keepGoing;
 	}
 }

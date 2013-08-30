@@ -233,4 +233,8 @@ public class Stats {
 		this.scenariostats.add(scenariostats);
 	}
 	
+	public final void resetScenarioStats() {
+		scenariostats = new LinkedList<>();
+	}
+	
 }

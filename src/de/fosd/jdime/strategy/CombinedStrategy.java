@@ -14,6 +14,7 @@
 package de.fosd.jdime.strategy;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -22,6 +23,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.ScenarioStats;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -52,31 +54,33 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		assert (context != null);
 
 		context.resetStreams();
-		
+
 		FileArtifact target = null;
 
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) 
-				: "Would be overwritten: " + target;
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
+					+ target;
 		}
 
 		if (LOG.isInfoEnabled()) {
 			MergeTriple<FileArtifact> triple = operation.getMergeTriple();
 			assert (triple != null);
 			assert (triple.isValid()) : "The merge triple is not valid!";
-			LOG.info("Merging: " + triple.getLeft().getPath()
-					+ " " + triple.getBase().getPath() + " "
+			LOG.info("Merging: " + triple.getLeft().getPath() + " "
+					+ triple.getBase().getPath() + " "
 					+ triple.getRight().getPath());
 		}
 
 		MergeContext subContext = (MergeContext) context.clone();
 		subContext.setOutputFile(null);
-		
+
 		if (LOG.isInfoEnabled()) {
 			LOG.info("Trying linebased strategy.");
 		}
+
+		long cmdStart = System.currentTimeMillis();
 		MergeStrategy<FileArtifact> s = new LinebasedStrategy();
 		subContext.setMergeStrategy(s);
 		subContext.setSaveStats(true);
@@ -87,12 +91,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			// merge not successful. we need another strategy.
 			if (LOG.isInfoEnabled()) {
 				String noun = conflicts > 1 ? "conflicts" : "conflict";
-				LOG.info("Got " + conflicts 
-						+ " " + noun + ". Need to use structured strategy.");
+				LOG.info("Got " + conflicts + " " + noun
+						+ ". Need to use structured strategy.");
 			}
 			subContext = (MergeContext) context.clone();
 			subContext.setOutputFile(null);
-			
+
 			s = new StructuredStrategy();
 			subContext.setMergeStrategy(s);
 			subContext.setSaveStats(true);
@@ -102,11 +106,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 				LOG.info("Linebased strategy worked fine.");
 			}
 		}
-		
+
+		long cmdStop = System.currentTimeMillis();
+		long runtime = cmdStop - cmdStart;
+
 		if (subContext.hasOutput()) {
 			context.append(subContext.getStdIn());
 		}
-		
+
 		if (subContext.hasErrors()) {
 			context.appendError(subContext.getStdErr());
 		}
@@ -120,7 +127,25 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		// add statistical data to context
 		if (context.hasStats()) {
 			if (subContext.hasStats()) {
-				context.addStats(subContext.getStats());
+				Stats stats = context.getStats();
+				Stats substats = subContext.getStats();
+				substats.setRuntime(runtime);
+				ScenarioStats subscenariostats = substats.getScenariostats()
+						.remove(0);
+				assert (substats.getScenariostats().isEmpty());
+
+				if (subscenariostats.hasErrors()) {
+					stats.addScenarioStats(subscenariostats);
+				} else {
+					ScenarioStats scenariostats = new ScenarioStats(
+							subscenariostats.getTriple(),
+							subscenariostats.getConflicts(),
+							subscenariostats.getConflictingLines(),
+							subscenariostats.getLines(), runtime);
+					stats.addScenarioStats(scenariostats);
+				}
+
+				context.addStats(substats);
 			}
 		}
 

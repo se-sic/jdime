@@ -35,6 +35,10 @@ public class ScenarioStats {
 	 * 
 	 */
 	private long runtime;
+	
+	private boolean error;
+	
+	private String errormsg;
 
 	/**
 	 * Class Constructor.
@@ -59,11 +63,24 @@ public class ScenarioStats {
 		this.lines = lines;
 		this.runtime = runtime;
 	}
+	
+	public ScenarioStats(String errormsg) {
+		this.error = true;
+		this.errormsg = errormsg;
+	}
+	
+	public final boolean hasErrors() {
+		return error;
+	}
+	
+	public final String getErrorMsg() {
+		return errormsg;
+	}
 
 	/**
 	 * @return the triple
 	 */
-	public final MergeTriple<?> getTriple() {
+	public final MergeTriple<FileArtifact> getTriple() {
 		return triple;
 	}
 
