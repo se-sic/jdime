@@ -92,6 +92,10 @@ public final class StatsPrinter {
 		}
 
 		System.out.println(delimiter);
+		
+		System.out.println("Runtime: " + stats.getRuntime() + " ms");
+		
+		System.out.println(delimiter);
 	
 		// sanity checks
 		if (context.getMergeStrategy().getClass().getName().equals(

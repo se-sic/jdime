@@ -86,8 +86,11 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				// matching
-				Matching<T> childMatching = matcher
-						.match(leftChild, rightChild);
+				Matching<T> childMatching 
+					= matcher.match(leftChild, rightChild);
+				
+				//Matching<T> childMatching 
+				//	= new Matching<T>(leftChild, rightChild, 1); 
 				childrenMatchings.add(childMatching);
 				sum += childMatching.getScore();
 				if (leftIt.hasNext() && rightIt.hasNext()) {

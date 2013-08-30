@@ -25,6 +25,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.ScenarioStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -216,8 +217,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		long cmdStop = System.currentTimeMillis();
-		LOG.debug("Structured merge finished after " + (cmdStop - cmdStart)
-				+ " ms.");
+		long runtime = cmdStop - cmdStart;
+		LOG.debug("Structured merge finished after " + runtime + " ms.");
 
 		if (context.hasErrors()) {
 			System.err.println(context.getStdErr());
@@ -250,7 +251,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			} else {
 				assert (cloc == 0);
 			}
+			
+			stats.increaseRuntime(runtime);
 
+			
+			ScenarioStats scenariostats 
+				= new ScenarioStats(triple, conflicts, cloc, loc, runtime);
+			stats.addScenarioStats(scenariostats);
 		}
 	}
 

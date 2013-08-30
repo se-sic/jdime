@@ -15,6 +15,7 @@ package de.fosd.jdime.stats;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +30,11 @@ import de.fosd.jdime.common.operations.Operation;
  *
  */
 public class Stats {
+	
+	/**
+	 * 
+	 */
+	private List<ScenarioStats> scenariostats; 
 	
 	/**
 	 * Number of conflicts. 
@@ -52,11 +58,37 @@ public class Stats {
 	}
 	
 	/**
+	 * Runtime.
+	 */
+	private long runtime = 0;
+	
+	/**
+	 * Returns the runtime.
+	 * @return runtime
+	 */
+	public final long getRuntime() {
+		return runtime;
+	}
+	
+	/**
+	 * Sets the runtime.
+	 * 
+	 * @param runtime runtime
+	 */
+	public final void setRuntime(final long runtime) {
+		this.runtime = runtime;
+	}
+	
+	/**
 	 * Increases the number of conflicts.
 	 * @param conflicts number of conflicts to add
 	 */
 	public final void addConflicts(final int conflicts) {
 		this.conflicts += conflicts;
+	}
+	
+	public final void increaseRuntime(long runtime) {
+		this.runtime += runtime;
 	}
 
 	/**
@@ -71,13 +103,23 @@ public class Stats {
 	
 	/**
 	 * Creates a new Stats instance from a list of keys.
+	 * @param scenariostats list of scenario stats
 	 * @param keys List of keys
 	 */
-	public Stats(final List<String> keys) {
+	public Stats(final List<ScenarioStats> scenariostats, 
+			final List<String> keys) {
 		assert (keys != null);
 		assert (!keys.isEmpty());
 		
-		// If necessary, initialize maps
+		// If necessary, initialize lists and maps
+		if (this.scenariostats == null) {
+			this.scenariostats =  new LinkedList<>();
+		}
+		
+		if (scenariostats != null) {
+			this.scenariostats.addAll(scenariostats);
+		}
+		
 		if (elements == null) {
 			elements = new HashMap<String, StatsElement>();
 		}
@@ -96,7 +138,7 @@ public class Stats {
 	 * @param keys array of keys
 	 */
 	public Stats(final String[] keys) {
-		this(Arrays.asList(keys));
+		this(null, Arrays.asList(keys));
 	}
 	
 	/**
@@ -119,6 +161,7 @@ public class Stats {
 		}
 		
 		this.conflicts += other.conflicts;
+		this.runtime += other.runtime;
 		
 	}
 	
@@ -177,6 +220,17 @@ public class Stats {
 		assert (operations != null);
 		Integer op = operations.get(opName);
 		return op == null ? 0 : op;
+	}
+
+	/**
+	 * @return the scenariostats
+	 */
+	public final List<ScenarioStats> getScenariostats() {
+		return scenariostats;
+	}
+	
+	public final void addScenarioStats(final ScenarioStats scenariostats) {
+		this.scenariostats.add(scenariostats);
 	}
 	
 }

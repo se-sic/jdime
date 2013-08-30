@@ -25,10 +25,11 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 /**
  * @author Olaf Lessenich
  * 
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
-	
+
 	/**
 	 * Logger.
 	 */
@@ -38,82 +39,107 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * 
 	 */
 	private int calls = 0;
-	
+
 	/**
 	 * 
 	 */
 	private int orderedCalls = 0;
-	
+
 	/**
 	 * 
 	 */
 	private int unorderedCalls = 0;
-	
+
 	/**
 	 * 
 	 */
 	private UnorderedMatcher<T> unorderedMatcher;
-	
+
+	/**
+	 * 
+	 */
+	private UnorderedMatcher<T> unorderedLabelMatcher;
+
 	/**
 	 * 
 	 */
 	private OrderedMatcher<T> orderedMatcher;
-	
+
 	/**
 	 * 
-	 * @param uniqueLabels whether the matcher can assume unique labels
 	 */
-	public Matcher(final boolean uniqueLabels) {
-		unorderedMatcher = uniqueLabels ? new UniqueLabelMatcher<T>(this) 
-								: new LPMatcher<T>(this);
-		orderedMatcher = uniqueLabels ? new SimpleTreeMatcher<T>(this)
-										: new SimpleTreeMatcher<T>(this);
+	public Matcher() {
+		unorderedMatcher = new LPMatcher<>(this);
+		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
+		orderedMatcher = new SimpleTreeMatcher<>(this);
 	}
-	
+
 	/**
 	 * Logger.
 	 */
-	//private static final Logger LOG = Logger.getLogger(ASTMatcher.class);
-	
+	// private static final Logger LOG = Logger.getLogger(ASTMatcher.class);
+
 	/**
-	 * @param left artifact
-	 * @param right artifact
+	 * @param left
+	 *            artifact
+	 * @param right
+	 *            artifact
 	 * @return Matching
 	 */
 	public final Matching<T> match(final T left, final T right) {
 		boolean isOrdered = false;
+		boolean uniqueLabels = true;
 
 		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
-			if (left.getChild(i).isOrdered()) {
+			T leftChild = left.getChild(i);
+			if (leftChild.isOrdered()) {
 				isOrdered = true;
+			}
+			if (!uniqueLabels || !leftChild.hasUniqueLabels()) {
+				uniqueLabels = false;
 			}
 		}
 
 		for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
-			if (right.getChild(i).isOrdered()) {
+			T rightChild = right.getChild(i);
+			if (rightChild.isOrdered()) {
 				isOrdered = true;
 			}
+			if (!uniqueLabels || !rightChild.hasUniqueLabels()) {
+				uniqueLabels = false;
+			}
 		}
-		
+
 		calls++;
-		
+
 		if (isOrdered) {
 			orderedCalls++;
-			//if (LOG.isTraceEnabled()) {
-			//	LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
-			//			+ left.getId() + ", " + right.getId() + ")");
-			//}
-			
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
+						+ left.getId() + ", " + right.getId() + ")");
+			}
+
 			return orderedMatcher.match(left, right);
 		} else {
 			unorderedCalls++;
-			
-			//if (LOG.isTraceEnabled()) {
-			//	LOG.trace(unorderedMatcher.getClass().getSimpleName() + ".match("
-			//			+ left.getId() + ", " + right.getId() + ")");
-			//}
-			
-			return unorderedMatcher.match(left, right);
+
+			if (uniqueLabels) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(unorderedLabelMatcher.getClass().getSimpleName()
+							+ ".match(" + left.getId() + ", " + right.getId()
+							+ ")");
+				}
+
+				return unorderedLabelMatcher.match(left, right);
+			} else {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(unorderedMatcher.getClass().getSimpleName()
+							+ ".match(" + left.getId() + ", " + right.getId()
+							+ ")");
+				}
+
+				return unorderedMatcher.match(left, right);
+			}
 		}
 	}
 
@@ -127,13 +153,15 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @param color
 	 *            color used to highlight the matching in debug output
 	 */
-	public final void storeMatching(final Matching<T> matching, 
+	public final void storeMatching(final Matching<T> matching,
 			final Color color) {
 		T left = matching.getLeft();
 		T right = matching.getRight();
 
 		if (matching.getScore() > 0) {
-			assert (left.matches(right));
+			assert (left.matches(right)) 
+					: left.getId() + " does not match " + right.getId()
+					+ " (" + left + " <-> " + right + ")";
 			matching.setColor(color);
 			left.addMatching(matching);
 			right.addMatching(matching);
@@ -142,9 +170,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 			}
 		}
 
-		
 	}
-	
+
 	/**
 	 * Resets the call counter.
 	 */
@@ -153,9 +180,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		unorderedCalls = 0;
 		orderedCalls = 0;
 	}
-	
+
 	/**
 	 * Returns the logged call counts.
+	 * 
 	 * @return logged call counts
 	 */
 	public final String getLog() {
@@ -164,9 +192,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 		sb.append(calls + "/");
 		sb.append(orderedCalls + "/");
 		sb.append(unorderedCalls);
-		assert (calls == unorderedCalls 
-				+ orderedCalls) 
-				: "Wrong sum for matcher calls";
+		assert (calls == unorderedCalls + orderedCalls) 
+			: "Wrong sum for matcher calls";
 		return sb.toString();
 	}
 }

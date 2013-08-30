@@ -562,6 +562,7 @@ public class FileArtifact extends Artifact<FileArtifact> implements
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Using strategy: " + strategy.toString());
 		}
+		LOG.info(this);
 		strategy.merge(operation, context);
 		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.println(context.getStdIn());

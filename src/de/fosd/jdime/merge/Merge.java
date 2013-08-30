@@ -66,6 +66,10 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
+		
+//		if (left.isRoot()) {
+//			System.out.println(System.currentTimeMillis() + " Start diffing.");
+//		}
 
 		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
@@ -108,6 +112,10 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			// hack to fix the matches for the merged root node
 			target.cloneMatches(left);
 		}
+		
+//		if (left.isRoot()) {
+//			System.out.println(System.currentTimeMillis() + " Start merging.");
+//		}
 		
 		// check if one or both the nodes have no children
 		List<T> leftChildren = left.getChildren();
@@ -215,6 +223,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 			unorderedMerge.merge(operation, context);
 		}
+		
+//		if (left.isRoot()) {
+//			System.out.println(System.currentTimeMillis() 
+//					+ " Finished merging.");
+//		}
 	}
 
 	/**
@@ -229,8 +242,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return Matching of the two nodes
 	 */
 	private Matching<T> diff(final T left, final T right, final Color color) {
-		Matcher<T> matcher = new Matcher<T>(left.hasUniqueLabels()
-				&& right.hasUniqueLabels());
+		Matcher<T> matcher = new Matcher<T>();
 		Matching<T> m = matcher.match(left, right);
 
 		if (LOG.isDebugEnabled()) {

@@ -28,10 +28,13 @@ import AST.ConstructorDecl;
 import AST.FieldDecl;
 import AST.FieldDeclaration;
 import AST.ImportDecl;
+import AST.IntegerLiteral;
 import AST.InterfaceDecl;
 import AST.JavaParser;
+import AST.Literal;
 import AST.MethodDecl;
 import AST.Program;
+import AST.SingleTypeImportDecl;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
@@ -401,11 +404,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final boolean hasUniqueLabels() {
-		if (astnode instanceof ImportDecl) {
-			return true;
-		}
-		
-		return false;
+		return ImportDecl.class.isAssignableFrom(astnode.getClass())
+				|| Literal.class.isAssignableFrom(astnode.getClass());
 	}
 
 	/*
@@ -453,17 +453,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @return whether declaration order is significant for this node
 	 */
 	public final boolean isOrdered() {
-		if (astnode instanceof CompilationUnit
-				|| astnode instanceof ConstructorDecl
-				|| astnode instanceof MethodDecl
-				|| astnode instanceof InterfaceDecl
-				|| astnode instanceof FieldDecl
-				|| astnode instanceof FieldDeclaration
-				|| astnode instanceof ImportDecl) {
-			return false;
-		}
-
-		return true;
+		return !ConstructorDecl.class.isAssignableFrom(astnode.getClass())
+				&& !MethodDecl.class.isAssignableFrom(astnode.getClass())
+				&& !InterfaceDecl.class.isAssignableFrom(astnode.getClass())
+				&& !FieldDecl.class.isAssignableFrom(astnode.getClass())
+				&& !FieldDeclaration.class.isAssignableFrom(astnode.getClass())
+				&& !ImportDecl.class.isAssignableFrom(astnode.getClass());
 	}
 
 	/**
@@ -478,7 +473,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
-		if (astnode instanceof ImportDecl && other.astnode instanceof ImportDecl) {
+		if (ImportDecl.class.isAssignableFrom(astnode.getClass())
+				|| Literal.class.isAssignableFrom(astnode.getClass())) {
 			return astnode.toString().equals(other.astnode.toString());
 		}
 		
