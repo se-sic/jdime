@@ -591,7 +591,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final String prettyPrint() {
 		assert (astnode != null);
 		rebuildAST();
-		astnode.flushCaches();
+		//astnode.flushCaches();
 		if (LOG.isDebugEnabled()) {
 		    System.out.println(dumpTree());
 		}
@@ -621,18 +621,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			
 		}
 		
+		if (astnode instanceof Program) {
+			children.remove(0);
+		}
+
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
-		
+
 		for (int i = 0; i < getNumChildren(); i++) {
 			ASTNodeArtifact child = getChild(i);
 			newchildren[i] = child.astnode;
 			newchildren[i].setParent(astnode);
 			child.rebuildAST();
-			
+
 		}
 		astnode.jdimeChanges = hasChanges();
 		astnode.jdimeId = getId();
 		astnode.setChildren(newchildren);
+
 
 
 		if (LOG.isTraceEnabled()) {
@@ -653,7 +658,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				LOG.trace(sb);
 			}
 		}
-
+		
 		assert (isConflict() || getNumChildren() == astnode
 				.getNumChildNoTransform());
 
@@ -691,7 +696,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (artifact.astnode != null);
 		assert (artifact.astnode instanceof Program);
 
-		Program program = (Program) artifact.astnode.copy();
+		//Program program = (Program) artifact.astnode.copy();
 		// Iterator<CompilationUnit> it = program.compilationUnitIterator();
 		// while (it.hasNext()) {
 		// CompilationUnit cu = it.next();
@@ -700,8 +705,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		// cu.getTypeDeclList().removeChildren();
 		// }
 		// }
+		//ASTNodeArtifact p = new ASTNodeArtifact(program);
+		//p.deleteChildren();
+		//Program program = new Program();
+		//program.state().reset();
+		Program old = (Program) artifact.astnode;
+		Program program = new Program();
+		try {
+			program = old.clone();
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		ASTNodeArtifact p = new ASTNodeArtifact(program);
-		p.deleteChildren();
 
 		return p;
 	}
