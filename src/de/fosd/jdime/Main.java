@@ -168,6 +168,7 @@ public final class Main {
 		options.addOption("stdout", false, "prints merge result to stdout");
 		options.addOption("stats", false,
 				"collects statistical data of the merge");
+		options.addOption("keepgoing", false, "Keep running after exceptions.");
 
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -241,6 +242,7 @@ public final class Main {
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));
 			context.setQuiet(!cmd.hasOption("stdout"));
+			context.setKeepGoing(cmd.hasOption("keepgoing"));
 
 			if (cmd.hasOption("showconfig")) {
 				showConfig(context, true);
@@ -423,6 +425,7 @@ public final class Main {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
+	@SuppressWarnings("unchecked")
 	public static void dump(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy 
@@ -434,10 +437,6 @@ public final class Main {
 	/**
 	 * @param context
 	 *            merge context
-	 * @throws InterruptedException
-	 *             If a thread is interrupted
-	 * @throws IOException
-	 *             If an input output exception occurs
 	 * 
 	 */
         private static void bugfixing(final MergeContext context) {

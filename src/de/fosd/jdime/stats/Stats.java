@@ -34,7 +34,7 @@ public class Stats {
 	/**
 	 * 
 	 */
-	private List<ScenarioStats> scenariostats; 
+	private List<MergeTripleStats> scenariostats; 
 	
 	/**
 	 * Number of conflicts. 
@@ -87,7 +87,11 @@ public class Stats {
 		this.conflicts += conflicts;
 	}
 	
-	public final void increaseRuntime(long runtime) {
+	/**
+	 * Increase the runtime statistics.
+	 * @param runtime 
+	 */
+	public final void increaseRuntime(final long runtime) {
 		this.runtime += runtime;
 	}
 
@@ -106,7 +110,7 @@ public class Stats {
 	 * @param scenariostats list of scenario stats
 	 * @param keys List of keys
 	 */
-	public Stats(final List<ScenarioStats> scenariostats, 
+	public Stats(final List<MergeTripleStats> scenariostats, 
 			final List<String> keys) {
 		assert (keys != null);
 		assert (!keys.isEmpty());
@@ -225,14 +229,21 @@ public class Stats {
 	/**
 	 * @return the scenariostats
 	 */
-	public final List<ScenarioStats> getScenariostats() {
+	public final List<MergeTripleStats> getScenariostats() {
 		return scenariostats;
 	}
 	
-	public final void addScenarioStats(final ScenarioStats scenariostats) {
-		this.scenariostats.add(scenariostats);
+	/**
+	 * Add a triple statistic.
+	 * @param tripleStats triple statistics
+	 */
+	public final void addScenarioStats(final MergeTripleStats tripleStats) {
+		this.scenariostats.add(tripleStats);
 	}
 	
+	/**
+	 * Reset the triple statistics.
+	 */
 	public final void resetScenarioStats() {
 		scenariostats = new LinkedList<>();
 	}

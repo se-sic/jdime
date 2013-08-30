@@ -14,7 +14,6 @@
 package de.fosd.jdime.strategy;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -23,7 +22,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ScenarioStats;
+import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -60,8 +59,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) 
+				: "Would be overwritten: " + target;
 		}
 
 		if (LOG.isInfoEnabled()) {
@@ -130,14 +129,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 				Stats stats = context.getStats();
 				Stats substats = subContext.getStats();
 				substats.setRuntime(runtime);
-				ScenarioStats subscenariostats = substats.getScenariostats()
+				MergeTripleStats subscenariostats = substats.getScenariostats()
 						.remove(0);
 				assert (substats.getScenariostats().isEmpty());
 
 				if (subscenariostats.hasErrors()) {
 					stats.addScenarioStats(subscenariostats);
 				} else {
-					ScenarioStats scenariostats = new ScenarioStats(
+					MergeTripleStats scenariostats = new MergeTripleStats(
 							subscenariostats.getTriple(),
 							subscenariostats.getConflicts(),
 							subscenariostats.getConflictingLines(),

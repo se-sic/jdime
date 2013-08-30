@@ -25,7 +25,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ScenarioStats;
+import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -67,8 +67,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
+				|| triple.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -78,8 +78,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) 
+				: "Would be overwritten: " + target;
 		}
 
 		// ASTNodeArtifacts are created from the input files.
@@ -113,11 +113,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			System.out.println(targetNode.dumpTree());
 		}
 
-		MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<ASTNodeArtifact>(
-				triple.getMergeType(), left, base, right);
+		MergeTriple<ASTNodeArtifact> nodeTriple
+			= new MergeTriple<ASTNodeArtifact>(triple.getMergeType(), 
+					left, base, right);
 
-		MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<ASTNodeArtifact>(
-				nodeTriple, targetNode);
+		MergeOperation<ASTNodeArtifact> astMergeOp 
+			= new MergeOperation<ASTNodeArtifact>(nodeTriple, targetNode);
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("ASTMOperation.apply(context)");
@@ -252,7 +253,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				stats.increaseRuntime(runtime);
 
-				ScenarioStats scenariostats = new ScenarioStats(triple,
+				MergeTripleStats scenariostats = new MergeTripleStats(triple,
 						conflicts, cloc, loc, runtime);
 				stats.addScenarioStats(scenariostats);
 			}
@@ -266,8 +267,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						+ triple.getRight().getPath());
 				
 				if (context.hasStats()) {
-					ScenarioStats scenariostats 
-						= new ScenarioStats(t.toString());
+					MergeTripleStats scenariostats 
+						= new MergeTripleStats(t.toString());
 					context.getStats().addScenarioStats(scenariostats);
 				}
 			}

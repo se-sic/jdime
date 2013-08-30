@@ -129,6 +129,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param matching
 	 *            matching to be added
 	 */
+	@SuppressWarnings("unchecked")
 	public final void addMatching(final Matching<T> matching) {
 		if (matches == null) {
 			matches = new LinkedHashMap<>();
@@ -143,6 +144,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Clones matches from another artifact.
 	 * @param other artifact to clone matches from
 	 */
+	@SuppressWarnings("unchecked")
 	public final void cloneMatches(final T other) {
 		if (other.matches != null) {
 			matches = new LinkedHashMap<Revision, Matching<T>>();
@@ -150,8 +152,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			Set<Revision> matchingRevisions = other.matches.keySet();
 
 			for (Revision rev : matchingRevisions) {
-				Matching<T> m 
-					= (Matching<T>) other.matches.get(rev).clone();
+				Matching<T> m = (Matching<T>) other.matches.get(rev).clone();
 				m.updateMatching((T) this);
 				matches.put(rev, m);
 			}
@@ -455,6 +456,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            other node to search for in matches
 	 * @return whether a matching exists
 	 */
+	@SuppressWarnings("unchecked")
 	public final boolean hasMatching(final T other) {
 		if (matches == null) {
 			return false;
@@ -575,13 +577,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	
 	/**
 	 * Marks this artifact as a conflict.
-	 * @param left left alternatives
-	 * @param right right alternatives 
+	 * 
+	 * @param left left alternative
+	 * @param right right alternative
 	 */
 	public final void setConflict(final T left, final T right) {
 		this.conflict = true;
-		this.left= left;
-		this.right= right;
+		this.left = left;
+		this.right = right;
 	}
 
 	/**

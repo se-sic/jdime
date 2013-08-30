@@ -27,7 +27,7 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ScenarioStats;
+import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -70,7 +70,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (context != null);
 
 		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
-
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
 		assert (triple.getLeft() instanceof FileArtifact);
@@ -82,7 +81,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
-
 		FileArtifact target = null;
 
 		if (operation.getTarget() != null) {
@@ -92,8 +90,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 				: "Would be overwritten: " + target;
 		}
 		
-		List<String> cmd = new LinkedList<>();
-		
+		List<String> cmd = new LinkedList<>();		
 		cmd.add(BASECMD);
 		for (int i = 0; i < BASEARGS.length; i++) {
 			cmd.add(BASEARGS[i]);
@@ -185,10 +182,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 		pr.waitFor();
 
-		long cmdStop = System.currentTimeMillis();
-		
+		long cmdStop = System.currentTimeMillis();	
 		long runtime = cmdStop - cmdStart;
-
 		LOG.debug("External command has finished after " + runtime + " ms.");
 
 		if (context.hasErrors()) {
@@ -226,8 +221,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 			stats.increaseRuntime(runtime);
 			
-			ScenarioStats scenariostats 
-				= new ScenarioStats(triple, conflicts, cloc, loc, runtime);
+			MergeTripleStats scenariostats 
+				= new MergeTripleStats(triple, conflicts, cloc, loc, runtime);
 			stats.addScenarioStats(scenariostats);
 		}
 

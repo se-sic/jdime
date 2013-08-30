@@ -71,6 +71,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			return new Matching<T>(left, right, 1);
 		}
 
+		@SuppressWarnings("unchecked")
 		Matching<T>[][] matching = new Matching[m][n];
 
 		for (int i = 0; i < m; i++) {

@@ -19,7 +19,6 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
@@ -146,8 +145,8 @@ public class UnorderedMerge<T extends Artifact<T>>
 						}
 						// insertion-deletion-conflict
 						ConflictOperation<T> conflictOp 
-							= new ConflictOperation<T>(rightChild, null, rightChild, 
-									target);
+							= new ConflictOperation<T>(rightChild, null,
+									rightChild, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted

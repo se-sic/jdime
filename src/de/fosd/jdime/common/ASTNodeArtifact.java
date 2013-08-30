@@ -28,13 +28,11 @@ import AST.ConstructorDecl;
 import AST.FieldDecl;
 import AST.FieldDeclaration;
 import AST.ImportDecl;
-import AST.IntegerLiteral;
 import AST.InterfaceDecl;
 import AST.JavaParser;
 import AST.Literal;
 import AST.MethodDecl;
 import AST.Program;
-import AST.SingleTypeImportDecl;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
@@ -416,7 +414,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final void initializeChildren() {
 		assert (astnode != null);
-		ArtifactList<ASTNodeArtifact> children = new ArtifactList<ASTNodeArtifact>();
+		ArtifactList<ASTNodeArtifact> children 
+			= new ArtifactList<ASTNodeArtifact>();
 		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
 			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
 			child.setParent(this);
@@ -527,14 +526,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 								+ leftChanges);
 						LOG.trace("changes in " + right.getId() + ": "
 								+ rightChanges);
-						LOG.trace("We will report a conflict instead of performing the merge");
+						LOG.trace("We will report a conflict " 
+								+ "instead of performing the merge");
 					}
 					safeMerge = false;
 					// to be safe, we will report a conflict instead of merging
 					ASTNodeArtifact targetParent = target.getParent();
 					targetParent.removeChild(target);
-					ConflictOperation conflictOp = new ConflictOperation<>(
-							left, left, right, targetParent);
+					ConflictOperation<ASTNodeArtifact> conflictOp 
+						= new ConflictOperation<>(left, left, right, 
+								targetParent);
 					conflictOp.apply(context);
 				}
 			}
@@ -557,7 +558,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
-	public final void removeChild(ASTNodeArtifact child) {
+	/**
+	 * Removes a child.
+	 * @param child child that should be removed
+	 */
+	public final void removeChild(final ASTNodeArtifact child) {
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("[" + getId() + "] removing child " + child.getId());
 			LOG.trace("children before removal: " + getChildren());
@@ -680,7 +685,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 *            artifact to create program from
 	 * @return ASTNodeArtifact
 	 */
-	public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
+	public static ASTNodeArtifact createProgram(
+			final ASTNodeArtifact artifact) {
 		assert (artifact.astnode != null);
 		assert (artifact.astnode instanceof Program);
 

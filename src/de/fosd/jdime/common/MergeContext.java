@@ -102,6 +102,9 @@ public class MergeContext {
 	 */
 	private StringWriter stdIn = new StringWriter();
 	
+	/**
+	 * If true, merging will be continued after exceptions.
+	 */
 	private boolean keepGoing = false;
 
 	/**
@@ -425,7 +428,7 @@ public class MergeContext {
 	/**
 	 * @param keepGoing the keepGoing to set
 	 */
-	public final void setKeepGoing(boolean keepGoing) {
+	public final void setKeepGoing(final boolean keepGoing) {
 		this.keepGoing = keepGoing;
 	}
 }

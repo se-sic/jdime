@@ -532,6 +532,7 @@ public class FileArtifact extends Artifact<FileArtifact> implements
 	 * de.fosd.jdime.common.operations.MergeOperation,
 	 * de.fosd.jdime.common.MergeContext)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
 			final MergeContext context) throws IOException,

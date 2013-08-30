@@ -55,6 +55,8 @@ public class SimpleTreeMatcher<T extends Artifact<T>>
 		int n = right.getNumChildren();
 
 		int[][] matrixM = new int[m + 1][n + 1];
+		
+		@SuppressWarnings("unchecked")
 		Entry<T>[][] matrixT = new Entry[m + 1][n + 1];
 
 		// initialize first column matrix

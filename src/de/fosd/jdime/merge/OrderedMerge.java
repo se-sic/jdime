@@ -95,7 +95,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 									+ "has changes in subtree.");
 						}
 						ConflictOperation<T> conflictOp 
-							= new ConflictOperation<T>(leftChild, leftChild, null, target);
+							= new ConflictOperation<T>(leftChild, leftChild, 
+									null, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -125,8 +126,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								}
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp 
-									= new ConflictOperation<T>(rightChild, null, 
-											rightChild, target);
+									= new ConflictOperation<T>(rightChild,
+											null, rightChild, target);
 								conflictOp.apply(context);
 							} else {
 								// add the left change
@@ -141,8 +142,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 							// rightChild is a change
 							ConflictOperation<T> conflictOp 
-								= new ConflictOperation<T>(leftChild, leftChild, 
-									rightChild, target);
+								= new ConflictOperation<T>(leftChild,
+									leftChild, rightChild, target);
 							conflictOp.apply(context);
 							
 							if (rightIt.hasNext()) {
@@ -217,8 +218,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								}
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp 
-									= new ConflictOperation<T>(leftChild, leftChild, null, 
-											target);
+									= new ConflictOperation<T>(leftChild, 
+											leftChild, null, target);
 								conflictOp.apply(context);
 							} else {
 								if (LOG.isTraceEnabled()) {
@@ -237,8 +238,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 							// leftChild is a change
 							ConflictOperation<T> conflictOp 
-								= new ConflictOperation<T>(leftChild, leftChild, 
-										rightChild, target);
+								= new ConflictOperation<T>(leftChild,
+										leftChild, rightChild, target);
 							conflictOp.apply(context);
 						
 							if (leftIt.hasNext()) {

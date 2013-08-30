@@ -21,7 +21,6 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -65,11 +64,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
-		T target = operation.getTarget();
-		
-//		if (left.isRoot()) {
-//			System.out.println(System.currentTimeMillis() + " Start diffing.");
-//		}
+		T target = operation.getTarget();		
 
 		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
@@ -113,10 +108,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			target.cloneMatches(left);
 		}
 		
-//		if (left.isRoot()) {
-//			System.out.println(System.currentTimeMillis() + " Start merging.");
-//		}
-		
 		// check if one or both the nodes have no children
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
@@ -142,8 +133,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				if (right.hasChanges()) {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace(prefix(right)	+ "has changes in subtree");
-					}
-					
+					}				
 					for (T rightChild : right.getChildren()) {
 						ConflictOperation<T> conflictOp 
 							= new ConflictOperation<T>(rightChild, null, 
@@ -190,15 +180,12 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		}
 
 		// determine whether we have to respect the order of children
-
 		boolean isOrdered = false;
-
 		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
 			if (left.getChild(i).isOrdered()) {
 				isOrdered = true;
 			}
 		}
-
 		for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
 			if (right.getChild(i).isOrdered()) {
 				isOrdered = true;
@@ -209,25 +196,17 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			LOG.trace(logprefix + "target.dumpTree() before merge:");
 			System.out.println(target.dumpRootTree());
 		}
-
 		if (isOrdered) {
 			if (orderedMerge == null) {
 				orderedMerge = new OrderedMerge<T>();
 			}
-
 			orderedMerge.merge(operation, context);
 		} else {
 			if (unorderedMerge == null) {
 				unorderedMerge = new UnorderedMerge<T>();
 			}
-
 			unorderedMerge.merge(operation, context);
 		}
-		
-//		if (left.isRoot()) {
-//			System.out.println(System.currentTimeMillis() 
-//					+ " Finished merging.");
-//		}
 	}
 
 	/**
