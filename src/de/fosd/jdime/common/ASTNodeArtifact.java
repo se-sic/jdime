@@ -473,8 +473,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
-		if (ImportDecl.class.isAssignableFrom(astnode.getClass())
-				|| Literal.class.isAssignableFrom(astnode.getClass())) {
+		if ((ImportDecl.class.isAssignableFrom(astnode.getClass())
+				|| Literal.class.isAssignableFrom(astnode.getClass())) 
+				&& other.astnode.getClass().equals(astnode.getClass())) {
 			return astnode.toString().equals(other.astnode.toString());
 		}
 		
