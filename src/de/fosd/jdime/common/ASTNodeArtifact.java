@@ -417,7 +417,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ArtifactList<ASTNodeArtifact> children 
 			= new ArtifactList<ASTNodeArtifact>();
 		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
-			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
+			ASTNodeArtifact child = new ASTNodeArtifact(
+					astnode.getChildNoTransform(i));
 			child.setParent(this);
 			child.setRevision(getRevision());
 			children.add(child);
@@ -643,9 +644,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 						+ " children: {");
 				
 				ASTNode<?>[] astnodechildren 
-					= new ASTNode[astnode.getNumChild()];
-				for (int i = 0; i < astnode.getNumChild(); i++) {
-					astnodechildren[i] = astnode.getChild(i);
+					= new ASTNode[astnode.getNumChildNoTransform()];
+				for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
+					astnodechildren[i] = astnode.getChildNoTransform(i);
 				}
 				sb.append(Arrays.toString(astnodechildren));
 				sb.append("}");
