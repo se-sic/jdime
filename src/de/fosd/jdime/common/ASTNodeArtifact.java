@@ -418,7 +418,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			= new ArtifactList<ASTNodeArtifact>();
 		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
 			ASTNodeArtifact child = new ASTNodeArtifact(
-					astnode.getChildNoTransform(i));
+					astnode.getChild(i));
 			child.setParent(this);
 			child.setRevision(getRevision());
 			children.add(child);
@@ -591,7 +591,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final String prettyPrint() {
 		assert (astnode != null);
 		rebuildAST();
-		//astnode.flushCaches();
+		astnode.flushCaches();
 		if (LOG.isDebugEnabled()) {
 		    System.out.println(dumpTree());
 		}
