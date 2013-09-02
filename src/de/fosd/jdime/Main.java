@@ -153,22 +153,25 @@ public final class Main {
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
-		options.addOption("help", false, "print this message");
-		options.addOption("version", false,
-				"print the version information and exit");
+		options.addOption("benchmark", false, "benchmark with " 
+				+ context.getBenchmarkRuns() + " runs per file");
 		options.addOption("debug", true, "set debug level");
+		options.addOption("f", false, "force overwriting of output files");
+		options.addOption("help", false, "print this message");
+		options.addOption("keepgoing", false, 
+				"Keep running after exceptions.");	
 		options.addOption("mode", true,
 				"set merge mode (textual, structured, combined, dumptree"
 						+ ", dumpgraph, dumpfile, bugfixing)");
-		options.addOption("output", true, "output directory/file");
-		options.addOption("f", false, "force overwriting of output files");
+		options.addOption("output", true, "output directory/file");	
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
 				"print configuration information");
-		options.addOption("stdout", false, "prints merge result to stdout");
 		options.addOption("stats", false,
 				"collects statistical data of the merge");
-		options.addOption("keepgoing", false, "Keep running after exceptions.");
+		options.addOption("stdout", false, "prints merge result to stdout");
+		options.addOption("version", false,
+				"print the version information and exit");
 
 		CommandLineParser parser = new PosixParser();
 		try {
@@ -235,10 +238,9 @@ public final class Main {
 						new File(cmd.getOptionValue("output")), false));
 			}
 
-			if (cmd.hasOption("stats")) {
-				context.setSaveStats(true);
-			}
-
+			context.setSaveStats(cmd.hasOption("stats") 
+					|| cmd.hasOption("benchmark"));
+			context.setBenchmark(cmd.hasOption("benchmark"));
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));
 			context.setQuiet(!cmd.hasOption("stdout"));

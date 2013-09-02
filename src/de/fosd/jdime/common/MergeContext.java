@@ -14,6 +14,8 @@
 package de.fosd.jdime.common;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -24,19 +26,40 @@ import de.fosd.jdime.strategy.MergeStrategy;
  * 
  */
 public class MergeContext {
+	
+	/**
+	 * Default value of benchmark runs.
+	 */
+	private static final int BENCHMARKRUNS = 10;
+	
+	/**
+	 * Returns the median of a list of long values.
+	 * @param values list of values for which to compute the median
+	 * @return median
+	 */
+	public static long median(final ArrayList<Long> values) {
+		Collections.sort(values);
+
+		if (values.size() % 2 == 1) {
+			return values.get((values.size() + 1) / 2 - 1);
+		} else {
+			double lower = values.get(values.size() / 2 - 1);
+			double upper = values.get(values.size() / 2);
+
+			return Math.round((lower + upper) / 2.0);
+		}
+	}
 
 	/**
-	 * Class constructor.
+	 * Performs benchmarks with several runs per file to get average runtimes.
 	 */
-	public MergeContext() {
-		programStart = System.currentTimeMillis();
-	}
+	private boolean benchmark = false;
 	
 	/**
 	 * Whether we are in bugfixing mode.
 	 */
 	private boolean bugfixing = false;
-
+	
 	/**
 	 * Whether to dump files/asts instead of merging.
 	 */
@@ -56,6 +79,11 @@ public class MergeContext {
 	 * Input Files.
 	 */
 	private ArtifactList<FileArtifact> inputFiles;
+
+	/**
+	 * If true, merging will be continued after exceptions.
+	 */
+	private boolean keepGoing = false;
 
 	/**
 	 * Strategy to apply for the merge.
@@ -83,6 +111,11 @@ public class MergeContext {
 	private boolean recursive = false;
 
 	/**
+	 * Number of runs to perform for each file.
+	 */
+	private int runs = BENCHMARKRUNS;
+	
+	/**
 	 * Save statistical data.
 	 */
 	private boolean saveStats = false;
@@ -103,9 +136,11 @@ public class MergeContext {
 	private StringWriter stdIn = new StringWriter();
 	
 	/**
-	 * If true, merging will be continued after exceptions.
+	 * Class constructor.
 	 */
-	private boolean keepGoing = false;
+	public MergeContext() {
+		programStart = System.currentTimeMillis();
+	}
 
 	/**
 	 * Adds statistical data to already collected data.
@@ -183,6 +218,22 @@ public class MergeContext {
 		clone.recursive = recursive;
 		clone.saveStats = saveStats;
 		return clone;
+	}
+
+	/**
+	 * Returns the number of benchmark runs.
+	 * @return the benchmarkruns
+	 */
+	public final int getBenchmarkRuns() {
+		return runs;
+	}
+
+	/**
+	 * Sets the number of benchmark runs.
+	 * @param runs benchmark runs
+	 */
+	public final void setBenchmarkRuns(final int runs) {
+		this.runs = runs;
 	}
 
 	/**
@@ -270,6 +321,13 @@ public class MergeContext {
 	}
 	
 	/**
+	 * @return the benchmark
+	 */
+	public final boolean isBenchmark() {
+		return benchmark;
+	}
+
+	/**
 	 * Returns whether bugfixing mode is enabled.
 	 * @return true if bugfixing mode is enabled
 	 */
@@ -301,6 +359,13 @@ public class MergeContext {
 	}
 
 	/**
+	 * @return the keepGoing
+	 */
+	public final boolean isKeepGoing() {
+		return keepGoing;
+	}
+
+	/**
 	 * Returns true if the output is quiet.
 	 * 
 	 * @return if output is quiet
@@ -308,7 +373,7 @@ public class MergeContext {
 	public final boolean isQuiet() {
 		return quiet;
 	}
-
+	
 	/**
 	 * Returns whether directories are merged recursively.
 	 * 
@@ -325,7 +390,14 @@ public class MergeContext {
 		stdIn = new StringWriter();
 		stdErr = new StringWriter();
 	}
-	
+
+	/**
+	 * @param benchmark the benchmark to set
+	 */
+	public final void setBenchmark(final boolean benchmark) {
+		this.benchmark = benchmark;
+	}
+
 	/**
 	 * Enables bugfixing mode.
 	 */
@@ -366,6 +438,13 @@ public class MergeContext {
 	public final void setInputFiles(
 			final ArtifactList<FileArtifact> inputFiles) {
 		this.inputFiles = inputFiles;
+	}
+
+	/**
+	 * @param keepGoing the keepGoing to set
+	 */
+	public final void setKeepGoing(final boolean keepGoing) {
+		this.keepGoing = keepGoing;
 	}
 
 	/**
@@ -416,19 +495,5 @@ public class MergeContext {
 		if (saveStats) {
 			stats = mergeStrategy.createStats();
 		}
-	}
-
-	/**
-	 * @return the keepGoing
-	 */
-	public final boolean isKeepGoing() {
-		return keepGoing;
-	}
-
-	/**
-	 * @param keepGoing the keepGoing to set
-	 */
-	public final void setKeepGoing(final boolean keepGoing) {
-		this.keepGoing = keepGoing;
 	}
 }

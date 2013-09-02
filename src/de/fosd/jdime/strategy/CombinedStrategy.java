@@ -14,6 +14,7 @@
 package de.fosd.jdime.strategy;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -72,42 +73,77 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 					+ triple.getRight().getPath());
 		}
 
-		MergeContext subContext = (MergeContext) context.clone();
-		subContext.setOutputFile(null);
+		ArrayList<Long> runtimes = new ArrayList<>();
+		MergeContext subContext = null;
+		Stats substats = null;
 
-		if (LOG.isInfoEnabled()) {
-			LOG.info("Trying linebased strategy.");
-		}
-
-		long cmdStart = System.currentTimeMillis();
-		MergeStrategy<FileArtifact> s = new LinebasedStrategy();
-		subContext.setMergeStrategy(s);
-		subContext.setSaveStats(true);
-		s.merge(operation, subContext);
-
-		int conflicts = subContext.getStats().getConflicts();
-		if (conflicts > 0) {
-			// merge not successful. we need another strategy.
-			if (LOG.isInfoEnabled()) {
-				String noun = conflicts > 1 ? "conflicts" : "conflict";
-				LOG.info("Got " + conflicts + " " + noun
-						+ ". Need to use structured strategy.");
-			}
+		for (int i = 0; i < context.getBenchmarkRuns() + 1
+				&& (i == 0 || context.isBenchmark()); i++) {
+			long cmdStart = System.currentTimeMillis();
 			subContext = (MergeContext) context.clone();
 			subContext.setOutputFile(null);
 
-			s = new StructuredStrategy();
+			if (LOG.isInfoEnabled() && i == 0) {
+				LOG.info("Trying linebased strategy.");
+			}
+
+			MergeStrategy<FileArtifact> s = new LinebasedStrategy();
 			subContext.setMergeStrategy(s);
 			subContext.setSaveStats(true);
 			s.merge(operation, subContext);
-		} else {
-			if (LOG.isInfoEnabled()) {
-				LOG.info("Linebased strategy worked fine.");
+
+			int conflicts = subContext.getStats().getConflicts();
+			if (conflicts > 0) {
+				// merge not successful. we need another strategy.
+				if (LOG.isInfoEnabled() && i == 0) {
+					String noun = conflicts > 1 ? "conflicts" : "conflict";
+					LOG.info("Got " + conflicts + " " + noun
+							+ ". Need to use structured strategy.");
+				}
+				subContext = (MergeContext) context.clone();
+				subContext.setOutputFile(null);
+
+				s = new StructuredStrategy();
+				subContext.setMergeStrategy(s);
+				if (i == 0) {
+					subContext.setSaveStats(true);
+				} else {
+					subContext.setSaveStats(false);
+					subContext.setBenchmark(true);
+					subContext.setBenchmarkRuns(0);
+				}
+				s.merge(operation, subContext);
+			} else {
+				if (LOG.isInfoEnabled() && i == 0) {
+					LOG.info("Linebased strategy worked fine.");
+				}
+			}
+			
+			if (i == 0) {
+				substats = subContext.getStats();
+			}
+
+			long runtime = System.currentTimeMillis() - cmdStart;
+			runtimes.add(runtime);
+
+			if (LOG.isInfoEnabled() && context.isBenchmark()) {
+				if (i == 0) {
+					LOG.info("Initial run: " + runtime + " ms");
+				} else {
+					LOG.info("Run " + i + " of "
+							+ context.getBenchmarkRuns() + ": " + runtime
+							+ " ms");
+				}
 			}
 		}
+		
+		if (context.isBenchmark() && runtimes.size() > 1) {
+			// remove first run as it took way longer due to all the counting
+			runtimes.remove(0);
+		}
 
-		long cmdStop = System.currentTimeMillis();
-		long runtime = cmdStop - cmdStart;
+		Long runtime = MergeContext.median(runtimes);
+		LOG.debug("Combined merge time was " + runtime + " ms.");
 
 		if (subContext.hasOutput()) {
 			context.append(subContext.getStdIn());
@@ -125,27 +161,24 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 		// add statistical data to context
 		if (context.hasStats()) {
-			if (subContext.hasStats()) {
-				Stats stats = context.getStats();
-				Stats substats = subContext.getStats();
-				substats.setRuntime(runtime);
-				MergeTripleStats subscenariostats = substats.getScenariostats()
-						.remove(0);
-				assert (substats.getScenariostats().isEmpty());
+			Stats stats = context.getStats();
+			substats.setRuntime(runtime);
+			MergeTripleStats subscenariostats = substats.getScenariostats()
+					.remove(0);
+			assert (substats.getScenariostats().isEmpty());
 
-				if (subscenariostats.hasErrors()) {
-					stats.addScenarioStats(subscenariostats);
-				} else {
-					MergeTripleStats scenariostats = new MergeTripleStats(
-							subscenariostats.getTriple(),
-							subscenariostats.getConflicts(),
-							subscenariostats.getConflictingLines(),
-							subscenariostats.getLines(), runtime);
-					stats.addScenarioStats(scenariostats);
-				}
-
-				context.addStats(substats);
+			if (subscenariostats.hasErrors()) {
+				stats.addScenarioStats(subscenariostats);
+			} else {
+				MergeTripleStats scenariostats = new MergeTripleStats(
+						subscenariostats.getTriple(),
+						subscenariostats.getConflicts(),
+						subscenariostats.getConflictingLines(),
+						subscenariostats.getLines(), runtime);
+				stats.addScenarioStats(scenariostats);
 			}
+
+			context.addStats(substats);
 		}
 
 	}

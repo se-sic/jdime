@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,11 +49,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 * Basic merge command.
 	 */
 	private static final String BASECMD = "/usr/bin/merge";
-	
+
 	/**
 	 * Basic merge arguments.
 	 */
-	private static final String[] BASEARGS = {"-q",  "-p"};
+	private static final String[] BASEARGS = { "-q", "-p" };
 
 	/*
 	 * (non-Javadoc)
@@ -89,102 +90,131 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			assert (!target.exists() || target.isEmpty()) 
 				: "Would be overwritten: " + target;
 		}
-		
-		List<String> cmd = new LinkedList<>();		
+
+		List<String> cmd = new LinkedList<>();
 		cmd.add(BASECMD);
 		for (int i = 0; i < BASEARGS.length; i++) {
 			cmd.add(BASEARGS[i]);
 		}
-		
+
 		for (FileArtifact file : triple.getList()) {
 			cmd.add(file.getPath());
 		}
-		
+
 		ProcessBuilder pb = new ProcessBuilder(cmd);
+		ArrayList<Long> runtimes = new ArrayList<>();
+		int conflicts = 0;
+		int loc = 0;
+		int cloc = 0;
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
 		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
 
-		long cmdStart = System.currentTimeMillis();
-		Process pr = pb.start();
-		
-		// process input stream
-		BufferedReader buf = new BufferedReader(new InputStreamReader(
-				pr.getInputStream()));
-		boolean conflict = false;
-		boolean comment = false;
-		int conflicts = 0;
-		int loc = 0;
-		int cloc = 0;
-		int tmp = 0;
-		String line = "";
-		while ((line = buf.readLine()) != null) {
-			context.appendLine(line);
+		for (int i = 0; i < context.getBenchmarkRuns() + 1
+				&& (i == 0 || context.isBenchmark()); i++) {
+			long cmdStart = System.currentTimeMillis();
+			Process pr = pb.start();
 
-			if (context.hasStats()) {
-				if (line.matches("^$") || line.matches("^\\s*$")
-						|| line.matches("^\\s*//.*$")) {
-					// skip empty lines and single line comments
-					continue;
-				} else if (line.matches("^\\s*/\\*.*")) {
-					if (line.matches("^\\s*/\\*.*?\\*/")) {
-						// one line comment
-						continue;
-					} else {
-						// starting block comment
-						comment = true;
-						continue;
+			if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+				// process input stream
+				BufferedReader buf = new BufferedReader(new InputStreamReader(
+						pr.getInputStream()));
+				boolean conflict = false;
+				boolean comment = false;
+
+				int tmp = 0;
+				String line = "";
+				while ((line = buf.readLine()) != null) {
+					context.appendLine(line);
+
+					if (context.hasStats()) {
+						if (line.matches("^$") || line.matches("^\\s*$")
+								|| line.matches("^\\s*//.*$")) {
+							// skip empty lines and single line comments
+							continue;
+						} else if (line.matches("^\\s*/\\*.*")) {
+							if (line.matches("^\\s*/\\*.*?\\*/")) {
+								// one line comment
+								continue;
+							} else {
+								// starting block comment
+								comment = true;
+								continue;
+							}
+						} else if (line.matches("^.*?\\*/")) {
+							// ending block comment
+							comment = false;
+							continue;
+						}
+						if (line.matches("^\\s*<<<<<<<.*")) {
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("CONFLICT in " + triple);
+							}
+							conflict = true;
+							comment = false;
+							tmp = cloc;
+							conflicts++;
+						} else if (line.matches("^\\s*=======.*")) {
+							comment = false;
+						} else if (line.matches("^\\s*>>>>>>>.*")) {
+							conflict = false;
+							comment = false;
+							if (tmp == cloc) {
+								// only conflicting comments or empty lines
+								conflicts--;
+							}
+						} else {
+							loc++;
+							if (conflict && !comment) {
+								cloc++;
+							}
+						}
 					}
-				} else if (line.matches("^.*?\\*/")) {
-					// ending block comment
-					comment = false;
-					continue;
 				}
-				if (line.matches("^\\s*<<<<<<<.*")) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("CONFLICT in " + triple);
+
+				buf.close();
+
+				// process error stream
+				buf = new BufferedReader(new InputStreamReader(
+						pr.getErrorStream()));
+				while ((line = buf.readLine()) != null) {
+					if (i == 0 && (!context.isBenchmark() 
+							|| context.hasStats())) {
+						context.appendErrorLine(line);
 					}
-					conflict = true;
-					comment = false;
-					tmp = cloc;
-					conflicts++;
-				} else if (line.matches("^\\s*=======.*")) {
-					comment = false;
-				} else if (line.matches("^\\s*>>>>>>>.*")) {
-					conflict = false;
-					comment = false;
-					if (tmp == cloc) {
-						// only conflicting comments or empty lines
-						conflicts--;
-					}
+				}
+
+				buf.close();
+			}
+			pr.getInputStream().close();
+			pr.getErrorStream().close();
+			pr.getOutputStream().close();
+
+			pr.waitFor();
+
+			long runtime = System.currentTimeMillis() - cmdStart;
+			runtimes.add(runtime);
+
+			if (LOG.isInfoEnabled() && context.isBenchmark() 
+					&& context.hasStats()) {
+				if (i == 0) {
+					LOG.info("Initial run: " + runtime + " ms");
 				} else {
-					loc++;
-					if (conflict && !comment) {
-						cloc++;
-					}
+					LOG.info("Run " + i + " of "
+							+ context.getBenchmarkRuns() + ": " + runtime
+							+ " ms");
 				}
 			}
 		}
 
-		buf.close();
-
-		// process error stream
-		buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-		while ((line = buf.readLine()) != null) {
-			context.appendErrorLine(line);
+		if (context.isBenchmark() && runtimes.size() > 1) {
+			// remove first run as it took way longer due to all the counting
+			runtimes.remove(0);
 		}
 
-		buf.close();
-		pr.getInputStream().close();
-		pr.getErrorStream().close();
-		pr.getOutputStream().close();
-
-		pr.waitFor();
-
-		long cmdStop = System.currentTimeMillis();	
-		long runtime = cmdStop - cmdStart;
-		LOG.debug("External command has finished after " + runtime + " ms.");
+		Long runtime = MergeContext.median(runtimes);
+		LOG.debug("Linebased merge time was " + runtime + " ms.");
 
 		if (context.hasErrors()) {
 			LOG.fatal("Errors occured while calling '" + cmd + "')");
@@ -220,9 +250,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			}
 
 			stats.increaseRuntime(runtime);
-			
-			MergeTripleStats scenariostats 
-				= new MergeTripleStats(triple, conflicts, cloc, loc, runtime);
+
+			MergeTripleStats scenariostats = new MergeTripleStats(triple,
+					conflicts, cloc, loc, runtime);
 			stats.addScenarioStats(scenariostats);
 		}
 

@@ -150,6 +150,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		
 		if (context.hasStats()) {
 			Stats stats = context.getStats();
+			assert (stats != null);
 			stats.incrementOperation(this);
 			StatsElement element = stats.getElement(
 					mergeTriple.getLeft().getStatsKey(context));
