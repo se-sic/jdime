@@ -296,13 +296,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				stats.addScenarioStats(scenariostats);
 			}
 		} catch (Throwable t) {
+			LOG.fatal(t + "  while merging " + triple.getLeft().getPath()
+						+ " " + triple.getBase().getPath() + " "
+						+ triple.getRight().getPath());
 			if (!context.isKeepGoing()) {
 				throw new Error(t);
 			} else {
-				LOG.fatal(t + "  while merging " + triple.getLeft().getPath()
-						+ " " + triple.getBase().getPath() + " "
-						+ triple.getRight().getPath());
-
 				if (context.hasStats()) {
 					MergeTripleStats scenariostats = new MergeTripleStats(
 							t.toString());

@@ -50,6 +50,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * Logger.
 	 */
 	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class);
+	
+	public ASTNode<?> getASTNode() {
+		return astnode;
+	}
 
 	/**
 	 * Initializes parser.
@@ -620,10 +624,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			
 			
 		}
-		
-		if (astnode instanceof Program) {
-			children.remove(0);
-		}
 
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
 
@@ -640,27 +640,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 
 
-		if (LOG.isTraceEnabled()) {
-			if (getNumChildren() != astnode.getNumChildNoTransform()) {
-				LOG.trace("ASTNodeArtifact has " + getNumChildren()
-						+ " children: {" + getChildren() + "}");
-				StringBuilder sb = new StringBuilder();
-				sb.append("astnode has " + astnode.getNumChildNoTransform()
-						+ " children: {");
-				
-				ASTNode<?>[] astnodechildren 
-					= new ASTNode[astnode.getNumChildNoTransform()];
-				for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
-					astnodechildren[i] = astnode.getChildNoTransform(i);
-				}
-				sb.append(Arrays.toString(astnodechildren));
-				sb.append("}");
-				LOG.trace(sb);
-			}
-		}
+//		if (LOG.isTraceEnabled()) {
+//			if (getNumChildren() != astnode.getNumChild()) {
+//				LOG.trace("ASTNodeArtifact has " + getNumChildren()
+//						+ " children: {" + getChildren() + "}");
+//				StringBuilder sb = new StringBuilder();
+//				sb.append("astnode has " + astnode.getNumChild()
+//						+ " children: {");
+//				
+//				ASTNode<?>[] astnodechildren 
+//					= new ASTNode[astnode.getNumChild()];
+//				for (int i = 0; i < astnode.getNumChild(); i++) {
+//					astnodechildren[i] = astnode.getChild(i);
+//				}
+//				sb.append(Arrays.toString(astnodechildren));
+//				sb.append("}");
+//				LOG.trace(sb);
+//			}
+//		}
 		
-		assert (isConflict() || getNumChildren() == astnode
-				.getNumChildNoTransform());
+		assert (isConflict() 
+				|| getNumChildren() == astnode.getNumChildNoTransform());
 
 	}
 
@@ -718,6 +718,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 		
 		ASTNodeArtifact p = new ASTNodeArtifact(program);
+		p.deleteChildren();
 
 		return p;
 	}

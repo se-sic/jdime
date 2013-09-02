@@ -447,6 +447,8 @@ public final class Main {
 		
 		for (FileArtifact artifact : context.getInputFiles()) {
 		    ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
+		    System.out.println(ast.getASTNode().dumpTree());
+		    System.out.println(ast.getASTNode());
 		    System.out.println(ast.prettyPrint());
 		}
 	}

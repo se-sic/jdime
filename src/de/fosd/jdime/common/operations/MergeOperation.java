@@ -33,7 +33,8 @@ import de.fosd.jdime.stats.StatsElement;
  * 
  * @author Olaf Lessenich
  * 
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  * 
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
@@ -63,15 +64,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @throws FileNotFoundException
 	 *             If a file cannot be found
 	 */
-	public MergeOperation(
-			final ArtifactList<T> inputArtifacts,
-			final T target) throws FileNotFoundException {
+	public MergeOperation(final ArtifactList<T> inputArtifacts, final T target)
+			throws FileNotFoundException {
 		super();
 		assert (inputArtifacts != null);
-		assert inputArtifacts.size() >= MergeType.MINFILES 
-									: "Too few input files!";
-		assert inputArtifacts.size() <= MergeType.MAXFILES 
-									: "Too many input files!";
+		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
+		assert inputArtifacts.size() <= MergeType.MAXFILES : "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
 		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
@@ -93,10 +91,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			throw new UnsupportedMergeTypeException();
 		}
 
-		assert (left.getClass().equals(right.getClass())) 
-				: "Only artifacts of the same type can be merged";
-		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) 
-				: "Only artifacts of the same type can be merged";
+		assert (left.getClass().equals(right.getClass())) : "Only artifacts of the same type can be merged";
+		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) : "Only artifacts of the same type can be merged";
 
 		left.setRevision(new Revision("left"));
 		base.setRevision(new Revision("base"));
@@ -104,7 +100,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		mergeTriple = new MergeTriple<T>(mergeType, left, base, right);
 		assert (mergeTriple != null);
-		assert (mergeTriple.isValid());	
+		assert (mergeTriple.isValid());
 	}
 
 	/**
@@ -115,8 +111,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @param target
 	 *            output <code>Artifact</code>
 	 */
-	public MergeOperation(final MergeTriple<T> mergeTriple, 
-			final T target) {
+	public MergeOperation(final MergeTriple<T> mergeTriple, final T target) {
 		super();
 		this.mergeTriple = mergeTriple;
 		this.target = target;
@@ -130,10 +125,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	@Override
 	public final void apply(final MergeContext context) throws IOException,
 			InterruptedException {
-		assert (mergeTriple.getLeft().exists()) 
-				: "Left artifact does not exist: " + mergeTriple.getLeft();
-		assert (mergeTriple.getRight().exists()) 
-				: "Right artifact does not exist: " + mergeTriple.getRight();
+		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: "
+				+ mergeTriple.getLeft();
+		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: "
+				+ mergeTriple.getRight();
 		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase()
 				.exists()) : "Base artifact does not exist: "
 				+ mergeTriple.getBase();
@@ -147,14 +142,15 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		mergeTriple.merge(this, context);
-		
+
 		if (context.hasStats()) {
 			Stats stats = context.getStats();
-			assert (stats != null);
-			stats.incrementOperation(this);
-			StatsElement element = stats.getElement(
-					mergeTriple.getLeft().getStatsKey(context));
-			element.incrementMerged();
+			if (stats != null) {
+				stats.incrementOperation(this);
+				StatsElement element = stats.getElement(mergeTriple.getLeft()
+						.getStatsKey(context));
+				element.incrementMerged();
+			}
 		}
 	}
 
@@ -195,8 +191,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	public final String toString() {
 		assert (mergeTriple != null);
 		String dst = target == null ? "" : target.getId();
-		return getId() + ": " + getName() + " " 
-				+ mergeTriple.getMergeType() + " "
-				+ mergeTriple.toString(true) + " INTO " + dst;
+		return getId() + ": " + getName() + " " + mergeTriple.getMergeType()
+				+ " " + mergeTriple.toString(true) + " INTO " + dst;
 	}
 }
