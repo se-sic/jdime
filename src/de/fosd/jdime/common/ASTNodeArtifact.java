@@ -15,7 +15,6 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -51,7 +50,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class);
 	
-	public ASTNode<?> getASTNode() {
+	/**
+	 * Returns the encapsulated ASTNode. Debugging method only.
+	 * TODO: Remove this in a later.
+	 * @return encapsulated ASTnode
+	 */
+	public final ASTNode<?> getASTNode() {
 		return astnode;
 	}
 
