@@ -30,7 +30,7 @@ public class MergeContext {
 	/**
 	 * Default value of benchmark runs.
 	 */
-	private static final int BENCHMARKRUNS = 2;
+	private static final int BENCHMARKRUNS = 10;
 	
 	/**
 	 * Returns the median of a list of long values.
