@@ -309,6 +309,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 			}
 		}
+		System.gc();
 
 	}
 
