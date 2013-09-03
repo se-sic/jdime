@@ -180,6 +180,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 			context.addStats(substats);
 		}
+		System.gc();
 
 	}
 
