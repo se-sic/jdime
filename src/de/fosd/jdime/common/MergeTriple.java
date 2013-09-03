@@ -192,13 +192,26 @@ public class MergeTriple<T extends Artifact<T>> {
 	public final String toString(final String sep, 
 			final boolean humanReadable) {
 		StringBuilder sb = new StringBuilder("");
-		sb.append(left.toString() + sep);
+		sb.append(left.getId() + sep);
 
 		if (!humanReadable || !base.isEmptyDummy()) {
-			sb.append(base.toString() + sep);
+			sb.append(base.getId() + sep);
 		}
 
-		sb.append(right.toString());
+		sb.append(right.getId());
 		return sb.toString();
+	}
+	
+	/**
+	 * Returns a list containing all three revision. 
+	 * Empty dummies for base are included.
+	 * @return list of artifacts
+	 */
+	public final ArtifactList<T> getList() {
+		ArtifactList<T> list = new ArtifactList<>();
+		list.add(left);
+		list.add(base);
+		list.add(right);
+		return list;
 	}
 }

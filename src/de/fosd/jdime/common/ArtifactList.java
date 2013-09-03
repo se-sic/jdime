@@ -19,20 +19,19 @@ import java.util.LinkedList;
  * @author Olaf Lessenich
  * @param <E> artifact element
  */
-public class ArtifactList<E extends Artifact<?>> extends LinkedList<E> {
+public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 5294838641795231473L;
 
-	/**
-	 * Returns a comma-separated String representing a list of artifacts.
-	 * 
-	 * @return comma-separated String
+	/* (non-Javadoc)
+	 * @see java.util.AbstractCollection#toString()
 	 */
-	public final String getNames() {
-		return getNames(" ");
+	@Override
+	public final String toString() {
+		return toString(" ");
 	}
 
 	/**
@@ -42,12 +41,12 @@ public class ArtifactList<E extends Artifact<?>> extends LinkedList<E> {
 	 *            separator
 	 * @return String representation
 	 */
-	public final String getNames(final String sep) {
+	public final String toString(final String sep) {
 		assert (sep != null);
 
 		StringBuilder sb = new StringBuilder("");
 		for (E element : this) {
-			sb.append(element.getName());
+			sb.append(element.getId());
 			sb.append(sep);
 		}
 

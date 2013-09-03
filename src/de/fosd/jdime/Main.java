@@ -30,6 +30,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -70,21 +71,6 @@ public final class Main {
 	private static final double VERSION = 0.1;
 
 	/**
-	 * Time stamp to be set at program start.
-	 */
-	private static long programStart;
-
-	/**
-	 * Merge context.
-	 */
-	private static MergeContext context = new MergeContext();
-
-	/**
-	 * Output artifact.
-	 */
-	private static FileArtifact output = null;
-
-	/**
 	 * Perform a merge operation on the input files or directories.
 	 * 
 	 * @param args
@@ -97,99 +83,110 @@ public final class Main {
 	public static void main(final String[] args) throws IOException,
 			InterruptedException {
 		BasicConfigurator.configure();
-		context = new MergeContext();
-		
-		programStart = System.currentTimeMillis();
+		MergeContext context = new MergeContext();
 
 		setLogLevel("INFO");
 		LOG.debug("starting program");
 
-		ArtifactList<FileArtifact> inputFiles = parseCommandLineArgs(args);
+		parseCommandLineArgs(context, args);
+		ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
+		FileArtifact output = context.getOutputFile();
 
 		assert inputFiles != null : "List of input artifacts may not be null!";
-		
+
 		for (FileArtifact inputFile : inputFiles) {
 			assert (inputFile != null);
 			assert (inputFile instanceof FileArtifact);
-			if (inputFile.isDirectory() 
-					&& !context.isRecursive()) {
+			if (inputFile.isDirectory() && !context.isRecursive()) {
 				LOG.fatal("To merge directories, the argument '-r' "
 						+ "has to be supplied. "
 						+ "See '-help' for more information!");
-				exit(-1);
+				exit(context, -1);
 			}
 		}
-		
+
 		if (output != null && output.exists() && !output.isEmpty()) {
 			System.err.println("Output directory is not empty!");
-			System.err.println("Delete '" + output.getFullPath()
-					+ "'? [y/N]");
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(System.in));
+			System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					System.in));
 			String response = reader.readLine();
 
 			if (response.length() == 0
 					|| response.toLowerCase().charAt(0) != 'y') {
 				System.err.println("File not overwritten. Exiting.");
-				exit(1);
+				exit(context, 1);
 			} else {
 				output.remove();
 			}
 
 		}
-		
-		merge(inputFiles, output);
-		
+
+		if (context.isBugfixing()) {
+			bugfixing(context);
+		} else if (context.isDump()) {
+			dump(context);
+		} else {
+			merge(context);
+		}
+
 		if (context.hasStats()) {
 			StatsPrinter.print(context);
 		}
 
-		exit(0);
+		exit(context, 0);
 	}
 
 	/**
 	 * Parses command line arguments and initializes program.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param args
 	 *            command line arguments
-	 * @return List of input files
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	private static ArtifactList<FileArtifact> 
-			parseCommandLineArgs(final String[] args) throws IOException {
+	private static void parseCommandLineArgs(final MergeContext context,
+			final String[] args) throws IOException {
+		assert (context != null);
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
 
 		Options options = new Options();
-		options.addOption("help", false, "print this message");
-		options.addOption("version", false,
-				"print the version information and exit");
+		options.addOption("benchmark", false, "benchmark with " 
+				+ context.getBenchmarkRuns() + " runs per file");
 		options.addOption("debug", true, "set debug level");
-		options.addOption("mode", true,
-				"set merge mode (textual, structured, combined)");
-		options.addOption("output", true, "output directory/file");
 		options.addOption("f", false, "force overwriting of output files");
+		options.addOption("help", false, "print this message");
+		options.addOption("keepgoing", false, 
+				"Keep running after exceptions.");	
+		options.addOption("mode", true,
+				"set merge mode (textual, structured, combined, dumptree"
+						+ ", dumpgraph, dumpfile, bugfixing)");
+		options.addOption("output", true, "output directory/file");	
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
 				"print configuration information");
-		options.addOption("stdout", false, "prints merge result to stdout");
-		options.addOption("stats", false, 
+		options.addOption("stats", false,
 				"collects statistical data of the merge");
+		options.addOption("stdout", false, "prints merge result to stdout");
+		options.addOption("version", false,
+				"print the version information and exit");
 
 		CommandLineParser parser = new PosixParser();
 		try {
 			CommandLine cmd = parser.parse(options, args);
 
 			if (cmd.hasOption("help")) {
-				help(options, 0);
+				help(context, options, 0);
 			}
 
 			if (cmd.hasOption("info")) {
-				info(options, 0);
+				info(context, options, 0);
 			}
 
 			if (cmd.hasOption("version")) {
-				version(true);
+				version(context, true);
 			}
 
 			if (cmd.hasOption("debug")) {
@@ -199,48 +196,72 @@ public final class Main {
 			if (cmd.hasOption("mode")) {
 				try {
 					if (cmd.getOptionValue("mode").equals("list")) {
-						printStrategies(true);
+						printStrategies(context, true);
+					} else if (cmd.getOptionValue("mode").equals("bugfixing")) {
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						context.setBugfixing();
+					} else if (cmd.getOptionValue("mode").equals("dumptree")) {
+						// User only wants to display the ASTs
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						context.setDump(true);
+						context.setGuiDump(false);
+					} else if (cmd.getOptionValue("mode").equals("dumpgraph")) {
+						// User only wants to display the ASTs
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						context.setDump(true);
+						context.setGuiDump(true);
+					} else if (cmd.getOptionValue("mode").equals("dumpfile")) {
+						// User only wants to display the files
+						context.setMergeStrategy(MergeStrategy
+								.parse("linebased"));
+						context.setDump(true);
+					} else {
+						// User wants to merge
+						context.setMergeStrategy(MergeStrategy.parse(cmd
+								.getOptionValue("mode")));
 					}
-					context.setMergeStrategy(MergeStrategy.parse(cmd
-							.getOptionValue("mode")));
 				} catch (StrategyNotFoundException e) {
 					LOG.fatal(e.getMessage());
-					exit(-1);
+					exit(context, -1);
 				}
 
 				if (context.getMergeStrategy() == null) {
-					help(options, -1);
+					help(context, options, -1);
 				}
 			}
 
 			if (cmd.hasOption("output")) {
-				output = new FileArtifact(new Revision("merge"), new File(
-						cmd.getOptionValue("output")), false);
-			}
-			
-			if (cmd.hasOption("stats")) {
-				context.setSaveStats(true);
+				context.setOutputFile(new FileArtifact(new Revision("merge"),
+						new File(cmd.getOptionValue("output")), false));
 			}
 
+			context.setSaveStats(cmd.hasOption("stats") 
+					|| cmd.hasOption("benchmark"));
+			context.setBenchmark(cmd.hasOption("benchmark"));
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));
 			context.setQuiet(!cmd.hasOption("stdout"));
+			context.setKeepGoing(cmd.hasOption("keepgoing"));
 
 			if (cmd.hasOption("showconfig")) {
-				showConfig(true);
+				showConfig(context, true);
 			}
 
 			int numInputFiles = cmd.getArgList().size();
 
-			if (numInputFiles < MergeType.MINFILES
+			if (!context.isDump() && !context.isBugfixing()
+					&& numInputFiles < MergeType.MINFILES
 					|| numInputFiles > MergeType.MAXFILES) {
 				// number of input files does not fit
-				help(options, 0);
+				help(context, options, 0);
 			}
 
 			// prepare the list of input files
 			ArtifactList<FileArtifact> inputArtifacts 
-					= new ArtifactList<FileArtifact>();
+				= new ArtifactList<FileArtifact>();
 
 			for (Object filename : cmd.getArgList()) {
 				try {
@@ -252,58 +273,66 @@ public final class Main {
 				}
 			}
 
-			return inputArtifacts;
+			context.setInputFiles(inputArtifacts);
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " 
 					+ Arrays.toString(args));
 			LOG.fatal("aborting program");
 			e.printStackTrace();
-			exit(-1);
+			exit(context, -1);
 		}
-		return null;
 	}
 
 	/**
 	 * Print short information and exit.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param options
 	 *            Available command line options
 	 * @param exitcode
 	 *            the code to return on termination
 	 */
-	private static void info(final Options options, final int exitcode) {
-		version(false);
+	private static void info(final MergeContext context, final Options options,
+			final int exitcode) {
+		version(context, false);
 		System.out.println();
 		System.out.println("Run the program with the argument '--help' in "
 				+ "order to retrieve information on its usage!");
-		exit(exitcode);
+		exit(context, exitcode);
 	}
 
 	/**
 	 * Print help on usage and exit.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param options
 	 *            Available command line options
 	 * @param exitcode
 	 *            the code to return on termination
 	 */
-	private static void help(final Options options, final int exitcode) {
+	private static void help(final MergeContext context, final Options options,
+			final int exitcode) {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp(TOOLNAME, options, true);
-		exit(exitcode);
+		exit(context, exitcode);
 	}
 
 	/**
 	 * Print version information and exit.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param exit
 	 *            program exists if true
 	 */
-	private static void version(final boolean exit) {
+	private static void version(final MergeContext context, 
+			final boolean exit) {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
 
 		if (exit) {
-			exit(0);
+			exit(context, 0);
 		}
 	}
 
@@ -320,13 +349,16 @@ public final class Main {
 	/**
 	 * Exit program with provided return code.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param exitcode
 	 *            the code to return on termination
 	 */
-	private static void exit(final int exitcode) {
+	private static void exit(final MergeContext context, final int exitcode) {
 		long programStop = System.currentTimeMillis();
 		LOG.debug("stopping program");
-		LOG.debug("runtime: " + (programStop - programStart) + " ms");
+		LOG.debug("runtime: " + (programStop - context.getProgramStart())
+				+ " ms");
 		LOG.debug("exit code: " + exitcode);
 		System.exit(exitcode);
 	}
@@ -334,54 +366,91 @@ public final class Main {
 	/**
 	 * Prints configuration information.
 	 * 
+	 * @param context
+	 *            merge context
 	 * @param exit
 	 *            whether to exit after printing the config
 	 */
-	private static void showConfig(final boolean exit) {
+	private static void showConfig(final MergeContext context,
+			final boolean exit) {
 		assert (context != null);
 		System.out.println("Merge strategy: " + context.getMergeStrategy());
 		System.out.println();
 
 		if (exit) {
-			exit(0);
+			exit(context, 0);
 		}
 	}
-	
+
 	/**
 	 * Prints the available strategies.
-	 * @param exit whether to exit after printing the strategies
+	 * 
+	 * @param context
+	 *            merge context
+	 * @param exit
+	 *            whether to exit after printing the strategies
 	 */
-	private static void printStrategies(final boolean exit) {
+	private static void printStrategies(final MergeContext context,
+			final boolean exit) {
 		System.out.println("Available merge strategies:");
-		
+
 		for (String s : MergeStrategy.listStrategies()) {
 			System.out.println("\t- " + s);
 		}
-		
+
 		if (exit) {
-			exit(0);
+			exit(context, 0);
 		}
 	}
 
 	/**
 	 * Merges the input files.
 	 * 
-	 * @param inputArtifacts
-	 *            list of files to merge in order left, base, right
-	 * @param output
-	 *            output artifact
+	 * @param context
+	 *            merge context
 	 * @throws InterruptedException
 	 *             If a thread is interrupted
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	public static void merge(final ArtifactList<FileArtifact> inputArtifacts,
-			final FileArtifact output) throws IOException, 
-											InterruptedException {
-		assert (inputArtifacts != null);
+	public static void merge(final MergeContext context) throws IOException,
+			InterruptedException {
+		assert (context != null);
 		Operation<FileArtifact> merge = new MergeOperation<FileArtifact>(
-											inputArtifacts, output);
+				context.getInputFiles(), context.getOutputFile());
 		merge.apply(context);
+	}
+
+	/**
+	 * @param context
+	 *            merge context
+	 * @throws IOException
+	 *             If an input output exception occurs
+	 */
+	@SuppressWarnings("unchecked")
+	public static void dump(final MergeContext context) throws IOException {
+		for (FileArtifact artifact : context.getInputFiles()) {
+			MergeStrategy<FileArtifact> strategy 
+				= (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+			strategy.dump(artifact, context.isGuiDump());
+		}
+	}
+
+	/**
+	 * @param context
+	 *            merge context
+	 * 
+	 */
+        private static void bugfixing(final MergeContext context) {
+		context.setQuiet(false);
+		setLogLevel("trace");
+		
+		for (FileArtifact artifact : context.getInputFiles()) {
+		    ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
+		    System.out.println(ast.getASTNode().dumpTree());
+		    System.out.println(ast.getASTNode());
+		    System.out.println(ast.prettyPrint());
+		}
 	}
 
 }

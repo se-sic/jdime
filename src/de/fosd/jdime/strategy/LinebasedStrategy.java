@@ -14,15 +14,21 @@
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -40,16 +46,20 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
 
 	/**
-	 * Constant prefix of the base merge command.
+	 * Basic merge command.
 	 */
-	private static final String BASECMD = "merge -q -p";
+	private static final String BASECMD = "/usr/bin/merge";
+
+	/**
+	 * Basic merge arguments.
+	 */
+	private static final String[] BASEARGS = { "-q", "-p" };
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation, 
+	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
+	 * de.fosd.jdime.common.operations.MergeOperation,
 	 * de.fosd.jdime.common.MergeContext)
 	 */
 	@Override
@@ -61,7 +71,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (context != null);
 
 		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
-
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
 		assert (triple.getLeft() instanceof FileArtifact);
@@ -73,103 +82,142 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
-
 		FileArtifact target = null;
 
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = (FileArtifact) operation.getTarget();
 			assert (!target.exists() || target.isEmpty()) 
-					: "Would be overwritten: " + target;
+				: "Would be overwritten: " + target;
 		}
 
-		String cmd = BASECMD + " " + triple;
+		List<String> cmd = new LinkedList<>();
+		cmd.add(BASECMD);
+		for (int i = 0; i < BASEARGS.length; i++) {
+			cmd.add(BASEARGS[i]);
+		}
 
-		// launch the merge process by invoking GNU merge (rcs has to be
-		// installed)
-		LOG.debug("Running external command: " + cmd);
+		for (FileArtifact file : triple.getList()) {
+			cmd.add(file.getPath());
+		}
 
-		long cmdStart = System.currentTimeMillis();
-
-		Runtime run = Runtime.getRuntime();
-		Process pr = run.exec(cmd.toString());
-
-		// process input stream
-		BufferedReader buf = new BufferedReader(new InputStreamReader(
-				pr.getInputStream()));
-		boolean conflict = false;
-		boolean comment = false;
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+		ArrayList<Long> runtimes = new ArrayList<>();
 		int conflicts = 0;
 		int loc = 0;
 		int cloc = 0;
-		int tmp = 0;
-		String line = "";
-		while ((line = buf.readLine()) != null) {
-			context.appendLine(line);
-			
-			if (context.hasStats()) {
-				if (line.matches("^$") || line.matches("^\\s*$") 
-						|| line.matches("^\\s*//.*$")) {
-	        		// skip empty lines and single line comments
-	        		continue;
-	        	} else if (line.matches("^\\s*/\\*.*")) {
-	        		if (line.matches("^\\s*/\\*.*?\\*/")) {
-	        			// one line comment
-	        			continue;
-	        		} else {
-	        			// starting block comment
-	        			comment = true;
-	        			continue;
-	        		}
-	        	} else if (line.matches("^.*?\\*/")) {
-	        		// ending block comment
-	        		comment = false;
-	        		continue;
-	        	}
-	            if (line.matches("^\\s*<<<<<<<.*")) {
-	                conflict = true;
-	                comment = false;
-	                tmp = cloc;
-	                conflicts++;
-	            } else if (line.matches("^\\s*=======.*")) {
-	            	comment = false;
-	            } else if (line.matches("^\\s*>>>>>>>.*")) {
-	                conflict = false;
-	                comment = false;
-	                if (tmp == cloc) {
-	                	// only conflicting comments or empty lines
-	                	conflicts--;
-	                }
-	            } else {
-	                loc++;
-	                if (conflict && !comment) {
-	                    cloc++;
-	                }
-	            }
+
+		// launch the merge process by invoking GNU merge (rcs has to be
+		// installed)
+		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+
+		for (int i = 0; i < context.getBenchmarkRuns() + 1
+				&& (i == 0 || context.isBenchmark()); i++) {
+			long cmdStart = System.currentTimeMillis();
+			Process pr = pb.start();
+
+			if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+				// process input stream
+				BufferedReader buf = new BufferedReader(new InputStreamReader(
+						pr.getInputStream()));
+				boolean conflict = false;
+				boolean comment = false;
+
+				int tmp = 0;
+				String line = "";
+				while ((line = buf.readLine()) != null) {
+					context.appendLine(line);
+
+					if (context.hasStats()) {
+						if (line.matches("^$") || line.matches("^\\s*$")
+								|| line.matches("^\\s*//.*$")) {
+							// skip empty lines and single line comments
+							continue;
+						} else if (line.matches("^\\s*/\\*.*")) {
+							if (line.matches("^\\s*/\\*.*?\\*/")) {
+								// one line comment
+								continue;
+							} else {
+								// starting block comment
+								comment = true;
+								continue;
+							}
+						} else if (line.matches("^.*?\\*/")) {
+							// ending block comment
+							comment = false;
+							continue;
+						}
+						if (line.matches("^\\s*<<<<<<<.*")) {
+							if (LOG.isDebugEnabled()) {
+								LOG.debug("CONFLICT in " + triple);
+							}
+							conflict = true;
+							comment = false;
+							tmp = cloc;
+							conflicts++;
+						} else if (line.matches("^\\s*=======.*")) {
+							comment = false;
+						} else if (line.matches("^\\s*>>>>>>>.*")) {
+							conflict = false;
+							comment = false;
+							if (tmp == cloc) {
+								// only conflicting comments or empty lines
+								conflicts--;
+							}
+						} else {
+							loc++;
+							if (conflict && !comment) {
+								cloc++;
+							}
+						}
+					}
+				}
+
+				buf.close();
+
+				// process error stream
+				buf = new BufferedReader(new InputStreamReader(
+						pr.getErrorStream()));
+				while ((line = buf.readLine()) != null) {
+					if (i == 0 && (!context.isBenchmark() 
+							|| context.hasStats())) {
+						context.appendErrorLine(line);
+					}
+				}
+
+				buf.close();
+			}
+			pr.getInputStream().close();
+			pr.getErrorStream().close();
+			pr.getOutputStream().close();
+
+			pr.waitFor();
+
+			long runtime = System.currentTimeMillis() - cmdStart;
+			runtimes.add(runtime);
+
+			if (LOG.isInfoEnabled() && context.isBenchmark() 
+					&& context.hasStats()) {
+				if (i == 0) {
+					LOG.info("Initial run: " + runtime + " ms");
+				} else {
+					LOG.info("Run " + i + " of "
+							+ context.getBenchmarkRuns() + ": " + runtime
+							+ " ms");
+				}
 			}
 		}
 
-		buf.close();
-
-		// process error stream
-		buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
-		while ((line = buf.readLine()) != null) {
-			context.appendErrorLine(line);
+		if (context.isBenchmark() && runtimes.size() > 1) {
+			// remove first run as it took way longer due to all the counting
+			runtimes.remove(0);
 		}
 
-		buf.close();
-		pr.getInputStream().close();
-		pr.getErrorStream().close();
-		pr.getOutputStream().close();
-
-		pr.waitFor();
-
-		long cmdStop = System.currentTimeMillis();
-
-		LOG.debug("External command has finished after " + (cmdStop - cmdStart)
-				+ " ms.");
+		Long runtime = MergeContext.median(runtimes);
+		LOG.debug("Linebased merge time was " + runtime + " ms.");
 
 		if (context.hasErrors()) {
+			LOG.fatal("Errors occured while calling '" + cmd + "')");
 			System.err.println(context.getStdErr());
 		}
 
@@ -178,11 +226,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			assert (target.exists());
 			target.write(context.getStdIn());
 		}
-		
+
 		// add statistical data to context
 		if (context.hasStats()) {
 			assert (cloc <= loc);
-			
+
 			Stats stats = context.getStats();
 			StatsElement linesElement = stats.getElement("lines");
 			assert (linesElement != null);
@@ -190,7 +238,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			newElement.setMerged(loc);
 			newElement.setConflicting(cloc);
 			linesElement.addStatsElement(newElement);
-			
+
 			if (conflicts > 0) {
 				assert (cloc > 0);
 				stats.addConflicts(conflicts);
@@ -200,11 +248,16 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			} else {
 				assert (cloc == 0);
 			}
-			
+
+			stats.increaseRuntime(runtime);
+
+			MergeTripleStats scenariostats = new MergeTripleStats(triple,
+					conflicts, cloc, loc, runtime);
+			stats.addScenarioStats(scenariostats);
 		}
 
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -212,7 +265,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] {"directories", "files", "lines"});
+		return new Stats(new String[] { "directories", "files", "lines" });
 	}
 
 	/*
@@ -228,6 +281,20 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	@Override
 	public final String getStatsKey(final FileArtifact artifact) {
 		return "lines";
+	}
+
+	@Override
+	public final void dump(final FileArtifact artifact, final boolean graphical)
+			throws IOException {
+		BufferedReader buf = new BufferedReader(new FileReader(
+				artifact.getFile()));
+
+		String line = null;
+		while ((line = buf.readLine()) != null) {
+			System.out.println(line);
+			// TODO: save to outputfile
+		}
+		buf.close();
 	}
 
 }

@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2013 Olaf Lessenich.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 /**
  * 
  */
@@ -5,6 +15,7 @@ package de.fosd.jdime.stats;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +30,11 @@ import de.fosd.jdime.common.operations.Operation;
  *
  */
 public class Stats {
+	
+	/**
+	 * 
+	 */
+	private List<MergeTripleStats> scenariostats; 
 	
 	/**
 	 * Number of conflicts. 
@@ -42,11 +58,41 @@ public class Stats {
 	}
 	
 	/**
+	 * Runtime.
+	 */
+	private long runtime = 0;
+	
+	/**
+	 * Returns the runtime.
+	 * @return runtime
+	 */
+	public final long getRuntime() {
+		return runtime;
+	}
+	
+	/**
+	 * Sets the runtime.
+	 * 
+	 * @param runtime runtime
+	 */
+	public final void setRuntime(final long runtime) {
+		this.runtime = runtime;
+	}
+	
+	/**
 	 * Increases the number of conflicts.
 	 * @param conflicts number of conflicts to add
 	 */
 	public final void addConflicts(final int conflicts) {
 		this.conflicts += conflicts;
+	}
+	
+	/**
+	 * Increase the runtime statistics.
+	 * @param runtime 
+	 */
+	public final void increaseRuntime(final long runtime) {
+		this.runtime += runtime;
 	}
 
 	/**
@@ -61,13 +107,23 @@ public class Stats {
 	
 	/**
 	 * Creates a new Stats instance from a list of keys.
+	 * @param scenariostats list of scenario stats
 	 * @param keys List of keys
 	 */
-	public Stats(final List<String> keys) {
+	public Stats(final List<MergeTripleStats> scenariostats, 
+			final List<String> keys) {
 		assert (keys != null);
 		assert (!keys.isEmpty());
 		
-		// If necessary, initialize maps
+		// If necessary, initialize lists and maps
+		if (this.scenariostats == null) {
+			this.scenariostats =  new LinkedList<>();
+		}
+		
+		if (scenariostats != null) {
+			this.scenariostats.addAll(scenariostats);
+		}
+		
 		if (elements == null) {
 			elements = new HashMap<String, StatsElement>();
 		}
@@ -86,7 +142,7 @@ public class Stats {
 	 * @param keys array of keys
 	 */
 	public Stats(final String[] keys) {
-		this(Arrays.asList(keys));
+		this(null, Arrays.asList(keys));
 	}
 	
 	/**
@@ -109,6 +165,7 @@ public class Stats {
 		}
 		
 		this.conflicts += other.conflicts;
+		this.runtime += other.runtime;
 		
 	}
 	
@@ -165,8 +222,30 @@ public class Stats {
 	 */
 	public final int getOperation(final String opName) {
 		assert (operations != null);
-		assert (operations.containsKey(opName));
-		return operations.get(opName);
+		Integer op = operations.get(opName);
+		return op == null ? 0 : op;
+	}
+
+	/**
+	 * @return the scenariostats
+	 */
+	public final List<MergeTripleStats> getScenariostats() {
+		return scenariostats;
+	}
+	
+	/**
+	 * Add a triple statistic.
+	 * @param tripleStats triple statistics
+	 */
+	public final void addScenarioStats(final MergeTripleStats tripleStats) {
+		this.scenariostats.add(tripleStats);
+	}
+	
+	/**
+	 * Reset the triple statistics.
+	 */
+	public final void resetScenarioStats() {
+		scenariostats = new LinkedList<>();
 	}
 	
 }

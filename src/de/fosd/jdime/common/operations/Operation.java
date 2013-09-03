@@ -29,6 +29,24 @@ import de.fosd.jdime.common.MergeContext;
 public abstract class Operation<T extends Artifact<T>> {
 	
 	/**
+	 * Operation counter.
+	 */
+	private static long count = 1;
+	
+	/**
+	 * Number.
+	 */
+	private long number;
+	
+	/**
+	 * Returns a new instance of operation.
+	 */
+	public Operation() {
+		this.number = count;
+		count++;
+	}
+	
+	/**
 	 * Applies the operation and returns a report.
 	 * 
 	 * @param context merge context
@@ -52,4 +70,28 @@ public abstract class Operation<T extends Artifact<T>> {
 	 */
 	@Override
 	public abstract String toString();
+	
+	/**
+	 * Returns counter value.
+	 * @return counter value
+	 */
+	public static long getCount() {
+		return count;
+	}
+	
+	/**
+	 * Returns the number of the operation.
+	 * @return number
+	 */
+	public final long getNumber() {
+		return number;
+	}
+	
+	/**
+	 * Returns an ID.
+	 * @return id
+	 */
+	public final String getId() {
+		return "OP" + number;
+	}
 }

@@ -48,6 +48,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	 *            that is deleted by the operation
 	 */
 	public DeleteOperation(final T artifact) {
+		super();
 		this.artifact = artifact;
 	}
 
@@ -86,6 +87,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact;
 	}
 }

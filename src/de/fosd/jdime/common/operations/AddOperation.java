@@ -55,6 +55,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 *            output artifact
 	 */
 	public AddOperation(final T artifact, final T target) {
+		super();
 		this.artifact = artifact;
 		this.target = target;
 	}
@@ -112,7 +113,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact;
 	}
 				
 }
