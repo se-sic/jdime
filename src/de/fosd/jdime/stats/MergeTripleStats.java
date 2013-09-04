@@ -83,9 +83,12 @@ public class MergeTripleStats {
 	/**
 	 * Class constructor.
 	 * 
+	 * @param triple merge triple
 	 * @param errormsg error message
 	 */
-	public MergeTripleStats(final String errormsg) {
+	public MergeTripleStats(final MergeTriple<FileArtifact> triple,
+			final String errormsg) {
+		this.triple = triple;
 		this.error = true;
 		this.errormsg = errormsg;
 	}

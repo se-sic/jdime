@@ -304,7 +304,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			} else {
 				if (context.hasStats()) {
 					MergeTripleStats scenariostats = new MergeTripleStats(
-							t.toString());
+							triple, t.toString());
 					context.getStats().addScenarioStats(scenariostats);
 				}
 			}
