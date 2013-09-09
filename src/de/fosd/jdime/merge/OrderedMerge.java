@@ -73,13 +73,26 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		Revision r = right.getRevision();
 		Iterator<T> leftIt = left.getChildren().iterator();
 		Iterator<T> rightIt = right.getChildren().iterator();
-		T leftChild = (T) leftIt.next();
-		T rightChild = (T) rightIt.next();
-
+		
+		
 		boolean leftdone = false;
 		boolean rightdone = false;
+		T leftChild = null;
+		T rightChild = null;
+		
+		if (leftIt.hasNext()) {
+			leftChild = leftIt.next();
+		} else {
+			leftdone = true;
+		}
+		if (rightIt.hasNext()) {
+			rightChild = rightIt.next();
+		} else {
+			rightdone = true;
+		}
+
 		while (!leftdone || !rightdone) {
-			if (!r.contains(leftChild)) {
+			if (!leftdone && !r.contains(leftChild)) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(leftChild) + "is not in right");
 				}
@@ -171,7 +184,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 				}
 			}
 
-			if (!l.contains(rightChild)) {
+			if (!rightdone && !l.contains(rightChild)) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(rightChild) + "is not in left");
 				}

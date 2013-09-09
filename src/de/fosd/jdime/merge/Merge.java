@@ -118,7 +118,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			LOG.trace(prefix(right) + "-> (" + rightChildren + ")");
 		}
 
-		if (leftChildren.isEmpty() || rightChildren.isEmpty()) {
+		if ((base.isEmptyDummy() || base.hasChildren()) 
+				&& (leftChildren.isEmpty() || rightChildren.isEmpty())) {
 			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(left) + "and [" + right.getId()
@@ -153,7 +154,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			} else if (rightChildren.isEmpty()) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(right) + "has no children.");
-					LOG.trace(prefix(left) + " was deleted by left");
+					LOG.trace(prefix(left) + " was deleted by right");
 				}
 				if (left.hasChanges()) {
 					if (LOG.isTraceEnabled()) {
