@@ -122,7 +122,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						LOG.trace(prefix(leftChild) + "is a change");
 					}
 					// leftChild is a change
-					if (!l.contains(rightChild)) {
+					if (!rightdone && !l.contains(rightChild)) {
 						if (LOG.isTraceEnabled()) {
 							LOG.trace(prefix(rightChild) + "is not in left");
 						}
@@ -215,7 +215,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						LOG.trace(prefix(rightChild) + "is a change");
 					}
 					// rightChild is a change
-					if (!r.contains(leftChild)) {
+					if (!leftdone && !r.contains(leftChild)) {
 						if (LOG.isTraceEnabled()) {
 							LOG.trace(prefix(leftChild) + "is not in right");
 						}
@@ -344,6 +344,6 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return logging prefix
 	 */
 	private String prefix(final T artifact) {
-		return logprefix + "[" + artifact.getId() + "] ";
+	    return logprefix + "[" + (artifact == null ? "null" : artifact.getId()) + "] ";
 	}
 }

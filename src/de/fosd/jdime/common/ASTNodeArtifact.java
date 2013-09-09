@@ -527,7 +527,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				boolean leftChanges = left.hasChanges(false);
 				boolean rightChanges = right.hasChanges(false);
 
-				if (leftChanges || rightChanges) {
+				if (leftChanges && rightChanges) {
 					if (LOG.isTraceEnabled()) {
 						LOG.trace("target " + target.getId()
 								+ " expects a fixed amount of children.");
