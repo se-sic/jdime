@@ -740,5 +740,33 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	
 		return conflict;
 	}
+	
+	/**
+	 * Returns statistical data of the tree.
+	 * stats[0]: number of nodes
+	 * stats[1]: tree depth
+	 * stats[2]: maximum number of children
+	 * @return statistics
+	 */
+	public final int[] getStats() {
+		// 0: number of nodes, 1: tree depth, 2: max children
+		int[] mystats = new int[3];
+		mystats[0] = 1;
+		mystats[1] = 0;
+		mystats[2] = getNumChildren();
+		
+		for (int i = 0; i < getNumChildren(); i++) {
+			int[] childstats = getChild(i).getStats();
+			mystats[0] += childstats[0];
+			if (childstats[1] + 1 > mystats[1]) {
+				mystats[1] = childstats[1] + 1;
+			}
+			if (childstats[2] > mystats[2]) {
+				mystats[2] = childstats[2];
+			}
+		}
+		
+		return mystats;
+	}
 
 }

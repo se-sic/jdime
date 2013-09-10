@@ -447,9 +447,16 @@ public final class Main {
 		
 		for (FileArtifact artifact : context.getInputFiles()) {
 		    ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
-		    System.out.println(ast.getASTNode().dumpTree());
-		    System.out.println(ast.getASTNode());
-		    System.out.println(ast.prettyPrint());
+		    //System.out.println(ast.getASTNode().dumpTree());
+		    //System.out.println(ast.getASTNode());
+		    //System.out.println(ast.prettyPrint());
+		    System.out.println(ast.dumpTree());
+		    System.out.println("--");
+		    int[] s = ast.getStats();
+		    System.out.println("Number of nodes: " + s[0]);
+		    System.out.println("Tree Depth: " + s[1]);
+		    System.out.println("MaxChildren: " + s[2]);
+		    System.out.println("--------------------------------------------");
 		}
 	}
 
