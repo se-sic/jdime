@@ -233,7 +233,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 							}
 						}
 					}
-					
 					buf.close();
 				}
 
