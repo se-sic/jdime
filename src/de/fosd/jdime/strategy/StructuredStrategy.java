@@ -233,6 +233,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 							}
 						}
 					}
+					buf.close();
 				}
 
 				long runtime = System.currentTimeMillis() - cmdStart;
