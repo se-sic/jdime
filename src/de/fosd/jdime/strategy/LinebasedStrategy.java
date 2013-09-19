@@ -1,28 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.strategy;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -31,270 +25,275 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
- * Performs a linebased merge.
- * 
+ * Performs an unstructured, line-based merge.
+ *
  * @author Olaf Lessenich
- * 
+ *
  */
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
+    /**
+     * Logger.
+     */
+    private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
+    /**
+     * Basic merge command.
+     */
+    private static final String BASECMD = "/usr/bin/merge";
+    /**
+     * Basic merge arguments.
+     */
+    private static final String[] BASEARGS = {"-q", "-p"};
 
-	/**
-	 * Basic merge command.
-	 */
-	private static final String BASECMD = "/usr/bin/merge";
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.MergeStrategy#merge(
+     * de.fosd.jdime.common.operations.MergeOperation,
+     * de.fosd.jdime.common.MergeContext)
+     */
+    @Override
+    public final void merge(final MergeOperation<FileArtifact> operation,
+            final MergeContext context) throws IOException,
+            InterruptedException {
 
-	/**
-	 * Basic merge arguments.
-	 */
-	private static final String[] BASEARGS = { "-q", "-p" };
+        assert (operation != null);
+        assert (context != null);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
-	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
+        MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+        assert (triple != null);
+        assert (triple.isValid()) : "The merge triple is not valid!";
+        assert (triple.getLeft() instanceof FileArtifact);
+        assert (triple.getBase() instanceof FileArtifact);
+        assert (triple.getRight() instanceof FileArtifact);
+        assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
+        assert ((triple.getBase().exists() && !triple.getBase().isDirectory())
+                || triple.getBase().isEmptyDummy());
+        assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
-		assert (operation != null);
-		assert (context != null);
+        context.resetStreams();
+        FileArtifact target = null;
 
-		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
-		assert (triple != null);
-		assert (triple.isValid()) : "The merge triple is not valid!";
-		assert (triple.getLeft() instanceof FileArtifact);
-		assert (triple.getBase() instanceof FileArtifact);
-		assert (triple.getRight() instanceof FileArtifact);
-		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) 
-				|| triple.getBase().isEmptyDummy());
-		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
+        if (operation.getTarget() != null) {
+            assert (operation.getTarget() instanceof FileArtifact);
+            target = operation.getTarget();
+            assert (!target.exists() || target.isEmpty()) :
+                    "Would be overwritten: " + target;
+        }
 
-		context.resetStreams();
-		FileArtifact target = null;
+        List<String> cmd = new LinkedList<>();
+        cmd.add(BASECMD);
+        cmd.addAll(Arrays.asList(BASEARGS));
 
-		if (operation.getTarget() != null) {
-			assert (operation.getTarget() instanceof FileArtifact);
-			target = (FileArtifact) operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) 
-				: "Would be overwritten: " + target;
-		}
+        for (FileArtifact file : triple.getList()) {
+            cmd.add(file.getPath());
+        }
 
-		List<String> cmd = new LinkedList<>();
-		cmd.add(BASECMD);
-		for (int i = 0; i < BASEARGS.length; i++) {
-			cmd.add(BASEARGS[i]);
-		}
+        ProcessBuilder pb = new ProcessBuilder(cmd);
+        ArrayList<Long> runtimes = new ArrayList<>();
+        int conflicts = 0;
+        int loc = 0;
+        int cloc = 0;
 
-		for (FileArtifact file : triple.getList()) {
-			cmd.add(file.getPath());
-		}
+        // launch the merge process by invoking GNU merge (rcs has to be
+        // installed)
+        LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
 
-		ProcessBuilder pb = new ProcessBuilder(cmd);
-		ArrayList<Long> runtimes = new ArrayList<>();
-		int conflicts = 0;
-		int loc = 0;
-		int cloc = 0;
+        for (int i = 0; i < context.getBenchmarkRuns() + 1
+                && (i == 0 || context.isBenchmark()); i++) {
+            long cmdStart = System.currentTimeMillis();
+            Process pr = pb.start();
 
-		// launch the merge process by invoking GNU merge (rcs has to be
-		// installed)
-		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+            if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+                // process input stream
+                BufferedReader buf = new BufferedReader(new InputStreamReader(
+                        pr.getInputStream()));
+                boolean conflict = false;
+                boolean comment = false;
 
-		for (int i = 0; i < context.getBenchmarkRuns() + 1
-				&& (i == 0 || context.isBenchmark()); i++) {
-			long cmdStart = System.currentTimeMillis();
-			Process pr = pb.start();
+                int tmp = 0;
+                String line;
+                while ((line = buf.readLine()) != null) {
+                    context.appendLine(line);
 
-			if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-				// process input stream
-				BufferedReader buf = new BufferedReader(new InputStreamReader(
-						pr.getInputStream()));
-				boolean conflict = false;
-				boolean comment = false;
+                    if (context.hasStats()) {
+                        if (line.matches("^$") || line.matches("^\\s*$")
+                                || line.matches("^\\s*//.*$")) {
+                            // skip empty lines and single line comments
+                            continue;
+                        } else if (line.matches("^\\s*/\\*.*")) {
+                            if (line.matches("^\\s*/\\*.*?\\*/")) {
+                                // one line comment
+                                continue;
+                            } else {
+                                // starting block comment
+                                comment = true;
+                                continue;
+                            }
+                        } else if (line.matches("^.*?\\*/")) {
+                            // ending block comment
+                            comment = false;
+                            continue;
+                        }
+                        if (line.matches("^\\s*<<<<<<<.*")) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("CONFLICT in " + triple);
+                            }
+                            conflict = true;
+                            comment = false;
+                            tmp = cloc;
+                            conflicts++;
+                        } else if (line.matches("^\\s*=======.*")) {
+                            comment = false;
+                        } else if (line.matches("^\\s*>>>>>>>.*")) {
+                            conflict = false;
+                            comment = false;
+                            if (tmp == cloc) {
+                                // only conflicting comments or empty lines
+                                conflicts--;
+                            }
+                        } else {
+                            loc++;
+                            if (conflict && !comment) {
+                                cloc++;
+                            }
+                        }
+                    }
+                }
 
-				int tmp = 0;
-				String line = "";
-				while ((line = buf.readLine()) != null) {
-					context.appendLine(line);
+                buf.close();
 
-					if (context.hasStats()) {
-						if (line.matches("^$") || line.matches("^\\s*$")
-								|| line.matches("^\\s*//.*$")) {
-							// skip empty lines and single line comments
-							continue;
-						} else if (line.matches("^\\s*/\\*.*")) {
-							if (line.matches("^\\s*/\\*.*?\\*/")) {
-								// one line comment
-								continue;
-							} else {
-								// starting block comment
-								comment = true;
-								continue;
-							}
-						} else if (line.matches("^.*?\\*/")) {
-							// ending block comment
-							comment = false;
-							continue;
-						}
-						if (line.matches("^\\s*<<<<<<<.*")) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug("CONFLICT in " + triple);
-							}
-							conflict = true;
-							comment = false;
-							tmp = cloc;
-							conflicts++;
-						} else if (line.matches("^\\s*=======.*")) {
-							comment = false;
-						} else if (line.matches("^\\s*>>>>>>>.*")) {
-							conflict = false;
-							comment = false;
-							if (tmp == cloc) {
-								// only conflicting comments or empty lines
-								conflicts--;
-							}
-						} else {
-							loc++;
-							if (conflict && !comment) {
-								cloc++;
-							}
-						}
-					}
-				}
+                // process error stream
+                buf = new BufferedReader(new InputStreamReader(
+                        pr.getErrorStream()));
+                while ((line = buf.readLine()) != null) {
+                    if (i == 0 && (!context.isBenchmark()
+                            || context.hasStats())) {
+                        context.appendErrorLine(line);
+                    }
+                }
 
-				buf.close();
+                buf.close();
+            }
+            pr.getInputStream().close();
+            pr.getErrorStream().close();
+            pr.getOutputStream().close();
 
-				// process error stream
-				buf = new BufferedReader(new InputStreamReader(
-						pr.getErrorStream()));
-				while ((line = buf.readLine()) != null) {
-					if (i == 0 && (!context.isBenchmark() 
-							|| context.hasStats())) {
-						context.appendErrorLine(line);
-					}
-				}
+            pr.waitFor();
 
-				buf.close();
-			}
-			pr.getInputStream().close();
-			pr.getErrorStream().close();
-			pr.getOutputStream().close();
+            long runtime = System.currentTimeMillis() - cmdStart;
+            runtimes.add(runtime);
 
-			pr.waitFor();
+            if (LOG.isInfoEnabled() && context.isBenchmark()
+                    && context.hasStats()) {
+                if (i == 0) {
+                    LOG.info("Initial run: " + runtime + " ms");
+                } else {
+                    LOG.info("Run " + i + " of "
+                            + context.getBenchmarkRuns() + ": " + runtime
+                            + " ms");
+                }
+            }
+        }
 
-			long runtime = System.currentTimeMillis() - cmdStart;
-			runtimes.add(runtime);
+        if (context.isBenchmark() && runtimes.size() > 1) {
+            // remove first run as it took way longer due to all the counting
+            runtimes.remove(0);
+        }
 
-			if (LOG.isInfoEnabled() && context.isBenchmark() 
-					&& context.hasStats()) {
-				if (i == 0) {
-					LOG.info("Initial run: " + runtime + " ms");
-				} else {
-					LOG.info("Run " + i + " of "
-							+ context.getBenchmarkRuns() + ": " + runtime
-							+ " ms");
-				}
-			}
-		}
+        Long runtime = MergeContext.median(runtimes);
+        LOG.debug("Linebased merge time was " + runtime + " ms.");
 
-		if (context.isBenchmark() && runtimes.size() > 1) {
-			// remove first run as it took way longer due to all the counting
-			runtimes.remove(0);
-		}
+        if (context.hasErrors()) {
+            LOG.fatal("Errors occured while calling '" + cmd + "')");
+            System.err.println(context.getStdErr());
+        }
 
-		Long runtime = MergeContext.median(runtimes);
-		LOG.debug("Linebased merge time was " + runtime + " ms.");
+        // write output
+        if (target != null) {
+            assert (target.exists());
+            target.write(context.getStdIn());
+        }
 
-		if (context.hasErrors()) {
-			LOG.fatal("Errors occured while calling '" + cmd + "')");
-			System.err.println(context.getStdErr());
-		}
+        // add statistical data to context
+        if (context.hasStats()) {
+            assert (cloc <= loc);
 
-		// write output
-		if (target != null) {
-			assert (target.exists());
-			target.write(context.getStdIn());
-		}
+            Stats stats = context.getStats();
+            StatsElement linesElement = stats.getElement("lines");
+            assert (linesElement != null);
+            StatsElement newElement = new StatsElement();
+            newElement.setMerged(loc);
+            newElement.setConflicting(cloc);
+            linesElement.addStatsElement(newElement);
 
-		// add statistical data to context
-		if (context.hasStats()) {
-			assert (cloc <= loc);
+            if (conflicts > 0) {
+                assert (cloc > 0);
+                stats.addConflicts(conflicts);
+                StatsElement filesElement = stats.getElement("files");
+                assert (filesElement != null);
+                filesElement.incrementConflicting();
+            } else {
+                assert (cloc == 0);
+            }
 
-			Stats stats = context.getStats();
-			StatsElement linesElement = stats.getElement("lines");
-			assert (linesElement != null);
-			StatsElement newElement = new StatsElement();
-			newElement.setMerged(loc);
-			newElement.setConflicting(cloc);
-			linesElement.addStatsElement(newElement);
+            stats.increaseRuntime(runtime);
 
-			if (conflicts > 0) {
-				assert (cloc > 0);
-				stats.addConflicts(conflicts);
-				StatsElement filesElement = stats.getElement("files");
-				assert (filesElement != null);
-				filesElement.incrementConflicting();
-			} else {
-				assert (cloc == 0);
-			}
+            MergeTripleStats scenariostats = new MergeTripleStats(triple,
+                    conflicts, cloc, loc, runtime);
+            stats.addScenarioStats(scenariostats);
+        }
 
-			stats.increaseRuntime(runtime);
+    }
 
-			MergeTripleStats scenariostats = new MergeTripleStats(triple,
-					conflicts, cloc, loc, runtime);
-			stats.addScenarioStats(scenariostats);
-		}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[]{"directories", "files", "lines"});
+    }
 
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final String toString() {
+        return "linebased";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files", "lines" });
-	}
+    @Override
+    public final String getStatsKey(final FileArtifact artifact) {
+        return "lines";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return "linebased";
-	}
-
-	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
-		return "lines";
-	}
-
-	@Override
-	public final void dump(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		BufferedReader buf = new BufferedReader(new FileReader(
-				artifact.getFile()));
-
-		String line = null;
-		while ((line = buf.readLine()) != null) {
-			System.out.println(line);
-			// TODO: save to outputfile
-		}
-		buf.close();
-	}
-
+    @Override
+    public final void dump(final FileArtifact artifact, final boolean graphical)
+            throws IOException {
+        try (BufferedReader buf =
+                new BufferedReader(new FileReader(
+                artifact.getFile()))) {
+            String line;
+            while ((line = buf.readLine()) != null) {
+                System.out.println(line);
+                // TODO: save to outputfile
+            }
+        }
+    }
 }

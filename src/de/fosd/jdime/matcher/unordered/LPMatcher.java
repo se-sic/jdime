@@ -1,21 +1,28 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.matcher.unordered;
 
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -23,245 +30,235 @@ import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
+ *
  * @author Olaf Lessenich
- * 
- * @param <T>
- *            type of artifact
+ *
+ * @param <T> type of artifact
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	/**
-	 * @param matcher matcher
-	 */
-	public LPMatcher(final Matcher<T> matcher) {
-		super(matcher);
-	}
-	
-	/**
-	 * 
-	 */
-	private static String id = "unordered";
-	
-	/**
-	 * Threshold for rounding errors.
-	 */
-	private static final double THRESHOLD = 1e-6;
-	
-	@Override
-	public final Matching<T> match(final T left, final T right) {
-		
+    /**
+     *
+     */
+    private static String id = "unordered";
+    /**
+     * Threshold for rounding errors.
+     */
+    private static final double THRESHOLD = 1e-6;
 
-		if (!left.matches(right)) {
-			return new Matching<T>(left, right, 0);
-		}
+    /**
+     * Computes indices in the constraint matrix.
+     *
+     * @param i row in node matrix
+     * @param j column in node matrix
+     * @param width columns per row in node matrix
+     * @return index in constraint matrix
+     */
+    private static int getGlpkIndex(final int i, final int j, final int width) {
+        return i * width + j;
+    }
 
-		// number of first-level subtrees of t1
-		int m = left.getNumChildren();
+    /**
+     * Computes indices in the node matrix.
+     *
+     * @param x index in constraint matrix
+     * @param width columns per row in node matrix
+     * @return index in node matrix
+     */
+    private static int[] getMyIndices(final int x, final int width) {
+        return new int[]{x / width, x % width};
+    }
 
-		// number of first-level subtrees of t2
-		int n = right.getNumChildren();
+    /**
+     * @param matcher matcher
+     */
+    public LPMatcher(final Matcher<T> matcher) {
+        super(matcher);
+    }
 
-		if (m == 0 || n == 0) {
-			return new Matching<T>(left, right, 1);
-		}
+    @Override
+    public final Matching<T> match(final T left, final T right) {
 
-		@SuppressWarnings("unchecked")
-		Matching<T>[][] matching = new Matching[m][n];
 
-		for (int i = 0; i < m; i++) {
-			for (int j = 0; j < n; j++) {
-				matching[i][j] = new Matching<T>();
-			}
-		}
+        if (!left.matches(right)) {
+            return new Matching<>(left, right, 0);
+        }
 
-		T childT1;
-		T childT2;
+        // number of first-level subtrees of t1
+        int m = left.getNumChildren();
 
-		for (int i = 0; i < m; i++) {
-			childT1 = left.getChild(i);
-			for (int j = 0; j < n; j++) {
-				childT2 = right.getChild(j);
-				Matching<T> w = matcher.match(childT1, childT2);
-				matching[i][j] = w;
-			}
-		}
+        // number of first-level subtrees of t2
+        int n = right.getNumChildren();
 
-		return solveLP(left, right, matching);
-	}
-	
-	/**
-	 * Invokes the LP-Solver and solves the assignment problem.
-	 * @param left left artifact
-	 * @param right right artifact
-	 * @param matching matrix of matchings
-	 * @return rootmatching
-	 */
-	private Matching<T> solveLP(final T left, final T right, 
-			final Matching<T>[][] matching) {
-		int m = matching.length;
-		int n = matching[0].length;
-		int width = m > n ? m : n;
-		int cols = width * width;
+        if (m == 0 || n == 0) {
+            return new Matching<>(left, right, 1);
+        }
 
-		/* Caution, indices are one-based! */
+        @SuppressWarnings("unchecked")
+        Matching<T>[][] matching = new Matching[m][n];
 
-		// create problem
-		glp_prob lp = GLPK.glp_create_prob();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                matching[i][j] = new Matching<>();
+            }
+        }
 
-		// add number of columns
-		GLPK.glp_add_cols(lp, cols);
+        T childT1;
+        T childT2;
 
-		// define kind and bounds of variables
-		for (int i = 1; i <= cols; i++) {
-			// set kind of column i: CV=continuous, IV=integer
-			// FIXME: possible performance issue, CV should also be ok
-			GLPK.glp_set_col_kind(lp, i, GLPKConstants.GLP_IV);
+        for (int i = 0; i < m; i++) {
+            childT1 = left.getChild(i);
+            for (int j = 0; j < n; j++) {
+                childT2 = right.getChild(j);
+                Matching<T> w = matcher.match(childT1, childT2);
+                matching[i][j] = w;
+            }
+        }
 
-			// set bounds for column i: 0 <= x <= 1.0
-			// LO = lower, UP = upper, DB = double; superfluous are params
-			// ignored
-			GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO,
-					0.0 /* lower */, 1.0 /* upper */);
-		}
+        return solveLP(left, right, matching);
+    }
 
-		/* constraints */
-		int rows = 2 * width;
+    /**
+     * Invokes the LP-Solver and solves the assignment problem.
+     *
+     * @param left left artifact
+     * @param right right artifact
+     * @param matching matrix of matchings
+     * @return matching of root nodes
+     */
+    private Matching<T> solveLP(final T left, final T right,
+            final Matching<T>[][] matching) {
+        int m = matching.length;
+        int n = matching[0].length;
+        int width = m > n ? m : n;
+        int cols = width * width;
 
-		GLPK.glp_add_rows(lp, rows);
+        /* Caution, indices are one-based! */
 
-		SWIGTYPE_p_int ind;
-		SWIGTYPE_p_double val;
+        // create problem
+        glp_prob lp = GLPK.glp_create_prob();
 
-		// row constraints
-		for (int i = 1; i <= width; i++) {
-			// define indices & values
-			ind = GLPK.new_intArray(width + 1);
-			val = GLPK.new_doubleArray(width + 1);
-			for (int j = 1; j <= width; j++) {
-				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, j,
-						getGlpkIndex(i - 1, j - 1, width) + 1);
-				GLPK.doubleArray_setitem(val, j, 1.0);
-			}
-			GLPK.glp_set_mat_row(lp, i /* row */, width /* max array index */,
-					ind, val);
-		}
+        // add number of columns
+        GLPK.glp_add_cols(lp, cols);
 
-		// column constraints
-		for (int j = 1; j <= width; j++) {
-			// define indices & values
-			ind = GLPK.new_intArray(width + 1);
-			val = GLPK.new_doubleArray(width + 1);
-			for (int i = 1; i <= width; i++) {
-				// glpk index is zero-based
-				GLPK.intArray_setitem(ind, i,
-						getGlpkIndex(i - 1, j - 1, width) + 1);
-				GLPK.doubleArray_setitem(val, i, 1.0);
-			}
-			GLPK.glp_set_mat_row(lp, width + j /* row */, width /*
-																 * max array
-																 * index
-																 */, ind, val);
-		}
+        // define kind and bounds of variables
+        for (int i = 1; i <= cols; i++) {
+            // set kind of column i: CV=continuous, IV=integer
+            // FIXME: possible performance issue, CV should also be ok
+            GLPK.glp_set_col_kind(lp, i, GLPKConstants.GLP_IV);
 
-		// all constraints are "= 1"
-		for (int i = 1; i <= 2 * width; i++) {
-			GLPK.glp_set_row_bnds(lp, i, GLPKConstants.GLP_FX, 1.0, 1.0);
-		}
+            // set bounds for column i: 0 <= x <= 1.0
+            // LO = lower, UP = upper, DB = double; superfluous are params
+            // ignored
+            GLPK.glp_set_col_bnds(lp, i, GLPKConstants.GLP_LO,
+                    0.0 /* lower */, 1.0 /* upper */);
+        }
 
-		/* objective function */
+        /* constraints */
+        int rows = 2 * width;
 
-		// objective function... minimize or maximize
-		GLPK.glp_set_obj_dir(lp, GLPKConstants.GLP_MAX);
+        GLPK.glp_add_rows(lp, rows);
 
-		// set coefficients
-		for (int c = 1; c <= cols; c++) {
-			int[] indices = getMyIndices(c - 1, width);
-			int i = indices[0];
-			int j = indices[1];
-			// take care of dummy rows/cols
-			// FIXME is m and n correct?
-			int score = i < m && j < n ? matching[i][j].getScore() : 0;
-			GLPK.glp_set_obj_coef(lp, c, score);
-		}
+        SWIGTYPE_p_int ind;
+        SWIGTYPE_p_double val;
 
-		/* SOLVE */
+        // row constraints
+        for (int i = 1; i <= width; i++) {
+            // define indices & values
+            ind = GLPK.new_intArray(width + 1);
+            val = GLPK.new_doubleArray(width + 1);
+            for (int j = 1; j <= width; j++) {
+                // glpk index is zero-based
+                GLPK.intArray_setitem(ind, j,
+                        getGlpkIndex(i - 1, j - 1, width) + 1);
+                GLPK.doubleArray_setitem(val, j, 1.0);
+            }
+            GLPK.glp_set_mat_row(lp, i /* row */, width /* max array index */,
+                    ind, val);
+        }
 
-		// set parameters
-		glp_smcp parm = new glp_smcp();
-		GLPK.glp_init_smcp(parm); // defaults
-		parm.setMsg_lev(GLPKConstants.GLP_MSG_OFF);
-		parm.setMeth(GLPKConstants.GLP_PRIMAL); // primal or dual?
+        // column constraints
+        for (int j = 1; j <= width; j++) {
+            // define indices & values
+            ind = GLPK.new_intArray(width + 1);
+            val = GLPK.new_doubleArray(width + 1);
+            for (int i = 1; i <= width; i++) {
+                // glpk index is zero-based
+                GLPK.intArray_setitem(ind, i,
+                        getGlpkIndex(i - 1, j - 1, width) + 1);
+                GLPK.doubleArray_setitem(val, i, 1.0);
+            }
+            GLPK.glp_set_mat_row(lp, width + j /* row */, width /*
+                     * max array
+                     * index
+                     */, ind, val);
+        }
 
-		// solve
-		int ret = GLPK.glp_simplex(lp, parm);
+        // all constraints are "= 1"
+        for (int i = 1; i <= 2 * width; i++) {
+            GLPK.glp_set_row_bnds(lp, i, GLPKConstants.GLP_FX, 1.0, 1.0);
+        }
 
-		if (ret > 0) {
-			GLPK.glp_delete_prob(lp);
-			// FIXME error handling?
-			return null;
-		}
+        /* objective function */
 
-		// problem could be solved
-		// prevent precision problems
-		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
+        // objective function... minimize or maximize
+        GLPK.glp_set_obj_dir(lp, GLPKConstants.GLP_MAX);
 
-		List<Matching<T>> children = new LinkedList<Matching<T>>();
+        // set coefficients
+        for (int c = 1; c <= cols; c++) {
+            int[] indices = getMyIndices(c - 1, width);
+            int i = indices[0];
+            int j = indices[1];
+            // take care of dummy rows/cols
+            // FIXME is m and n correct?
+            int score = i < m && j < n ? matching[i][j].getScore() : 0;
+            GLPK.glp_set_obj_coef(lp, c, score);
+        }
 
-		for (int c = 1; c <= cols; c++) {
-			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
-				int[] indices = getMyIndices(c - 1, width);
-				int i = indices[0];
-				int j = indices[1];
-				if (i < m && j < n) { // FIXME see above
-					Matching<T> curMatching = matching[i][j];
-					if (curMatching.getScore() > 0) {
-						children.add(curMatching);
-						curMatching.setAlgorithm(id);
-					}
-				}
-			}
-		}
-		GLPK.glp_delete_prob(lp);
+        /* SOLVE */
 
-		Matching<T> rootmatching = new Matching<T>(left, right, objective + 1);
-		rootmatching.setChildren(children);
+        // set parameters
+        glp_smcp parm = new glp_smcp();
+        GLPK.glp_init_smcp(parm); // defaults
+        parm.setMsg_lev(GLPKConstants.GLP_MSG_OFF);
+        parm.setMeth(GLPKConstants.GLP_PRIMAL); // primal or dual?
 
-		return rootmatching;
-	}
+        // solve
+        int ret = GLPK.glp_simplex(lp, parm);
 
-	/**
-	 * Computes indices in the constraint matrix.
-	 * 
-	 * @param i
-	 *            row in node matrix
-	 * @param j
-	 *            column in node matrix
-	 * @param width
-	 *            columns per row in node matrix
-	 * @return index in constraint matrix
-	 */
-	private static int getGlpkIndex(final int i, final int j, final int width) {
-		return i * width + j;
-	}
+        if (ret > 0) {
+            GLPK.glp_delete_prob(lp);
+            // FIXME error handling?
+            return null;
+        }
 
-	/**
-	 * Computes indices in the node matrix.
-	 * 
-	 * @param x
-	 *            index in constraint matrix
-	 * @param width
-	 *            columns per row in node matrix
-	 * @return index in node matrix
-	 */
-	private static int[] getMyIndices(final int x, final int width) {
-		return new int[] { (int) x / width, x % width };
-	}
+        // problem could be solved
+        // prevent precision problems
+        int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
+        List<Matching<T>> children = new LinkedList<>();
+
+        for (int c = 1; c <= cols; c++) {
+            if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
+                int[] indices = getMyIndices(c - 1, width);
+                int i = indices[0];
+                int j = indices[1];
+                if (i < m && j < n) { // FIXME see above
+                    Matching<T> curMatching = matching[i][j];
+                    if (curMatching.getScore() > 0) {
+                        children.add(curMatching);
+                        curMatching.setAlgorithm(id);
+                    }
+                }
+            }
+        }
+        GLPK.glp_delete_prob(lp);
+
+        Matching<T> rootmatching = new Matching<>(left, right, objective + 1);
+        rootmatching.setChildren(children);
+
+        return rootmatching;
+    }
 }
