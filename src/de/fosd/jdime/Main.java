@@ -62,7 +62,7 @@ public final class Main {
     /**
      * Version constant.
      */
-    private static final double VERSION = 0.2;
+    private static final String VERSION = "0.2.1";
 
     /**
      * Perform a merge operation on the input files or directories.
