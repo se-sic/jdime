@@ -41,9 +41,17 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
      */
     private static void initialize() {
         strategyMap = new HashMap<>();
-        strategyMap.put("linebased", new LinebasedStrategy());
-        strategyMap.put("structured", new StructuredStrategy());
-        strategyMap.put("combined", new CombinedStrategy());
+        LinebasedStrategy linebased = new LinebasedStrategy();
+        StructuredStrategy structured = new StructuredStrategy();
+        CombinedStrategy combined = new CombinedStrategy();
+        
+        strategyMap.put("linebased", linebased);
+        strategyMap.put("unstructured", linebased);
+        
+        strategyMap.put("structured", structured);
+        
+        strategyMap.put("combined", combined);
+        strategyMap.put("autotuning", combined);
     }
 
     /**

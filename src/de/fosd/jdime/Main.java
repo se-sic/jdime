@@ -62,7 +62,7 @@ public final class Main {
     /**
      * Version constant.
      */
-    private static final double VERSION = 0.1;
+    private static final double VERSION = 0.2;
 
     /**
      * Perform a merge operation on the input files or directories.
@@ -148,8 +148,8 @@ public final class Main {
         options.addOption("keepgoing", false,
                 "Keep running after exceptions.");
         options.addOption("mode", true,
-                "set merge mode (textual, structured, combined, dumptree"
-                + ", dumpgraph, dumpfile, bugfixing)");
+                "set merge mode (unstructured, structured, autotuning, dumptree"
+                + ", dumpgraph, dumpfile)");
         options.addOption("output", true, "output directory/file");
         options.addOption("r", false, "merge directories recursively");
         options.addOption("showconfig", false,
