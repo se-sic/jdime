@@ -1,217 +1,210 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
-
 import de.fosd.jdime.common.operations.MergeOperation;
+import java.io.IOException;
 
 /**
  * This class represents a merge scenario for a standard three-way merge.
- * 
+ *
  * @author Olaf Lessenich
- * 
+ *
  * @param <T> type of artifact
- * 
+ *
  */
 public class MergeTriple<T extends Artifact<T>> {
-	/**
-	 * Type of merge.
-	 */
-	private MergeType mergeType;
 
-	/**
-	 * Left artifact.
-	 */
-	private T left;
+    /**
+     * Type of merge.
+     */
+    private MergeType mergeType;
+    /**
+     * Left artifact.
+     */
+    private T left;
+    /**
+     * Base artifact.
+     */
+    private T base;
+    /**
+     * Right artifact.
+     */
+    private T right;
 
-	/**
-	 * Base artifact.
-	 */
-	private T base;
+    /**
+     * Creates a new merge triple.
+     *
+     * @param mergeType type of merge
+     * @param left artifact
+     * @param base artifact
+     * @param right artifact
+     */
+    public MergeTriple(final MergeType mergeType, final T left,
+            final T base, final T right) {
+        this.mergeType = mergeType;
+        this.left = left;
+        this.base = base;
+        this.right = right;
+    }
 
-	/**
-	 * Right artifact.
-	 */
-	private T right;
+    /**
+     * Returns the base artifact.
+     *
+     * @return the base
+     */
+    public final T getBase() {
+        return base;
+    }
 
-	/**
-	 * Creates a new merge triple.
-	 * 
-	 * @param mergeType
-	 *            type of merge
-	 * @param left
-	 *            artifact
-	 * @param base
-	 *            artifact
-	 * @param right
-	 *            artifact
-	 */
-	public MergeTriple(final MergeType mergeType, final T left,
-			final T base, final T right) {
-		this.mergeType = mergeType;
-		this.left = left;
-		this.base = base;
-		this.right = right;
-	}
+    /**
+     * Returns the left artifact.
+     *
+     * @return the left
+     */
+    public final T getLeft() {
+        return left;
+    }
 
-	/**
-	 * Returns the base artifact.
-	 * 
-	 * @return the base
-	 */
-	public final T getBase() {
-		return base;
-	}
+    /**
+     * Returns the type of merge.
+     *
+     * @return type of merge
+     */
+    public final MergeType getMergeType() {
+        return mergeType;
+    }
 
-	/**
-	 * Returns the left artifact.
-	 * 
-	 * @return the left
-	 */
-	public final T getLeft() {
-		return left;
-	}
+    /**
+     * Returns the right artifact.
+     *
+     * @return the right
+     */
+    public final T getRight() {
+        return right;
+    }
 
-	/**
-	 * Returns the type of merge.
-	 * 
-	 * @return type of merge
-	 */
-	public final MergeType getMergeType() {
-		return mergeType;
-	}
+    /**
+     * Returns whether this is a valid merge triple.
+     *
+     * @return true if the merge triple is valid.
+     */
+    public final boolean isValid() {
+        return left != null && base != null && right != null
+                && left.getClass().equals(right.getClass())
+                && (base.isEmptyDummy()
+                || base.getClass().equals(left.getClass()));
+    }
 
-	/**
-	 * Returns the right artifact.
-	 * 
-	 * @return the right
-	 */
-	public final T getRight() {
-		return right;
-	}
+    /**
+     * Merges this triple.
+     *
+     * @param operation merge operation
+     * @param context merge context
+     * @throws InterruptedException If a thread is interrupted
+     * @throws IOException If an input output exception occurs
+     */
+    public final void merge(final MergeOperation<T> operation,
+            final MergeContext context)
+            throws IOException, InterruptedException {
+        operation.getMergeTriple().getLeft().merge(operation, context);
+    }
 
-	/**
-	 * Returns whether this is a valid merge triple.
-	 * 
-	 * @return true if the merge triple is valid.
-	 */
-	public final boolean isValid() {
-		return left != null && base != null && right != null 
-				&& left.getClass().equals(right.getClass()) 
-				&& (base.isEmptyDummy() 
-						|| base.getClass().equals(left.getClass()));
-	}
+    /**
+     * Sets the base artifact.
+     *
+     * @param base the base to set
+     */
+    public final void setBase(final T base) {
+        this.base = base;
+    }
 
-	/**
-	 * Merges this triple.
-	 * 
-	 * @param operation merge operation
-	 * @param context
-	 *            merge context
-	 * @throws InterruptedException If a thread is interrupted
-	 * @throws IOException If an input output exception occurs
-	 */
-	public final void merge(final MergeOperation<T> operation, 
-			final MergeContext context)
-			throws IOException, InterruptedException {
-		operation.getMergeTriple().getLeft().merge(operation, context);
-	}
+    /**
+     * Sets the left artifact.
+     *
+     * @param left the left to set
+     */
+    public final void setLeft(final T left) {
+        this.left = left;
+    }
 
-	/**
-	 * Sets the base artifact.
-	 * 
-	 * @param base
-	 *            the base to set
-	 */
-	public final void setBase(final T base) {
-		this.base = base;
-	}
+    /**
+     * Sets the right artifact.
+     *
+     * @param right the right to set
+     */
+    public final void setRight(final T right) {
+        this.right = right;
+    }
 
-	/**
-	 * Sets the left artifact.
-	 * 
-	 * @param left
-	 *            the left to set
-	 */
-	public final void setLeft(final T left) {
-		this.left = left;
-	}
+    /**
+     * Returns a String representing the MergeTriple separated by whitespace.
+     *
+     * @return String representation
+     */
+    @Override
+    public final String toString() {
+        return toString(" ", false);
+    }
 
-	/**
-	 * Sets the right artifact.
-	 * 
-	 * @param right
-	 *            the right to set
-	 */
-	public final void setRight(final T right) {
-		this.right = right;
-	}
+    /**
+     * Returns a String representing the MergeTriple separated by whitespace,
+     * omitting empty dummy files.
+     *
+     * @param humanReadable do not print dummy files if true
+     * @return String representation
+     */
+    public final String toString(final boolean humanReadable) {
+        return toString(" ", humanReadable);
+    }
 
-	/**
-	 * Returns a String representing the MergeTriple separated by whitespace.
-	 * 
-	 * @return String representation
-	 */
-	public final String toString() {
-		return toString(" ", false);
-	}
+    /**
+     * Returns a String representing the MergeTriple.
+     *
+     * @param sep separator
+     * @param humanReadable do not print dummy files if true
+     * @return String representation
+     */
+    public final String toString(final String sep,
+            final boolean humanReadable) {
+        StringBuilder sb = new StringBuilder("");
+        sb.append(left.getId()).append(sep);
 
-	/**
-	 * Returns a String representing the MergeTriple separated by whitespace,
-	 * omitting empty dummy files.
-	 * 
-	 * @param humanReadable
-	 *            do not print dummy files if true
-	 * @return String representation
-	 */
-	public final String toString(final boolean humanReadable) {
-		return toString(" ", humanReadable);
-	}
-	
-	/**
-	 * Returns a String representing the MergeTriple.
-	 * 
-	 * @param sep
-	 *            separator
-	 * @param humanReadable
-	 *            do not print dummy files if true
-	 * @return String representation
-	 */
-	public final String toString(final String sep, 
-			final boolean humanReadable) {
-		StringBuilder sb = new StringBuilder("");
-		sb.append(left.getId() + sep);
+        if (!humanReadable || !base.isEmptyDummy()) {
+            sb.append(base.getId()).append(sep);
+        }
 
-		if (!humanReadable || !base.isEmptyDummy()) {
-			sb.append(base.getId() + sep);
-		}
+        sb.append(right.getId());
+        return sb.toString();
+    }
 
-		sb.append(right.getId());
-		return sb.toString();
-	}
-	
-	/**
-	 * Returns a list containing all three revision. 
-	 * Empty dummies for base are included.
-	 * @return list of artifacts
-	 */
-	public final ArtifactList<T> getList() {
-		ArtifactList<T> list = new ArtifactList<>();
-		list.add(left);
-		list.add(base);
-		list.add(right);
-		return list;
-	}
+    /**
+     * Returns a list containing all three revision. Empty dummies for base are
+     * included.
+     *
+     * @return list of artifacts
+     */
+    public final ArtifactList<T> getList() {
+        ArtifactList<T> list = new ArtifactList<>();
+        list.add(left);
+        list.add(base);
+        list.add(right);
+        return list;
+    }
 }

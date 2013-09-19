@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.strategy;
-
-import java.io.IOException;
-
-import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -24,93 +25,93 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
+import java.io.IOException;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  */
 public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class);
-	
-	/**
-	 * 
-	 */
-	private static Merge<FileArtifact> merge = null;
+    /**
+     * Logger.
+     */
+    private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class);
+    /**
+     *
+     */
+    private static Merge<FileArtifact> merge = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
-	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
-		assert (context.isRecursive()) : "Recursive merging needs to "
-				+ "be enabled in order to merge directories. "
-				+ "Use '-r' or see '-help'!";
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.MergeStrategy#merge(
+     * de.fosd.jdime.common.operations.MergeOperation,
+     * de.fosd.jdime.common.MergeContext)
+     */
+    @Override
+    public final void merge(final MergeOperation<FileArtifact> operation,
+            final MergeContext context) throws IOException,
+            InterruptedException {
+        assert (operation != null);
+        assert (context != null);
+        assert (context.isRecursive()) : "Recursive merging needs to "
+                + "be enabled in order to merge directories. "
+                + "Use '-r' or see '-help'!";
 
-		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+        MergeTriple<FileArtifact> triple = operation.getMergeTriple();
 
-		assert (triple.isValid());
+        assert (triple.isValid());
 
-		assert (triple.getLeft() instanceof FileArtifact);
-		assert (triple.getBase() instanceof FileArtifact);
-		assert (triple.getRight() instanceof FileArtifact);
+        assert (triple.getLeft() instanceof FileArtifact);
+        assert (triple.getBase() instanceof FileArtifact);
+        assert (triple.getRight() instanceof FileArtifact);
 
-		FileArtifact left = triple.getLeft();
-		FileArtifact base = triple.getBase();
-		FileArtifact right = triple.getRight();
+        FileArtifact left = triple.getLeft();
+        FileArtifact base = triple.getBase();
+        FileArtifact right = triple.getRight();
 
-		FileArtifact[] revisions = { left, base, right };
+        FileArtifact[] revisions = {left, base, right};
 
-		for (FileArtifact dir : revisions) {
-			assert ((dir.exists() && dir.isDirectory()) || dir.isEmptyDummy());
-		}
-		
-		if (merge == null) {
-			merge = new Merge<FileArtifact>();
-		}
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("merge(operation, context)");
-		}
-		
-		merge.merge(operation, context);
-	}
+        for (FileArtifact dir : revisions) {
+            assert ((dir.exists() && dir.isDirectory()) || dir.isEmptyDummy());
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files" });
-	}
+        if (merge == null) {
+            merge = new Merge<>();
+        }
 
-	@Override
-	public final String toString() {
-		return "directory";
-	}
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("merge(operation, context)");
+        }
 
-	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
-		return artifact.isDirectory() ? "directories" : "files";
-	}
+        merge.merge(operation, context);
+    }
 
-	@Override
-	public final void dump(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		throw new NotYetImplementedException();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[]{"directories", "files"});
+    }
 
+    @Override
+    public final String toString() {
+        return "directory";
+    }
+
+    @Override
+    public final String getStatsKey(final FileArtifact artifact) {
+        return artifact.isDirectory() ? "directories" : "files";
+    }
+
+    @Override
+    public final void dump(final FileArtifact artifact, final boolean graphical)
+            throws IOException {
+        throw new NotYetImplementedException();
+    }
 }
