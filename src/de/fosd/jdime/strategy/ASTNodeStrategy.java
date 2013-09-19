@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.strategy;
-
-import java.io.IOException;
-
-import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -24,114 +25,113 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
+import java.io.IOException;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  */
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
-	
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger
-			.getLogger(ASTNodeStrategy.class);
-	
-	/**
-	 * 
-	 */
-	private static Merge<ASTNodeArtifact> merge = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
-	 * de.fosd.jdime.common.operations .MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
-	@Override
-	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
+    /**
+     * Logger.
+     */
+    private static final Logger LOG = Logger
+            .getLogger(ASTNodeStrategy.class);
+    /**
+     *
+     */
+    private static Merge<ASTNodeArtifact> merge = null;
 
-		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.MergeInterface#merge(
+     * de.fosd.jdime.common.operations .MergeOperation,
+     * de.fosd.jdime.common.MergeContext)
+     */
+    @Override
+    public final void merge(final MergeOperation<ASTNodeArtifact> operation,
+            final MergeContext context) throws IOException,
+            InterruptedException {
+        assert (operation != null);
+        assert (context != null);
 
-		assert (triple.isValid());
+        MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
 
-		ASTNodeArtifact left = triple.getLeft();
-		ASTNodeArtifact base = triple.getBase();
-		ASTNodeArtifact right = triple.getRight();
-		ASTNodeArtifact target = operation.getTarget();
+        assert (triple.isValid());
 
-		ASTNodeArtifact[] revisions = { left, base, right };
+        ASTNodeArtifact left = triple.getLeft();
+        ASTNodeArtifact base = triple.getBase();
+        ASTNodeArtifact right = triple.getRight();
+        ASTNodeArtifact target = operation.getTarget();
 
-		for (ASTNodeArtifact node : revisions) {
-			assert (node.exists());
-		}
+        ASTNodeArtifact[] revisions = {left, base, right};
 
-		assert (target != null);
-		
-		if (merge == null) {
-			merge = new Merge<ASTNodeArtifact>();
-		}
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("merge(operation, context)");
-		}
-		
-		merge.merge(operation, context);
-	}
+        for (ASTNodeArtifact node : revisions) {
+            assert (node.exists());
+        }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-	 */
-	@Override
-	public final String toString() {
-		return "astnode";
-	}
+        assert (target != null);
 
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "nodes" });
-	}
+        if (merge == null) {
+            merge = new Merge<>();
+        }
 
-	@Override
-	public final String getStatsKey(final ASTNodeArtifact artifact) {
-		// FIXME: remove me when implementation is complete
-		throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
-	}
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("merge(operation, context)");
+        }
 
-	@Override
-	public final void dump(final ASTNodeArtifact artifact,
-			final boolean graphical) throws IOException {
-		if (graphical) {
-			dumpGraphVizTree(artifact);
-		} else {
-			System.out.println(artifact.dumpTree());
-		}
-	}
+        merge.merge(operation, context);
+    }
 
-	/**
-	 * @param artifact
-	 *            artifact that should be printed
-	 */
-	private void dumpGraphVizTree(final ASTNodeArtifact artifact) {
-		// header
-		StringBuffer sb = new StringBuffer();
-		sb.append("digraph ast {" + System.lineSeparator());
-		sb.append("node [shape=ellipse];" + System.lineSeparator());
-		sb.append("nodesep=0.8;" + System.lineSeparator());
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.MergeStrategy#toString()
+     */
+    @Override
+    public final String toString() {
+        return "astnode";
+    }
 
-		// nodes
-		sb.append(artifact.dumpGraphvizTree(true));
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[]{"nodes"});
+    }
 
-		// footer
-		sb.append("}");
+    @Override
+    public final String getStatsKey(final ASTNodeArtifact artifact) {
+        // FIXME: remove me when implementation is complete
+        throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
+    }
 
-		System.out.println(sb.toString());
-	}
+    @Override
+    public final void dump(final ASTNodeArtifact artifact,
+            final boolean graphical) throws IOException {
+        if (graphical) {
+            dumpGraphVizTree(artifact);
+        } else {
+            System.out.println(artifact.dumpTree());
+        }
+    }
+
+    /**
+     * @param artifact artifact that should be printed
+     */
+    private void dumpGraphVizTree(final ASTNodeArtifact artifact) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("digraph ast {").append(System.lineSeparator());
+        sb.append("node [shape=ellipse];").append(System.lineSeparator());
+        sb.append("nodesep=0.8;").append(System.lineSeparator());
+
+        // nodes
+        sb.append(artifact.dumpGraphvizTree(true));
+
+        // footer
+        sb.append("}");
+
+        System.out.println(sb.toString());
+    }
 }

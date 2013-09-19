@@ -1,33 +1,36 @@
-/*******************************************************************************
- * Copyright (c) 2013 Olaf Lessenich.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * 
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
-/**
- * 
+/* 
+ * Copyright (C) 2013 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
 package de.fosd.jdime.common.operations;
 
-import java.util.Stack;
-
 import de.fosd.jdime.common.Artifact;
+import java.util.Stack;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  * @param <T> type of artifact
  *
  */
 public class OperationStack<T extends Artifact<T>> extends Stack<Operation<T>> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8820110802865564142L;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = -8820110802865564142L;
 }
