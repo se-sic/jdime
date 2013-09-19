@@ -1,4 +1,5 @@
 /.settings
+/nbproject/private
 /bin
 /dist
 /testfiles/merge
