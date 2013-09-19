@@ -1,0 +1,17 @@
+/***********************************************/
+/* jdime  -  Structured Merge with Auto-Tuning */
+/***********************************************/
+
+System Requirements: 
+  o rcs (http://www.gnu.org/software/rcs/)
+  o glpk (http://www.gnu.org/software/glpk/)
+  o gplk-java (http://glpk-java.sourceforge.net/)
+
+  Debian/Ubuntu: apt-get install rcs glpk libglpk-java
+  Redhat/Fedora: yum install rcs glpk
+                 glpk-java has to be installed manually
+  Suse/OpenSuse: zypper install rcs glpk
+                 glpk-java has to be installed manually
+
+Note: The path to glpk-java in the shellscript 'jdime' has to be modfied 
+      according to your system configuration!
