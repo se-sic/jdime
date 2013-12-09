@@ -103,6 +103,18 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                     LOG.info("Got " + conflicts + " " + noun
                             + ". Need to use structured strategy.");
                 }
+                
+                // clean target file
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Deleting: " + target);
+                }
+                
+                if (target != null) {
+                    boolean isLeaf = target.isLeaf();
+                    target.remove();
+                    target.createArtifact(isLeaf);
+                }
+                
                 subContext = (MergeContext) context.clone();
                 subContext.setOutputFile(null);
 

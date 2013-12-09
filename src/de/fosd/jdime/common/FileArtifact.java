@@ -510,6 +510,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final boolean matches(final FileArtifact other) {
+        if (isDirectory() && isRoot() && other.isDirectory() 
+                && other.isRoot()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(this + " and " + other + " are toplevel directories.");
+                LOG.debug("We assume a match here and continue to merge the "
+                        + "contained files and directories.");
+            } 
+            
+            return true;
+        }
         return this.equals(other);
     }
 
