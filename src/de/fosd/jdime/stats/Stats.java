@@ -55,6 +55,8 @@ public class Stats {
      * Map of operations.
      */
     private HashMap<String, Integer> operations;
+    
+    private int[] diffStats;
 
     /**
      * Creates a new Stats instance from a list of keys.
@@ -86,6 +88,13 @@ public class Stats {
 
         for (String key : keys) {
             elements.put(key, new StatsElement());
+        }
+        
+        if (diffStats == null) {
+            diffStats = new int[6];
+            for (int i = 0; i < diffStats.length; i++) {
+                diffStats[i] = 0;
+            }
         }
     }
 
@@ -142,6 +151,15 @@ public class Stats {
     public final void addConflicts(final int conflicts) {
         this.conflicts += conflicts;
     }
+    
+    public final void addDiffStats(final int[] diffStats) {     
+        this.diffStats[0] += diffStats[0];
+        this.diffStats[1] = this.diffStats[1] >= diffStats[1] ? this.diffStats[1] : diffStats[1];
+        this.diffStats[2] = this.diffStats[2] >= diffStats[2] ? this.diffStats[2] : diffStats[2];
+        this.diffStats[3] += diffStats[3];
+        this.diffStats[4] += diffStats[4];
+        this.diffStats[5] += diffStats[5];
+    }
 
     /**
      * Increase the runtime statistics.
@@ -173,7 +191,7 @@ public class Stats {
 
         this.conflicts += other.conflicts;
         this.runtime += other.runtime;
-
+        addDiffStats(other.diffStats);
     }
 
     /**
@@ -259,5 +277,19 @@ public class Stats {
      */
     public final void resetScenarioStats() {
         scenariostats = new LinkedList<>();
+    }
+
+    /**
+     * @return the diffStats
+     */
+    public final int[] getDiffStats() {
+        return diffStats;
+    }
+
+    /**
+     * @param diffStats the diffStats to set
+     */
+    public final void setDiffStats(int[] diffStats) {
+        this.diffStats = diffStats;
     }
 }

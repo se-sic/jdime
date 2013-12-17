@@ -691,10 +691,51 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         mystats[0] = 1;
         mystats[1] = 0;
         mystats[2] = getNumChildren();
-
+        
         for (int i = 0; i < getNumChildren(); i++) {
             int[] childstats = getChild(i).getStats();
             mystats[0] += childstats[0];
+            if (childstats[1] + 1 > mystats[1]) {
+                mystats[1] = childstats[1] + 1;
+            }
+            if (childstats[2] > mystats[2]) {
+                mystats[2] = childstats[2];
+            }
+        }
+
+        return mystats;
+    }
+    
+    public final int[] getStats(Revision revision) {
+        // 0: number of nodes, 1: tree depth, 2: max children,
+        // 3: number of matching nodes, 4: number of changed nodes, 
+        // 5: number of deleted nodes
+        int[] mystats = new int[6];
+        mystats[0] = 1;
+        mystats[1] = 0;
+        mystats[2] = getNumChildren();
+        mystats[3] = 0;
+        mystats[4] = 0;
+        mystats[5] = 0;
+        
+        if (hasMatching(revision)) {
+            mystats[3] = 1;
+        } else {
+            // changed or deleted?
+            if (hasMatches()) {
+                // was deleted
+                mystats[5] = 1;
+            } else {
+                mystats[4] = 1;
+            }    
+        }
+        
+        for (int i = 0; i < getNumChildren(); i++) {
+            int[] childstats = getChild(i).getStats(revision);
+            mystats[0] += childstats[0];
+            mystats[3] += childstats[3];
+            mystats[4] += childstats[4];
+            mystats[5] += childstats[5];
             if (childstats[1] + 1 > mystats[1]) {
                 mystats[1] = childstats[1] + 1;
             }

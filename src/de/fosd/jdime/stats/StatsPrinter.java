@@ -20,6 +20,7 @@ package de.fosd.jdime.stats;
 
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.apache.log4j.Logger;
@@ -82,6 +83,19 @@ public final class StatsPrinter {
             System.out.println("applied " + key + " operations: "
                     + stats.getOperation(key));
         }
+        
+        System.out.println(delimiter);
+        
+        int[] diffStats = stats.getDiffStats();
+        DecimalFormat df = new DecimalFormat("#.0"); 
+        String sep = " / ";
+        System.out.print("Change awareness (nodes" + sep + "matches" + sep + "changes" + sep + "removals): ");
+        System.out.println(diffStats[0] + sep + diffStats[3] + sep + diffStats[4] + sep + diffStats[5]);
+                        
+        if (diffStats[0] > 0) {
+            System.out.print("Change awareness % (nodes" + sep + "matches" + sep + "changes" + sep + "removals): ");
+            System.out.println(100.0 + sep + df.format(100.0 * diffStats[3] / diffStats[0]) + sep + df.format(100.0 * diffStats[4] / diffStats[0]) + sep + df.format(100.0 * diffStats[5] / diffStats[0]));
+        }
 
         System.out.println(delimiter);
 
@@ -90,6 +104,7 @@ public final class StatsPrinter {
         System.out.println(delimiter);
 
         // sanity checks
+        assert(diffStats[0] == diffStats[3] + diffStats[4] + diffStats[5]) : "Stats error: " + diffStats[0] + " != " + diffStats[3] + " + " + diffStats[4] + " + " + diffStats[5];
         if (context.getMergeStrategy().getClass().getName().equals(
                 LinebasedStrategy.class.getName())) {
             assert (stats.getElement("files").getAdded()

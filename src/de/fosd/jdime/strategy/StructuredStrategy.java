@@ -242,6 +242,40 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                             }
                         }
                     }
+                    
+                    // collect stats
+                    int[] leftStats = left.getStats(right.getRevision());
+                    int[] rightStats = right.getStats(left.getRevision());
+                    
+                    assert(leftStats[3] == rightStats[3]) 
+                            : "Number of matches should be equal in left and " +
+                            "right revision.";
+                    
+                    int[] diffStats = new int[6];
+                    diffStats[0] = leftStats[0] + rightStats[0];
+                    diffStats[1] = leftStats[1] >= rightStats[1] ? leftStats[1] : rightStats[1];
+                    diffStats[2] = leftStats[2] >= rightStats[2] ? leftStats[2] : rightStats[2];
+                    diffStats[3] = leftStats[3] + rightStats[3];
+                    diffStats[4] = leftStats[4] + rightStats[4];
+                    diffStats[5] = leftStats[5] + rightStats[5];
+                    
+                    assert(diffStats[0] == diffStats[3] + diffStats[4] + diffStats[5]) : "Stats error: " + diffStats[0] + " != " + diffStats[3] + " + " + diffStats[4] + " + " + diffStats[5];
+                    
+                    if (LOG.isInfoEnabled()) {
+                        String sep = " / ";
+                        LOG.info("Change awareness (nodes" + sep + "matches" + sep + "changes" + sep + "removals): ");
+                        LOG.info(diffStats[0] + sep + diffStats[3] + sep + diffStats[4] + sep + diffStats[5]);
+                        
+                        if (diffStats[0] > 0) {
+                            LOG.info("Change awareness % (nodes" + sep + "matches" + sep + "changes" + sep + "removals): ");
+                            LOG.info(100.0 + sep + 100.0 * diffStats[3] / diffStats[0] + sep + 100.0 * diffStats[4] / diffStats[0] + sep + 100.0 * diffStats[5] / diffStats[0]);
+                        }
+                    }
+                    
+                    if (context.hasStats()) {
+                        Stats stats = context.getStats();
+                        stats.addDiffStats(diffStats);
+                    }
                 }
 
                 long runtime = System.currentTimeMillis() - cmdStart;
