@@ -1,2 +1,2 @@
 #!/bin/sh
-java -Xmx2048m -Djava.library.path=/usr/local/lib/jni -ea -jar ./dist/jdime.jar $@
+java -Xmx2048m -Djava.library.path=/usr/lib/x86_64-linux-gnu/jni -ea -jar ./dist/jdime.jar $@

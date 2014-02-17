@@ -102,7 +102,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     + triple.getBase().getPath() + " "
                     + triple.getRight().getPath());
         }
-        try {
+       // try {
             for (int i = 0; i < context.getBenchmarkRuns() + 1
                     && (i == 0 || context.isBenchmark()); i++) {
                 if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
@@ -338,7 +338,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                         conflicts, cloc, loc, runtime);
                 stats.addScenarioStats(scenariostats);
             }
-        } catch (Throwable t) {
+ /*       } catch (Throwable t) {
             LOG.fatal(t + "  while merging " + triple.getLeft().getPath()
                     + " " + triple.getBase().getPath() + " "
                     + triple.getRight().getPath());
@@ -351,7 +351,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     context.getStats().addScenarioStats(scenariostats);
                 }
             }
-        }
+        }*/
         System.gc();
 
     }

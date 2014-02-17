@@ -55,7 +55,7 @@
         <antcall target="build"/>
     </target>
 	<target depends="build" name="dist">
-		<jar jarfile="dist/Merge.jar" basedir="bin">
+		<jar jarfile="dist/jdime.jar" basedir="bin">
 			<fileset dir="lib/" includes="**/*.class" />
 			<zipgroupfileset dir="lib/" includes="**/*.jar" />
 			<manifest>
