@@ -25,7 +25,6 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import java.io.IOException;
 import java.util.List;
@@ -65,6 +64,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         T base = triple.getBase();
         T right = triple.getRight();
         T target = operation.getTarget();
+        Diff<T> diff = new Diff<>();
 
         Matching<T> m;
         if (!left.matchingComputed() && !right.matchingComputed()) {
@@ -72,7 +72,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 // 3-way merge
 
                 // diff base left
-                m = diff(base, left, Color.GREEN);
+                m = diff.compare(base, left, Color.GREEN);
                 if (LOG.isDebugEnabled()) {
                     if (m.getScore() == 0) {
                         LOG.debug(base.getId() + " and " + left.getId()
@@ -81,7 +81,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 }
 
                 // diff base right
-                m = diff(base, right, Color.GREEN);
+                m = diff.compare(base, right, Color.GREEN);
                 if (LOG.isDebugEnabled()) {
                     if (m.getScore() == 0) {
                         LOG.debug(base.getId() + " and " + right.getId()
@@ -91,7 +91,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             // diff left right
-            m = diff(left, right, Color.BLUE);
+            m = diff.compare(left, right, Color.BLUE);
             if (m.getScore() == 0) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(left.getId() + " and " + right.getId()
@@ -208,43 +208,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
             unorderedMerge.merge(operation, context);
         }
-    }
-
-    /**
-     * Compares two nodes.
-     *
-     * @param left left node
-     * @param right right node
-     * @param color color of the matching (for debug output only)
-     * @return Matching of the two nodes
-     */
-    private Matching<T> diff(final T left, final T right, final Color color) {
-        Matcher<T> matcher = new Matcher<>();
-        Matching<T> m = matcher.match(left, right);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("match(" + left.getRevision() + ", "
-                    + right.getRevision() + ") = " + m.getScore());
-            LOG.debug(matcher.getLog());
-            LOG.trace("Store matching information within nodes.");
-        }
-
-        matcher.storeMatching(m, color);
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Dumping matching of " + left.getRevision() + " and "
-                    + right.getRevision());
-            System.out.println(m.dumpTree());
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dumpTree());
-
-            LOG.debug(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dumpTree());
-        }
-
-        return m;
     }
 
     /**
