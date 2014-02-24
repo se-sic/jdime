@@ -25,7 +25,6 @@ import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
-import de.fosd.jdime.merge.DiffStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import java.io.FileNotFoundException;

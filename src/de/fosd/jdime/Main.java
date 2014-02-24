@@ -192,6 +192,10 @@ public final class Main {
                                     .parse("structured"));
                             context.setBugfixing();
                             break;
+                        case "test":
+                            TestEnvironment.run();
+                            System.exit(0);
+                            break;
                         case "dumptree":
                             // User only wants to display the ASTs
                             context.setMergeStrategy(MergeStrategy

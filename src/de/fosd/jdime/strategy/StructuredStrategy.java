@@ -24,7 +24,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.merge.DiffStats;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
