@@ -143,6 +143,7 @@ public final class Main {
         options.addOption("benchmark", false, "benchmark with "
                 + context.getBenchmarkRuns() + " runs per file");
         options.addOption("debug", true, "set debug level");
+        options.addOption("diffonly", false, "diff only, do not merge");
         options.addOption("f", false, "force overwriting of output files");
         options.addOption("help", false, "print this message");
         options.addOption("keepgoing", false,
@@ -230,6 +231,10 @@ public final class Main {
             if (cmd.hasOption("output")) {
                 context.setOutputFile(new FileArtifact(new Revision("merge"),
                         new File(cmd.getOptionValue("output")), false));
+            }
+            
+            if (cmd.hasOption("diffonly")) {
+                context.setDiffOnly(true);
             }
 
             context.setSaveStats(cmd.hasOption("stats")

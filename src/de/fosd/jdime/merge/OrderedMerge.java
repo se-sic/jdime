@@ -336,6 +336,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 System.out.println(target.dumpRootTree());
             }
         }
+        return;
     }
 
     /**

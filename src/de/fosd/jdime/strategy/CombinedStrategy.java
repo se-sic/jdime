@@ -23,6 +23,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.merge.DiffStats;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import java.io.IOException;
@@ -193,14 +194,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                         subscenariostats.getTriple(),
                         subscenariostats.getConflicts(),
                         subscenariostats.getConflictingLines(),
-                        subscenariostats.getLines(), runtime);
+                        subscenariostats.getLines(), runtime,
+                        subscenariostats.getDiffStats());
                 stats.addScenarioStats(scenariostats);
             }
 
             context.addStats(substats);
         }
         System.gc();
-
     }
 
     /*

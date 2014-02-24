@@ -18,6 +18,7 @@
  */
 package de.fosd.jdime.merge;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -92,6 +93,13 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
             // diff left right
             m = diff.compare(left, right, Color.BLUE);
+
+            // TODO: compute and write diff stats
+            if (context.isDiffOnly() && left.isRoot() && left instanceof ASTNodeArtifact) {
+                assert (right.isRoot());
+                return;
+            }
+
             if (m.getScore() == 0) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(left.getId() + " and " + right.getId()
@@ -136,9 +144,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.trace(prefix(right) + "has changes in subtree");
                     }
                     for (T rightChild : right.getChildren()) {
-                        ConflictOperation<T> conflictOp =
-                                new ConflictOperation<>(rightChild, null,
-                                rightChild, target);
+                        ConflictOperation<T> conflictOp
+                                = new ConflictOperation<>(rightChild, null,
+                                        rightChild, target);
                         conflictOp.apply(context);
                     }
                     return;
@@ -161,9 +169,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.trace(prefix(left) + " has changes in subtree");
                     }
                     for (T leftChild : left.getChildren()) {
-                        ConflictOperation<T> conflictOp =
-                                new ConflictOperation<>(leftChild, leftChild,
-                                null, target);
+                        ConflictOperation<T> conflictOp
+                                = new ConflictOperation<>(leftChild, leftChild,
+                                        null, target);
                         conflictOp.apply(context);
                     }
                     return;
@@ -208,6 +216,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
             unorderedMerge.merge(operation, context);
         }
+        return;
     }
 
     /**

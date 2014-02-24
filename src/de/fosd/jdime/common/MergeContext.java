@@ -63,6 +63,10 @@ public class MergeContext implements Cloneable {
      */
     private boolean bugfixing = false;
     /**
+     * Whether to run only the diff.
+     */
+    private boolean diffOnly = false;
+    /**
      * Whether to dump files/ASTs instead of merging.
      */
     private boolean dump = false;
@@ -473,5 +477,19 @@ public class MergeContext implements Cloneable {
         if (saveStats) {
             stats = mergeStrategy.createStats();
         }
+    }
+
+    /**
+     * @return the diffOnly
+     */
+    public final boolean isDiffOnly() {
+        return diffOnly;
+    }
+
+    /**
+     * @param diffOnly the diffOnly to set
+     */
+    public final void setDiffOnly(boolean diffOnly) {
+        this.diffOnly = diffOnly;
     }
 }
