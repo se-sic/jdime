@@ -20,6 +20,7 @@ package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.Level;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
@@ -95,7 +96,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         int conflicts = 0;
         int loc = 0;
         int cloc = 0;
-        int[] diffStats = new int[6];
+        int[] diffStats = new int[18];
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Merging: " + triple.getLeft().getPath() + " "
@@ -257,19 +258,21 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             runtimes.add(runtime);
 
             // collect stats
-            int[] leftStats = left.getStats(right.getRevision());
-            int[] rightStats = right.getStats(left.getRevision());
+            int[] leftStats = left.getStats(right.getRevision(), Level.TOP);
+            int[] rightStats = right.getStats(left.getRevision(), Level.TOP);
 
             assert (leftStats[3] == rightStats[3]) : "Number of matches should be equal in left and "
                     + "right revision.";
 
-            diffStats = new int[6];
+            diffStats = new int[18];
             diffStats[0] = leftStats[0] + rightStats[0];
             diffStats[1] = leftStats[1] >= rightStats[1] ? leftStats[1] : rightStats[1];
             diffStats[2] = leftStats[2] >= rightStats[2] ? leftStats[2] : rightStats[2];
-            diffStats[3] = leftStats[3] + rightStats[3];
-            diffStats[4] = leftStats[4] + rightStats[4];
-            diffStats[5] = leftStats[5] + rightStats[5];
+            
+            for (int index = 3; index < diffStats.length; index++) {
+                diffStats[index] = leftStats[index] + rightStats[index];
+            }
+            
 
             assert (diffStats[0] == diffStats[3] + diffStats[4] + diffStats[5]) : "Stats error: " + diffStats[0] + " != " + diffStats[3] + " + " + diffStats[4] + " + " + diffStats[5];
 

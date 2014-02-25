@@ -91,7 +91,7 @@ public class Stats {
         }
         
         if (diffStats == null) {
-            diffStats = new int[6];
+            diffStats = new int[18];
             for (int i = 0; i < diffStats.length; i++) {
                 diffStats[i] = 0;
             }
@@ -156,9 +156,9 @@ public class Stats {
         this.diffStats[0] += diffStats[0];
         this.diffStats[1] = this.diffStats[1] >= diffStats[1] ? this.diffStats[1] : diffStats[1];
         this.diffStats[2] = this.diffStats[2] >= diffStats[2] ? this.diffStats[2] : diffStats[2];
-        this.diffStats[3] += diffStats[3];
-        this.diffStats[4] += diffStats[4];
-        this.diffStats[5] += diffStats[5];
+        for (int i = 3; i < diffStats.length; i++) {
+            this.diffStats[i] += diffStats[i];
+        }
     }
 
     /**
