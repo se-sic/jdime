@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
@@ -255,10 +258,9 @@ public final class Main {
 
             int numInputFiles = cmd.getArgList().size();
 
-            if ((context.isDump() || context.isBugfixing())
+            if (!((context.isDump() || context.isBugfixing())
                     || numInputFiles >= MergeType.MINFILES
-                    && numInputFiles <= MergeType.MAXFILES) {
-            } else {
+                    && numInputFiles <= MergeType.MAXFILES)) {
                 help(context, options, 0);
             }
 

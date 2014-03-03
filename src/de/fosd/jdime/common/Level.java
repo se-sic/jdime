@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2014 lessenic.
+/*******************************************************************************
+ * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,14 +15,30 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 
 package de.fosd.jdime.common;
 
 /**
  *
- * @author lessenic
+ * @author Olaf Lessenich
  */
 public enum Level {
-    TOP, CLASS, METHOD;
+    /**
+     * Everything above class declaration, e.g. import statements. 
+     */
+    TOP,
+    
+    /**
+     * Everything within class declaration but outside methods.
+     */
+    CLASS,
+    
+    /**
+     * Everything inside methods.  
+     */
+    METHOD;
 }

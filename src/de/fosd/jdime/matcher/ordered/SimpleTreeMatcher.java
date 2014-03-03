@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
 import de.fosd.jdime.common.Artifact;
@@ -114,7 +117,8 @@ public class SimpleTreeMatcher<T extends Artifact<T>>
                     break;
                 case DIAG:
                     if (matrixM[i][j] > matrixM[i - 1][j - 1]) {
-                        // markMatching("stm", matrixM[i][j]-matrixM[i - 1][j - 1],
+                        // markMatching("stm", 
+                    	// matrixM[i][j]-matrixM[i - 1][j - 1],
                         // t1.getChild(i - 1), t2.getChild(j - 1));
                         children.add(matrixT[i][j].getMatching());
                         matrixT[i][j].getMatching().setAlgorithm(id);

@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.merge;
 
 import org.apache.log4j.Logger;
@@ -27,49 +30,54 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
- *
- * @param <T> type of artifact
+ * 
+ * @param <T>
+ *            type of artifact
  */
-public class Diff<T extends Artifact<T>>  {
+public class Diff<T extends Artifact<T>> {
 	/**
-     * Logger.
-     */
-    private static final Logger LOG = Logger.getLogger(Diff.class);
-    
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(Diff.class);
+
 	/**
-     * Compares two nodes and returns a respective matching.
-     *
-     * @param left left node
-     * @param right right node
-     * @param color color of the matching (for debug output only)
-     * @return Matching of the two nodes
-     */
-    public final Matching<T> compare(final T left, final T right, final Color color) {
-        Matcher<T> matcher = new Matcher<>();
-        Matching<T> m = matcher.match(left, right);
+	 * Compares two nodes and returns a respective matching.
+	 * 
+	 * @param left
+	 *            left node
+	 * @param right
+	 *            right node
+	 * @param color
+	 *            color of the matching (for debug output only)
+	 * @return Matching of the two nodes
+	 */
+	public final Matching<T> compare(final T left, final T right,
+			final Color color) {
+		Matcher<T> matcher = new Matcher<>();
+		Matching<T> m = matcher.match(left, right);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("match(" + left.getRevision() + ", "
-                    + right.getRevision() + ") = " + m.getScore());
-            LOG.debug(matcher.getLog());
-            LOG.trace("Store matching information within nodes.");
-        }
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("match(" + left.getRevision() + ", "
+					+ right.getRevision() + ") = " + m.getScore());
+			LOG.debug(matcher.getLog());
+			LOG.trace("Store matching information within nodes.");
+		}
 
-        matcher.storeMatching(m, color);
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Dumping matching of " + left.getRevision() + " and "
-                    + right.getRevision());
-            System.out.println(m.dumpTree());
-        }
+		matcher.storeMatching(m, color);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Dumping matching of " + left.getRevision() + " and "
+					+ right.getRevision());
+			System.out.println(m.dumpTree());
+		}
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dumpTree());
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(left.getRevision() + ".dumpTree():");
+			System.out.println(left.dumpTree());
 
-            LOG.debug(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dumpTree());
-        }
+			LOG.debug(right.getRevision() + ".dumpTree():");
+			System.out.println(right.dumpTree());
+		}
 
-        return m;
-    }
+		return m;
+	}
 }

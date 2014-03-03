@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.Artifact;
@@ -31,7 +34,7 @@ public interface DumpInterface<T extends Artifact<T>> {
     /**
      * @param artifact artifact to dump
      * @param graphical output option
-     * @throws IOException
+     * @throws IOException IOException
      */
     void dump(final T artifact, final boolean graphical) throws IOException;
 }
