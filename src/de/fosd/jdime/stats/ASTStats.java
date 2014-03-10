@@ -172,7 +172,9 @@ public class ASTStats {
 		StringBuilder relative = new StringBuilder();
 
 		absolute.append(StringUtils.join(head, sep));
+		absolute.append(System.lineSeparator());
 		relative.append(StringUtils.join(head, sep));
+		relative.append(System.lineSeparator());
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
 			int nodes = s.getElements();
@@ -180,17 +182,30 @@ public class ASTStats {
 			int changes = s.getAdded();
 			int removals = s.getDeleted();
 			absolute.append(key + sep + nodes + sep + matches + sep + changes
-					+ sep + removals);
+					+ sep + removals + System.lineSeparator());
 
 			if (nodes > 0) {
 				relative.append(key + sep + 100.0 + sep
 						+ df.format(100.0 * matches / nodes) + sep
 						+ df.format(100.0 * changes / nodes) + sep
-						+ df.format(100.0 * removals / nodes));
+						+ df.format(100.0 * removals / nodes)
+						+ System.lineSeparator());
 			}
 		}
 
 		return absolute.toString() + System.lineSeparator()
 				+ relative.toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats);
+		clone.setDiffstats((HashMap<String, StatsElement>) diffstats.clone());
+		return clone;
 	}
 }
