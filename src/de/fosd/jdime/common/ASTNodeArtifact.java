@@ -742,6 +742,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		// 15: matching method level nodes
 		// 16: changed method level nodes
 		// 17: removed method level nodes
+		
+		allStats.incrementElements();
 
 		if (hasMatching(revision)) {
 			allStats.incrementMatches();

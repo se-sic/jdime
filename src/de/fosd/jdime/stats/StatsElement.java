@@ -191,6 +191,7 @@ public class StatsElement {
         merged += other.merged;
         conflicting += other.conflicting;
         matches += other.matches;
+        elements += other.elements;
     }
 
 	/**

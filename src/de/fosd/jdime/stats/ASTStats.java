@@ -9,6 +9,8 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.bethecoder.ascii_table.ASCIITable;
+
 /**
  * @author Olaf Lessenich
  * 
@@ -137,8 +139,7 @@ public class ASTStats {
 	 * @param diffstats
 	 *            the diffstats to set
 	 */
-	public final void
-			setDiffstats(final HashMap<String, StatsElement> diffstats) {
+	public final void setDiffstats(final HashMap<String, StatsElement> diffstats) {
 		this.diffstats = diffstats;
 	}
 
@@ -146,11 +147,11 @@ public class ASTStats {
 		nodes += other.nodes;
 
 		if (other.treedepth > treedepth) {
-			treedepth += other.treedepth;
+			treedepth = other.treedepth;
 		}
 
 		if (other.maxchildren > maxchildren) {
-			maxchildren += other.maxchildren;
+			maxchildren = other.maxchildren;
 		}
 
 		for (String key : other.diffstats.keySet()) {
@@ -165,36 +166,76 @@ public class ASTStats {
 	}
 
 	public String toString() {
-		DecimalFormat df = new DecimalFormat("#.0");
-		String sep = " / ";
-		String[] head = { "LEVEL", "NODES", "MATCHES", "CHANGES", "REMOVALS" };
-		StringBuilder absolute = new StringBuilder();
-		StringBuilder relative = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
+		sb.append("Total nodes: " + nodes + System.lineSeparator());
+		sb.append("Treedepth: " + treedepth + System.lineSeparator());
+		sb.append("Maximum children: " + maxchildren
+				+ System.lineSeparator());
 
-		absolute.append(StringUtils.join(head, sep));
-		absolute.append(System.lineSeparator());
-		relative.append(StringUtils.join(head, sep));
-		relative.append(System.lineSeparator());
+		DecimalFormat df = new DecimalFormat("#.0");
+		String[] head = { "LEVEL", "NODES", "MATCHES", "CHANGES", "REMOVALS" };
+
+		String[][] absolute = new String[4][5];
+		String[][] relative = new String[4][5];
+		int[] sum = new int[4]; 
+		int i = 0;
+		
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
 			int nodes = s.getElements();
 			int matches = s.getMatches();
 			int changes = s.getAdded();
 			int removals = s.getDeleted();
-			absolute.append(key + sep + nodes + sep + matches + sep + changes
-					+ sep + removals + System.lineSeparator());
-
-			if (nodes > 0) {
-				relative.append(key + sep + 100.0 + sep
-						+ df.format(100.0 * matches / nodes) + sep
-						+ df.format(100.0 * changes / nodes) + sep
-						+ df.format(100.0 * removals / nodes)
-						+ System.lineSeparator());
+			
+			// sanity checks
+			assert (nodes == matches + changes + removals);
+			if (i>0) {
+				sum[0] += nodes;
+				sum[1] += matches;
+				sum[2] += changes;
+				sum[3] += removals;
 			}
-		}
 
-		return absolute.toString() + System.lineSeparator()
-				+ relative.toString();
+			absolute[i][0] = key.toLowerCase();
+			absolute[i][1] = String.valueOf(nodes);
+			absolute[i][2] = String.valueOf(matches); 
+			absolute[i][3] = String.valueOf(changes); 
+			absolute[i][4] = String.valueOf(removals); 
+			
+			if (nodes > 0) {
+				relative[i][0] = key.toLowerCase();
+				relative[i][1] = df.format(100.0);
+				relative[i][2] = df.format(100.0 * matches / nodes);
+				relative[i][3] = df.format(100.0 * changes / nodes);
+				relative[i][4] = df.format(100.0 * removals / nodes);
+			} else {
+				relative[i][0] = key.toLowerCase();
+				relative[i][1] = "null";
+				relative[i][2] = "null";
+				relative[i][3] = "null";
+				relative[i][4] = "null";
+			}
+			
+			i++;
+		}
+		
+		// sanity checks
+		assert (sum[0] == Integer.parseInt(absolute[0][1]));
+		assert (sum[1] == Integer.parseInt(absolute[0][2]));
+		assert (sum[2] == Integer.parseInt(absolute[0][3]));
+		assert (sum[3] == Integer.parseInt(absolute[0][4]));
+
+		
+		sb.append(System.lineSeparator());
+		sb.append(ASCIITable.getInstance().getTable(head, absolute));
+		sb.append(System.lineSeparator());
+		sb.append(ASCIITable.getInstance().getTable(head, relative));
+
+//		return general.toString() + System.lineSeparator()
+//				+ absolute.toString() + System.lineSeparator()
+//				+ relative.toString();
+		
+		return sb.toString();
 	}
 
 	/*
@@ -205,7 +246,16 @@ public class ASTStats {
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats);
-		clone.setDiffstats((HashMap<String, StatsElement>) diffstats.clone());
+		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
+		
+		for (String key : diffstats.keySet()) {
+			StatsElement s = diffstats.get(key);
+			StatsElement sClone = new StatsElement();
+			sClone.addStatsElement(s);
+			diffstatsClone.put(key, sClone);
+		}
+		
+		clone.setDiffstats(diffstatsClone);
 		return clone;
 	}
 }

@@ -44,7 +44,7 @@ public final class StatsPrinter {
 	/**
 	 * Delimiter.
 	 */
-	private static String delimiter = "--------------------------------------";
+	private static String delimiter = "=================================================";
 
 	/**
 	 * Prints statistical information.
@@ -93,42 +93,9 @@ public final class StatsPrinter {
 
 		System.out.println(delimiter);
 		ASTStats astStats = stats.getAstStats();
-		DecimalFormat df = new DecimalFormat("#.0");
-		String sep = " / ";
-
-		for (Level level : Level.values()) {
-
-			int nodes = astStats.getDiffStats(level.toString()).getElements();
-			int matches = astStats.getDiffStats(level.toString()).getMatches();
-			int changes = astStats.getDiffStats(level.toString()).getAdded();
-			int removals = astStats.getDiffStats(level.toString()).getDeleted();
-
-			System.out.print("Change awareness (" + level + " nodes" + sep
-					+ level + " matches" + sep + level + " changes " + sep
-					+ level + " removals): ");
-			System.out.println(nodes + sep + matches + sep + changes + sep
-					+ removals);
-
-			if (nodes > 0) {
-				System.out.print("Change awareness % (" + level + " nodes"
-						+ sep + level + " matches" + sep + level + " changes"
-						+ sep + level + " removals): ");
-				System.out.println(100.0 + sep
-						+ df.format(100.0 * matches / nodes) + sep
-						+ df.format(100.0 * changes / nodes) + sep
-						+ df.format(100.0 * removals / nodes));
-			}
-
-			// sanity checks
-			assert (nodes == matches + changes + removals) : "Stats error: "
-					+ nodes + " != " + matches + " + " + changes + " + "
-					+ removals;
-		}
-
+		System.out.println(astStats);
 		System.out.println(delimiter);
-
 		System.out.println("Runtime: " + stats.getRuntime() + " ms");
-
 		System.out.println(delimiter);
 
 		if (context.getMergeStrategy().getClass().getName()

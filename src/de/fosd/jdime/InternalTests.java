@@ -36,7 +36,7 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public final class InternalTests {
 	
-	private static String delimiter = "--------------------------------------";
+	private static String delimiter = "====================================================";
 	
 	/**
 	 * 
@@ -71,9 +71,9 @@ public final class InternalTests {
 				}
 
 				StatsElement s = new StatsElement();
-				s.setAdded((int) (10 * Math.random()));
-				s.setMatches((int) (10 * Math.random()));
-				s.setDeleted((int) (10 * Math.random()));
+				s.setAdded((int) (5 * Math.random()));
+				s.setMatches((int) (5 * Math.random()));
+				s.setDeleted((int) (5* Math.random()));
 				s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
 				all.addStatsElement(s);
 				diffstats.put(level.toString(), s);
@@ -82,8 +82,8 @@ public final class InternalTests {
 			diffstats.put(Level.ALL.toString(), all);
 
 			stats[i] =
-					new ASTStats(all.getElements(), (int) (10 * Math.random()),
-							(int) (10 * Math.random()), diffstats);
+					new ASTStats(all.getElements(), (int) (5 * Math.random()),
+							(int) (5 * Math.random()), diffstats);
 		}
 		
 		ASTStats sum = ASTStats.add(stats[0], stats[1]);
