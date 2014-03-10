@@ -42,24 +42,28 @@ public class Stats {
      *
      */
     private List<MergeTripleStats> scenariostats;
+    
     /**
      * Number of conflicts.
      */
     private int conflicts = 0;
+    
     /**
      * Runtime.
      */
     private long runtime = 0;
+    
     /**
      * Map of elements.
      */
     private HashMap<String, StatsElement> elements;
+    
     /**
      * Map of operations.
      */
     private HashMap<String, Integer> operations;
     
-    private int[] diffStats;
+    private ASTStats astStats;
 
     /**
      * Creates a new Stats instance from a list of keys.
@@ -91,13 +95,6 @@ public class Stats {
 
         for (String key : keys) {
             elements.put(key, new StatsElement());
-        }
-        
-        if (diffStats == null) {
-            diffStats = new int[18];
-            for (int i = 0; i < diffStats.length; i++) {
-                diffStats[i] = 0;
-            }
         }
     }
 
@@ -154,15 +151,6 @@ public class Stats {
     public final void addConflicts(final int conflicts) {
         this.conflicts += conflicts;
     }
-    
-    public final void addDiffStats(final int[] diffStats) {     
-        this.diffStats[0] += diffStats[0];
-        this.diffStats[1] = this.diffStats[1] >= diffStats[1] ? this.diffStats[1] : diffStats[1];
-        this.diffStats[2] = this.diffStats[2] >= diffStats[2] ? this.diffStats[2] : diffStats[2];
-        for (int i = 3; i < diffStats.length; i++) {
-            this.diffStats[i] += diffStats[i];
-        }
-    }
 
     /**
      * Increase the runtime statistics.
@@ -194,7 +182,6 @@ public class Stats {
 
         this.conflicts += other.conflicts;
         this.runtime += other.runtime;
-        addDiffStats(other.diffStats);
     }
 
     /**
@@ -282,17 +269,18 @@ public class Stats {
         scenariostats = new LinkedList<>();
     }
 
-    /**
-     * @return the diffStats
-     */
-    public final int[] getDiffStats() {
-        return diffStats;
-    }
-
-    /**
-     * @param diffStats the diffStats to set
-     */
-    public final void setDiffStats(int[] diffStats) {
-        this.diffStats = diffStats;
-    }
+	/**
+	 * @return the astStats
+	 */
+	public final ASTStats getAstStats() {
+		return astStats;
+	}
+	
+	public final void addASTStats(ASTStats other) {
+		if (astStats == null) {
+			astStats = other;
+		} else {
+			astStats.add(other);
+		}
+	}
 }

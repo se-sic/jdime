@@ -21,11 +21,14 @@
  ******************************************************************************/
 package de.fosd.jdime.stats;
 
+import de.fosd.jdime.common.Level;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -89,65 +92,37 @@ public final class StatsPrinter {
 		}
 
 		System.out.println(delimiter);
-
-		int[] diffStats = stats.getDiffStats();
+		ASTStats astStats = stats.getAstStats();
 		DecimalFormat df = new DecimalFormat("#.0");
 		String sep = " / ";
 
-		System.out.print("Change awareness (nodes" + sep + "matches" + sep
-				+ "changes" + sep + "removals): ");
-		System.out.println(diffStats[0] + sep + diffStats[3] + sep
-				+ diffStats[4] + sep + diffStats[5]);
+		for (Level level : Level.values()) {
 
-		if (diffStats[0] > 0) {
-			System.out.print("Change awareness % (nodes" + sep + "matches"
-					+ sep + "changes" + sep + "removals): ");
-			System.out.println(100.0 + sep
-					+ df.format(100.0 * diffStats[3] / diffStats[0]) + sep
-					+ df.format(100.0 * diffStats[4] / diffStats[0]) + sep
-					+ df.format(100.0 * diffStats[5] / diffStats[0]));
-		}
+			int nodes = astStats.getDiffStats(level.toString()).getElements();
+			int matches = astStats.getDiffStats(level.toString()).getMatches();
+			int changes = astStats.getDiffStats(level.toString()).getAdded();
+			int removals = astStats.getDiffStats(level.toString()).getDeleted();
 
-		System.out.print("Change awareness toplevel (nodes" + sep + "matches"
-				+ sep + "changes" + sep + "removals): ");
-		System.out.println(diffStats[6] + sep + diffStats[7] + sep
-				+ diffStats[8] + sep + diffStats[9]);
+			System.out.print("Change awareness (" + level + " nodes" + sep
+					+ level + " matches" + sep + level + " changes " + sep
+					+ level + " removals): ");
+			System.out.println(nodes + sep + matches + sep + changes + sep
+					+ removals);
 
-		if (diffStats[6] > 0) {
-			System.out.print("Change awareness toplevel % (nodes" + sep
-					+ "matches" + sep + "changes" + sep + "removals): ");
-			System.out.println(100.0 + sep
-					+ df.format(100.0 * diffStats[7] / diffStats[6]) + sep
-					+ df.format(100.0 * diffStats[8] / diffStats[6]) + sep
-					+ df.format(100.0 * diffStats[9] / diffStats[6]));
-		}
+			if (nodes > 0) {
+				System.out.print("Change awareness % (" + level + " nodes"
+						+ sep + level + " matches" + sep + level + " changes"
+						+ sep + level + " removals): ");
+				System.out.println(100.0 + sep
+						+ df.format(100.0 * matches / nodes) + sep
+						+ df.format(100.0 * changes / nodes) + sep
+						+ df.format(100.0 * removals / nodes));
+			}
 
-		System.out.print("Change awareness classlevel (nodes" + sep + "matches"
-				+ sep + "changes" + sep + "removals): ");
-		System.out.println(diffStats[10] + sep + diffStats[11] + sep
-				+ diffStats[12] + sep + diffStats[13]);
-
-		if (diffStats[10] > 0) {
-			System.out.print("Change awareness classlevel % (nodes" + sep
-					+ "matches" + sep + "changes" + sep + "removals): ");
-			System.out.println(100.0 + sep
-					+ df.format(100.0 * diffStats[11] / diffStats[10]) + sep
-					+ df.format(100.0 * diffStats[12] / diffStats[10]) + sep
-					+ df.format(100.0 * diffStats[13] / diffStats[10]));
-		}
-
-		System.out.print("Change awareness methodlevel (nodes" + sep
-				+ "matches" + sep + "changes" + sep + "removals): ");
-		System.out.println(diffStats[14] + sep + diffStats[15] + sep
-				+ diffStats[16] + sep + diffStats[17]);
-
-		if (diffStats[14] > 0) {
-			System.out.print("Change awareness methodlevel % (nodes" + sep
-					+ "matches" + sep + "changes" + sep + "removals): ");
-			System.out.println(100.0 + sep
-					+ df.format(100.0 * diffStats[15] / diffStats[14]) + sep
-					+ df.format(100.0 * diffStats[16] / diffStats[14]) + sep
-					+ df.format(100.0 * diffStats[17] / diffStats[14]));
+			// sanity checks
+			assert (nodes == matches + changes + removals) : "Stats error: "
+					+ nodes + " != " + matches + " + " + changes + " + "
+					+ removals;
 		}
 
 		System.out.println(delimiter);
@@ -156,36 +131,6 @@ public final class StatsPrinter {
 
 		System.out.println(delimiter);
 
-		// sanity checks
-		assert (diffStats[0] == diffStats[3] + diffStats[4] + diffStats[5]) 
-			: "Stats error: " + diffStats[0] + " != " + diffStats[3]
-				+ " + " + diffStats[4] + " + " + diffStats[5];
-		assert (diffStats[6] == diffStats[7] + diffStats[8] + diffStats[9]) : "Stats error: "
-				+ diffStats[6]
-				+ " != "
-				+ diffStats[7]
-				+ " + "
-				+ diffStats[8]
-				+ " + " + diffStats[9];
-		assert (diffStats[10] == diffStats[11] + diffStats[12] + diffStats[13]) : "Stats error: "
-				+ diffStats[10]
-				+ " != "
-				+ diffStats[11]
-				+ " + "
-				+ diffStats[12] + " + " + diffStats[13];
-		assert (diffStats[14] == diffStats[15] + diffStats[16] + diffStats[17]) : "Stats error: "
-				+ diffStats[14]
-				+ " != "
-				+ diffStats[15]
-				+ " + "
-				+ diffStats[16] + " + " + diffStats[17];
-		assert (diffStats[0] == diffStats[6] + diffStats[10] + diffStats[14]) : "Stats error: "
-				+ diffStats[0]
-				+ " != "
-				+ diffStats[6]
-				+ " + "
-				+ diffStats[10]
-				+ " + " + diffStats[14];
 		if (context.getMergeStrategy().getClass().getName()
 				.equals(LinebasedStrategy.class.getName())) {
 			assert (stats.getElement("files").getAdded()

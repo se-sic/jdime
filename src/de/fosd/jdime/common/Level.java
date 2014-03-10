@@ -27,6 +27,11 @@ package de.fosd.jdime.common;
  * @author Olaf Lessenich
  */
 public enum Level {
+	/**
+	 * Every node. 
+	 */
+	ALL,
+	
     /**
      * Everything above class declaration, e.g. import statements. 
      */

@@ -21,6 +21,13 @@
  ******************************************************************************/
 package de.fosd.jdime.strategy;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.Level;
@@ -28,14 +35,10 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge.
@@ -99,7 +102,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		int conflicts = 0;
 		int loc = 0;
 		int cloc = 0;
-		int[] diffStats = new int[18];
+		ASTStats astStats = null;
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Merging: " + triple.getLeft().getPath() + " "
@@ -261,52 +264,39 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			runtimes.add(runtime);
 
 			// collect stats
-			int[] leftStats = left.getStats(right.getRevision(), Level.TOP);
-			int[] rightStats = right.getStats(left.getRevision(), Level.TOP);
+			ASTStats leftStats = left.getStats(right.getRevision(), Level.TOP);
+			ASTStats rightStats = right.getStats(left.getRevision(), Level.TOP);
 
-			assert (leftStats[3] == rightStats[3]) 
+			assert (leftStats.getDiffStats(Level.ALL.toString()).getMatches() 
+				== rightStats.getDiffStats(Level.ALL.toString()).getMatches()) 
 				: "Number of matches should be equal in left and "
 					+ "right revision.";
 
-			diffStats = new int[18];
-			diffStats[0] = leftStats[0] + rightStats[0];
-			diffStats[1] =
-					leftStats[1] >= rightStats[1] ? leftStats[1]
-							: rightStats[1];
-			diffStats[2] =
-					leftStats[2] >= rightStats[2] ? leftStats[2]
-							: rightStats[2];
-
-			for (int index = 3; index < diffStats.length; index++) {
-				diffStats[index] = leftStats[index] + rightStats[index];
-			}
-
-			assert (diffStats[0] == diffStats[3] + diffStats[4] + diffStats[5]) : "Stats error: "
-					+ diffStats[0]
-					+ " != "
-					+ diffStats[3]
-					+ " + "
-					+ diffStats[4] + " + " + diffStats[5];
+			astStats = ASTStats.add(leftStats, rightStats);
 
 			if (LOG.isInfoEnabled()) {
 				String sep = " / ";
+				int nodes = astStats.getDiffStats(Level.ALL.toString()).getElements();
+				int matches = astStats.getDiffStats(Level.ALL.toString()).getMatches();
+				int changes = astStats.getDiffStats(Level.ALL.toString()).getAdded();
+				int removals = astStats.getDiffStats(Level.ALL.toString()).getDeleted();
 				LOG.info("Change awareness (nodes" + sep + "matches" + sep
 						+ "changes" + sep + "removals): ");
-				LOG.info(diffStats[0] + sep + diffStats[3] + sep + diffStats[4]
-						+ sep + diffStats[5]);
+				LOG.info(nodes + sep + matches + sep + changes
+						+ sep + removals);
 
-				if (diffStats[0] > 0) {
+				if (nodes > 0) {
 					LOG.info("Change awareness % (nodes" + sep + "matches"
 							+ sep + "changes" + sep + "removals): ");
-					LOG.info(100.0 + sep + 100.0 * diffStats[3] / diffStats[0]
-							+ sep + 100.0 * diffStats[4] / diffStats[0] + sep
-							+ 100.0 * diffStats[5] / diffStats[0]);
+					LOG.info(100.0 + sep + 100.0 * matches / nodes
+							+ sep + 100.0 * changes / nodes + sep
+							+ 100.0 * removals / nodes);
 				}
 			}
 
 			if (context.hasStats()) {
 				Stats stats = context.getStats();
-				stats.addDiffStats(diffStats);
+				stats.addASTStats(astStats);
 			}
 
 			if (LOG.isInfoEnabled() && context.isBenchmark()
@@ -363,7 +353,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 			MergeTripleStats scenariostats =
 					new MergeTripleStats(triple, conflicts, cloc, loc, runtime,
-							diffStats);
+							astStats);
 			stats.addScenarioStats(scenariostats);
 		}
 		/*

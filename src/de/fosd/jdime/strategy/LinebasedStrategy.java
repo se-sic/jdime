@@ -255,7 +255,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             stats.increaseRuntime(runtime);
 
             MergeTripleStats scenariostats = new MergeTripleStats(triple,
-                    conflicts, cloc, loc, runtime, new int[6]);
+                    conflicts, cloc, loc, runtime, null);
             stats.addScenarioStats(scenariostats);
         }
     }

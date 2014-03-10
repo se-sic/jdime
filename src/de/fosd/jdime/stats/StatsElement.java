@@ -26,23 +26,35 @@ package de.fosd.jdime.stats;
  *
  */
 public class StatsElement {
+	/**
+	 * Number of elements.
+	 */
+	private int elements = 0;
 
     /**
      * Number of added elements.
      */
     private int added = 0;
+    
     /**
      * Number of deleted elements.
      */
     private int deleted = 0;
+    
     /**
      * Number of merged elements.
      */
     private int merged = 0;
+    
     /**
      * Number of conflicting elements.
      */
     private int conflicting = 0;
+    
+    /**
+     * Number of matched elements.
+     */
+    private int matches = 0;
 
     /**
      * Returns the number of added elements.
@@ -79,6 +91,14 @@ public class StatsElement {
     public final int getDeleted() {
         return deleted;
     }
+    
+    /**
+     * Returns the number of matched elements.
+     * @return matches
+     */
+    public final int getMatches() {
+    	return matches;
+    }
 
     /**
      * Increments the number of added elements.
@@ -106,6 +126,13 @@ public class StatsElement {
      */
     public final void incrementDeleted() {
         deleted++;
+    }
+    
+    /**
+     * Increments the number of matched elements.
+     */
+    public final void incrementMatches() {
+    	matches++;
     }
 
     /**
@@ -143,6 +170,15 @@ public class StatsElement {
     public final void setDeleted(final int deleted) {
         this.deleted = deleted;
     }
+    
+    /**
+     * Sets the number of matched elements.
+     * 
+     * @param matches matches
+     */
+    public final void setMatches(final int matches) {
+    	this.matches = matches;
+    }
 
     /**
      * Adds another StatsElement to this one.
@@ -154,5 +190,24 @@ public class StatsElement {
         deleted += other.deleted;
         merged += other.merged;
         conflicting += other.conflicting;
+        matches += other.matches;
     }
+
+	/**
+	 * @return the elements
+	 */
+	public final int getElements() {
+		return elements;
+	}
+
+	/**
+	 * @param elements the elements to set
+	 */
+	public final void setElements(final int elements) {
+		this.elements = elements;
+	}
+	
+	public final void incrementElements() {
+		elements++;
+	}
 }

@@ -34,33 +34,42 @@ public class MergeTripleStats {
      *
      */
     private MergeTriple<FileArtifact> triple;
+    
     /**
      *
      */
     private int conflicts;
+    
     /**
      *
      */
     private int conflictingLines;
+    
     /**
      *
      */
     private int lines;
+    
     /**
      *
      */
     private long runtime;
+    
     /**
      *
      */
     private boolean error = false;
+    
     /**
      *
      */
     private String errormsg;
     
-    private int[] diffStats;
-
+    /**
+     * 
+     */
+    private ASTStats astStats;
+    
     /**
      * Class Constructor.
      *
@@ -69,17 +78,16 @@ public class MergeTripleStats {
      * @param conflictingLines number of conflicting lines
      * @param lines number of lines
      * @param runtime runtime for the scenario
-     * @param diffStats diff statistics
      */
     public MergeTripleStats(final MergeTriple<FileArtifact> triple,
             final int conflicts, final int conflictingLines, final int lines,
-            final long runtime, int[] diffStats) {
+            final long runtime, final ASTStats astStats) {
         this.triple = triple;
         this.conflicts = conflicts;
         this.conflictingLines = conflictingLines;
         this.lines = lines;
         this.runtime = runtime;
-        this.diffStats = diffStats;
+        this.astStats = astStats;
     }
 
     /**
@@ -158,17 +166,10 @@ public class MergeTripleStats {
                 + " ms.";
     }
 
-    /**
-     * @return the diffStats
-     */
-    public int[] getDiffStats() {
-        return diffStats;
-    }
-
-    /**
-     * @param diffStats the diffStats to set
-     */
-    public void setDiffStats(int[] diffStats) {
-        this.diffStats = diffStats;
-    }
+	/**
+	 * @return the astStats
+	 */
+	public final ASTStats getASTStats() {
+		return astStats;
+	}
 }

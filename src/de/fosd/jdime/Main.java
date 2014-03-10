@@ -196,7 +196,11 @@ public final class Main {
                             context.setBugfixing();
                             break;
                         case "test":
-                            TestEnvironment.run();
+                            InternalTests.run();
+                            System.exit(0);
+                            break;
+                        case "testenvironment":
+                            InternalTests.runEnvironmentTest();
                             System.exit(0);
                             break;
                         case "dumptree":

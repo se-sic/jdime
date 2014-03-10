@@ -21,6 +21,14 @@
  ******************************************************************************/
 package de.fosd.jdime.common;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+
 import AST.ASTNode;
 import AST.BytecodeParser;
 import AST.ClassDecl;
@@ -38,13 +46,10 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.stats.ASTStats;
+import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Set;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -715,9 +720,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return mystats;
 	}
 
-	public final int[] getStats(Revision revision, Level level) {
+	public final ASTStats getStats(Revision revision, Level level) {
 		// FIXME: THIS IS SHIT! NEEDS TO BE FIXED!
-		
+		StatsElement allStats = new StatsElement();
+		StatsElement topStats = new StatsElement();
+		StatsElement classStats = new StatsElement();
+		StatsElement methodStats = new StatsElement();
+
 		// 0: number of nodes, 1: tree depth, 2: max children,
 		// 3: number of matching nodes, 4: number of changed nodes,
 		// 5: number of deleted nodes
@@ -733,59 +742,47 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		// 15: matching method level nodes
 		// 16: changed method level nodes
 		// 17: removed method level nodes
-		int[] mystats = new int[18];
-		mystats[0] = 1;
-		mystats[1] = 0;
-		mystats[2] = getNumChildren();
-		mystats[3] = 0; // matching
-		mystats[4] = 0; // changed
-		mystats[5] = 0; // removed
-		mystats[6] = 0; // top nodes
-		mystats[7] = 0; // top matches
-		mystats[8] = 0; // top changed
-		mystats[9] = 0; // top removed
-		mystats[10] = 0; // class nodes
-		mystats[11] = 0; // class matches
-		mystats[12] = 0; // class changes
-		mystats[13] = 0; // class removed
-		mystats[14] = 0; // method nodes
-		mystats[15] = 0; // method matches
-		mystats[16] = 0; // method changes
-		mystats[17] = 0; // method removed
 
 		if (hasMatching(revision)) {
-			mystats[3] = 1;
+			allStats.incrementMatches();
 		} else {
 			// changed or deleted?
 			if (hasMatches()) {
 				// was deleted
-				mystats[5] = 1;
+				allStats.incrementDeleted();
 			} else {
-				mystats[4] = 1;
+				// is a change
+				allStats.incrementAdded();
 			}
 		}
 
+		StatsElement myStats = null;
 		switch (level) {
 		case TOP:
-			mystats[6] = mystats[0];
-			mystats[7] = mystats[3];
-			mystats[8] = mystats[4];
-			mystats[9] = mystats[5];
+			myStats = topStats;
 			break;
 		case CLASS:
-			mystats[10] = mystats[0];
-			mystats[11] = mystats[3];
-			mystats[12] = mystats[4];
-			mystats[13] = mystats[5];
+			myStats = classStats;
 			break;
 		case METHOD:
-			mystats[14] = mystats[0];
-			mystats[15] = mystats[3];
-			mystats[16] = mystats[4];
-			mystats[17] = mystats[5];
+			myStats = methodStats; 
 			break;
 		}
-
+		
+		assert (myStats != null);
+		
+		myStats.setElements(allStats.getElements());
+		myStats.setMatches(allStats.getMatches());
+		myStats.setAdded(allStats.getAdded());
+		myStats.setDeleted(allStats.getDeleted());
+		
+		HashMap<String, StatsElement> diffstats = new HashMap<>();
+		diffstats.put(Level.ALL.toString(), allStats);
+		diffstats.put(Level.TOP.toString(), topStats);
+		diffstats.put(Level.CLASS.toString(), classStats);
+		diffstats.put(Level.METHOD.toString(), methodStats);
+		ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats);
+		
 		// find out current level
 		if (astnode instanceof ClassDecl) {
 			level = Level.CLASS;
@@ -795,31 +792,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		for (int i = 0; i < getNumChildren(); i++) {
-			int[] childstats = getChild(i).getStats(revision, level);
-			mystats[0] += childstats[0];
-			mystats[3] += childstats[3];
-			mystats[4] += childstats[4];
-			mystats[5] += childstats[5];
-			mystats[6] += childstats[6];
-			mystats[7] += childstats[7];
-			mystats[8] += childstats[8];
-			mystats[9] += childstats[9];
-			mystats[10] += childstats[10];
-			mystats[11] += childstats[11];
-			mystats[12] += childstats[12];
-			mystats[13] += childstats[13];
-			mystats[14] += childstats[14];
-			mystats[15] += childstats[15];
-			mystats[16] += childstats[16];
-			mystats[17] += childstats[17];
-			if (childstats[1] + 1 > mystats[1]) {
-				mystats[1] = childstats[1] + 1;
-			}
-			if (childstats[2] > mystats[2]) {
-				mystats[2] = childstats[2];
-			}
+			stats.add(getChild(i).getStats(revision, level));
 		}
 
-		return mystats;
+		return stats;
 	}
 }
