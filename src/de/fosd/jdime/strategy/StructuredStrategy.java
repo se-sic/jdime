@@ -266,6 +266,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			// collect stats
 			ASTStats leftStats = left.getStats(right.getRevision(), Level.TOP);
 			ASTStats rightStats = right.getStats(left.getRevision(), Level.TOP);
+			ASTStats targetStats = targetNode.getStats(null, Level.TOP);
 
 			assert (leftStats.getDiffStats(Level.ALL.toString()).getMatches() 
 				== rightStats.getDiffStats(Level.ALL.toString()).getMatches()) 
@@ -273,6 +274,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					+ "right revision.";
 
 			astStats = ASTStats.add(leftStats, rightStats);
+			astStats.setConflicts(targetStats);
 
 			if (LOG.isInfoEnabled()) {
 				String sep = " / ";
@@ -280,17 +282,19 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				int matches = astStats.getDiffStats(Level.ALL.toString()).getMatches();
 				int changes = astStats.getDiffStats(Level.ALL.toString()).getAdded();
 				int removals = astStats.getDiffStats(Level.ALL.toString()).getDeleted();
+				int conflictnodes = astStats.getDiffStats(Level.ALL.toString()).getConflicting();
 				LOG.info("Change awareness (nodes" + sep + "matches" + sep
-						+ "changes" + sep + "removals): ");
+						+ "changes" + sep + "removals" + sep + "conflicts): ");
 				LOG.info(nodes + sep + matches + sep + changes
-						+ sep + removals);
+						+ sep + removals + sep + conflictnodes);
 
 				if (nodes > 0) {
 					LOG.info("Change awareness % (nodes" + sep + "matches"
-							+ sep + "changes" + sep + "removals): ");
+							+ sep + "changes" + sep + "removals" + sep + "conflicts): ");
 					LOG.info(100.0 + sep + 100.0 * matches / nodes
 							+ sep + 100.0 * changes / nodes + sep
-							+ 100.0 * removals / nodes);
+							+ 100.0 * removals / nodes + sep
+							+ 100.0 * conflictnodes / nodes);
 				}
 			}
 

@@ -726,26 +726,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		StatsElement topStats = new StatsElement();
 		StatsElement classStats = new StatsElement();
 		StatsElement methodStats = new StatsElement();
-
-		// 0: number of nodes, 1: tree depth, 2: max children,
-		// 3: number of matching nodes, 4: number of changed nodes,
-		// 5: number of deleted nodes
-		// 6: number of top level nodes
-		// 7: matching top level nodes
-		// 8: changed top level nodes
-		// 9: removed top level nodes
-		// 10: number of class level nodes
-		// 11: matching class level nodes
-		// 12: changed class level nodes
-		// 13: removed class level nodes
-		// 14: number of method level nodes
-		// 15: matching method level nodes
-		// 16: changed method level nodes
-		// 17: removed method level nodes
 		
 		allStats.incrementElements();
 
-		if (hasMatching(revision)) {
+		if (isConflict()) {
+			allStats.incrementConflicting();
+		} else if ((revision == null && hasMatches()) || hasMatching(revision)) {
 			allStats.incrementMatches();
 		} else {
 			// changed or deleted?
@@ -777,6 +763,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		myStats.setMatches(allStats.getMatches());
 		myStats.setAdded(allStats.getAdded());
 		myStats.setDeleted(allStats.getDeleted());
+		myStats.setConflicting(allStats.getConflicting());
 		
 		HashMap<String, StatsElement> diffstats = new HashMap<>();
 		diffstats.put(Level.ALL.toString(), allStats);

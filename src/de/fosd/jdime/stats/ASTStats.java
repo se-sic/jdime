@@ -142,6 +142,17 @@ public class ASTStats {
 	public final void setDiffstats(final HashMap<String, StatsElement> diffstats) {
 		this.diffstats = diffstats;
 	}
+	
+	public final void setConflicts(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+			+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			assert mystats.getConflicting() == 0 : "Unexpected: conflicts > 0";
+			mystats.setConflicting(otherstats.getConflicting());
+		}
+	}
 
 	public final void add(ASTStats other) {
 		nodes += other.nodes;
@@ -173,10 +184,10 @@ public class ASTStats {
 				+ System.lineSeparator());
 
 		DecimalFormat df = new DecimalFormat("#.0");
-		String[] head = { "LEVEL", "NODES", "MATCHES", "CHANGES", "REMOVALS" };
+		String[] head = { "LEVEL", "NODES", "MATCHES", "CHANGES", "REMOVALS", "CONFLICTS" };
 
-		String[][] absolute = new String[4][5];
-		String[][] relative = new String[4][5];
+		String[][] absolute = new String[4][6];
+		String[][] relative = new String[4][6];
 		int[] sum = new int[4]; 
 		int i = 0;
 		
@@ -186,6 +197,7 @@ public class ASTStats {
 			int matches = s.getMatches();
 			int changes = s.getAdded();
 			int removals = s.getDeleted();
+			int conflicts = s.getConflicting();
 			
 			// sanity checks
 			assert (nodes == matches + changes + removals);
@@ -200,7 +212,8 @@ public class ASTStats {
 			absolute[i][1] = String.valueOf(nodes);
 			absolute[i][2] = String.valueOf(matches); 
 			absolute[i][3] = String.valueOf(changes); 
-			absolute[i][4] = String.valueOf(removals); 
+			absolute[i][4] = String.valueOf(removals);
+			absolute[i][5] = String.valueOf(conflicts);
 			
 			if (nodes > 0) {
 				relative[i][0] = key.toLowerCase();
@@ -208,12 +221,14 @@ public class ASTStats {
 				relative[i][2] = df.format(100.0 * matches / nodes);
 				relative[i][3] = df.format(100.0 * changes / nodes);
 				relative[i][4] = df.format(100.0 * removals / nodes);
+				relative[i][5] = df.format(100.0 * conflicts / nodes);
 			} else {
 				relative[i][0] = key.toLowerCase();
 				relative[i][1] = "null";
 				relative[i][2] = "null";
 				relative[i][3] = "null";
 				relative[i][4] = "null";
+				relative[i][5] = "null";
 			}
 			
 			i++;

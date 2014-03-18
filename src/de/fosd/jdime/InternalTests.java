@@ -75,6 +75,7 @@ public final class InternalTests {
 				s.setMatches((int) (5 * Math.random()));
 				s.setDeleted((int) (5* Math.random()));
 				s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
+				s.setConflicting((int) (s.getElements() * Math.random()));
 				all.addStatsElement(s);
 				diffstats.put(level.toString(), s);
 			}
