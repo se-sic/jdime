@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.Level;
+import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
 import de.fosd.jdime.common.NotYetImplementedException;
@@ -267,14 +267,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				// collect stats
 				ASTStats leftStats = left.getStats(right.getRevision(),
-						Level.TOP);
+						LangElem.TOPLEVELNODE);
 				ASTStats rightStats = right.getStats(left.getRevision(),
-						Level.TOP);
-				ASTStats targetStats = targetNode.getStats(null, Level.TOP);
+						LangElem.TOPLEVELNODE);
+				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE);
 
-				assert (leftStats.getDiffStats(Level.ALL.toString())
+				assert (leftStats.getDiffStats(LangElem.NODE.toString())
 						.getMatches() == rightStats.getDiffStats(
-						Level.ALL.toString()).getMatches()) : "Number of matches should be equal in left and "
+						LangElem.NODE.toString()).getMatches()) : "Number of matches should be equal in left and "
 						+ "right revision.";
 
 				astStats = ASTStats.add(leftStats, rightStats);
@@ -282,16 +282,16 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				if (LOG.isInfoEnabled()) {
 					String sep = " / ";
-					int nodes = astStats.getDiffStats(Level.ALL.toString())
+					int nodes = astStats.getDiffStats(LangElem.NODE.toString())
 							.getElements();
-					int matches = astStats.getDiffStats(Level.ALL.toString())
+					int matches = astStats.getDiffStats(LangElem.NODE.toString())
 							.getMatches();
-					int changes = astStats.getDiffStats(Level.ALL.toString())
+					int changes = astStats.getDiffStats(LangElem.NODE.toString())
 							.getAdded();
-					int removals = astStats.getDiffStats(Level.ALL.toString())
+					int removals = astStats.getDiffStats(LangElem.NODE.toString())
 							.getDeleted();
 					int conflictnodes = astStats.getDiffStats(
-							Level.ALL.toString()).getConflicting();
+							LangElem.NODE.toString()).getConflicting();
 					LOG.info("Change awareness (nodes" + sep + "matches" + sep
 							+ "changes" + sep + "removals" + sep
 							+ "conflicts): ");

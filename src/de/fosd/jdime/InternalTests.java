@@ -26,7 +26,7 @@ import java.util.HashMap;
 
 import org.gnu.glpk.GLPK;
 
-import de.fosd.jdime.common.Level;
+import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -65,8 +65,8 @@ public final class InternalTests {
 			HashMap<String, StatsElement> diffstats = new HashMap<>();
 
 			StatsElement all = new StatsElement();
-			for (Level level : Level.values()) {
-				if (level.equals(Level.ALL)) {
+			for (LangElem level : LangElem.values()) {
+				if (level.equals(LangElem.NODE)) {
 					continue;
 				}
 
@@ -76,15 +76,16 @@ public final class InternalTests {
 				s.setDeleted((int) (5* Math.random()));
 				s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
 				s.setConflicting((int) (s.getElements() * Math.random()));
+				s.setChanges(s.getAdded()+s.getDeleted()+s.getConflicting());
 				all.addStatsElement(s);
 				diffstats.put(level.toString(), s);
 			}
 
-			diffstats.put(Level.ALL.toString(), all);
+			diffstats.put(LangElem.NODE.toString(), all);
 
 			stats[i] =
 					new ASTStats(all.getElements(), (int) (5 * Math.random()),
-							(int) (5 * Math.random()), diffstats);
+							(int) (5 * Math.random()), diffstats, all.getChanges() != 0);
 		}
 		
 		ASTStats sum = ASTStats.add(stats[0], stats[1]);

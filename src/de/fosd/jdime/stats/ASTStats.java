@@ -35,6 +35,8 @@ public class ASTStats {
 	 * Map of diff statistics.
 	 */
 	private HashMap<String, StatsElement> diffstats;
+	
+	private boolean hasChanges = false;
 
 	/**
 	 * Creates a new ASTStats instance.
@@ -49,11 +51,12 @@ public class ASTStats {
 	 *            diff statistics
 	 */
 	public ASTStats(final int nodes, final int treedepth,
-			final int maxchildren, final HashMap<String, StatsElement> diffstats) {
+			final int maxchildren, final HashMap<String, StatsElement> diffstats, final boolean hasChanges) {
 		this.nodes = nodes;
 		this.treedepth = treedepth;
 		this.maxchildren = maxchildren;
 		this.diffstats = diffstats;
+		this.hasChanges = hasChanges;
 	}
 
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
@@ -166,9 +169,15 @@ public class ASTStats {
 		}
 
 		for (String key : other.diffstats.keySet()) {
-			assert (diffstats.containsKey(key)) : "Error: Key '" + key
-					+ "' not found!";
-			diffstats.get(key).addStatsElement(other.diffstats.get(key));
+			if (diffstats.containsKey(key)) {
+				diffstats.get(key).addStatsElement(other.diffstats.get(key));
+			} else {
+				diffstats.put(key, other.diffstats.get(key));
+			}
+		}
+		
+		if (!hasChanges) {
+			hasChanges = other.hasChanges();
 		}
 	}
 
@@ -184,43 +193,44 @@ public class ASTStats {
 				+ System.lineSeparator());
 
 		DecimalFormat df = new DecimalFormat("#.0");
-		String[] head = { "LEVEL", "NODES", "MATCHES", "CHANGES", "REMOVALS", "CONFLICTS" };
+		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED", "CONFLICTS" };
 
-		String[][] absolute = new String[4][6];
-		String[][] relative = new String[4][6];
+		String[][] absolute = new String[4][7];
+		String[][] relative = new String[4][7];
 		int[] sum = new int[4]; 
 		int i = 0;
 		
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
 			int nodes = s.getElements();
-			int matches = s.getMatches();
-			int changes = s.getAdded();
-			int removals = s.getDeleted();
+			int matched = s.getMatches();
+			int changed = s.getChanges();
+			int added = s.getAdded();
+			int removed = s.getDeleted();
 			int conflicts = s.getConflicting();
 			
 			// sanity checks
-			assert (nodes == matches + changes + removals);
+			assert (nodes == matched + added + removed);
 			if (i>0) {
 				sum[0] += nodes;
-				sum[1] += matches;
-				sum[2] += changes;
-				sum[3] += removals;
+				sum[1] += matched;
+				sum[2] += added;
+				sum[3] += removed;
 			}
 
 			absolute[i][0] = key.toLowerCase();
 			absolute[i][1] = String.valueOf(nodes);
-			absolute[i][2] = String.valueOf(matches); 
-			absolute[i][3] = String.valueOf(changes); 
-			absolute[i][4] = String.valueOf(removals);
+			absolute[i][2] = String.valueOf(matched); 
+			absolute[i][3] = String.valueOf(added); 
+			absolute[i][4] = String.valueOf(removed);
 			absolute[i][5] = String.valueOf(conflicts);
 			
 			if (nodes > 0) {
 				relative[i][0] = key.toLowerCase();
 				relative[i][1] = df.format(100.0);
-				relative[i][2] = df.format(100.0 * matches / nodes);
-				relative[i][3] = df.format(100.0 * changes / nodes);
-				relative[i][4] = df.format(100.0 * removals / nodes);
+				relative[i][2] = df.format(100.0 * matched / nodes);
+				relative[i][3] = df.format(100.0 * added / nodes);
+				relative[i][4] = df.format(100.0 * removed / nodes);
 				relative[i][5] = df.format(100.0 * conflicts / nodes);
 			} else {
 				relative[i][0] = key.toLowerCase();
@@ -260,7 +270,7 @@ public class ASTStats {
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats);
+		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats, hasChanges);
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
 		
 		for (String key : diffstats.keySet()) {
@@ -272,5 +282,13 @@ public class ASTStats {
 		
 		clone.setDiffstats(diffstatsClone);
 		return clone;
+	}
+
+	public boolean hasChanges() {
+		return hasChanges;
+	}
+
+	public void hasChanges(boolean hasChanges) {
+		this.hasChanges = hasChanges;
 	}
 }

@@ -97,8 +97,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 *            artifact to create program from
 	 * @return ASTNodeArtifact
 	 */
-	public static ASTNodeArtifact createProgram(
-			final ASTNodeArtifact artifact) {
+	public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
 		assert (artifact.astnode != null);
 		assert (artifact.astnode instanceof Program);
 
@@ -499,8 +498,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
-		if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) 
-				|| Literal.class.isAssignableFrom(astnode.getClass()))
+		if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) || Literal.class
+				.isAssignableFrom(astnode.getClass()))
 				&& other.astnode.getClass().equals(astnode.getClass())) {
 			return astnode.toString().equals(other.astnode.toString());
 		}
@@ -560,9 +559,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 					// to be safe, we will report a conflict instead of merging
 					ASTNodeArtifact targetParent = target.getParent();
 					targetParent.removeChild(target);
-					ConflictOperation<ASTNodeArtifact> conflictOp =
-							new ConflictOperation<>(left, left, right,
-									targetParent);
+					ConflictOperation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(
+							left, left, right, targetParent);
 					conflictOp.apply(context);
 				}
 			}
@@ -720,68 +718,85 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return mystats;
 	}
 
-	public final ASTStats getStats(Revision revision, Level level) {
-		// FIXME: THIS IS SHIT! NEEDS TO BE FIXED!
-		StatsElement allStats = new StatsElement();
-		StatsElement topStats = new StatsElement();
+	public final ASTStats getStats(Revision revision, LangElem level) {
+		StatsElement nodeStats = new StatsElement();
+		StatsElement toplevelnodeStats = new StatsElement();
+		StatsElement classlevelnodeStats = new StatsElement();
+		StatsElement methodlevelnodeStats = new StatsElement();
 		StatsElement classStats = new StatsElement();
 		StatsElement methodStats = new StatsElement();
-		
-		allStats.incrementElements();
+
+		// clearly, this is a node
+		nodeStats.incrementElements();
 
 		if (isConflict()) {
-			allStats.incrementConflicting();
+			nodeStats.incrementChanges();
+			nodeStats.incrementConflicting();
 		} else if ((revision == null && hasMatches()) || hasMatching(revision)) {
-			allStats.incrementMatches();
+			nodeStats.incrementMatches();
 		} else {
-			// changed or deleted?
+			nodeStats.incrementChanges();
+			// added or deleted?
 			if (hasMatches()) {
 				// was deleted
-				allStats.incrementDeleted();
+				nodeStats.incrementDeleted();
 			} else {
-				// is a change
-				allStats.incrementAdded();
+				// was added
+				nodeStats.incrementAdded();
 			}
 		}
 
 		StatsElement myStats = null;
 		switch (level) {
-		case TOP:
-			myStats = topStats;
+		case TOPLEVELNODE:
+			myStats = toplevelnodeStats;
 			break;
-		case CLASS:
-			myStats = classStats;
+		case CLASSLEVELNODE:
+			myStats = classlevelnodeStats;
 			break;
-		case METHOD:
-			myStats = methodStats; 
+		case METHODLEVELNODE:
+			myStats = methodlevelnodeStats;
 			break;
 		}
-		
+
 		assert (myStats != null);
-		
-		myStats.setElements(allStats.getElements());
-		myStats.setMatches(allStats.getMatches());
-		myStats.setAdded(allStats.getAdded());
-		myStats.setDeleted(allStats.getDeleted());
-		myStats.setConflicting(allStats.getConflicting());
-		
-		HashMap<String, StatsElement> diffstats = new HashMap<>();
-		diffstats.put(Level.ALL.toString(), allStats);
-		diffstats.put(Level.TOP.toString(), topStats);
-		diffstats.put(Level.CLASS.toString(), classStats);
-		diffstats.put(Level.METHOD.toString(), methodStats);
-		ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats);
-		
-		// find out current level
+
+		myStats = nodeStats.copy();
+
+		// find out level for child nodes and adjust class and method counter
 		if (astnode instanceof ClassDecl) {
-			level = Level.CLASS;
+			level = LangElem.CLASSLEVELNODE;
+			classStats = myStats.copy();
 		} else if (astnode instanceof MethodDecl
 				|| astnode instanceof ConstructorDecl) {
-			level = Level.METHOD;
+			level = LangElem.METHODLEVELNODE;
+			methodStats = myStats.copy();
 		}
+
+		HashMap<String, StatsElement> diffstats = new HashMap<>();
+		diffstats.put(LangElem.NODE.toString(), nodeStats);
+		diffstats.put(LangElem.TOPLEVELNODE.toString(), toplevelnodeStats);
+		diffstats.put(LangElem.CLASSLEVELNODE.toString(), classlevelnodeStats);
+		diffstats
+				.put(LangElem.METHODLEVELNODE.toString(), methodlevelnodeStats);
+		diffstats.put(LangElem.CLASS.toString(), classStats);
+		diffstats.put(LangElem.METHOD.toString(), methodStats);
+		ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats,
+				myStats.getChanges() != 0);
+		boolean hasSubtreeChanges = stats.hasChanges();
 
 		for (int i = 0; i < getNumChildren(); i++) {
 			stats.add(getChild(i).getStats(revision, level));
+
+			if (!hasSubtreeChanges && stats.hasChanges()) {
+				hasSubtreeChanges = true;
+				if (astnode instanceof ClassDecl) {
+					stats.getDiffStats(LangElem.CLASS.toString()).incrementChanges();
+				} else if (astnode instanceof MethodDecl
+						|| astnode instanceof ConstructorDecl) {
+					stats.getDiffStats(LangElem.METHOD.toString()).incrementChanges();
+				}
+			}
 		}
 
 		return stats;

@@ -55,8 +55,25 @@ public class StatsElement {
      * Number of matched elements.
      */
     private int matches = 0;
-
+    
     /**
+     * Number of changed elements.
+     */
+    private int changes = 0;
+
+    public int getChanges() {
+		return changes;
+	}
+
+	public void setChanges(int changes) {
+		this.changes = changes;
+	}
+	
+	public void incrementChanges() {
+		changes++;
+	}
+
+	/**
      * Returns the number of added elements.
      *
      * @return number of added elements
@@ -210,5 +227,17 @@ public class StatsElement {
 	
 	public final void incrementElements() {
 		elements++;
+	}
+	
+	public StatsElement copy() {
+		StatsElement copy = new StatsElement();
+		copy.setAdded(added);
+		copy.setConflicting(conflicting);
+		copy.setDeleted(deleted);
+		copy.setElements(elements);
+		copy.setMatches(matches);
+		copy.setMerged(merged);
+		copy.setChanges(changes);
+		return copy;
 	}
 }

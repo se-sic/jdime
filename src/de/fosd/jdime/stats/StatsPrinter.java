@@ -21,7 +21,7 @@
  ******************************************************************************/
 package de.fosd.jdime.stats;
 
-import de.fosd.jdime.common.Level;
+import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 
