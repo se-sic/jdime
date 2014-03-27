@@ -757,20 +757,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		case METHODLEVELNODE:
 			myStats = methodlevelnodeStats;
 			break;
+		default:
+			throw new NotYetImplementedException(); 
 		}
 
 		assert (myStats != null);
 
-		myStats = nodeStats.copy();
+		nodeStats.copy(myStats);
+		assert myStats.getElements() != 0;
 
 		// find out level for child nodes and adjust class and method counter
 		if (astnode instanceof ClassDecl) {
 			level = LangElem.CLASSLEVELNODE;
-			classStats = myStats.copy();
+			myStats.copy(classStats);
 		} else if (astnode instanceof MethodDecl
 				|| astnode instanceof ConstructorDecl) {
 			level = LangElem.METHODLEVELNODE;
-			methodStats = myStats.copy();
+			myStats.copy(methodStats);
 		}
 
 		HashMap<String, StatsElement> diffstats = new HashMap<>();
@@ -784,6 +787,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats,
 				myStats.getChanges() != 0);
 		boolean hasSubtreeChanges = stats.hasChanges();
+		
+		boolean assertsEnabled = false;
+		assert assertsEnabled = true;
+		if (assertsEnabled) {
+			for (String key : diffstats.keySet()) {
+				StatsElement e = diffstats.get(key);
+				assert (e.getElements() == e.getMatches() + e.getAdded() + e.getDeleted() + e.getConflicting());
+				assert (e.getChanges() == e.getAdded() + e.getDeleted() + e.getConflicting());
+			}
+		}
 
 		for (int i = 0; i < getNumChildren(); i++) {
 			stats.add(getChild(i).getStats(revision, level));
@@ -795,6 +808,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				} else if (astnode instanceof MethodDecl
 						|| astnode instanceof ConstructorDecl) {
 					stats.getDiffStats(LangElem.METHOD.toString()).incrementChanges();
+				}
+			}
+			
+			if (assertsEnabled) {
+				for (String key : diffstats.keySet()) {
+					StatsElement e = diffstats.get(key);
+					assert (e.getElements() == e.getMatches() + e.getAdded() + e.getDeleted() + e.getConflicting());
 				}
 			}
 		}

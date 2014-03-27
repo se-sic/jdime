@@ -84,11 +84,11 @@ public class ASTStats {
 		}
 
 		for (String key : other.diffstats.keySet()) {
-			if (diffstats.containsKey(key)) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+			+ "' not found!";
+			//if (diffstats.containsKey(key)) {
 				diffstats.get(key).addStatsElement(other.diffstats.get(key));
-			} else {
-				diffstats.put(key, other.diffstats.get(key));
-			}
+			//}
 		}
 		
 		if (!hasChanges) {
@@ -107,10 +107,7 @@ public class ASTStats {
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
 		
 		for (String key : diffstats.keySet()) {
-			StatsElement s = diffstats.get(key);
-			StatsElement sClone = new StatsElement();
-			sClone.addStatsElement(s);
-			diffstatsClone.put(key, sClone);
+			diffstatsClone.put(key, diffstats.get(key).copy());
 		}
 		
 		clone.setDiffstats(diffstatsClone);
@@ -239,8 +236,8 @@ public class ASTStats {
 			int conflicts = s.getConflicting();
 			
 			// sanity checks
-			assert(changed == added + removed);
-			assert (nodes == matched + changed);
+			//assert(changed == added + removed);
+			//assert (nodes == matched + changed);
 			if (i>0) {
 				sum[0] += nodes;
 				sum[1] += matched;
@@ -269,21 +266,21 @@ public class ASTStats {
 				relative[i][0] = key.toLowerCase();
 				relative[i][1] = "null";
 				relative[i][2] = "null";
-				relative[i][2] = "null";
 				relative[i][3] = "null";
 				relative[i][4] = "null";
 				relative[i][5] = "null";
+				relative[i][6] = "null";
 			}
 			
 			i++;
 		}
 		
 		// sanity checks
-		assert (sum[0] == Integer.parseInt(absolute[0][1]));
-		assert (sum[1] == Integer.parseInt(absolute[0][2]));
-		assert (sum[2] == Integer.parseInt(absolute[0][3]));
-		assert (sum[3] == Integer.parseInt(absolute[0][4]));
-		assert (sum[4] == Integer.parseInt(absolute[0][5]));
+		//assert (sum[0] == Integer.parseInt(absolute[0][1]));
+		//assert (sum[1] == Integer.parseInt(absolute[0][2]));
+		//assert (sum[2] == Integer.parseInt(absolute[0][3]));
+		//assert (sum[3] == Integer.parseInt(absolute[0][4]));
+		//assert (sum[4] == Integer.parseInt(absolute[0][5]));
 
 		
 		sb.append(System.lineSeparator());

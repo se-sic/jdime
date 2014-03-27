@@ -208,6 +208,7 @@ public class StatsElement {
         merged += other.merged;
         conflicting += other.conflicting;
         matches += other.matches;
+        changes += other.changes;
         elements += other.elements;
     }
 
@@ -230,7 +231,10 @@ public class StatsElement {
 	}
 	
 	public StatsElement copy() {
-		StatsElement copy = new StatsElement();
+		return copy(new StatsElement());
+	}
+	
+	public StatsElement copy(StatsElement copy) {
 		copy.setAdded(added);
 		copy.setConflicting(conflicting);
 		copy.setDeleted(deleted);
