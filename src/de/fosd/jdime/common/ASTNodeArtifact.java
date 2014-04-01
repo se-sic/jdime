@@ -718,7 +718,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return mystats;
 	}
 
-	public final ASTStats getStats(Revision revision, LangElem level) {
+	public final ASTStats getStats(Revision revision, LangElem level, boolean isFragment) {
 		StatsElement nodeStats = new StatsElement();
 		StatsElement toplevelnodeStats = new StatsElement();
 		StatsElement classlevelnodeStats = new StatsElement();
@@ -787,6 +787,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats,
 				myStats.getChanges() != 0);
 		boolean hasSubtreeChanges = stats.hasChanges();
+
+		if (!isFragment && hasSubtreeChanges) {
+			isFragment = true;
+			stats.incrementFragments();
+		}
 		
 		boolean assertsEnabled = false;
 		assert assertsEnabled = true;
@@ -799,7 +804,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		for (int i = 0; i < getNumChildren(); i++) {
-			stats.add(getChild(i).getStats(revision, level));
+			stats.add(getChild(i).getStats(revision, level, isFragment));
 
 			if (!hasSubtreeChanges && stats.hasChanges()) {
 				hasSubtreeChanges = true;

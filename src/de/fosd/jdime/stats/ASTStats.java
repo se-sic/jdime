@@ -51,6 +51,8 @@ public class ASTStats {
 	 */
 	private int treedepth = 0;
 
+	private int fragments = 0;
+
 	/**
 	 * Creates a new ASTStats instance.
 	 * 
@@ -74,6 +76,7 @@ public class ASTStats {
 
 	public final void add(ASTStats other) {
 		nodes += other.nodes;
+		fragments += other.fragments;
 
 		if (other.treedepth > treedepth) {
 			treedepth = other.treedepth;
@@ -209,6 +212,28 @@ public class ASTStats {
 	 */
 	public final void setTreedepth(final int treedepth) {
 		this.treedepth = treedepth;
+	}
+
+	/**
+	 * @return the fragments
+	 */
+	public int getFragments() {
+		return fragments;
+	}
+
+	/**
+	 * @param fragments the fragments to set
+	 */
+	public void setFragments(int fragments) {
+		this.fragments = fragments;
+	}
+
+	/**
+	 *
+	 */
+	public void incrementFragments() {
+		assert (hasChanges());
+		this.fragments++;
 	}
 
 	public String toString() {

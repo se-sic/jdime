@@ -267,10 +267,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				// collect stats
 				ASTStats leftStats = left.getStats(right.getRevision(),
-						LangElem.TOPLEVELNODE);
+						LangElem.TOPLEVELNODE, false);
 				ASTStats rightStats = right.getStats(left.getRevision(),
-						LangElem.TOPLEVELNODE);
-				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE);
+						LangElem.TOPLEVELNODE, false);
+				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
 
 				assert (leftStats.getDiffStats(LangElem.NODE.toString())
 						.getMatches() == rightStats.getDiffStats(
