@@ -279,6 +279,15 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				astStats = ASTStats.add(leftStats, rightStats);
 				astStats.setConflicts(targetStats);
+				
+				if (LOG.isDebugEnabled() && context.hasStats()) {
+					System.out.println("---------- left ----------");
+					System.out.println(leftStats);
+					System.out.println("---------- right ----------");
+					System.out.println(rightStats);
+					System.out.println("---------- target ----------");
+					System.out.println(targetStats);
+				}
 
 				if (LOG.isInfoEnabled()) {
 					String sep = " / ";

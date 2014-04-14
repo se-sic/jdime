@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.bethecoder.ascii_table.ASCIITable;
 
+import de.fosd.jdime.common.LangElem;
+
 /**
  * @author Olaf Lessenich
  * 
@@ -107,6 +109,7 @@ public class ASTStats {
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats, hasChanges);
+		clone.setFragments(fragments);
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
 		
 		for (String key : diffstats.keySet()) {
@@ -237,13 +240,17 @@ public class ASTStats {
 	}
 
 	public String toString() {
+		DecimalFormat df = new DecimalFormat("#.0");
 		StringBuilder sb = new StringBuilder();
 		sb.append("Total nodes: " + nodes + System.lineSeparator());
 		sb.append("Treedepth: " + treedepth + System.lineSeparator());
 		sb.append("Maximum children: " + maxchildren
 				+ System.lineSeparator());
+		sb.append("Fragments: " + fragments + System.lineSeparator());
+		int changes = diffstats.get(LangElem.NODE.toString()).getChanges();
+		sb.append("Changes: " + changes + System.lineSeparator());
+		sb.append("Avg. Fragment size: " + df.format((double) changes / (double) fragments) + System.lineSeparator());
 
-		DecimalFormat df = new DecimalFormat("#.0");
 		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED", "CONFLICTS" };
 
 		String[][] absolute = new String[6][7];

@@ -788,7 +788,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				myStats.getChanges() != 0);
 		boolean hasSubtreeChanges = stats.hasChanges();
 
-		if (!isFragment && hasSubtreeChanges) {
+		if (!hasSubtreeChanges) {
+			isFragment = false;
+		} else if (!isFragment) {
 			isFragment = true;
 			stats.incrementFragments();
 		}
@@ -801,6 +803,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				assert (e.getElements() == e.getMatches() + e.getAdded() + e.getDeleted() + e.getConflicting());
 				assert (e.getChanges() == e.getAdded() + e.getDeleted() + e.getConflicting());
 			}
+
 		}
 
 		for (int i = 0; i < getNumChildren(); i++) {
