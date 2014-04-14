@@ -230,6 +230,10 @@ public class ASTStats {
 	public void setFragments(int fragments) {
 		this.fragments = fragments;
 	}
+	
+	public double getAvgFragmentSize() {
+		return (double) diffstats.get(LangElem.NODE.toString()).getChanges() / (double) fragments;
+	}
 
 	/**
 	 *
@@ -247,9 +251,7 @@ public class ASTStats {
 		sb.append("Maximum children: " + maxchildren
 				+ System.lineSeparator());
 		sb.append("Fragments: " + fragments + System.lineSeparator());
-		int changes = diffstats.get(LangElem.NODE.toString()).getChanges();
-		sb.append("Changes: " + changes + System.lineSeparator());
-		sb.append("Avg. Fragment size: " + df.format((double) changes / (double) fragments) + System.lineSeparator());
+		sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize()) + System.lineSeparator());
 
 		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED", "CONFLICTS" };
 
