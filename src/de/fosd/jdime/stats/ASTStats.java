@@ -232,7 +232,7 @@ public class ASTStats {
 	}
 	
 	public double getAvgFragmentSize() {
-		return (double) diffstats.get(LangElem.NODE.toString()).getChanges() / (double) fragments;
+		return fragments == 0 ? 0.0 : (double) diffstats.get(LangElem.NODE.toString()).getChanges() / (double) fragments;
 	}
 
 	/**
