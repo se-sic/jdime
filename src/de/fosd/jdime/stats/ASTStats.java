@@ -7,8 +7,6 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.bethecoder.ascii_table.ASCIITable;
 
 import de.fosd.jdime.common.LangElem;

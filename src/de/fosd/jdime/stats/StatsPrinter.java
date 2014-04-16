@@ -21,15 +21,13 @@
  ******************************************************************************/
 package de.fosd.jdime.stats;
 
-import de.fosd.jdime.common.LangElem;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.strategy.LinebasedStrategy;
-
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import org.apache.log4j.Logger;
+
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.strategy.LinebasedStrategy;
 
 /**
  * @author Olaf Lessenich
