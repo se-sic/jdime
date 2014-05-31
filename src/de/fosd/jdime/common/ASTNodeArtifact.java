@@ -498,12 +498,25 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("match(" + getId() + ", " + other.getId() + ")");
+		}
+
 		if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) || Literal.class
 				.isAssignableFrom(astnode.getClass()))
 				&& other.astnode.getClass().equals(astnode.getClass())) {
-			return astnode.toString().equals(other.astnode.toString());
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Try Matching (prettyPrint): {"
+						+ astnode.prettyPrint() + "} and {"
+						+ other.astnode.prettyPrint() + "}");
+			}
+			return astnode.prettyPrint().equals(other.astnode.prettyPrint());
 		}
 
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Try Matching (dumpString): {" + astnode.dumpString()
+					+ "} and {" + other.astnode.dumpString() + "}");
+		}
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 
