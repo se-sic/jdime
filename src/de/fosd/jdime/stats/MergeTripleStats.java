@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.stats;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -31,31 +34,42 @@ public class MergeTripleStats {
      *
      */
     private MergeTriple<FileArtifact> triple;
+    
     /**
      *
      */
     private int conflicts;
+    
     /**
      *
      */
     private int conflictingLines;
+    
     /**
      *
      */
     private int lines;
+    
     /**
      *
      */
     private long runtime;
+    
     /**
      *
      */
     private boolean error = false;
+    
     /**
      *
      */
     private String errormsg;
-
+    
+    /**
+     * 
+     */
+    private ASTStats astStats;
+    
     /**
      * Class Constructor.
      *
@@ -67,12 +81,13 @@ public class MergeTripleStats {
      */
     public MergeTripleStats(final MergeTriple<FileArtifact> triple,
             final int conflicts, final int conflictingLines, final int lines,
-            final long runtime) {
+            final long runtime, final ASTStats astStats) {
         this.triple = triple;
         this.conflicts = conflicts;
         this.conflictingLines = conflictingLines;
         this.lines = lines;
         this.runtime = runtime;
+        this.astStats = astStats;
     }
 
     /**
@@ -150,4 +165,11 @@ public class MergeTripleStats {
                 + conflictingLines + " cloc, " + lines + " loc, " + runtime
                 + " ms.";
     }
+
+	/**
+	 * @return the astStats
+	 */
+	public final ASTStats getASTStats() {
+		return astStats;
+	}
 }

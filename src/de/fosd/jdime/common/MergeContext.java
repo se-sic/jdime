@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.common;
 
 import de.fosd.jdime.stats.Stats;
@@ -62,6 +65,10 @@ public class MergeContext implements Cloneable {
      * Whether we are in bug-fixing mode.
      */
     private boolean bugfixing = false;
+    /**
+     * Whether to run only the diff.
+     */
+    private boolean diffOnly = false;
     /**
      * Whether to dump files/ASTs instead of merging.
      */
@@ -473,5 +480,19 @@ public class MergeContext implements Cloneable {
         if (saveStats) {
             stats = mergeStrategy.createStats();
         }
+    }
+
+    /**
+     * @return the diffOnly
+     */
+    public final boolean isDiffOnly() {
+        return diffOnly;
+    }
+
+    /**
+     * @param diffOnly whether to run only diff
+     */
+    public final void setDiffOnly(final boolean diffOnly) {
+        this.diffOnly = diffOnly;
     }
 }

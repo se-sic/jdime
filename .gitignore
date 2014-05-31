@@ -4,4 +4,4 @@
 /dist
 /testfiles/merge
 /build/
-/bin
+/pushjar.sh

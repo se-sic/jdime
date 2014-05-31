@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,8 +15,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.strategy;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -25,9 +33,6 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
-import java.io.IOException;
-import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -63,8 +68,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         if (operation.getTarget() != null) {
             assert (operation.getTarget() instanceof FileArtifact);
             target = operation.getTarget();
-            assert (!target.exists() || target.isEmpty()) :
-                    "Would be overwritten: " + target;
+            assert (!target.exists() || target.isEmpty())
+            	: "Would be overwritten: " + target;
         }
 
         if (LOG.isInfoEnabled()) {
@@ -193,14 +198,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                         subscenariostats.getTriple(),
                         subscenariostats.getConflicts(),
                         subscenariostats.getConflictingLines(),
-                        subscenariostats.getLines(), runtime);
+                        subscenariostats.getLines(), runtime,
+                        subscenariostats.getASTStats());
                 stats.addScenarioStats(scenariostats);
             }
 
             context.addStats(substats);
         }
         System.gc();
-
     }
 
     /*

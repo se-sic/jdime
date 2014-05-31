@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.stats;
 
 /**
@@ -23,25 +26,54 @@ package de.fosd.jdime.stats;
  *
  */
 public class StatsElement {
+	/**
+	 * Number of elements.
+	 */
+	private int elements = 0;
 
     /**
      * Number of added elements.
      */
     private int added = 0;
+    
     /**
      * Number of deleted elements.
      */
     private int deleted = 0;
+    
     /**
      * Number of merged elements.
      */
     private int merged = 0;
+    
     /**
      * Number of conflicting elements.
      */
     private int conflicting = 0;
-
+    
     /**
+     * Number of matched elements.
+     */
+    private int matches = 0;
+    
+    /**
+     * Number of changed elements.
+     */
+    private int changes = 0;
+
+    public int getChanges() {
+		return changes;
+	}
+
+	public void setChanges(int changes) {
+		this.changes = changes;
+	}
+	
+	public void incrementChanges() {
+		changes++;
+	}
+
+	/**
      * Returns the number of added elements.
      *
      * @return number of added elements
@@ -76,6 +108,14 @@ public class StatsElement {
     public final int getDeleted() {
         return deleted;
     }
+    
+    /**
+     * Returns the number of matched elements.
+     * @return matches
+     */
+    public final int getMatches() {
+    	return matches;
+    }
 
     /**
      * Increments the number of added elements.
@@ -103,6 +143,13 @@ public class StatsElement {
      */
     public final void incrementDeleted() {
         deleted++;
+    }
+    
+    /**
+     * Increments the number of matched elements.
+     */
+    public final void incrementMatches() {
+    	matches++;
     }
 
     /**
@@ -140,6 +187,15 @@ public class StatsElement {
     public final void setDeleted(final int deleted) {
         this.deleted = deleted;
     }
+    
+    /**
+     * Sets the number of matched elements.
+     * 
+     * @param matches matches
+     */
+    public final void setMatches(final int matches) {
+    	this.matches = matches;
+    }
 
     /**
      * Adds another StatsElement to this one.
@@ -151,5 +207,41 @@ public class StatsElement {
         deleted += other.deleted;
         merged += other.merged;
         conflicting += other.conflicting;
+        matches += other.matches;
+        changes += other.changes;
+        elements += other.elements;
     }
+
+	/**
+	 * @return the elements
+	 */
+	public final int getElements() {
+		return elements;
+	}
+
+	/**
+	 * @param elements the elements to set
+	 */
+	public final void setElements(final int elements) {
+		this.elements = elements;
+	}
+	
+	public final void incrementElements() {
+		elements++;
+	}
+	
+	public StatsElement copy() {
+		return copy(new StatsElement());
+	}
+	
+	public StatsElement copy(StatsElement copy) {
+		copy.setAdded(added);
+		copy.setConflicting(conflicting);
+		copy.setDeleted(deleted);
+		copy.setElements(elements);
+		copy.setMatches(matches);
+		copy.setMerged(merged);
+		copy.setChanges(changes);
+		return copy;
+	}
 }

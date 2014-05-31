@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.merge;
 
 import de.fosd.jdime.common.Artifact;
@@ -48,8 +51,8 @@ public interface MergeInterface<T extends Artifact<T>> {
      *
      * @param operation merge operation
      * @param context merge context
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException IOException
+     * @throws InterruptedException InterruptedException
      */
     void merge(MergeOperation<T> operation, MergeContext context)
             throws IOException, InterruptedException;

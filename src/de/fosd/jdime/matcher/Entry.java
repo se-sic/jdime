@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
@@ -23,7 +26,7 @@ import de.fosd.jdime.common.Artifact;
 /**
  * A helper class used within the matrix of the LCST matcher.
  *
- * @author lessenic
+ * @author Olaf Lessenich
  *
  * @param <T> type of artifact
  *

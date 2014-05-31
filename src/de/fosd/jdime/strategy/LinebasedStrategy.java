@@ -1,4 +1,4 @@
-/* 
+/*******************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ ******************************************************************************/
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -89,8 +92,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         if (operation.getTarget() != null) {
             assert (operation.getTarget() instanceof FileArtifact);
             target = operation.getTarget();
-            assert (!target.exists() || target.isEmpty()) :
-                    "Would be overwritten: " + target;
+            assert (!target.exists() || target.isEmpty())
+            	: "Would be overwritten: " + target;
         }
 
         List<String> cmd = new LinkedList<>();
@@ -252,10 +255,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             stats.increaseRuntime(runtime);
 
             MergeTripleStats scenariostats = new MergeTripleStats(triple,
-                    conflicts, cloc, loc, runtime);
+                    conflicts, cloc, loc, runtime, null);
             stats.addScenarioStats(scenariostats);
         }
-
     }
 
     /*

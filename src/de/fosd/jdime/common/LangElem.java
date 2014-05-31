@@ -19,4 +19,45 @@
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
  ******************************************************************************/
-package de.fosd.jdime;
+
+package de.fosd.jdime.common;
+
+/**
+ *
+ * @author Olaf Lessenich
+ */
+/**
+ * @author lessenic
+ *
+ */
+public enum LangElem {
+	/**
+	 * Every node. 
+	 */
+	NODE,
+	
+    /**
+     * Everything above class declaration, e.g. import statements. 
+     */
+    TOPLEVELNODE,
+    
+    /**
+     * Everything within class declaration but outside methods.
+     */
+    CLASSLEVELNODE,
+    
+    /**
+     * Everything inside methods.  
+     */
+    METHODLEVELNODE,
+    
+    /**
+     * A class.
+     */
+    CLASS,
+    
+    /**
+     * A method.
+     */
+    METHOD;
+}

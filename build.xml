@@ -17,6 +17,7 @@
         <pathelement location="lib/apache-commons-lang3.jar"/>
         <pathelement location="lib/JJ7.jar"/>
         <pathelement location="lib/glpk-java.jar"/>
+        <pathelement location="lib/btc-ascii-table-1.0.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
