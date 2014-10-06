@@ -21,12 +21,13 @@
  ******************************************************************************/
 package de.fosd.jdime.common.operations;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation deletes <code>Artifact</code>s.

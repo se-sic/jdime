@@ -21,9 +21,10 @@
  ******************************************************************************/
 package de.fosd.jdime.matcher;
 
-import de.fosd.jdime.common.Artifact;
 import java.util.LinkedList;
 import java.util.List;
+
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich

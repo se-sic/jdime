@@ -21,13 +21,14 @@
  ******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.

@@ -21,8 +21,9 @@
  ******************************************************************************/
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.common.operations.MergeOperation;
 import java.io.IOException;
+
+import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * This class represents a merge scenario for a standard three-way merge.

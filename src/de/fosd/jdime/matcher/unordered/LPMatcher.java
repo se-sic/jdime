@@ -21,17 +21,19 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
 import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.

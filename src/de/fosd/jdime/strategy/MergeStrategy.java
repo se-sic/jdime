@@ -21,10 +21,11 @@
  ******************************************************************************/
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.merge.MergeInterface;
 import java.util.HashMap;
 import java.util.Set;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.merge.MergeInterface;
 
 /**
  * @author Olaf Lessenich

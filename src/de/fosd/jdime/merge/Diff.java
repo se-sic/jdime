@@ -21,13 +21,13 @@
  ******************************************************************************/
 package de.fosd.jdime.merge;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
-import org.apache.commons.lang3.ClassUtils;
 
 /**
  * @author Olaf Lessenich

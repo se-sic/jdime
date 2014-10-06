@@ -21,8 +21,9 @@
  ******************************************************************************/
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.Artifact;
 import java.io.IOException;
+
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich

@@ -21,6 +21,12 @@
  ******************************************************************************/
 package de.fosd.jdime.common.operations;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
@@ -30,10 +36,6 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation merges <code>Artifact</code>s.

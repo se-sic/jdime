@@ -21,8 +21,9 @@
  ******************************************************************************/
 package de.fosd.jdime.common.operations;
 
-import de.fosd.jdime.common.Artifact;
 import java.util.Stack;
+
+import de.fosd.jdime.common.Artifact;
 
 /**
  * @author Olaf Lessenich

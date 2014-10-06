@@ -21,14 +21,15 @@
  ******************************************************************************/
 package de.fosd.jdime.matcher;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
