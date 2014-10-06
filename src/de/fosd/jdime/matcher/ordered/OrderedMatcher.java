@@ -29,33 +29,37 @@ import de.fosd.jdime.matcher.MatchingInterface;
 /**
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
 public abstract class OrderedMatcher<T extends Artifact<T>> implements
-        MatchingInterface<T> {
+		MatchingInterface<T> {
 
-    /**
-     * The matcher is used for recursive matching calls. It can determine
-     * whether the order of artifacts is essential.
-     */
-    protected Matcher<T> matcher;
+	/**
+	 * The matcher is used for recursive matching calls. It can determine
+	 * whether the order of artifacts is essential.
+	 */
+	protected Matcher<T> matcher;
 
-    /**
-     * Creates a new instance of OrderedMatcher.
-     *
-     * @param matcher matcher
-     */
-    public OrderedMatcher(final Matcher<T> matcher) {
-        this.matcher = matcher;
-    }
+	/**
+	 * Creates a new instance of OrderedMatcher.
+	 *
+	 * @param matcher
+	 *            matcher
+	 */
+	public OrderedMatcher(final Matcher<T> matcher) {
+		this.matcher = matcher;
+	}
 
-    /**
-     * Compares two nodes.
-     *
-     * @param left left node
-     * @param right right node
-     * @return matching
-     */
-    @Override
-    public abstract Matching<T> match(final T left, final T right);
+	/**
+	 * Compares two nodes.
+	 *
+	 * @param left
+	 *            left node
+	 * @param right
+	 *            right node
+	 * @return matching
+	 */
+	@Override
+	public abstract Matching<T> match(final T left, final T right);
 }

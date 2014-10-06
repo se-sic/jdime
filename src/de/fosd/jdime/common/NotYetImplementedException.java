@@ -27,22 +27,23 @@ package de.fosd.jdime.common;
  */
 public class NotYetImplementedException extends RuntimeException {
 
-    /**
+	/**
      *
      */
-    private static final long serialVersionUID = -4810070779184281940L;
+	private static final long serialVersionUID = -4810070779184281940L;
 
-    /**
-     * @param message message
-     */
-    public NotYetImplementedException(final String message) {
-        super(message);
-    }
+	/**
+	 * @param message
+	 *            message
+	 */
+	public NotYetImplementedException(final String message) {
+		super(message);
+	}
 
-    /**
+	/**
      *
      */
-    public NotYetImplementedException() {
-        super();
-    }
+	public NotYetImplementedException() {
+		super();
+	}
 }

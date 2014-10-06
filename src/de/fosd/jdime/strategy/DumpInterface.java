@@ -31,10 +31,13 @@ import java.io.IOException;
  */
 public interface DumpInterface<T extends Artifact<T>> {
 
-    /**
-     * @param artifact artifact to dump
-     * @param graphical output option
-     * @throws IOException IOException
-     */
-    void dump(final T artifact, final boolean graphical) throws IOException;
+	/**
+	 * @param artifact
+	 *            artifact to dump
+	 * @param graphical
+	 *            output option
+	 * @throws IOException
+	 *             IOException
+	 */
+	void dump(final T artifact, final boolean graphical) throws IOException;
 }

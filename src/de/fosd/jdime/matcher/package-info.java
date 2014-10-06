@@ -20,3 +20,4 @@
  *     Olaf Lessenich - initial API and implementation
  ******************************************************************************/
 package de.fosd.jdime.matcher;
+

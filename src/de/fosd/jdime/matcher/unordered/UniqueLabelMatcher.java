@@ -32,84 +32,86 @@ import java.util.List;
 /**
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
-public class UniqueLabelMatcher<T extends Artifact<T>> 
-	extends UnorderedMatcher<T> {
+public class UniqueLabelMatcher<T extends Artifact<T>> extends
+		UnorderedMatcher<T> {
 
-    /**
-     * @param matcher matcher
-     */
-    public UniqueLabelMatcher(final Matcher<T> matcher) {
-        super(matcher);
-    }
+	/**
+	 * @param matcher
+	 *            matcher
+	 */
+	public UniqueLabelMatcher(final Matcher<T> matcher) {
+		super(matcher);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * de.fosd.jdime.matcher.unordered.UnorderedMatcher#match(de.fosd.jdime.
-     * common.Artifact, de.fosd.jdime.common.Artifact)
-     */
-    @Override
-    public final Matching<T> match(final T left, final T right) {
-        if (!left.matches(right)) {
-            return new Matching<>(left, right, 0);
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * de.fosd.jdime.matcher.unordered.UnorderedMatcher#match(de.fosd.jdime.
+	 * common.Artifact, de.fosd.jdime.common.Artifact)
+	 */
+	@Override
+	public final Matching<T> match(final T left, final T right) {
+		if (!left.matches(right)) {
+			return new Matching<>(left, right, 0);
+		}
 
-        if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
-            return new Matching<>(left, right, 1);
-        }
+		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
+			return new Matching<>(left, right, 1);
+		}
 
-        List<Matching<T>> childrenMatchings = new LinkedList<>();
-        List<T> leftChildren = left.getChildren();
-        List<T> rightChildren = right.getChildren();
+		List<Matching<T>> childrenMatchings = new LinkedList<>();
+		List<T> leftChildren = left.getChildren();
+		List<T> rightChildren = right.getChildren();
 
-        Collections.sort(leftChildren);
-        Collections.sort(rightChildren);
+		Collections.sort(leftChildren);
+		Collections.sort(rightChildren);
 
-        Iterator<T> leftIt = leftChildren.iterator();
-        Iterator<T> rightIt = rightChildren.iterator();
-        T leftChild = leftIt.next();
-        T rightChild = rightIt.next();
-        int sum = 0;
+		Iterator<T> leftIt = leftChildren.iterator();
+		Iterator<T> rightIt = rightChildren.iterator();
+		T leftChild = leftIt.next();
+		T rightChild = rightIt.next();
+		int sum = 0;
 
-        boolean done = false;
-        while (!done) {
-            int c = leftChild.compareTo(rightChild);
-            if (c < 0) {
-                if (leftIt.hasNext()) {
-                    leftChild = leftIt.next();
-                } else {
-                    done = true;
-                }
-            } else if (c > 0) {
-                if (rightIt.hasNext()) {
-                    rightChild = rightIt.next();
-                } else {
-                    done = true;
-                }
-            } else if (c == 0) {
-                // matching
-                Matching<T> childMatching = matcher.match(leftChild, 
-                		rightChild);
+		boolean done = false;
+		while (!done) {
+			int c = leftChild.compareTo(rightChild);
+			if (c < 0) {
+				if (leftIt.hasNext()) {
+					leftChild = leftIt.next();
+				} else {
+					done = true;
+				}
+			} else if (c > 0) {
+				if (rightIt.hasNext()) {
+					rightChild = rightIt.next();
+				} else {
+					done = true;
+				}
+			} else if (c == 0) {
+				// matching
+				Matching<T> childMatching = matcher
+						.match(leftChild, rightChild);
 
-                //Matching<T> childMatching 
-                //	= new Matching<T>(leftChild, rightChild, 1); 
-                childrenMatchings.add(childMatching);
-                sum += childMatching.getScore();
-                if (leftIt.hasNext() && rightIt.hasNext()) {
-                    leftChild = leftIt.next();
-                    rightChild = rightIt.next();
-                } else {
-                    done = true;
-                }
+				// Matching<T> childMatching
+				// = new Matching<T>(leftChild, rightChild, 1);
+				childrenMatchings.add(childMatching);
+				sum += childMatching.getScore();
+				if (leftIt.hasNext() && rightIt.hasNext()) {
+					leftChild = leftIt.next();
+					rightChild = rightIt.next();
+				} else {
+					done = true;
+				}
 
-            }
-        }
+			}
+		}
 
-        Matching<T> rootmatching = new Matching<>(left, right, sum + 1);
-        rootmatching.setChildren(childrenMatchings);
-        return rootmatching;
-    }
+		Matching<T> rootmatching = new Matching<>(left, right, sum + 1);
+		rootmatching.setChildren(childrenMatchings);
+		return rootmatching;
+	}
 }

@@ -30,12 +30,14 @@ import de.fosd.jdime.common.Artifact;
  */
 public interface MatchingInterface<T extends Artifact<T>> {
 
-    /**
-     * Returns a tree of matches for the provided artifacts.
-     *
-     * @param left artifact
-     * @param right artifact
-     * @return tree of matches
-     */
-    Matching<T> match(final T left, final T right);
+	/**
+	 * Returns a tree of matches for the provided artifacts.
+	 *
+	 * @param left
+	 *            artifact
+	 * @param right
+	 *            artifact
+	 * @return tree of matches
+	 */
+	Matching<T> match(final T left, final T right);
 }

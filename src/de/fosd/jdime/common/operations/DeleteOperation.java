@@ -29,71 +29,72 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
- * The operation deletes
- * <code>Artifact</code>s.
+ * The operation deletes <code>Artifact</code>s.
  *
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
-    /**
-     * Logger.
-     */
-    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(DeleteOperation.class));
-    /**
-     * The
-     * <code>Artifact</code> that is deleted by the operation.
-     */
-    private T artifact;
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(DeleteOperation.class));
+	/**
+	 * The <code>Artifact</code> that is deleted by the operation.
+	 */
+	private T artifact;
 
-    /**
-     * Class constructor.
-     *
-     * @param artifact that is deleted by the operation
-     */
-    public DeleteOperation(final T artifact) {
-        super();
-        this.artifact = artifact;
-    }
+	/**
+	 * Class constructor.
+	 *
+	 * @param artifact
+	 *            that is deleted by the operation
+	 */
+	public DeleteOperation(final T artifact) {
+		super();
+		this.artifact = artifact;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#apply()
-     */
-    @Override
-    public final void apply(final MergeContext context) {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.operations.Operation#apply()
+	 */
+	@Override
+	public final void apply(final MergeContext context) {
+		assert (artifact != null);
+		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Applying: " + this);
-        }
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Applying: " + this);
+		}
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(
-                    artifact.getStatsKey(context));
-            element.incrementDeleted();
-        }
-    }
+		if (context.hasStats()) {
+			Stats stats = context.getStats();
+			stats.incrementOperation(this);
+			StatsElement element = stats.getElement(artifact
+					.getStatsKey(context));
+			element.incrementDeleted();
+		}
+	}
 
-    @Override
-    public final String getName() {
-        return "DELETE";
-    }
+	@Override
+	public final String getName() {
+		return "DELETE";
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public final String toString() {
-        return getId() + ": " + getName() + " " + artifact;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return getId() + ": " + getName() + " " + artifact;
+	}
 }

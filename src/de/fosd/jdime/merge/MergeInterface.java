@@ -32,28 +32,33 @@ import java.io.IOException;
  *
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public interface MergeInterface<T extends Artifact<T>> {
 
-    /**
-     * At least two input files are needed.
-     */
-    int MINFILES = MergeType.MINFILES;
-    /**
-     * More than three input files are not supported at the moment.
-     */
-    int MAXFILES = MergeType.MAXFILES;
+	/**
+	 * At least two input files are needed.
+	 */
+	int MINFILES = MergeType.MINFILES;
+	/**
+	 * More than three input files are not supported at the moment.
+	 */
+	int MAXFILES = MergeType.MAXFILES;
 
-    /**
-     * Performs a merge.
-     *
-     * @param operation merge operation
-     * @param context merge context
-     * @throws IOException IOException
-     * @throws InterruptedException InterruptedException
-     */
-    void merge(MergeOperation<T> operation, MergeContext context)
-            throws IOException, InterruptedException;
+	/**
+	 * Performs a merge.
+	 *
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 */
+	void merge(MergeOperation<T> operation, MergeContext context)
+			throws IOException, InterruptedException;
 }

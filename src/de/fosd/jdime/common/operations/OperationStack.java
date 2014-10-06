@@ -27,13 +27,14 @@ import java.util.Stack;
 /**
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public class OperationStack<T extends Artifact<T>> extends Stack<Operation<T>> {
 
-    /**
+	/**
      *
      */
-    private static final long serialVersionUID = -8820110802865564142L;
+	private static final long serialVersionUID = -8820110802865564142L;
 }

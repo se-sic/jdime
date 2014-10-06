@@ -39,7 +39,8 @@ public class Diff<T extends Artifact<T>> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Diff.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(Diff.class));
 
 	/**
 	 * Compares two nodes and returns a respective matching.

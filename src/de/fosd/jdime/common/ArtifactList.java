@@ -25,38 +25,42 @@ import java.util.LinkedList;
 
 /**
  * @author Olaf Lessenich
- * @param <E> artifact element
+ * @param <E>
+ *            artifact element
  */
 public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 
-    /**
+	/**
      *
      */
-    private static final long serialVersionUID = 5294838641795231473L;
+	private static final long serialVersionUID = 5294838641795231473L;
 
-    /* (non-Javadoc)
-     * @see java.util.AbstractCollection#toString()
-     */
-    @Override
-    public final String toString() {
-        return toString(" ");
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.AbstractCollection#toString()
+	 */
+	@Override
+	public final String toString() {
+		return toString(" ");
+	}
 
-    /**
-     * Returns a String representing a list of artifacts.
-     *
-     * @param sep separator
-     * @return String representation
-     */
-    public final String toString(final String sep) {
-        assert (sep != null);
+	/**
+	 * Returns a String representing a list of artifacts.
+	 *
+	 * @param sep
+	 *            separator
+	 * @return String representation
+	 */
+	public final String toString(final String sep) {
+		assert (sep != null);
 
-        StringBuilder sb = new StringBuilder("");
-        for (E element : this) {
-            sb.append(element.getId());
-            sb.append(sep);
-        }
+		StringBuilder sb = new StringBuilder("");
+		for (E element : this) {
+			sb.append(element.getId());
+			sb.append(sep);
+		}
 
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 }

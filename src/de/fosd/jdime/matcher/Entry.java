@@ -28,56 +28,61 @@ import de.fosd.jdime.common.Artifact;
  *
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public class Entry<T extends Artifact<T>> {
 
-    /**
-     * Direction.
-     */
-    private Direction direction;
-    /**
-     * Matching.
-     */
-    private Matching<T> matching;
+	/**
+	 * Direction.
+	 */
+	private Direction direction;
+	/**
+	 * Matching.
+	 */
+	private Matching<T> matching;
 
-    /**
-     * Creates a new entry.
-     *
-     * @param direction direction
-     * @param matching matching
-     */
-    public Entry(final Direction direction, final Matching<T> matching) {
-        this.direction = direction;
-        this.matching = matching;
-    }
+	/**
+	 * Creates a new entry.
+	 *
+	 * @param direction
+	 *            direction
+	 * @param matching
+	 *            matching
+	 */
+	public Entry(final Direction direction, final Matching<T> matching) {
+		this.direction = direction;
+		this.matching = matching;
+	}
 
-    /**
-     * @return the direction
-     */
-    public final Direction getDirection() {
-        return direction;
-    }
+	/**
+	 * @return the direction
+	 */
+	public final Direction getDirection() {
+		return direction;
+	}
 
-    /**
-     * @param direction the direction to set
-     */
-    public final void setDirection(final Direction direction) {
-        this.direction = direction;
-    }
+	/**
+	 * @param direction
+	 *            the direction to set
+	 */
+	public final void setDirection(final Direction direction) {
+		this.direction = direction;
+	}
 
-    /**
-     * @return the matching
-     */
-    public final Matching<T> getMatching() {
-        return matching;
-    }
+	/**
+	 * @return the matching
+	 */
+	public final Matching<T> getMatching() {
+		return matching;
+	}
 
-    /**
-     * @param matching the matching to set
-     */
-    public final void setMatching(final Matching<T> matching) {
-        this.matching = matching;
-    }
+	/**
+	 * @param matching
+	 *            the matching to set
+	 */
+	public final void setMatching(final Matching<T> matching) {
+		this.matching = matching;
+	}
 }

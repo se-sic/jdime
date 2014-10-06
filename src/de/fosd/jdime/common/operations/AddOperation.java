@@ -30,96 +30,97 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
- * The operation adds
- * <code>Artifact</code>s.
+ * The operation adds <code>Artifact</code>s.
  *
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
-    /**
-     * Logger.
-     */
-    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(AddOperation.class));
-    /**
-     * The
-     * <code>Artifact</code> that is added by the operation.
-     */
-    private T artifact;
-    /**
-     * The output
-     * <code>Artifact</code>.
-     */
-    private T target;
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(AddOperation.class));
+	/**
+	 * The <code>Artifact</code> that is added by the operation.
+	 */
+	private T artifact;
+	/**
+	 * The output <code>Artifact</code>.
+	 */
+	private T target;
 
-    /**
-     * Class constructor.
-     *
-     * @param artifact that is added by the operation.
-     * @param target output artifact
-     */
-    public AddOperation(final T artifact, final T target) {
-        super();
-        this.artifact = artifact;
-        this.target = target;
-    }
+	/**
+	 * Class constructor.
+	 *
+	 * @param artifact
+	 *            that is added by the operation.
+	 * @param target
+	 *            output artifact
+	 */
+	public AddOperation(final T artifact, final T target) {
+		super();
+		this.artifact = artifact;
+		this.target = target;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#apply()
-     */
-    @Override
-    public final void apply(final MergeContext context) throws IOException {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.fosd.jdime.common.operations.Operation#apply()
+	 */
+	@Override
+	public final void apply(final MergeContext context) throws IOException {
+		assert (artifact != null);
+		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Applying: " + this);
-        }
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Applying: " + this);
+		}
 
-        if (target != null) {
-            if (!target.exists()) {
-                target.createArtifact(false);
-            }
+		if (target != null) {
+			if (!target.exists()) {
+				target.createArtifact(false);
+			}
 
-            assert (target.exists());
+			assert (target.exists());
 
-            artifact.copyArtifact(target);
-        }
+			artifact.copyArtifact(target);
+		}
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(
-                    artifact.getStatsKey(context));
-            element.incrementAdded();
-        }
+		if (context.hasStats()) {
+			Stats stats = context.getStats();
+			stats.incrementOperation(this);
+			StatsElement element = stats.getElement(artifact
+					.getStatsKey(context));
+			element.incrementAdded();
+		}
 
-    }
+	}
 
-    @Override
-    public final String getName() {
-        return "ADD";
-    }
+	@Override
+	public final String getName() {
+		return "ADD";
+	}
 
-    /**
-     * @return the target
-     */
-    public final T getTarget() {
-        return target;
-    }
+	/**
+	 * @return the target
+	 */
+	public final T getTarget() {
+		return target;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public final String toString() {
-        return getId() + ": " + getName() + " " + artifact;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return getId() + ": " + getName() + " " + artifact;
+	}
 }

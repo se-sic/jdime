@@ -27,8 +27,8 @@ package de.fosd.jdime.common;
  */
 public class UnsupportedMergeTypeException extends RuntimeException {
 
-    /**
+	/**
      *
      */
-    private static final long serialVersionUID = -4562992040545178701L;
+	private static final long serialVersionUID = -4562992040545178701L;
 }

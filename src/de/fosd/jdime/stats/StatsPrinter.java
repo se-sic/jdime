@@ -39,7 +39,8 @@ public final class StatsPrinter {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StatsPrinter.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(StatsPrinter.class));
 	/**
 	 * Delimiter.
 	 */

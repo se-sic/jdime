@@ -52,8 +52,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger
-			.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(StructuredStrategy.class));
 
 	/*
 	 * (non-Javadoc)
@@ -271,7 +271,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						LangElem.TOPLEVELNODE, false);
 				ASTStats rightStats = right.getStats(left.getRevision(),
 						LangElem.TOPLEVELNODE, false);
-				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
+				ASTStats targetStats = targetNode.getStats(null,
+						LangElem.TOPLEVELNODE, false);
 
 				assert (leftStats.getDiffStats(LangElem.NODE.toString())
 						.getMatches() == rightStats.getDiffStats(
@@ -280,7 +281,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				astStats = ASTStats.add(leftStats, rightStats);
 				astStats.setConflicts(targetStats);
-				
+
 				if (LOG.isDebugEnabled() && context.hasStats()) {
 					System.out.println("---------- left ----------");
 					System.out.println(leftStats);
@@ -294,12 +295,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					String sep = " / ";
 					int nodes = astStats.getDiffStats(LangElem.NODE.toString())
 							.getElements();
-					int matches = astStats.getDiffStats(LangElem.NODE.toString())
-							.getMatches();
-					int changes = astStats.getDiffStats(LangElem.NODE.toString())
-							.getAdded();
-					int removals = astStats.getDiffStats(LangElem.NODE.toString())
-							.getDeleted();
+					int matches = astStats.getDiffStats(
+							LangElem.NODE.toString()).getMatches();
+					int changes = astStats.getDiffStats(
+							LangElem.NODE.toString()).getAdded();
+					int removals = astStats.getDiffStats(
+							LangElem.NODE.toString()).getDeleted();
 					int conflictnodes = astStats.getDiffStats(
 							LangElem.NODE.toString()).getConflicting();
 					LOG.info("Change awareness (nodes" + sep + "matches" + sep

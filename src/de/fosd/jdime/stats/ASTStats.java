@@ -39,7 +39,7 @@ public class ASTStats {
 	 * Maximum number of children at a level of the AST.
 	 */
 	private int maxchildren = 0;
-	
+
 	/**
 	 * Number of AST nodes.
 	 */
@@ -65,7 +65,9 @@ public class ASTStats {
 	 *            diff statistics
 	 */
 	public ASTStats(final int nodes, final int treedepth,
-			final int maxchildren, final HashMap<String, StatsElement> diffstats, final boolean hasChanges) {
+			final int maxchildren,
+			final HashMap<String, StatsElement> diffstats,
+			final boolean hasChanges) {
 		this.nodes = nodes;
 		this.treedepth = treedepth;
 		this.maxchildren = maxchildren;
@@ -87,12 +89,12 @@ public class ASTStats {
 
 		for (String key : other.diffstats.keySet()) {
 			assert (diffstats.containsKey(key)) : "Error: Key '" + key
-			+ "' not found!";
-			//if (diffstats.containsKey(key)) {
-				diffstats.get(key).addStatsElement(other.diffstats.get(key));
-			//}
+					+ "' not found!";
+			// if (diffstats.containsKey(key)) {
+			diffstats.get(key).addStatsElement(other.diffstats.get(key));
+			// }
 		}
-		
+
 		if (!hasChanges) {
 			hasChanges = other.hasChanges();
 		}
@@ -105,14 +107,15 @@ public class ASTStats {
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats, hasChanges);
+		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats,
+				hasChanges);
 		clone.setFragments(fragments);
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
-		
+
 		for (String key : diffstats.keySet()) {
 			diffstatsClone.put(key, diffstats.get(key).copy());
 		}
-		
+
 		clone.setDiffstats(diffstatsClone);
 		return clone;
 	}
@@ -163,7 +166,7 @@ public class ASTStats {
 	public final void incrementNodes() {
 		nodes++;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -174,7 +177,7 @@ public class ASTStats {
 	public final void setConflicts(ASTStats other) {
 		for (String key : other.diffstats.keySet()) {
 			assert (diffstats.containsKey(key)) : "Error: Key '" + key
-			+ "' not found!";
+					+ "' not found!";
 			StatsElement mystats = diffstats.get(key);
 			StatsElement otherstats = other.diffstats.get(key);
 			assert mystats.getConflicting() == 0 : "Unexpected: conflicts > 0";
@@ -222,14 +225,17 @@ public class ASTStats {
 	}
 
 	/**
-	 * @param fragments the fragments to set
+	 * @param fragments
+	 *            the fragments to set
 	 */
 	public void setFragments(int fragments) {
 		this.fragments = fragments;
 	}
-	
+
 	public double getAvgFragmentSize() {
-		return fragments == 0 ? 0.0 : (double) diffstats.get(LangElem.NODE.toString()).getChanges() / (double) fragments;
+		return fragments == 0 ? 0.0 : (double) diffstats.get(
+				LangElem.NODE.toString()).getChanges()
+				/ (double) fragments;
 	}
 
 	/**
@@ -240,24 +246,25 @@ public class ASTStats {
 		this.fragments++;
 	}
 
-        @Override
+	@Override
 	public String toString() {
 		DecimalFormat df = new DecimalFormat("#.0");
 		StringBuilder sb = new StringBuilder();
 		sb.append("Total nodes: " + nodes + System.lineSeparator());
 		sb.append("Treedepth: " + treedepth + System.lineSeparator());
-		sb.append("Maximum children: " + maxchildren
-				+ System.lineSeparator());
+		sb.append("Maximum children: " + maxchildren + System.lineSeparator());
 		sb.append("Fragments: " + fragments + System.lineSeparator());
-		sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize()) + System.lineSeparator());
+		sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize())
+				+ System.lineSeparator());
 
-		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED", "CONFLICTS" };
+		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED",
+				"REMOVED", "CONFLICTS" };
 
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
-		int[] sum = new int[5]; 
+		int[] sum = new int[5];
 		int i = 0;
-		
+
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
 			int nodes = s.getElements();
@@ -266,11 +273,11 @@ public class ASTStats {
 			int added = s.getAdded();
 			int removed = s.getDeleted();
 			int conflicts = s.getConflicting();
-			
+
 			// sanity checks
-			//assert(changed == added + removed);
-			//assert (nodes == matched + changed);
-			if (i>0) {
+			// assert(changed == added + removed);
+			// assert (nodes == matched + changed);
+			if (i > 0) {
 				sum[0] += nodes;
 				sum[1] += matched;
 				sum[2] += changed;
@@ -280,12 +287,12 @@ public class ASTStats {
 
 			absolute[i][0] = key.toLowerCase();
 			absolute[i][1] = String.valueOf(nodes);
-			absolute[i][2] = String.valueOf(matched); 
-			absolute[i][3] = String.valueOf(changed); 
-			absolute[i][4] = String.valueOf(added); 
+			absolute[i][2] = String.valueOf(matched);
+			absolute[i][3] = String.valueOf(changed);
+			absolute[i][4] = String.valueOf(added);
 			absolute[i][5] = String.valueOf(removed);
 			absolute[i][6] = String.valueOf(conflicts);
-			
+
 			if (nodes > 0) {
 				relative[i][0] = key.toLowerCase();
 				relative[i][1] = df.format(100.0);
@@ -303,27 +310,26 @@ public class ASTStats {
 				relative[i][5] = "null";
 				relative[i][6] = "null";
 			}
-			
+
 			i++;
 		}
-		
-		// sanity checks
-		//assert (sum[0] == Integer.parseInt(absolute[0][1]));
-		//assert (sum[1] == Integer.parseInt(absolute[0][2]));
-		//assert (sum[2] == Integer.parseInt(absolute[0][3]));
-		//assert (sum[3] == Integer.parseInt(absolute[0][4]));
-		//assert (sum[4] == Integer.parseInt(absolute[0][5]));
 
-		
+		// sanity checks
+		// assert (sum[0] == Integer.parseInt(absolute[0][1]));
+		// assert (sum[1] == Integer.parseInt(absolute[0][2]));
+		// assert (sum[2] == Integer.parseInt(absolute[0][3]));
+		// assert (sum[3] == Integer.parseInt(absolute[0][4]));
+		// assert (sum[4] == Integer.parseInt(absolute[0][5]));
+
 		sb.append(System.lineSeparator());
 		sb.append(ASCIITable.getInstance().getTable(head, absolute));
 		sb.append(System.lineSeparator());
 		sb.append(ASCIITable.getInstance().getTable(head, relative));
 
-//		return general.toString() + System.lineSeparator()
-//				+ absolute.toString() + System.lineSeparator()
-//				+ relative.toString();
-		
+		// return general.toString() + System.lineSeparator()
+		// + absolute.toString() + System.lineSeparator()
+		// + relative.toString();
+
 		return sb.toString();
 	}
 }
