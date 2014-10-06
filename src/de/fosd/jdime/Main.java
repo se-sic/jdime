@@ -250,6 +250,8 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
+				// TODO: The default needs to be overwriting file1 so we are
+				// compatible with gnu merge
 				context.setOutputFile(new FileArtifact(new Revision("merge"),
 						new File(cmd.getOptionValue("output")), false));
 			}
