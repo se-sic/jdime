@@ -1,24 +1,24 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Copyright (C) 2013 Olaf Lessenich.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
- * Contributors:
- *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ * Contributors: Olaf Lessenich - initial API and implementation
+ *****************************************************************************
+ */
 package de.fosd.jdime.matcher.unordered;
 
 import de.fosd.jdime.common.Artifact;
@@ -84,7 +84,6 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
     @Override
     public final Matching<T> match(final T left, final T right) {
 
-
         if (!left.matches(right)) {
             return new Matching<>(left, right, 0);
         }
@@ -139,7 +138,6 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
         int cols = width * width;
 
         /* Caution, indices are one-based! */
-
         // create problem
         glp_prob lp = GLPK.glp_create_prob();
 
@@ -205,7 +203,6 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
         }
 
         /* objective function */
-
         // objective function... minimize or maximize
         GLPK.glp_set_obj_dir(lp, GLPKConstants.GLP_MAX);
 
@@ -215,13 +212,12 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
             int i = indices[0];
             int j = indices[1];
             // take care of dummy rows/cols
-            // FIXME is m and n correct?
+            // TODO: verify that m and n are correct
             int score = i < m && j < n ? matching[i][j].getScore() : 0;
             GLPK.glp_set_obj_coef(lp, c, score);
         }
 
         /* SOLVE */
-
         // set parameters
         glp_smcp parm = new glp_smcp();
         GLPK.glp_init_smcp(parm); // defaults
@@ -233,7 +229,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
         if (ret > 0) {
             GLPK.glp_delete_prob(lp);
-            // FIXME error handling?
+            // TODO: error handling
             return null;
         }
 
@@ -248,7 +244,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
                 int[] indices = getMyIndices(c - 1, width);
                 int i = indices[0];
                 int j = indices[1];
-                if (i < m && j < n) { // FIXME see above
+                if (i < m && j < n) { // TODO: verify that this is correct
                     Matching<T> curMatching = matching[i][j];
                     if (curMatching.getScore() > 0) {
                         children.add(curMatching);

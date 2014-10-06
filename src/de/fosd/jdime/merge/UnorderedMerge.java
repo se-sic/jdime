@@ -134,7 +134,7 @@ public class UnorderedMerge<T extends Artifact<T>>
                     }
                     // leftChild is a change
 
-                    //FIXME: check if this can be a conflict
+                    //FIXME: check if this can also be a conflict
                     if (LOG.isTraceEnabled()) {
                         LOG.trace(prefix(leftChild) + "adding change");
                     }
@@ -186,7 +186,7 @@ public class UnorderedMerge<T extends Artifact<T>>
                     }
                     // rightChild is a change
 
-                    //FIXME: check if this can be a conflict
+                    //FIXME: check if this can also be a conflict
                     if (LOG.isTraceEnabled()) {
                         LOG.trace(prefix(rightChild) + "adding change");
                     }

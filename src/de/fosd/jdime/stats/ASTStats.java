@@ -21,7 +21,6 @@ public class ASTStats {
 		try {
 			sum = (ASTStats) a.clone();
 		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -241,6 +240,7 @@ public class ASTStats {
 		this.fragments++;
 	}
 
+        @Override
 	public String toString() {
 		DecimalFormat df = new DecimalFormat("#.0");
 		StringBuilder sb = new StringBuilder();

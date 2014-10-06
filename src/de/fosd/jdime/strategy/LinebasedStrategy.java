@@ -295,7 +295,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             String line;
             while ((line = buf.readLine()) != null) {
                 System.out.println(line);
-                // TODO: save to outputfile
+                // TODO: optionally save to outputfile
             }
         }
     }
