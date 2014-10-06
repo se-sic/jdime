@@ -32,6 +32,7 @@ import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -48,7 +49,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(MergeOperation.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
 	/**
 	 * /** The merge triple containing the <code>Artifact</code>s.
 	 */

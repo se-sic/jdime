@@ -33,6 +33,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
 import java.io.IOException;
 import java.util.Iterator;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -45,7 +46,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(OrderedMerge.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(OrderedMerge.class));
     /**
      * Logging prefix.
      */

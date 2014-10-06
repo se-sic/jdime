@@ -27,6 +27,7 @@ import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -39,7 +40,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(Matcher.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
     /**
      *
      */

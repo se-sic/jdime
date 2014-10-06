@@ -24,6 +24,7 @@ package de.fosd.jdime.common.operations;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import java.io.IOException;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -36,7 +37,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(ConflictOperation.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ConflictOperation.class));
     /**
      *
      */

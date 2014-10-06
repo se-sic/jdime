@@ -29,6 +29,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
 import java.io.IOException;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -41,7 +42,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
      * Logger.
      */
     private static final Logger LOG = Logger
-            .getLogger(ASTNodeStrategy.class);
+            .getLogger(ClassUtils.getShortClassName(ASTNodeStrategy.class));
     /**
      *
      */

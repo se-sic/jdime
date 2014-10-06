@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -50,7 +51,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(LinebasedStrategy.class));
     /**
      * Basic merge command.
      */

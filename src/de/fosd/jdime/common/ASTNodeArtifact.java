@@ -50,6 +50,7 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * @author Olaf Lessenich
@@ -60,7 +61,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeArtifact.class));
 
 	/**
 	 * Initializes parser.

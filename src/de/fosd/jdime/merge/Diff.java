@@ -27,6 +27,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * @author Olaf Lessenich
@@ -38,7 +39,7 @@ public class Diff<T extends Artifact<T>> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Diff.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Diff.class));
 
 	/**
 	 * Compares two nodes and returns a respective matching.

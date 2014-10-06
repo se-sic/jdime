@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -49,7 +50,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(FileArtifact.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(FileArtifact.class));
 
 	/**
 	 * File in which the artifact is stored.

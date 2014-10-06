@@ -33,6 +33,7 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -45,7 +46,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(CombinedStrategy.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(CombinedStrategy.class));
 
     /*
      * (non-Javadoc)

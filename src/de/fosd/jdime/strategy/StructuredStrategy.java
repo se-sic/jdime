@@ -39,6 +39,7 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * Performs a structured merge.
@@ -52,7 +53,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 * Logger.
 	 */
 	private static final Logger LOG = Logger
-			.getLogger(StructuredStrategy.class);
+			.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
 	/*
 	 * (non-Javadoc)

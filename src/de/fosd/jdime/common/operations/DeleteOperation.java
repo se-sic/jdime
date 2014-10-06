@@ -25,6 +25,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -41,7 +42,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(DeleteOperation.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(DeleteOperation.class));
     /**
      * The
      * <code>Artifact</code> that is deleted by the operation.

@@ -26,6 +26,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import java.io.IOException;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -42,7 +43,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * Logger.
      */
-    private static final Logger LOG = Logger.getLogger(AddOperation.class);
+    private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(AddOperation.class));
     /**
      * The
      * <code>Artifact</code> that is added by the operation.

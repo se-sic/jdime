@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * @author Olaf Lessenich
@@ -38,7 +39,7 @@ public final class StatsPrinter {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(StatsPrinter.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StatsPrinter.class));
 	/**
 	 * Delimiter.
 	 */

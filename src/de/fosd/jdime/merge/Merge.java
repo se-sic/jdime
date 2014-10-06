@@ -32,6 +32,7 @@ import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import java.io.IOException;
 import java.util.List;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -45,7 +46,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Merge.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Merge.class));
 	/**
      *
      */
