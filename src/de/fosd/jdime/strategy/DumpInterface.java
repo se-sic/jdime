@@ -40,5 +40,15 @@ public interface DumpInterface<T extends Artifact<T>> {
 	 * @throws IOException
 	 *             IOException
 	 */
-	void dump(final T artifact, final boolean graphical) throws IOException;
+	void dumpTree(final T artifact, final boolean graphical) throws IOException;
+	
+	/**
+	 * @param artifact
+	 *            artifact to dump
+	 * @param graphical
+	 *            output option
+	 * @throws IOException
+	 *             IOException
+	 */
+	void dumpFile(final T artifact, final boolean graphical) throws IOException;
 }

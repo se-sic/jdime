@@ -73,17 +73,23 @@ public class MergeContext implements Cloneable {
 	 */
 	private boolean diffOnly = false;
 	/**
-	 * Whether to dump files/ASTs instead of merging.
+	 * Whether to dump files instead of merging.
 	 */
-	private boolean dump = false;
+	private boolean dumpFiles = false;
+	/**
+	 * Whether to dump ASTs instead of merging.
+	 */
+	private boolean dumpTree = false;
 	/**
 	 * Force overwriting of existing output files.
 	 */
 	private boolean forceOverwriting = false;
+
 	/**
 	 * Whether to use graphical output while dumping.
 	 */
 	private boolean guiDump = false;
+
 	/**
 	 * Input Files.
 	 */
@@ -132,14 +138,12 @@ public class MergeContext implements Cloneable {
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
-
 	/**
 	 * Class constructor.
 	 */
 	public MergeContext() {
 		programStart = System.currentTimeMillis();
 	}
-
 	/**
 	 * Adds statistical data to already collected data.
 	 *
@@ -228,16 +232,6 @@ public class MergeContext implements Cloneable {
 	 */
 	public final int getBenchmarkRuns() {
 		return runs;
-	}
-
-	/**
-	 * Sets the number of benchmark runs.
-	 *
-	 * @param runs
-	 *            number of benchmark runs
-	 */
-	public final void setBenchmarkRuns(final int runs) {
-		this.runs = runs;
 	}
 
 	/**
@@ -341,10 +335,24 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
+	 * @return the diffOnly
+	 */
+	public final boolean isDiffOnly() {
+		return diffOnly;
+	}
+
+	/**
+	 * @return the dumpFiles
+	 */
+	public final boolean isDumpFile() {
+		return dumpFiles;
+	}
+
+	/**
 	 * @return the dumpTree
 	 */
-	public final boolean isDump() {
-		return dump;
+	public final boolean isDumpTree() {
+		return dumpTree;
 	}
 
 	/**
@@ -405,6 +413,16 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
+	 * Sets the number of benchmark runs.
+	 *
+	 * @param runs
+	 *            number of benchmark runs
+	 */
+	public final void setBenchmarkRuns(final int runs) {
+		this.runs = runs;
+	}
+
+	/**
 	 * Enables bugfixing mode.
 	 */
 	public final void setBugfixing() {
@@ -412,11 +430,26 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
+	 * @param diffOnly
+	 *            whether to run only diff
+	 */
+	public final void setDiffOnly(final boolean diffOnly) {
+		this.diffOnly = diffOnly;
+	}
+
+	/**
+	 * @param dumpFiles the dumpFiles to set
+	 */
+	public final void setDumpFiles(boolean dumpFiles) {
+		this.dumpFiles = dumpFiles;
+	}
+
+	/**
 	 * @param dumpTree
 	 *            the dumpTree to set
 	 */
-	public final void setDump(final boolean dumpTree) {
-		this.dump = dumpTree;
+	public final void setDumpTree(final boolean dumpTree) {
+		this.dumpTree = dumpTree;
 	}
 
 	/**
@@ -501,20 +534,5 @@ public class MergeContext implements Cloneable {
 		if (saveStats) {
 			stats = mergeStrategy.createStats();
 		}
-	}
-
-	/**
-	 * @return the diffOnly
-	 */
-	public final boolean isDiffOnly() {
-		return diffOnly;
-	}
-
-	/**
-	 * @param diffOnly
-	 *            whether to run only diff
-	 */
-	public final void setDiffOnly(final boolean diffOnly) {
-		this.diffOnly = diffOnly;
 	}
 }

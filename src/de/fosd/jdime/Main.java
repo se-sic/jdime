@@ -124,8 +124,10 @@ public final class Main {
 
 		if (context.isBugfixing()) {
 			bugfixing(context);
-		} else if (context.isDump()) {
-			dump(context);
+		} else if (context.isDumpTree()) {
+			dumpTrees(context);
+		} else if (context.isDumpFile()) {
+			dumpFiles(context);
 		} else {
 			merge(context);
 		}
@@ -163,7 +165,7 @@ public final class Main {
 		options.addOption("keepgoing", false, "Keep running after exceptions.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
-						+ ", dumpgraph, dumpfile)");
+						+ ", dumpgraph, dumpfile, prettyprint)");
 		options.addOption("output", true, "output directory/file");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
@@ -217,21 +219,27 @@ public final class Main {
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
-						context.setDump(true);
+						context.setDumpTree(true);
 						context.setGuiDump(false);
 						break;
 					case "dumpgraph":
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
-						context.setDump(true);
+						context.setDumpTree(true);
 						context.setGuiDump(true);
 						break;
 					case "dumpfile":
 						// User only wants to display the files
 						context.setMergeStrategy(MergeStrategy
 								.parse("linebased"));
-						context.setDump(true);
+						context.setDumpFiles(true);
+						break;
+					case "prettyprint":
+						// User wants to parse and pretty-print file
+						context.setMergeStrategy(MergeStrategy
+								.parse("structured"));
+						context.setDumpFiles(true);
 						break;
 					default:
 						// User wants to merge
@@ -272,7 +280,8 @@ public final class Main {
 
 			int numInputFiles = cmd.getArgList().size();
 
-			if (!((context.isDump() || context.isBugfixing()) || numInputFiles >= MergeType.MINFILES
+			if (!((context.isDumpTree() || context.isDumpFile() || context
+					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
 					&& numInputFiles <= MergeType.MAXFILES)) {
 				help(context, options, 0);
 			}
@@ -442,11 +451,26 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	@SuppressWarnings("unchecked")
-	public static void dump(final MergeContext context) throws IOException {
+	public static void dumpTrees(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context
 					.getMergeStrategy();
-			strategy.dump(artifact, context.isGuiDump());
+			strategy.dumpTree(artifact, context.isGuiDump());
+		}
+	}
+
+	/**
+	 * @param context
+	 *            merge context
+	 * @throws IOException
+	 *             If an input output exception occurs
+	 */
+	@SuppressWarnings("unchecked")
+	public static void dumpFiles(final MergeContext context) throws IOException {
+		for (FileArtifact artifact : context.getInputFiles()) {
+			MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context
+					.getMergeStrategy();
+			strategy.dumpFile(artifact, context.isGuiDump());
 		}
 	}
 

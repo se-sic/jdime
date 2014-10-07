@@ -114,7 +114,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final void dump(final ASTNodeArtifact artifact,
+	public final void dumpTree(final ASTNodeArtifact artifact,
 			final boolean graphical) throws IOException {
 		if (graphical) {
 			dumpGraphVizTree(artifact);
@@ -140,5 +140,11 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		sb.append("}");
 
 		System.out.println(sb.toString());
+	}
+
+	@Override
+	public void dumpFile(final ASTNodeArtifact artifact, final boolean graphical)
+			throws IOException {
+		System.out.println(artifact.prettyPrint());
 	}
 }

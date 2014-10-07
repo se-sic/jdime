@@ -289,7 +289,14 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public final void dump(final FileArtifact artifact, final boolean graphical)
+	public final void dumpTree(final FileArtifact artifact,
+			final boolean graphical) throws IOException {
+		throw new UnsupportedOperationException(
+				"Use a structured strategy to dump a tree.");
+	}
+
+	@Override
+	public void dumpFile(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
 		try (BufferedReader buf = new BufferedReader(new FileReader(
 				artifact.getFile()))) {

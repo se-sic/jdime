@@ -236,8 +236,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public final void dump(final FileArtifact artifact, final boolean graphical)
+	public final void dumpTree(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
-		throw new NotYetImplementedException();
+		new StructuredStrategy().dumpTree(artifact, graphical);
+	}
+
+	@Override
+	public void dumpFile(final FileArtifact artifact, final boolean graphical)
+			throws IOException {
+		new LinebasedStrategy().dumpFile(artifact, graphical);
 	}
 }
