@@ -54,8 +54,15 @@ public final class InternalTests {
 	}
 
 	public static void runEnvironmentTest() {
-		GLPK.glp_create_prob();
-		System.out.println(InternalTests.class.getCanonicalName() + ": OK");
+		try {
+			GLPK.glp_create_prob();
+			System.out.println(InternalTests.class.getCanonicalName() + ": OK");
+		} catch (Throwable t) {
+			System.out.println(t);
+			System.out.println(InternalTests.class.getCanonicalName() + ": FAILED");
+			throw(t);
+		}
+		
 	}
 
 	public static void runASTStatsTests() {

@@ -3,10 +3,10 @@
  */
 package de.fosd.jdime;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
@@ -81,12 +81,14 @@ public class MergeTest {
 				System.out.println("Running " + strategy + " strategy on "
 						+ filepath);
 				Main.merge(context);
+				
+				// check
 				File expected = new File("testfiles" + File.separator
 						+ strategy + File.separator + filepath);
 				System.out.println("----------Expected:-----------");
-				System.out.println(FileUtils.readFileToString(expected));
+				System.out.print(FileUtils.readFileToString(expected));
 				System.out.println("----------Received:-----------");
-				System.out.println(context.getOutputFile().getContent());
+				System.out.print(context.getOutputFile().getContent());
 				System.out.println("------------------------------");
 				assertTrue("Strategy " + strategy
 						+ " resulted in unexpected output",
@@ -112,5 +114,10 @@ public class MergeTest {
 	@Test
 	public final void testBag3() {
 		runMerge("SimpleTests/Bag/Bag3.java", true);
+	}
+	
+	@Test
+	public final void testImportConflict () {
+		runMerge("SimpleTests/ImportMess.java", true);
 	}
 }
