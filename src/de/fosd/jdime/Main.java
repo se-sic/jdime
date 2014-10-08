@@ -69,7 +69,7 @@ public final class Main {
 	/**
 	 * Version constant.
 	 */
-	private static final String VERSION = "0.2.1";
+	private static final String VERSION = "0.3.0";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -172,7 +172,7 @@ public final class Main {
 				"print configuration information");
 		options.addOption("stats", false,
 				"collects statistical data of the merge");
-		options.addOption("stdout", false, "prints merge result to stdout");
+		options.addOption("p", false, "prints merge result to stdout");
 		options.addOption("version", false,
 				"print the version information and exit");
 
@@ -258,6 +258,8 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
+				// TODO: The default needs to be overwriting file1 so we are
+				// compatible with gnu merge
 				context.setOutputFile(new FileArtifact(new Revision("merge"),
 						new File(cmd.getOptionValue("output")), false));
 			}
@@ -271,7 +273,7 @@ public final class Main {
 			context.setBenchmark(cmd.hasOption("benchmark"));
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));
-			context.setQuiet(!cmd.hasOption("stdout"));
+			context.setQuiet(!cmd.hasOption("p"));
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
 
 			if (cmd.hasOption("showconfig")) {
