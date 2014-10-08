@@ -586,7 +586,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		if (!context.isQuiet() && context.hasOutput()) {
-			System.out.println(context.getStdIn());
+			System.out.print(context.getStdIn());
 		}
 	}
 

@@ -575,7 +575,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		LOG.info(this);
 		strategy.merge(operation, context);
 		if (!context.isQuiet() && context.hasOutput()) {
-			System.out.println(context.getStdIn());
+			System.out.print(context.getStdIn());
 		}
 		context.resetStreams();
 
@@ -633,7 +633,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (file != null);
 		assert (str != null);
 		try (FileWriter writer = new FileWriter(file)) {
-			writer.write(str + System.lineSeparator());
+			writer.write(str);
 		}
 	}
 

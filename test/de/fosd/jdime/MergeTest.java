@@ -58,38 +58,31 @@ public class MergeTest {
 		context.getOutputFile().remove();
 	}
 
-	private final void runMerge(String filepath, String strategy,
-			boolean threeway) throws IOException, InterruptedException {
-		// initialize input files
-		ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-		inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
-				+ filepath)));
-		if (threeway) {
-			inputArtifacts.add(new FileArtifact(new File("testfiles/base/"
-					+ filepath)));
-		}
-		inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
-				+ filepath)));
-
-		// setup context
-		context.setMergeStrategy(MergeStrategy.parse(strategy));
-		context.setInputFiles(inputArtifacts);
-		Main.merge(context);
-	}
-
-	/**
-	 * Test method for
-	 * {@link de.fosd.jdime.Main#merge(de.fosd.jdime.common.MergeContext)}.
-	 */
-	@Test
-	public final void testBag() {
+	private final void runMerge(String filepath, boolean threeway) {
 		try {
-			String in = "SimpleTests/Bag/Bag.java";
+			// initialize input files
+			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+			inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
+					+ filepath)));
+			if (threeway) {
+				inputArtifacts.add(new FileArtifact(new File("testfiles/base/"
+						+ filepath)));
+			}
+			inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
+					+ filepath)));
 
 			for (String strategy : STRATEGIES) {
-				runMerge(in, strategy, true);
+
+				// setup context
+				context.setMergeStrategy(MergeStrategy.parse(strategy));
+				context.setInputFiles(inputArtifacts);
+
+				// run
+				System.out.println("Running " + strategy + " strategy on "
+						+ filepath);
+				Main.merge(context);
 				File expected = new File("testfiles" + File.separator
-						+ strategy + File.separator + in);
+						+ strategy + File.separator + filepath);
 				System.out.println("----------Expected:-----------");
 				System.out.println(FileUtils.readFileToString(expected));
 				System.out.println("----------Received:-----------");
@@ -99,9 +92,25 @@ public class MergeTest {
 						+ " resulted in unexpected output",
 						FileUtils.contentEquals(context.getOutputFile()
 								.getFile(), expected));
+				System.out.println();
 			}
 		} catch (Exception e) {
 			fail(e.toString());
 		}
+	}
+
+	@Test
+	public final void testBag() {
+		runMerge("SimpleTests/Bag/Bag.java", true);
+	}
+
+	@Test
+	public final void testBag2() {
+		runMerge("SimpleTests/Bag/Bag2.java", true);
+	}
+
+	@Test
+	public final void testBag3() {
+		runMerge("SimpleTests/Bag/Bag3.java", true);
 	}
 }

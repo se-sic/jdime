@@ -170,7 +170,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						if (!context.isDiffOnly()) {
 							LOG.trace("Pretty-printing merge:");
 							if (mergeContext.isQuiet()) {
-								System.out.println(targetNode.prettyPrint());
+								System.out.print(targetNode.prettyPrint());
 							}
 						}
 					}
@@ -246,13 +246,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 											assert (rightlines != null);
 											// need to print the previous
 											// conflict(s)
-											mergeContext.appendLine("<<<<<<< ");
+											mergeContext.appendLine("<<<<<<< " + triple.getLeft().getPath());
 											mergeContext.append(leftlines
 													.toString());
-											mergeContext.appendLine("======= ");
+											mergeContext.appendLine("=======");
 											mergeContext.append(rightlines
 													.toString());
-											mergeContext.appendLine(">>>>>>> ");
+											mergeContext.appendLine(">>>>>>> " + triple.getRight().getPath());
 										}
 										afterconflict = false;
 										mergeContext.appendLine(line);

@@ -201,10 +201,8 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void appendLine(final String line) {
 		if (stdIn != null) {
-			if (stdIn.getBuffer().length() != 0) {
-				stdIn.append(System.lineSeparator());
-			}
 			stdIn.append(line);
+			stdIn.append(System.lineSeparator());
 		}
 	}
 
