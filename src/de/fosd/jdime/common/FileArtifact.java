@@ -633,7 +633,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (file != null);
 		assert (str != null);
 		try (FileWriter writer = new FileWriter(file)) {
-			writer.write(str);
+			writer.write(str + System.lineSeparator());
 		}
 	}
 
@@ -642,5 +642,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			final FileArtifact left, final FileArtifact right)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
+	}
+
+	public final String getContent() throws IOException {
+		return file == null ? "" : FileUtils.readFileToString(file);
 	}
 }

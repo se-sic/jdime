@@ -3,11 +3,11 @@
  */
 package de.fosd.jdime;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -24,18 +24,13 @@ import de.fosd.jdime.common.FileArtifact;
 public class PrettyPrintTest {
 
 	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(PrettyPrintTest.class));
-
-	/**
 	 * Sets up the test fixture. (Called before every test case method.)
 	 */
 	@Before
 	public void setUp() {
+		// initialize logger
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.INFO);
+		Logger.getRootLogger().setLevel(Level.WARN);
 	}
 
 	/**
