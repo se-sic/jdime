@@ -104,6 +104,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		int loc = 0;
 		int cloc = 0;
 		ASTStats astStats = null;
+		ASTStats leftStats = null;
+		ASTStats rightStats = null;
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Merging: " + triple.getLeft().getPath() + " "
@@ -267,9 +269,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				runtimes.add(runtime);
 
 				// collect stats
-				ASTStats leftStats = left.getStats(right.getRevision(),
+				leftStats = left.getStats(right.getRevision(),
 						LangElem.TOPLEVELNODE, false);
-				ASTStats rightStats = right.getStats(left.getRevision(),
+				rightStats = right.getStats(left.getRevision(),
 						LangElem.TOPLEVELNODE, false);
 				ASTStats targetStats = targetNode.getStats(null,
 						LangElem.TOPLEVELNODE, false);
@@ -323,6 +325,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				if (context.hasStats()) {
 					Stats stats = context.getStats();
 					stats.addASTStats(astStats);
+					stats.addLeftStats(leftStats);
+					stats.addRightStats(rightStats);
 				}
 
 				if (LOG.isInfoEnabled() && context.isBenchmark()
@@ -377,9 +381,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 
 				stats.increaseRuntime(runtime);
+				
+				assert (leftStats != null);
+				assert (rightStats != null);
 
 				MergeTripleStats scenariostats = new MergeTripleStats(triple,
-						conflicts, cloc, loc, runtime, astStats);
+						conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
 				stats.addScenarioStats(scenariostats);
 			}
 

@@ -33,10 +33,6 @@ import de.fosd.jdime.common.operations.Operation;
  * @author Olaf Lessenich
  *
  */
-/**
- * @author Olaf Lessenich
- *
- */
 public class Stats {
 
 	/**
@@ -65,6 +61,10 @@ public class Stats {
 	private HashMap<String, Integer> operations;
 
 	private ASTStats astStats;
+	
+	private ASTStats leftStats;
+	
+	private ASTStats rightStats;
 
 	/**
 	 * Creates a new Stats instance from a list of keys.
@@ -288,12 +288,36 @@ public class Stats {
 	public final ASTStats getAstStats() {
 		return astStats;
 	}
+	
+	public final ASTStats getLeftStats() {
+		return leftStats;
+	}
+	
+	public final ASTStats getRightStats() {
+		return rightStats;
+	}
 
 	public final void addASTStats(ASTStats other) {
 		if (astStats == null) {
 			astStats = other;
 		} else {
 			astStats.add(other);
+		}
+	}
+	
+	public final void addLeftStats(ASTStats other) {
+		if (leftStats == null) {
+			leftStats = other;
+		} else {
+			leftStats.add(other);
+		}
+	}
+	
+	public final void addRightStats(ASTStats other) {
+		if (rightStats == null) {
+			rightStats = other;
+		} else {
+			rightStats.add(other);
 		}
 	}
 }

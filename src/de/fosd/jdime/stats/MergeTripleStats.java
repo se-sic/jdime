@@ -69,6 +69,9 @@ public class MergeTripleStats {
      * 
      */
 	private ASTStats astStats;
+	
+	private ASTStats leftStats;
+	private ASTStats rightStats;
 
 	/**
 	 * Class Constructor.
@@ -86,13 +89,15 @@ public class MergeTripleStats {
 	 */
 	public MergeTripleStats(final MergeTriple<FileArtifact> triple,
 			final int conflicts, final int conflictingLines, final int lines,
-			final long runtime, final ASTStats astStats) {
+			final long runtime, final ASTStats astStats, final ASTStats leftStats, final ASTStats rightStats) {
 		this.triple = triple;
 		this.conflicts = conflicts;
 		this.conflictingLines = conflictingLines;
 		this.lines = lines;
 		this.runtime = runtime;
 		this.astStats = astStats;
+		this.leftStats = leftStats;
+		this.rightStats = rightStats;
 	}
 
 	/**
@@ -180,5 +185,13 @@ public class MergeTripleStats {
 	 */
 	public final ASTStats getASTStats() {
 		return astStats;
+	}
+	
+	public final ASTStats getLeftASTStats() {
+		return leftStats;
+	}
+	
+	public final ASTStats getRightASTStats() {
+		return rightStats;
 	}
 }

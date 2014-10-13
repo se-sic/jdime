@@ -200,7 +200,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 						subscenariostats.getConflicts(),
 						subscenariostats.getConflictingLines(),
 						subscenariostats.getLines(), runtime,
-						subscenariostats.getASTStats());
+						subscenariostats.getASTStats(),
+						subscenariostats.getLeftASTStats(),
+						subscenariostats.getRightASTStats());
 				stats.addScenarioStats(scenariostats);
 			}
 
