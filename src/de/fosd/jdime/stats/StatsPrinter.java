@@ -44,7 +44,8 @@ public final class StatsPrinter {
 	/**
 	 * Delimiter.
 	 */
-	private static String delimiter = "=================================================";
+	private static String delimiter =
+			"=================================================";
 
 	/**
 	 * Prints statistical information.
@@ -67,36 +68,50 @@ public final class StatsPrinter {
 			}
 
 			LOG.debug(sb.toString());
-		}
-		System.out.println(delimiter);
-		System.out.println("Number of conflicts: " + stats.getConflicts());
 
-		for (String key : stats.getKeys()) {
 			System.out.println(delimiter);
-			StatsElement element = stats.getElement(key);
-			System.out.println("Added " + key + ": " + element.getAdded());
-			System.out.println("Deleted " + key + ": " + element.getDeleted());
-			System.out.println("Merged " + key + ": " + element.getMerged());
-			System.out.println("Conflicting " + key + ": "
-					+ element.getConflicting());
+			System.out.println("Number of conflicts: " + stats.getConflicts());
+
+			for (String key : stats.getKeys()) {
+				System.out.println(delimiter);
+				StatsElement element = stats.getElement(key);
+				System.out.println("Added " + key + ": " + element.getAdded());
+				System.out.println("Deleted " + key + ": "
+						+ element.getDeleted());
+				System.out
+						.println("Merged " + key + ": " + element.getMerged());
+				System.out.println("Conflicting " + key + ": "
+						+ element.getConflicting());
+			}
+
+			System.out.println(delimiter);
+
+			ArrayList<String> operations =
+					new ArrayList<>(stats.getOperations());
+			Collections.sort(operations);
+			for (String key : operations) {
+				System.out.println("applied " + key + " operations: "
+						+ stats.getOperation(key));
+			}
+
+			System.out.println(delimiter);
 		}
 
-		System.out.println(delimiter);
-
-		// Fuck Java for not letting me sort a Set.
-		ArrayList<String> operations = new ArrayList<>(stats.getOperations());
-		Collections.sort(operations);
-		for (String key : operations) {
-			System.out.println("applied " + key + " operations: "
-					+ stats.getOperation(key));
+		if (context.isConsecutive()) {
+			ASTStats rightStats = stats.getRightStats();
+			ASTStats leftStats = stats.getLeftStats();
+			rightStats.setRemovalsfromAdditions(leftStats);
+			System.out.println(rightStats);
+		} else {
+			ASTStats astStats = stats.getAstStats();
+			System.out.println(astStats);
 		}
 
-		System.out.println(delimiter);
-		ASTStats astStats = stats.getAstStats();
-		System.out.println(astStats);
-		System.out.println(delimiter);
-		System.out.println("Runtime: " + stats.getRuntime() + " ms");
-		System.out.println(delimiter);
+		if (LOG.isDebugEnabled()) {
+			System.out.println(delimiter);
+			System.out.println("Runtime: " + stats.getRuntime() + " ms");
+			System.out.println(delimiter);
+		}
 
 		if (context.getMergeStrategy().getClass().getName()
 				.equals(LinebasedStrategy.class.getName())) {

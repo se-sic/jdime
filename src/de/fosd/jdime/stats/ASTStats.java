@@ -28,6 +28,10 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+
 import com.bethecoder.ascii_table.ASCIITable;
 
 import de.fosd.jdime.common.LangElem;
@@ -37,6 +41,12 @@ import de.fosd.jdime.common.LangElem;
  * 
  */
 public class ASTStats {
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(ASTStats.class));
+
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
 		ASTStats sum = null;
 		try {
@@ -128,8 +138,9 @@ public class ASTStats {
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats,
-				hasChanges);
+		ASTStats clone =
+				new ASTStats(nodes, treedepth, maxchildren, diffstats,
+						hasChanges);
 		clone.setFragments(fragments);
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
 
@@ -205,12 +216,23 @@ public class ASTStats {
 			mystats.setConflicting(otherstats.getConflicting());
 		}
 	}
+	
+	public final void setRemovalsfromAdditions(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setDeleted(otherstats.getAdded());
+		}
+	}
 
 	/**
 	 * @param diffstats
 	 *            the diffstats to set
 	 */
-	public final void setDiffstats(final HashMap<String, StatsElement> diffstats) {
+	public final void
+			setDiffstats(final HashMap<String, StatsElement> diffstats) {
 		this.diffstats = diffstats;
 	}
 
@@ -270,21 +292,30 @@ public class ASTStats {
 	@Override
 	public String toString() {
 		DecimalFormat df = new DecimalFormat("#.0");
-		StringBuilder sb = new StringBuilder();
-		sb.append("Total nodes: " + nodes + System.lineSeparator());
-		sb.append("Treedepth: " + treedepth + System.lineSeparator());
-		sb.append("Maximum children: " + maxchildren + System.lineSeparator());
-		sb.append("Fragments: " + fragments + System.lineSeparator());
-		sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize())
-				+ System.lineSeparator());
 
-		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED",
-				"REMOVED", "CONFLICTS" };
+		StringBuilder sb = new StringBuilder();
+
+		if (LOG.isDebugEnabled()) {
+			sb.append("Total nodes: " + nodes + System.lineSeparator());
+			sb.append("Treedepth: " + treedepth + System.lineSeparator());
+			sb.append("Maximum children: " + maxchildren
+					+ System.lineSeparator());
+			sb.append("Fragments: " + fragments + System.lineSeparator());
+			sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize())
+					+ System.lineSeparator());
+		}
+
+		String[] head =
+				{ "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED",
+						"CONFLICTS" };
 
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
+		String[] csvHead = new String[36];
+		String[] csv = new String[36];;
 		int[] sum = new int[5];
 		int i = 0;
+		int j = 0;
 
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
@@ -305,14 +336,35 @@ public class ASTStats {
 				sum[3] += added;
 				sum[4] += removed;
 			}
+			
+			String name = key.toLowerCase();
+			if (name.endsWith("ss")) {
+				name = name + "es";
+			} else {
+				name = name + "s";
+			}
 
-			absolute[i][0] = key.toLowerCase();
+			absolute[i][0] = name;
 			absolute[i][1] = String.valueOf(nodes);
 			absolute[i][2] = String.valueOf(matched);
 			absolute[i][3] = String.valueOf(changed);
 			absolute[i][4] = String.valueOf(added);
 			absolute[i][5] = String.valueOf(removed);
 			absolute[i][6] = String.valueOf(conflicts);
+			
+			csvHead[j] = name;
+			csv[j++] = String.valueOf(nodes);
+			csvHead[j] = "matched " + name;
+			csv[j++] = String.valueOf(matched);
+			csvHead[j] = "changed " + name;
+			csv[j++] = String.valueOf(changed);
+			csvHead[j] = "added " + name;
+			csv[j++] = String.valueOf(added);
+			csvHead[j] = "removed " + name;
+			csv[j++] = String.valueOf(removed);
+			csvHead[j] = "conflicting " + name;
+			csv[j++] = String.valueOf(conflicts);
+			
 
 			if (nodes > 0) {
 				relative[i][0] = key.toLowerCase();
@@ -342,10 +394,20 @@ public class ASTStats {
 		// assert (sum[3] == Integer.parseInt(absolute[0][4]));
 		// assert (sum[4] == Integer.parseInt(absolute[0][5]));
 
-		sb.append(System.lineSeparator());
-		sb.append(ASCIITable.getInstance().getTable(head, absolute));
-		sb.append(System.lineSeparator());
-		sb.append(ASCIITable.getInstance().getTable(head, relative));
+		
+
+		if (LOG.isDebugEnabled()) {
+			// Table
+			sb.append(System.lineSeparator());
+			sb.append(ASCIITable.getInstance().getTable(head, absolute));
+			sb.append(System.lineSeparator());
+			sb.append(ASCIITable.getInstance().getTable(head, relative));
+		} else {
+			// CSV
+			sb.append(StringUtils.join(csvHead, ';'));
+			sb.append(System.lineSeparator());
+			sb.append(StringUtils.join(csv, ';'));
+		}
 
 		// return general.toString() + System.lineSeparator()
 		// + absolute.toString() + System.lineSeparator()

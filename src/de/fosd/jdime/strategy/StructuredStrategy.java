@@ -293,7 +293,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetStats);
 				}
 
-				if (LOG.isInfoEnabled()) {
+				if (LOG.isDebugEnabled()) {
 					String sep = " / ";
 					int nodes = astStats.getDiffStats(LangElem.NODE.toString())
 							.getElements();
@@ -305,14 +305,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 							LangElem.NODE.toString()).getDeleted();
 					int conflictnodes = astStats.getDiffStats(
 							LangElem.NODE.toString()).getConflicting();
-					LOG.info("Change awareness (nodes" + sep + "matches" + sep
+					LOG.info("Absolute (nodes" + sep + "matches" + sep
 							+ "changes" + sep + "removals" + sep
 							+ "conflicts): ");
 					LOG.info(nodes + sep + matches + sep + changes + sep
 							+ removals + sep + conflictnodes);
 
 					if (nodes > 0) {
-						LOG.info("Change awareness % (nodes" + sep + "matches"
+						LOG.info("Relative (nodes" + sep + "matches"
 								+ sep + "changes" + sep + "removals" + sep
 								+ "conflicts): ");
 						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep

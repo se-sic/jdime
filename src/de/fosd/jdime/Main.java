@@ -108,8 +108,8 @@ public final class Main {
 		if (output != null && output.exists() && !output.isEmpty()) {
 			System.err.println("Output directory is not empty!");
 			System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					System.in));
+			BufferedReader reader =
+					new BufferedReader(new InputStreamReader(System.in));
 			String response = reader.readLine();
 
 			if (response.length() == 0
@@ -159,6 +159,9 @@ public final class Main {
 				"benchmark with " + context.getBenchmarkRuns()
 						+ " runs per file");
 		options.addOption("debug", true, "set debug level");
+		options.addOption("consecutive", false,
+				"requires diffonly, treats versions"
+						+ " as consecutive versions");
 		options.addOption("diffonly", false, "diff only, do not merge");
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("help", false, "print this message");
@@ -266,6 +269,9 @@ public final class Main {
 
 			if (cmd.hasOption("diffonly")) {
 				context.setDiffOnly(true);
+				if (cmd.hasOption("consecutive")) {
+					context.setConsecutive(true);
+				}
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")
@@ -441,8 +447,9 @@ public final class Main {
 	public static void merge(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
-		Operation<FileArtifact> merge = new MergeOperation<>(
-				context.getInputFiles(), context.getOutputFile());
+		Operation<FileArtifact> merge =
+				new MergeOperation<>(context.getInputFiles(),
+						context.getOutputFile());
 		merge.apply(context);
 	}
 
@@ -455,8 +462,8 @@ public final class Main {
 	@SuppressWarnings("unchecked")
 	public static void dumpTrees(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
-			MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context
-					.getMergeStrategy();
+			MergeStrategy<FileArtifact> strategy =
+					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
 			strategy.dumpTree(artifact, context.isGuiDump());
 		}
 	}
@@ -470,8 +477,8 @@ public final class Main {
 	@SuppressWarnings("unchecked")
 	public static void dumpFiles(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
-			MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context
-					.getMergeStrategy();
+			MergeStrategy<FileArtifact> strategy =
+					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
 			strategy.dumpFile(artifact, context.isGuiDump());
 		}
 	}
