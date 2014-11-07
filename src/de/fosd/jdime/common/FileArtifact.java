@@ -374,6 +374,24 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file;
 	}
 
+	public ArtifactList<FileArtifact> getJavaFiles() throws IOException {
+		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
+
+		if (isFile()) {
+			String contentType = getContentType();
+
+			if (contentType.equals("text/x-java")) {
+				javaFiles.add(this);
+			}
+		} else if (isDirectory()) {
+			for (FileArtifact child : getDirContent()) {
+				javaFiles.addAll(child.getJavaFiles());
+			}
+		}
+
+		return javaFiles;
+	}
+
 	/**
 	 * Returns the absolute path of this artifact.
 	 *

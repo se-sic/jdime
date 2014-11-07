@@ -226,6 +226,41 @@ public class ASTStats {
 			mystats.setDeleted(otherstats.getAdded());
 		}
 	}
+	
+	public final void setRemovalsfromMatches(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setDeleted(otherstats.getMatches());
+		}
+	}
+	
+	
+	public final void setAdditionsfromMatches(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setAdded(otherstats.getMatches());
+		}
+	}
+	
+	public final void resetRemovals() {
+		for (String key : diffstats.keySet()) {
+			StatsElement mystats = diffstats.get(key);
+			mystats.setDeleted(0);
+		}
+	}
+	
+	public final void resetAdditions() {
+		for (String key : diffstats.keySet()) {
+			StatsElement mystats = diffstats.get(key);
+			mystats.setAdded(0);
+		}
+	}
 
 	/**
 	 * @param diffstats

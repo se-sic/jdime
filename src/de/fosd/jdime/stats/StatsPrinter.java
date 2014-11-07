@@ -100,7 +100,9 @@ public final class StatsPrinter {
 		if (context.isConsecutive()) {
 			ASTStats rightStats = stats.getRightStats();
 			ASTStats leftStats = stats.getLeftStats();
-			rightStats.setRemovalsfromAdditions(leftStats);
+			if (leftStats != null) {
+				rightStats.setRemovalsfromAdditions(leftStats);
+			}
 			System.out.println(rightStats);
 		} else {
 			ASTStats astStats = stats.getAstStats();

@@ -21,11 +21,17 @@
  *******************************************************************************/
 package de.fosd.jdime.common.operations;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 
@@ -67,7 +73,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @see de.fosd.jdime.common.operations.Operation#apply()
 	 */
 	@Override
-	public final void apply(final MergeContext context) {
+	public final void apply(final MergeContext context) throws IOException {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
@@ -81,6 +87,29 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			StatsElement element = stats.getElement(artifact
 					.getStatsKey(context));
 			element.incrementDeleted();
+			
+			if (artifact instanceof FileArtifact) {
+
+				// analyze java files to get statistics
+				for (FileArtifact child : ((FileArtifact) artifact)
+						.getJavaFiles()) {
+					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+					ASTStats childStats = childAST.getStats(null,
+							LangElem.TOPLEVELNODE, false);
+					if (LOG.isDebugEnabled()) {
+						LOG.debug(childStats.toString());
+					}
+					
+					childStats.setRemovalsfromAdditions(childStats);
+					childStats.resetAdditions();
+
+					if (context.isConsecutive()) {
+						context.getStats().addRightStats(childStats);
+					} else {
+						context.getStats().addASTStats(childStats);
+					}
+				}
+			}
 		}
 	}
 
