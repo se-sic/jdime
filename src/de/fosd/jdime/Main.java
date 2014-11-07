@@ -35,6 +35,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -87,7 +88,6 @@ public final class Main {
 		MergeContext context = new MergeContext();
 
 		setLogLevel("INFO");
-		LOG.debug("starting program");
 
 		parseCommandLineArgs(context, args);
 		ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
