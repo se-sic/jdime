@@ -32,15 +32,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
@@ -246,22 +245,23 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (exists());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
-	 */
 	@Override
 	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
-		// FIXME: The following works only for Unix-like systems.
-		// Maybe an empty file would also do the trick
-		File dummyFile = new File("/dev/null");
-		assert (dummyFile.exists()) : "Currently only Unix systems are supported!";
+		File dummyFile;
 
-		FileArtifact myEmptyDummy = new FileArtifact(dummyFile);
-		myEmptyDummy.setEmptyDummy(true);
-		LOG.trace("Artifact is a dummy artifact.");
-		return myEmptyDummy;
+		try {
+			dummyFile = Files.createTempFile(null, null).toFile();
+			dummyFile.deleteOnExit();
+		} catch (IOException e) {
+			throw new FileNotFoundException(e.getMessage());
+		}
+
+		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
+		dummyArtifact.setEmptyDummy(true);
+
+		LOG.trace("Artifact is a dummy artifact. Using temporary file " + dummyFile.getAbsolutePath());
+
+		return dummyArtifact;
 	}
 
 	@Override
