@@ -56,11 +56,25 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			.getShortClassName(FileArtifact.class));
 
 	/**
+	 * The expected MIME content type for java source files.
+	 */
+	private static final String MIME_JAVA_SOURCE = "text/x-java";
+
+	/**
 	 * File in which the artifact is stored.
 	 */
 	private File file;
+
+	/**
+	 * Used for determining the content type of this <code>FileArtifact</code> if 
+	 * {@link Files#probeContentType(java.nio.file.Path)} fails.
+	 */
+	private static final MimetypesFileTypeMap mimeMap;
 	
-	private final MimetypesFileTypeMap mimeMap;
+	static {
+		mimeMap = new MimetypesFileTypeMap();
+		mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
+	}
 
 	/**
 	 * Creates a new instance of an artifact.
@@ -113,8 +127,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		setRevision(revision);
 		
 		this.file = file;
-		this.mimeMap = new MimetypesFileTypeMap();
-		this.mimeMap.addMimeTypes("text/x-java java");
 		
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Artifact initialized: " + file.getPath());
@@ -398,13 +410,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	public ArtifactList<FileArtifact> getJavaFiles() throws IOException {
 		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
 
-		if (isFile()) {
-			String contentType = getContentType();
-
-			if (contentType.equals("text/x-java")) {
-				javaFiles.add(this);
-			}
+		if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
+			javaFiles.add(this);
 		} else if (isDirectory()) {
+			
 			for (FileArtifact child : getDirContent()) {
 				javaFiles.addAll(child.getJavaFiles());
 			}
@@ -602,7 +611,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 						+ contentType);
 			}
 
-			if (!contentType.equals("text/x-java")) {
+			if (!MIME_JAVA_SOURCE.equals(contentType)) {
 				LOG.debug("Skipping non-java file.");
 				return;
 			}
