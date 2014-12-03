@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
@@ -58,6 +59,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * File in which the artifact is stored.
 	 */
 	private File file;
+	
+	private final MimetypesFileTypeMap mimeMap;
 
 	/**
 	 * Creates a new instance of an artifact.
@@ -108,8 +111,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 
 		setRevision(revision);
+		
 		this.file = file;
-
+		this.mimeMap = new MimetypesFileTypeMap();
+		this.mimeMap.addMimeTypes("text/x-java java");
+		
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Artifact initialized: " + file.getPath());
 			LOG.trace("Artifact exists: " + exists());
@@ -330,15 +336,30 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	/**
-	 * Returns content type of file.
+	 * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
+	 * If the content type can not be determined <code>null</code> will be returned.
 	 *
-	 * @return content type of file
+	 * @return the MIME content type 
+	 *
 	 * @throws IOException
-	 *             If an input output exception occurs.
+	 *         if an I/O exception occurs while trying to determine the content type
 	 */
 	public final String getContentType() throws IOException {
 		assert (exists());
-		return Files.probeContentType(file.toPath());
+
+		String mimeType = Files.probeContentType(file.toPath());
+
+		if (mimeType == null) {
+			
+			// returns application/octet-stream if the type can not be determined
+			mimeType = mimeMap.getContentType(file); 
+			
+			if ("application/octet-stream".equals(mimeType)) { 
+				mimeType = null;
+			}
+		}
+
+		return mimeType;
 	}
 
 	/**
