@@ -61,20 +61,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	private static final String MIME_JAVA_SOURCE = "text/x-java";
 
 	/**
-	 * File in which the artifact is stored.
-	 */
-	private File file;
-
-	/**
 	 * Used for determining the content type of this <code>FileArtifact</code> if 
 	 * {@link Files#probeContentType(java.nio.file.Path)} fails.
 	 */
 	private static final MimetypesFileTypeMap mimeMap;
-	
+
 	static {
 		mimeMap = new MimetypesFileTypeMap();
 		mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
 	}
+
+	/**
+	 * File in which the artifact is stored.
+	 */
+	private File file;
 
 	/**
 	 * Creates a new instance of an artifact.
