@@ -26,4 +26,36 @@ dependencies {
     compile files('lib/JJ7.jar', 'lib/btc-ascii-table-1.0.jar')
 }
 
+def glpk_version = "4_55"
+
+jar.doLast {
+    def fail = false;
+    
+    if (!hasProperty("glpkJava")) {
+        println "Provide the path to the glpk_${glpk_version}_java native library using -PglpkJava=PATH."
+        fail = true;
+    }
+    if (!hasProperty("glpk")) {
+        println "Provide the path to the glpk_${glpk_version} native library using -Pglpk=PATH."
+        fail = true;
+    }
+    
+    if (fail) {
+        throw new InvalidUserDataException("Missing native library paths.");
+    }
+}
+
+task natives {
+    def glpkNat = file(glpk)
+    def glpkJavaNat = file(glpkJava)
+    
+    inputs.files(glpkNat, glpkJavaNat)
+    outputs.files(glpkNat, glpkJavaNat)
+}
+
+applicationName = rootProject.name
 mainClassName = "de.fosd.jdime.Main"
+
+applicationDistribution.from(natives) {
+    into("bin")
+}
