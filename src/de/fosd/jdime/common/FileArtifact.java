@@ -137,12 +137,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#addChild(
-	 * de.fosd.jdime.common.Artifact)
-	 */
 	@Override
 	public final FileArtifact addChild(final FileArtifact child)
 			throws IOException {
@@ -168,12 +162,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.toString().compareTo(o.toString());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#copyArtifact(de.fosd.jdime.common.Artifact)
-	 */
 	@Override
 	public final void copyArtifact(final FileArtifact destination)
 			throws IOException {
@@ -222,11 +210,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#createArtifact(boolean)
-	 */
 	@Override
 	public final void createArtifact(final boolean isLeaf) throws IOException {
 
@@ -320,11 +303,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return sb.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public final boolean equals(final Object obj) {
 		assert (obj != null);
@@ -335,11 +313,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.toString().equals(((FileArtifact) obj).toString());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#exists()
-	 */
 	@Override
 	public final boolean exists() {
 		assert (file != null);
@@ -554,11 +527,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file.isFile();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#isLeaf()
-	 */
 	@Override
 	public final boolean isLeaf() {
 		return !file.isDirectory();
@@ -583,13 +551,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.equals(other);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
@@ -656,11 +617,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (!exists());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#toString()
-	 */
 	@Override
 	public final String toString() {
 		assert (file != null);
