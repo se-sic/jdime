@@ -49,11 +49,7 @@ import org.apache.log4j.Logger;
  */
 public class FileArtifact extends Artifact<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(FileArtifact.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(FileArtifact.class));
 
 	/**
 	 * The expected MIME content type for java source files.
@@ -61,7 +57,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	private static final String MIME_JAVA_SOURCE = "text/x-java";
 
 	/**
-	 * Used for determining the content type of this <code>FileArtifact</code> if 
+	 * Used for determining the content type of this <code>FileArtifact</code> if
 	 * {@link Files#probeContentType(java.nio.file.Path)} fails.
 	 */
 	private static final MimetypesFileTypeMap mimeMap;
@@ -77,61 +73,64 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	private File file;
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
+	 * The newly constructed <code>FileArtifact</code> will not belong to a revision.
 	 *
 	 * @param file
-	 *            where the artifact is stored
+	 * 		the <code>File</code> in which the artifact is stored
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
 	 */
-	public FileArtifact(final File file) throws FileNotFoundException {
+	public FileArtifact(File file) throws FileNotFoundException {
 		this(null, file);
 	}
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
 	 *
 	 * @param revision
-	 *            the artifact belongs to
+	 * 		the <code>Revision</code> the artifact belongs to
 	 * @param file
-	 *            where the artifact is stored
+	 * 		the <code>File</code> in which the artifact is stored
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
 	 */
-	public FileArtifact(final Revision revision, final File file)
-			throws FileNotFoundException {
+	public FileArtifact(Revision revision, File file) throws FileNotFoundException {
 		this(revision, file, true);
 	}
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
 	 *
 	 * @param revision
-	 *            the artifact belongs to
+	 * 		the <code>Revision</code> the artifact belongs to
 	 * @param file
-	 *            where the artifact is stored
-	 * @param checkPresence
-	 *            If true, an exception is thrown when the file does not exist
+	 * 		the <code>File</code> in which the artifact is stored
+	 * @param checkExistence
+	 * 		whether to ensure that <code>file</code> exists
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>checkExistence</code> is <code>true</code> and <code>file</code> does not exist according to {@link
+	 * 		java.io.File#exists()}
 	 */
-	public FileArtifact(final Revision revision, final File file,
-			final boolean checkPresence) throws FileNotFoundException {
+	public FileArtifact(Revision revision, File file, boolean checkExistence) throws FileNotFoundException {
 		assert file != null;
 
-		if (checkPresence && !file.exists()) {
+		if (checkExistence && !file.exists()) {
 			LOG.fatal("File not found: " + file.getAbsolutePath());
 			throw new FileNotFoundException();
 		}
 
 		setRevision(revision);
-		
 		this.file = file;
-		
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Artifact initialized: " + file.getPath());
 			LOG.trace("Artifact exists: " + exists());
 			LOG.trace("File exists: " + file.exists());
+
 			if (exists()) {
 				LOG.trace("Artifact isEmpty: " + isEmpty());
 			}
