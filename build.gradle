@@ -27,16 +27,18 @@ dependencies {
 }
 
 def glpk_version = "4_55"
+def glpk_java_prop_name = 'glpkJava'
+def glpk_prop_name = 'glpk'
 
 jar.doLast {
     def fail = false;
     
-    if (!hasProperty("glpkJava")) {
-        println "Provide the path to the glpk_${glpk_version}_java native library using -PglpkJava=PATH."
+    if (!rootProject.hasProperty(glpk_java_prop_name)) {
+        println "Provide the path to the glpk_${glpk_version}_java native library using the ${glpk_java_prop_name} property."
         fail = true;
-    }
-    if (!hasProperty("glpk")) {
-        println "Provide the path to the glpk_${glpk_version} native library using -Pglpk=PATH."
+    }     
+    if (!rootProject.hasProperty(glpk_prop_name)) {
+        println "Provide the path to the glpk_${glpk_version} native library using the ${glpk_prop_name} property."
         fail = true;
     }
     
@@ -46,11 +48,13 @@ jar.doLast {
 }
 
 task natives {
-    def glpkNat = file(glpk)
-    def glpkJavaNat = file(glpkJava)
-    
-    inputs.files(glpkNat, glpkJavaNat)
-    outputs.files(glpkNat, glpkJavaNat)
+    if (rootProject.hasProperty(glpk_java_prop_name) && rootProject.hasProperty(glpk_prop_name)) {
+        def glpkNat = file(glpk)
+        def glpkJavaNat = file(glpkJava)
+
+        inputs.files(glpkNat, glpkJavaNat)
+        outputs.files(glpkNat, glpkJavaNat)
+    }
 }
 
 applicationName = rootProject.name
