@@ -30,10 +30,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -41,36 +37,29 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
- * Performs an unstructured, line-based merge.
+ * Performs an unstructured, line based merge.
  *
  * @author Olaf Lessenich
- *
  */
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(LinebasedStrategy.class));
+	
 	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(LinebasedStrategy.class));
-	/**
-	 * Basic merge command.
+	 * The command to use for merging.
 	 */
 	private static final String BASECMD = "git";
+	
 	/**
-	 * Basic merge arguments.
+	 * The arguments for <code>BASECMD</code>.
 	 */
 	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
 			final MergeContext context) throws IOException,
@@ -263,43 +252,38 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public final Stats createStats() {
 		return new Stats(new String[] { "directories", "files", "lines" });
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public final String toString() {
 		return "linebased";
 	}
 
 	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
+	public final String getStatsKey(FileArtifact artifact) {
 		return "lines";
 	}
 
+	/**
+	 * Throws <code>UnsupportedOperationException</code>. You should use a structured strategy to dump a tree.
+	 * 
+	 * @param artifact
+	 *            artifact to dump
+	 * @param graphical
+	 *            output option
+	 */
 	@Override
-	public final void dumpTree(final FileArtifact artifact,
-			final boolean graphical) throws IOException {
-		throw new UnsupportedOperationException(
-				"Use a structured strategy to dump a tree.");
+	public final void dumpTree(FileArtifact artifact, boolean graphical) {
+		throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
 	}
 
 	@Override
-	public void dumpFile(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		try (BufferedReader buf = new BufferedReader(new FileReader(
-				artifact.getFile()))) {
+	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
+		
+		try (BufferedReader buf = new BufferedReader(new FileReader(artifact.getFile()))) {
 			String line;
 			while ((line = buf.readLine()) != null) {
 				System.out.println(line);
