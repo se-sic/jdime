@@ -22,9 +22,9 @@
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -282,13 +282,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 	@Override
 	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-		
-		try (BufferedReader buf = new BufferedReader(new FileReader(artifact.getFile()))) {
-			String line;
-			while ((line = buf.readLine()) != null) {
-				System.out.println(line);
-				// TODO: optionally save to outputfile
-			}
-		}
+		Files.lines(artifact.getFile().toPath()).forEach(System.out::println); // TODO: optionally save to outputfile
 	}
 }
