@@ -94,6 +94,7 @@ def getName(file) {
 
 applicationName = rootProject.name
 mainClassName = "de.fosd.jdime.Main"
+applicationDefaultJvmArgs = ["-Xmx2048m", "-ea"]
 
 applicationDistribution.from(natives) {
     into("bin")
