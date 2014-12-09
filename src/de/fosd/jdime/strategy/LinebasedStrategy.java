@@ -58,11 +58,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	/**
 	 * Basic merge command.
 	 */
-	private static final String BASECMD = "/usr/bin/merge";
+	private static final String BASECMD = "git";
 	/**
 	 * Basic merge arguments.
 	 */
-	private static final String[] BASEARGS = { "-q", "-p" };
+	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
 	/*
 	 * (non-Javadoc)
