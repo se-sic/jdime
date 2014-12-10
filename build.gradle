@@ -28,11 +28,10 @@ dependencies {
 
 task natives {
     def fail = false;
-    def glpk_version = "4_55"
     def glpk_java_prop_name = "glpkJava"
     def glpk_prop_name = "glpk"
-    def glpk_java_name = "glpk_${glpk_version}_java"
-    def glpk_name = "glpk_${glpk_version}"
+    def glpk_java_name = "libglpk_java.so"
+    def glpk_name = "libglpk.so"
 
     if (!rootProject.hasProperty(glpk_java_prop_name)) {
         println "Provide the path to the $glpk_java_name native library using the $glpk_java_prop_name property."
@@ -50,22 +49,12 @@ task natives {
     def glpkJavaFile = file(rootProject."$glpk_java_prop_name")
     def glpkFile = file(rootProject."$glpk_prop_name")
 
-    if (glpkJavaFile.exists()) {
-        if (!glpkJavaFile.isFile() || getName(glpkJavaFile) != glpk_java_name) {
-            println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name with an optional extension."
-            fail = true;
-        }
-    } else {
+    if (!glpkJavaFile.exists()) {
         println "$glpkJavaFile does not exist."
         fail = true;
     }
 
-    if (glpkFile.exists()) {
-        if (!glpkFile.isFile() || getName(glpkFile) != glpk_name) {
-            println "$glpkFile is not a file or does not have the correct name. Expecting $glpk_name with an optional extension."
-            fail = true;
-        }
-    } else {
+    if (!glpkFile.exists()) {
         println "$glpkFile does not exist."
         fail = true;
     }
