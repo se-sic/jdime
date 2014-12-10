@@ -33,7 +33,7 @@ task natives {
     def glpk_prop_name = "glpk"
     def glpk_java_name
     def glpk_name
-    
+
     if (System.getProperty("os.name").toLowerCase().contains("windows")) {
         glpk_java_name = "glpk_${glpk_version}_java.dll"
         glpk_name = "glpk_${glpk_version}.dll"
@@ -41,7 +41,7 @@ task natives {
         glpk_java_name = "libglpk_java.so"
         glpk_name = "libglpk.so"
     }
-    
+
     if (!rootProject.hasProperty(glpk_java_prop_name)) {
         println "Provide the path to the $glpk_java_name native library using the $glpk_java_prop_name property."
         fail = true;
@@ -55,8 +55,8 @@ task natives {
         throw new InvalidUserDataException("Missing native library paths.");
     }
 
-    def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getCanonicalFile()
-    def glpkFile = file(rootProject."$glpk_prop_name").getCanonicalFile()
+    def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
+    def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
 
     if (glpkJavaFile.exists()) {
         if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
