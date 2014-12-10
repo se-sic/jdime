@@ -50,9 +50,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
 	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
+	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 
 		assert (operation != null);
 		assert (context != null);
@@ -264,8 +262,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						LangElem.TOPLEVELNODE, false);
 
 				assert (leftStats.getDiffStats(LangElem.NODE.toString())
-						.getMatches() == rightStats.getDiffStats(
-						LangElem.NODE.toString()).getMatches()) : "Number of matches should be equal in left and "
+						.getMatches() == rightStats.getDiffStats(LangElem.NODE.toString()).getMatches()) : "Number of matches should be equal in left and "
 						+ "right revision.";
 
 				astStats = ASTStats.add(leftStats, rightStats);
