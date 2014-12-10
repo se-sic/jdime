@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.matcher;
 
 /**
@@ -29,31 +29,31 @@ package de.fosd.jdime.matcher;
  */
 public enum Direction {
 
-    /**
+	/**
      *
      */
-    LEFT {
-        @Override
-        public String toString() {
-            return "LEFT";
-        }
-    },
-    /**
+	LEFT {
+		@Override
+		public String toString() {
+			return "LEFT";
+		}
+	},
+	/**
      *
      */
-    TOP {
-        @Override
-        public String toString() {
-            return "TOP";
-        }
-    },
-    /**
+	TOP {
+		@Override
+		public String toString() {
+			return "TOP";
+		}
+	},
+	/**
      *
      */
-    DIAG {
-        @Override
-        public String toString() {
-            return "DIAG";
-        }
-    }
+	DIAG {
+		@Override
+		public String toString() {
+			return "DIAG";
+		}
+	}
 }

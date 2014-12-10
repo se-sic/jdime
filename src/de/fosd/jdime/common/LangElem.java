@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 
 package de.fosd.jdime.common;
 
@@ -32,32 +32,32 @@ package de.fosd.jdime.common;
  */
 public enum LangElem {
 	/**
-	 * Every node. 
+	 * Every node.
 	 */
 	NODE,
-	
-    /**
-     * Everything above class declaration, e.g. import statements. 
-     */
-    TOPLEVELNODE,
-    
-    /**
-     * Everything within class declaration but outside methods.
-     */
-    CLASSLEVELNODE,
-    
-    /**
-     * Everything inside methods.  
-     */
-    METHODLEVELNODE,
-    
-    /**
-     * A class.
-     */
-    CLASS,
-    
-    /**
-     * A method.
-     */
-    METHOD;
+
+	/**
+	 * Everything above class declaration, e.g. import statements.
+	 */
+	TOPLEVELNODE,
+
+	/**
+	 * Everything within class declaration but outside methods.
+	 */
+	CLASSLEVELNODE,
+
+	/**
+	 * Everything inside methods.
+	 */
+	METHODLEVELNODE,
+
+	/**
+	 * A class.
+	 */
+	CLASS,
+
+	/**
+	 * A method.
+	 */
+	METHOD;
 }

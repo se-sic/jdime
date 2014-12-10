@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,14 +18,9 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.DirectoryStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,12 +31,20 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
+
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
+import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
 
 /**
  * This class represents an artifact of a program.
- * 
+ *
  * @author Olaf Lessenich
  */
 public class FileArtifact extends Artifact<FileArtifact> {
@@ -49,7 +52,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(FileArtifact.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(FileArtifact.class));
 
 	/**
 	 * File in which the artifact is stored.
@@ -58,7 +62,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Creates a new instance of an artifact.
-	 * 
+	 *
 	 * @param file
 	 *            where the artifact is stored
 	 * @throws FileNotFoundException
@@ -70,7 +74,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Creates a new instance of an artifact.
-	 * 
+	 *
 	 * @param revision
 	 *            the artifact belongs to
 	 * @param file
@@ -85,7 +89,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Creates a new instance of an artifact.
-	 * 
+	 *
 	 * @param revision
 	 *            the artifact belongs to
 	 * @param file
@@ -128,16 +132,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			throws IOException {
 		assert (child != null);
 
-		assert (!isLeaf()) 
-			: "Child elements can not be added to leaf artifacts. "
+		assert (!isLeaf()) : "Child elements can not be added to leaf artifacts. "
 				+ "isLeaf(" + this + ") = " + isLeaf();
 
-		assert (getClass().equals(child.getClass())) 
-			: "Can only add children of same type";
+		assert (getClass().equals(child.getClass())) : "Can only add children of same type";
 
-		FileArtifact myChild =
-				new FileArtifact(getRevision(), new File(file + File.separator
-						+ child), false);
+		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
+				+ File.separator + child), false);
 
 		return myChild;
 	}
@@ -179,8 +180,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			}
 		} else if (destination.isDirectory()) {
 			if (isFile()) {
-				assert (destination.exists()) 
-				: "Destination directory does not exist: " + destination;
+				assert (destination.exists()) : "Destination directory does not exist: "
+						+ destination;
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Copying file " + this + " to directory "
 							+ destination);
@@ -219,15 +220,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		// if (artifact.exists()) {
 		// Artifact.remove(artifact);
 		// }
-
 		assert (!exists()) : "File would be overwritten: " + this;
 
 		if (file.getParentFile() != null) {
 			boolean createdParents = file.getParentFile().mkdirs();
 
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Had to create parent directories: " 
-						+ createdParents);
+				LOG.trace("Had to create parent directories: " + createdParents);
 			}
 		}
 
@@ -254,11 +253,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 */
 	@Override
 	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
-		// FIXME: The following works only for Unix-like systems. Do something
-		// about it!
+		// FIXME: The following works only for Unix-like systems.
+		// Maybe an empty file would also do the trick
 		File dummyFile = new File("/dev/null");
-		assert (dummyFile.exists()) 
-			: "Currently only Unix systems are supported!";
+		assert (dummyFile.exists()) : "Currently only Unix systems are supported!";
 
 		FileArtifact myEmptyDummy = new FileArtifact(dummyFile);
 		myEmptyDummy.setEmptyDummy(true);
@@ -333,7 +331,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns content type of file.
-	 * 
+	 *
 	 * @return content type of file
 	 * @throws IOException
 	 *             If an input output exception occurs.
@@ -345,7 +343,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns the list of artifacts contained in this directory.
-	 * 
+	 *
 	 * @return list of artifacts contained in this directory
 	 */
 	public final ArtifactList<FileArtifact> getDirContent() {
@@ -356,8 +354,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 		for (int i = 0; i < content.length; i++) {
 			try {
-				FileArtifact child =
-						new FileArtifact(getRevision(), content[i]);
+				FileArtifact child = new FileArtifact(getRevision(), content[i]);
 				child.setParent(this);
 				contentArtifacts.add(child);
 			} catch (FileNotFoundException e) {
@@ -370,16 +367,34 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns the encapsulated file.
-	 * 
+	 *
 	 * @return file
 	 */
 	public final File getFile() {
 		return file;
 	}
 
+	public ArtifactList<FileArtifact> getJavaFiles() throws IOException {
+		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
+
+		if (isFile()) {
+			String contentType = getContentType();
+
+			if (contentType.equals("text/x-java")) {
+				javaFiles.add(this);
+			}
+		} else if (isDirectory()) {
+			for (FileArtifact child : getDirContent()) {
+				javaFiles.addAll(child.getJavaFiles());
+			}
+		}
+
+		return javaFiles;
+	}
+
 	/**
 	 * Returns the absolute path of this artifact.
-	 * 
+	 *
 	 * @return absolute part of the artifact
 	 */
 	public final String getFullPath() {
@@ -399,7 +414,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns the path of this artifact.
-	 * 
+	 *
 	 * @return path of the artifact
 	 */
 	public final String getPath() {
@@ -410,7 +425,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	/**
 	 * Returns a reader that can be used to retrieve the content of the
 	 * artifact.
-	 * 
+	 *
 	 * @return Reader
 	 * @throws FileNotFoundException
 	 *             If the artifact is a file which is not found
@@ -425,7 +440,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns the list of (relative) filenames contained in this directory.
-	 * 
+	 *
 	 * @return list of relative filenames
 	 */
 	public final List<String> getRelativeDirContent() {
@@ -479,7 +494,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns true if artifact is a directory.
-	 * 
+	 *
 	 * @return true if artifact is a directory
 	 */
 	public final boolean isDirectory() {
@@ -488,7 +503,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns true if the artifact is empty.
-	 * 
+	 *
 	 * @return true if the artifact is empty
 	 */
 	@Override
@@ -503,7 +518,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Returns true if artifact is a normal file.
-	 * 
+	 *
 	 * @return true if artifact is a normal file
 	 */
 	public final boolean isFile() {
@@ -527,11 +542,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public final boolean matches(final FileArtifact other) {
-		if (isDirectory() && isRoot() && other.isDirectory() 
-				&& other.isRoot()) {
+		if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug(this + " and " + other 
-						+ " are toplevel directories.");
+				LOG.debug(this + " and " + other + " are toplevel directories.");
 				LOG.debug("We assume a match here and continue to merge the "
 						+ "contained files and directories.");
 			}
@@ -557,9 +570,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (context != null);
 		assert (exists());
 
-		MergeStrategy<FileArtifact> strategy =
-				(MergeStrategy<FileArtifact>) (isDirectory()
-						? new DirectoryStrategy() : context.getMergeStrategy());
+		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) (isDirectory() ? new DirectoryStrategy()
+				: context.getMergeStrategy());
 		assert (strategy != null);
 
 		if (!isDirectory()) {
@@ -581,7 +593,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		LOG.info(this);
 		strategy.merge(operation, context);
 		if (!context.isQuiet() && context.hasOutput()) {
-			System.out.println(context.getStdIn());
+			System.out.print(context.getStdIn());
 		}
 		context.resetStreams();
 
@@ -589,13 +601,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Removes the artifact's file.
-	 * 
+	 *
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
 	public final void remove() throws IOException {
-		assert (exists() && !isEmptyDummy()) 
-			: "Tried to remove non-existing file: " + getFullPath();
+		assert (exists() && !isEmptyDummy()) : "Tried to remove non-existing file: "
+				+ getFullPath();
 
 		if (isDirectory()) {
 			if (LOG.isDebugEnabled()) {
@@ -628,7 +640,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	/**
 	 * Writes from a BufferedReader to the artifact.
-	 * 
+	 *
 	 * @param str
 	 *            String to write
 	 * @throws IOException
@@ -648,5 +660,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			final FileArtifact left, final FileArtifact right)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
+	}
+
+	public final String getContent() throws IOException {
+		return file == null ? "" : FileUtils.readFileToString(file);
 	}
 }

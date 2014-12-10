@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import AST.ASTNode;
@@ -53,18 +54,19 @@ import de.fosd.jdime.strategy.MergeStrategy;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(ASTNodeArtifact.class));
 
 	/**
 	 * Initializes parser.
-	 * 
+	 *
 	 * @param p
 	 *            program
 	 */
@@ -81,7 +83,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Initializes a program.
-	 * 
+	 *
 	 * @return program
 	 */
 	private static Program initProgram() {
@@ -137,7 +139,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Constructs an ASTNodeArtifact from a FileArtifact.
-	 * 
+	 *
 	 * @param artifact
 	 *            file artifact
 	 */
@@ -161,10 +163,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	/**
-	 * Returns the encapsulated ASTNode. Debugging method only. TODO: Remove
-	 * this in a later.
-	 * 
-	 * @return encapsulated ASTnode
+	 * Returns the encapsulated JastAddJ ASTNode
+	 *
+	 * @return encapsulated ASTNode object from JastAddJ
 	 */
 	public final ASTNode<?> getASTNode() {
 		return astnode;
@@ -277,7 +278,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Returns the AST in dot-format.
-	 * 
+	 *
 	 * @param includeNumbers
 	 *            include node number in label if true
 	 * @return AST in dot-format.
@@ -326,7 +327,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		StringBuilder sb = new StringBuilder();
 
 		// node itself
-
 		Matching<ASTNodeArtifact> m = null;
 
 		// color
@@ -472,7 +472,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Returns whether declaration order is significant for this node.
-	 * 
+	 *
 	 * @return whether declaration order is significant for this node
 	 */
 	@Override
@@ -487,7 +487,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Returns whether a node matches another node.
-	 * 
+	 *
 	 * @param other
 	 *            node to compare with.
 	 * @return true if the node matches another node.
@@ -586,13 +586,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		if (!context.isQuiet() && context.hasOutput()) {
-			System.out.println(context.getStdIn());
+			System.out.print(context.getStdIn());
 		}
 	}
 
 	/**
 	 * Removes a child.
-	 * 
+	 *
 	 * @param child
 	 *            child that should be removed
 	 */
@@ -618,7 +618,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	/**
 	 * Pretty-prints the AST to source code.
-	 * 
+	 *
 	 * @return Pretty-printed AST (source code)
 	 */
 	public final String prettyPrint() {
@@ -707,7 +707,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
 	 * Returns statistical data of the tree. stats[0]: number of nodes stats[1]:
 	 * tree depth stats[2]: maximum number of children
-	 * 
+	 *
 	 * @return statistics
 	 */
 	public final int[] getStats() {
@@ -731,7 +731,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return mystats;
 	}
 
-	public final ASTStats getStats(Revision revision, LangElem level, boolean isFragment) {
+	public final ASTStats getStats(Revision revision, LangElem level,
+			boolean isFragment) {
 		StatsElement nodeStats = new StatsElement();
 		StatsElement toplevelnodeStats = new StatsElement();
 		StatsElement classlevelnodeStats = new StatsElement();
@@ -771,7 +772,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			myStats = methodlevelnodeStats;
 			break;
 		default:
-			throw new NotYetImplementedException(); 
+			throw new NotYetImplementedException();
 		}
 
 		assert (myStats != null);
@@ -807,14 +808,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			isFragment = true;
 			stats.incrementFragments();
 		}
-		
+
 		boolean assertsEnabled = false;
 		assert assertsEnabled = true;
 		if (assertsEnabled) {
 			for (String key : diffstats.keySet()) {
 				StatsElement e = diffstats.get(key);
-				assert (e.getElements() == e.getMatches() + e.getAdded() + e.getDeleted() + e.getConflicting());
-				assert (e.getChanges() == e.getAdded() + e.getDeleted() + e.getConflicting());
+				assert (e.getElements() == e.getMatches() + e.getAdded()
+						+ e.getDeleted() + e.getConflicting());
+				assert (e.getChanges() == e.getAdded() + e.getDeleted()
+						+ e.getConflicting());
 			}
 
 		}
@@ -825,17 +828,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			if (!hasSubtreeChanges && stats.hasChanges()) {
 				hasSubtreeChanges = true;
 				if (astnode instanceof ClassDecl) {
-					stats.getDiffStats(LangElem.CLASS.toString()).incrementChanges();
+					stats.getDiffStats(LangElem.CLASS.toString())
+							.incrementChanges();
 				} else if (astnode instanceof MethodDecl
 						|| astnode instanceof ConstructorDecl) {
-					stats.getDiffStats(LangElem.METHOD.toString()).incrementChanges();
+					stats.getDiffStats(LangElem.METHOD.toString())
+							.incrementChanges();
 				}
 			}
-			
+
 			if (assertsEnabled) {
 				for (String key : diffstats.keySet()) {
 					StatsElement e = diffstats.get(key);
-					assert (e.getElements() == e.getMatches() + e.getAdded() + e.getDeleted() + e.getConflicting());
+					assert (e.getElements() == e.getMatches() + e.getAdded()
+							+ e.getDeleted() + e.getConflicting());
 				}
 			}
 		}

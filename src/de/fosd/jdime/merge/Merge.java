@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,14 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.merge;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
@@ -30,13 +36,10 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
-import java.io.IOException;
-import java.util.List;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  * @param <T>
  *            type of artifact
  */
@@ -45,7 +48,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Merge.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(Merge.class));
 	/**
      *
      */
@@ -149,17 +153,16 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 						LOG.trace(prefix(right) + "has changes in subtree");
 					}
 					for (T rightChild : right.getChildren()) {
-						ConflictOperation<T> conflictOp =
-								new ConflictOperation<>(rightChild, null,
-										rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								rightChild, null, rightChild, target);
 						conflictOp.apply(context);
 					}
 					return;
 				} else {
 					for (T rightChild : rightChildren) {
 
-						DeleteOperation<T> delOp =
-								new DeleteOperation<>(rightChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(
+								rightChild);
 						delOp.apply(context);
 					}
 					return;
@@ -174,16 +177,15 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 						LOG.trace(prefix(left) + " has changes in subtree");
 					}
 					for (T leftChild : left.getChildren()) {
-						ConflictOperation<T> conflictOp =
-								new ConflictOperation<>(leftChild, leftChild,
-										null, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								leftChild, leftChild, null, target);
 						conflictOp.apply(context);
 					}
 					return;
 				} else {
 					for (T leftChild : leftChildren) {
-						DeleteOperation<T> delOp =
-								new DeleteOperation<>(leftChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(
+								leftChild);
 						delOp.apply(context);
 					}
 					return;
@@ -226,7 +228,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 	/**
 	 * Returns the logging prefix.
-	 * 
+	 *
 	 * @return logging prefix
 	 */
 	private String prefix() {
@@ -235,7 +237,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 	/**
 	 * Returns the logging prefix.
-	 * 
+	 *
 	 * @param artifact
 	 *            artifact that is subject of the logging
 	 * @return logging prefix

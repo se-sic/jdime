@@ -65,4 +65,7 @@
 			</manifest>
 		</jar>
 	</target>
+	<target depends="dist" name="deploy">
+		<copy file="dist/jdime.jar" tofile="${user.home}/opt/java/jdime.jar" overwrite="true" />
+	</target>
 </project>

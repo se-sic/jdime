@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,42 +18,48 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.merge;
+
+import java.io.IOException;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
-import java.io.IOException;
 
 /**
  * Interface for the merge strategies.
  *
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  *
  */
 public interface MergeInterface<T extends Artifact<T>> {
 
-    /**
-     * At least two input files are needed.
-     */
-    int MINFILES = MergeType.MINFILES;
-    /**
-     * More than three input files are not supported at the moment.
-     */
-    int MAXFILES = MergeType.MAXFILES;
+	/**
+	 * At least two input files are needed.
+	 */
+	int MINFILES = MergeType.MINFILES;
+	/**
+	 * More than three input files are not supported at the moment.
+	 */
+	int MAXFILES = MergeType.MAXFILES;
 
-    /**
-     * Performs a merge.
-     *
-     * @param operation merge operation
-     * @param context merge context
-     * @throws IOException IOException
-     * @throws InterruptedException InterruptedException
-     */
-    void merge(MergeOperation<T> operation, MergeContext context)
-            throws IOException, InterruptedException;
+	/**
+	 * Performs a merge.
+	 *
+	 * @param operation
+	 *            merge operation
+	 * @param context
+	 *            merge context
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 */
+	void merge(MergeOperation<T> operation, MergeContext context)
+			throws IOException, InterruptedException;
 }

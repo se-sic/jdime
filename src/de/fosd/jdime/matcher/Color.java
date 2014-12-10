@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.matcher;
 
 /**
@@ -27,88 +27,88 @@ package de.fosd.jdime.matcher;
  */
 public enum Color {
 
-    /**
+	/**
      *
      */
-    GREEN {
-        @Override
-        public String toShell() {
-            return "\033[32m";
-        }
+	GREEN {
+		@Override
+		public String toShell() {
+			return "\033[32m";
+		}
 
-        @Override
-        public String toGraphViz() {
-            return "green";
-        }
-    },
-    /**
+		@Override
+		public String toGraphViz() {
+			return "green";
+		}
+	},
+	/**
      *
      */
-    BLUE {
-        @Override
-        public String toShell() {
-            return "\033[34m";
-        }
+	BLUE {
+		@Override
+		public String toShell() {
+			return "\033[34m";
+		}
 
-        @Override
-        public String toGraphViz() {
-            return "blue";
-        }
-    },
-    /**
+		@Override
+		public String toGraphViz() {
+			return "blue";
+		}
+	},
+	/**
      *
      */
-    YELLOW {
-        @Override
-        public String toShell() {
-            return "\033[33m";
-        }
+	YELLOW {
+		@Override
+		public String toShell() {
+			return "\033[33m";
+		}
 
-        @Override
-        public String toGraphViz() {
-            return "yellow";
-        }
-    },
-    /**
+		@Override
+		public String toGraphViz() {
+			return "yellow";
+		}
+	},
+	/**
      *
      */
-    RED {
-        @Override
-        public String toShell() {
-            return "\033[31m";
-        }
+	RED {
+		@Override
+		public String toShell() {
+			return "\033[31m";
+		}
 
-        @Override
-        public String toGraphViz() {
-            return "red";
-        }
-    },
-    /**
+		@Override
+		public String toGraphViz() {
+			return "red";
+		}
+	},
+	/**
      *
      */
-    DEFAULT {
-        @Override
-        public String toShell() {
-            return "\033[0m";
-        }
+	DEFAULT {
+		@Override
+		public String toShell() {
+			return "\033[0m";
+		}
 
-        @Override
-        public String toGraphViz() {
-            return "white";
-        }
-    };
+		@Override
+		public String toGraphViz() {
+			return "white";
+		}
+	};
 
-    /**
-     * Returns a String representation that can be interpreted by terminals.
-     *
-     * @return String representation to be used in terminals
-     */
-    public abstract String toShell();
+	/**
+	 * Returns a String representation that can be interpreted by terminals.
+	 *
+	 * @return String representation to be used in terminals
+	 */
+	public abstract String toShell();
 
-    /**
-     * Returns a String representation that can be interpreted by GraphViz.
-     *
-     * @return String representation that can be interpreted by GraphViz
-     */
-    public abstract String toGraphViz();
+	/**
+	 * Returns a String representation that can be interpreted by GraphViz.
+	 *
+	 * @return String representation that can be interpreted by GraphViz
+	 */
+	public abstract String toGraphViz();
 }

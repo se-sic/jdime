@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,91 +18,94 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.strategy;
+
+import java.util.HashMap;
+import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.merge.MergeInterface;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
 public abstract class MergeStrategy<T extends Artifact<T>> implements
-        MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
+		MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
 
-    /**
-     * Map holding all strategies.
-     */
-    private static HashMap<String, MergeStrategy<?>> strategyMap = null;
+	/**
+	 * Map holding all strategies.
+	 */
+	private static HashMap<String, MergeStrategy<?>> strategyMap = null;
 
-    /**
-     * Initializes the strategy map.
-     */
-    private static void initialize() {
-        strategyMap = new HashMap<>();
-        LinebasedStrategy linebased = new LinebasedStrategy();
-        StructuredStrategy structured = new StructuredStrategy();
-        CombinedStrategy combined = new CombinedStrategy();
-        
-        strategyMap.put("linebased", linebased);
-        strategyMap.put("unstructured", linebased);
-        
-        strategyMap.put("structured", structured);
-        
-        strategyMap.put("combined", combined);
-        strategyMap.put("autotuning", combined);
-    }
+	/**
+	 * Initializes the strategy map.
+	 */
+	private static void initialize() {
+		strategyMap = new HashMap<>();
+		LinebasedStrategy linebased = new LinebasedStrategy();
+		StructuredStrategy structured = new StructuredStrategy();
+		CombinedStrategy combined = new CombinedStrategy();
 
-    /**
-     * Returns a set containing the names of available strategies.
-     *
-     * @return names of available strategies
-     */
-    public static Set<String> listStrategies() {
-        if (strategyMap == null) {
-            initialize();
-        }
+		strategyMap.put("linebased", linebased);
+		strategyMap.put("unstructured", linebased);
 
-        assert (strategyMap != null);
+		strategyMap.put("structured", structured);
 
-        return strategyMap.keySet();
-    }
+		strategyMap.put("combined", combined);
+		strategyMap.put("autotuning", combined);
+	}
 
-    /**
-     * Parses a String and returns a strategy. Null is returned if no
-     * appropriate Tool is found.
-     *
-     * @param str name of the merge tool
-     * @return MergeStrategy merge strategy
-     */
-    public static MergeStrategy<?> parse(final String str) {
-        assert str != null : "Merge strategy may not be null!";
+	/**
+	 * Returns a set containing the names of available strategies.
+	 *
+	 * @return names of available strategies
+	 */
+	public static Set<String> listStrategies() {
+		if (strategyMap == null) {
+			initialize();
+		}
 
-        String input = str.toLowerCase();
+		assert (strategyMap != null);
 
-        if (strategyMap == null) {
-            initialize();
-        }
+		return strategyMap.keySet();
+	}
 
-        assert (strategyMap != null);
+	/**
+	 * Parses a String and returns a strategy. Null is returned if no
+	 * appropriate Tool is found.
+	 *
+	 * @param str
+	 *            name of the merge tool
+	 * @return MergeStrategy merge strategy
+	 */
+	public static MergeStrategy<?> parse(final String str) {
+		assert str != null : "Merge strategy may not be null!";
 
-        if (strategyMap.containsKey(input)) {
-            return strategyMap.get(input);
-        } else {
-            throw new StrategyNotFoundException("Strategy not found: " + str);
-        }
+		String input = str.toLowerCase();
 
-    }
+		if (strategyMap == null) {
+			initialize();
+		}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public abstract String toString();
+		assert (strategyMap != null);
+
+		if (strategyMap.containsKey(input)) {
+			return strategyMap.get(input);
+		} else {
+			throw new StrategyNotFoundException("Strategy not found: " + str);
+		}
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public abstract String toString();
 }

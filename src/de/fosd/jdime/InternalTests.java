@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 
 package de.fosd.jdime;
 
@@ -35,9 +35,9 @@ import de.fosd.jdime.stats.StatsElement;
  * @author Olaf Lessenich
  */
 public final class InternalTests {
-	
+
 	private static String delimiter = "====================================================";
-	
+
 	/**
 	 * 
 	 */
@@ -54,8 +54,15 @@ public final class InternalTests {
 	}
 
 	public static void runEnvironmentTest() {
-		GLPK.glp_create_prob();
-		System.out.println(InternalTests.class.getCanonicalName() + ": OK");
+		try {
+			GLPK.glp_create_prob();
+			System.out.println(InternalTests.class.getCanonicalName() + ": OK");
+		} catch (Throwable t) {
+			System.out.println(t);
+			System.out.println(InternalTests.class.getCanonicalName() + ": FAILED");
+			throw(t);
+		}
+		
 	}
 
 	public static void runASTStatsTests() {
@@ -73,31 +80,31 @@ public final class InternalTests {
 				StatsElement s = new StatsElement();
 				s.setAdded((int) (5 * Math.random()));
 				s.setMatches((int) (5 * Math.random()));
-				s.setDeleted((int) (5* Math.random()));
+				s.setDeleted((int) (5 * Math.random()));
 				s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
 				s.setConflicting((int) (s.getElements() * Math.random()));
-				s.setChanges(s.getAdded()+s.getDeleted() + s.getConflicting());
+				s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
 				all.addStatsElement(s);
 				diffstats.put(level.toString(), s);
 			}
 
 			diffstats.put(LangElem.NODE.toString(), all);
 
-			stats[i] =
-					new ASTStats(all.getElements(), (int) (5 * Math.random()),
-							(int) (5 * Math.random()), diffstats, all.getChanges() != 0);
+			stats[i] = new ASTStats(all.getElements(),
+					(int) (5 * Math.random()), (int) (5 * Math.random()),
+					diffstats, all.getChanges() != 0);
 		}
-		
+
 		ASTStats sum = ASTStats.add(stats[0], stats[1]);
-		
+
 		System.out.println(delimiter);
 		System.out.println("Left:");
 		System.out.println(stats[0]);
-		
+
 		System.out.println(delimiter);
 		System.out.println("Right:");
 		System.out.println(stats[1]);
-		
+
 		System.out.println(delimiter);
 		System.out.println("Sum:");
 		System.out.println(sum);

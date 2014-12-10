@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
@@ -30,12 +30,14 @@ import de.fosd.jdime.common.Artifact;
  */
 public interface MatchingInterface<T extends Artifact<T>> {
 
-    /**
-     * Returns a tree of matches for the provided artifacts.
-     *
-     * @param left artifact
-     * @param right artifact
-     * @return tree of matches
-     */
-    Matching<T> match(final T left, final T right);
+	/**
+	 * Returns a tree of matches for the provided artifacts.
+	 *
+	 * @param left
+	 *            artifact
+	 * @param right
+	 *            artifact
+	 * @return tree of matches
+	 */
+	Matching<T> match(final T left, final T right);
 }

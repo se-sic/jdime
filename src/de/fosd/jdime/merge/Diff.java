@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,10 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.merge;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
@@ -38,7 +39,8 @@ public class Diff<T extends Artifact<T>> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(Diff.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(Diff.class));
 
 	/**
 	 * Compares two nodes and returns a respective matching.

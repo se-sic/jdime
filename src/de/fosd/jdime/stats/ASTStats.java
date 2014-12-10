@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich - initial API and implementation
+ *******************************************************************************/
 /**
  * 
  */
@@ -6,6 +27,10 @@ package de.fosd.jdime.stats;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
+
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.bethecoder.ascii_table.ASCIITable;
 
@@ -16,12 +41,17 @@ import de.fosd.jdime.common.LangElem;
  * 
  */
 public class ASTStats {
+	/**
+	 * Logger.
+	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(ASTStats.class));
+
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
 		ASTStats sum = null;
 		try {
 			sum = (ASTStats) a.clone();
 		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -40,7 +70,7 @@ public class ASTStats {
 	 * Maximum number of children at a level of the AST.
 	 */
 	private int maxchildren = 0;
-	
+
 	/**
 	 * Number of AST nodes.
 	 */
@@ -66,7 +96,9 @@ public class ASTStats {
 	 *            diff statistics
 	 */
 	public ASTStats(final int nodes, final int treedepth,
-			final int maxchildren, final HashMap<String, StatsElement> diffstats, final boolean hasChanges) {
+			final int maxchildren,
+			final HashMap<String, StatsElement> diffstats,
+			final boolean hasChanges) {
 		this.nodes = nodes;
 		this.treedepth = treedepth;
 		this.maxchildren = maxchildren;
@@ -88,12 +120,12 @@ public class ASTStats {
 
 		for (String key : other.diffstats.keySet()) {
 			assert (diffstats.containsKey(key)) : "Error: Key '" + key
-			+ "' not found!";
-			//if (diffstats.containsKey(key)) {
-				diffstats.get(key).addStatsElement(other.diffstats.get(key));
-			//}
+					+ "' not found!";
+			// if (diffstats.containsKey(key)) {
+			diffstats.get(key).addStatsElement(other.diffstats.get(key));
+			// }
 		}
-		
+
 		if (!hasChanges) {
 			hasChanges = other.hasChanges();
 		}
@@ -106,14 +138,16 @@ public class ASTStats {
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		ASTStats clone = new ASTStats(nodes, treedepth, maxchildren, diffstats, hasChanges);
+		ASTStats clone =
+				new ASTStats(nodes, treedepth, maxchildren, diffstats,
+						hasChanges);
 		clone.setFragments(fragments);
 		HashMap<String, StatsElement> diffstatsClone = new HashMap<>();
-		
+
 		for (String key : diffstats.keySet()) {
 			diffstatsClone.put(key, diffstats.get(key).copy());
 		}
-		
+
 		clone.setDiffstats(diffstatsClone);
 		return clone;
 	}
@@ -164,7 +198,7 @@ public class ASTStats {
 	public final void incrementNodes() {
 		nodes++;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -175,11 +209,56 @@ public class ASTStats {
 	public final void setConflicts(ASTStats other) {
 		for (String key : other.diffstats.keySet()) {
 			assert (diffstats.containsKey(key)) : "Error: Key '" + key
-			+ "' not found!";
+					+ "' not found!";
 			StatsElement mystats = diffstats.get(key);
 			StatsElement otherstats = other.diffstats.get(key);
 			assert mystats.getConflicting() == 0 : "Unexpected: conflicts > 0";
 			mystats.setConflicting(otherstats.getConflicting());
+		}
+	}
+	
+	public final void setRemovalsfromAdditions(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setDeleted(otherstats.getAdded());
+		}
+	}
+	
+	public final void setRemovalsfromMatches(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setDeleted(otherstats.getMatches());
+		}
+	}
+	
+	
+	public final void setAdditionsfromMatches(ASTStats other) {
+		for (String key : other.diffstats.keySet()) {
+			assert (diffstats.containsKey(key)) : "Error: Key '" + key
+					+ "' not found!";
+			StatsElement mystats = diffstats.get(key);
+			StatsElement otherstats = other.diffstats.get(key);
+			mystats.setAdded(otherstats.getMatches());
+		}
+	}
+	
+	public final void resetRemovals() {
+		for (String key : diffstats.keySet()) {
+			StatsElement mystats = diffstats.get(key);
+			mystats.setDeleted(0);
+		}
+	}
+	
+	public final void resetAdditions() {
+		for (String key : diffstats.keySet()) {
+			StatsElement mystats = diffstats.get(key);
+			mystats.setAdded(0);
 		}
 	}
 
@@ -187,7 +266,8 @@ public class ASTStats {
 	 * @param diffstats
 	 *            the diffstats to set
 	 */
-	public final void setDiffstats(final HashMap<String, StatsElement> diffstats) {
+	public final void
+			setDiffstats(final HashMap<String, StatsElement> diffstats) {
 		this.diffstats = diffstats;
 	}
 
@@ -223,14 +303,17 @@ public class ASTStats {
 	}
 
 	/**
-	 * @param fragments the fragments to set
+	 * @param fragments
+	 *            the fragments to set
 	 */
 	public void setFragments(int fragments) {
 		this.fragments = fragments;
 	}
-	
+
 	public double getAvgFragmentSize() {
-		return fragments == 0 ? 0.0 : (double) diffstats.get(LangElem.NODE.toString()).getChanges() / (double) fragments;
+		return fragments == 0 ? 0.0 : (double) diffstats.get(
+				LangElem.NODE.toString()).getChanges()
+				/ (double) fragments;
 	}
 
 	/**
@@ -241,23 +324,34 @@ public class ASTStats {
 		this.fragments++;
 	}
 
+	@Override
 	public String toString() {
 		DecimalFormat df = new DecimalFormat("#.0");
-		StringBuilder sb = new StringBuilder();
-		sb.append("Total nodes: " + nodes + System.lineSeparator());
-		sb.append("Treedepth: " + treedepth + System.lineSeparator());
-		sb.append("Maximum children: " + maxchildren
-				+ System.lineSeparator());
-		sb.append("Fragments: " + fragments + System.lineSeparator());
-		sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize()) + System.lineSeparator());
 
-		String[] head = { "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED", "CONFLICTS" };
+		StringBuilder sb = new StringBuilder();
+
+		if (LOG.isDebugEnabled()) {
+			sb.append("Total nodes: " + nodes + System.lineSeparator());
+			sb.append("Treedepth: " + treedepth + System.lineSeparator());
+			sb.append("Maximum children: " + maxchildren
+					+ System.lineSeparator());
+			sb.append("Fragments: " + fragments + System.lineSeparator());
+			sb.append("Avg. Fragment size: " + df.format(getAvgFragmentSize())
+					+ System.lineSeparator());
+		}
+
+		String[] head =
+				{ "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED",
+						"CONFLICTS" };
 
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
-		int[] sum = new int[5]; 
+		String[] csvHead = new String[36];
+		String[] csv = new String[36];;
+		int[] sum = new int[5];
 		int i = 0;
-		
+		int j = 0;
+
 		for (String key : new TreeSet<>((diffstats.keySet()))) {
 			StatsElement s = diffstats.get(key);
 			int nodes = s.getElements();
@@ -266,26 +360,47 @@ public class ASTStats {
 			int added = s.getAdded();
 			int removed = s.getDeleted();
 			int conflicts = s.getConflicting();
-			
+
 			// sanity checks
-			//assert(changed == added + removed);
-			//assert (nodes == matched + changed);
-			if (i>0) {
+			// assert(changed == added + removed);
+			// assert (nodes == matched + changed);
+			if (i > 0) {
 				sum[0] += nodes;
 				sum[1] += matched;
 				sum[2] += changed;
 				sum[3] += added;
 				sum[4] += removed;
 			}
+			
+			String name = key.toLowerCase();
+			if (name.endsWith("ss")) {
+				name = name + "es";
+			} else {
+				name = name + "s";
+			}
 
-			absolute[i][0] = key.toLowerCase();
+			absolute[i][0] = name;
 			absolute[i][1] = String.valueOf(nodes);
-			absolute[i][2] = String.valueOf(matched); 
-			absolute[i][3] = String.valueOf(changed); 
-			absolute[i][4] = String.valueOf(added); 
+			absolute[i][2] = String.valueOf(matched);
+			absolute[i][3] = String.valueOf(changed);
+			absolute[i][4] = String.valueOf(added);
 			absolute[i][5] = String.valueOf(removed);
 			absolute[i][6] = String.valueOf(conflicts);
 			
+			csvHead[j] = name;
+			csv[j++] = String.valueOf(nodes);
+			csvHead[j] = "matched " + name;
+			csv[j++] = String.valueOf(matched);
+			csvHead[j] = "changed " + name;
+			csv[j++] = String.valueOf(changed);
+			csvHead[j] = "added " + name;
+			csv[j++] = String.valueOf(added);
+			csvHead[j] = "removed " + name;
+			csv[j++] = String.valueOf(removed);
+			csvHead[j] = "conflicting " + name;
+			csv[j++] = String.valueOf(conflicts);
+			
+
 			if (nodes > 0) {
 				relative[i][0] = key.toLowerCase();
 				relative[i][1] = df.format(100.0);
@@ -303,27 +418,36 @@ public class ASTStats {
 				relative[i][5] = "null";
 				relative[i][6] = "null";
 			}
-			
+
 			i++;
 		}
-		
+
 		// sanity checks
-		//assert (sum[0] == Integer.parseInt(absolute[0][1]));
-		//assert (sum[1] == Integer.parseInt(absolute[0][2]));
-		//assert (sum[2] == Integer.parseInt(absolute[0][3]));
-		//assert (sum[3] == Integer.parseInt(absolute[0][4]));
-		//assert (sum[4] == Integer.parseInt(absolute[0][5]));
+		// assert (sum[0] == Integer.parseInt(absolute[0][1]));
+		// assert (sum[1] == Integer.parseInt(absolute[0][2]));
+		// assert (sum[2] == Integer.parseInt(absolute[0][3]));
+		// assert (sum[3] == Integer.parseInt(absolute[0][4]));
+		// assert (sum[4] == Integer.parseInt(absolute[0][5]));
 
 		
-		sb.append(System.lineSeparator());
-		sb.append(ASCIITable.getInstance().getTable(head, absolute));
-		sb.append(System.lineSeparator());
-		sb.append(ASCIITable.getInstance().getTable(head, relative));
 
-//		return general.toString() + System.lineSeparator()
-//				+ absolute.toString() + System.lineSeparator()
-//				+ relative.toString();
-		
+		if (LOG.isDebugEnabled()) {
+			// Table
+			sb.append(System.lineSeparator());
+			sb.append(ASCIITable.getInstance().getTable(head, absolute));
+			sb.append(System.lineSeparator());
+			sb.append(ASCIITable.getInstance().getTable(head, relative));
+		} else {
+			// CSV
+			sb.append(StringUtils.join(csvHead, ';'));
+			sb.append(System.lineSeparator());
+			sb.append(StringUtils.join(csv, ';'));
+		}
+
+		// return general.toString() + System.lineSeparator()
+		// + absolute.toString() + System.lineSeparator()
+		// + relative.toString();
+
 		return sb.toString();
 	}
 }

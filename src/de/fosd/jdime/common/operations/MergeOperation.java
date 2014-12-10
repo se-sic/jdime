@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,14 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.common.operations;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -30,9 +36,6 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnsupportedMergeTypeException;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import org.apache.log4j.Logger;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -48,7 +51,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger.getLogger(MergeOperation.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(MergeOperation.class));
 	/**
 	 * /** The merge triple containing the <code>Artifact</code>s.
 	 */
@@ -72,15 +76,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			throws FileNotFoundException {
 		super();
 		assert (inputArtifacts != null);
-		assert inputArtifacts.size() >= MergeType.MINFILES 
-				: "Too few input files!";
-		assert inputArtifacts.size() <= MergeType.MAXFILES 
-				: "Too many input files!";
+		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
+		assert inputArtifacts.size() <= MergeType.MAXFILES : "Too many input files!";
 
 		// Determine whether we have to perform a 2-way or a 3-way merge.
-		MergeType mergeType =
-				inputArtifacts.size() == 2 ? MergeType.TWOWAY
-						: MergeType.THREEWAY;
+		MergeType mergeType = inputArtifacts.size() == 2 ? MergeType.TWOWAY
+				: MergeType.THREEWAY;
 
 		this.target = target;
 
@@ -98,10 +99,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			throw new UnsupportedMergeTypeException();
 		}
 
-		assert (left.getClass().equals(right.getClass())) 
-			: "Only artifacts of the same type can be merged";
-		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) 
-			: "Only artifacts of the same type can be merged";
+		assert (left.getClass().equals(right.getClass())) : "Only artifacts of the same type can be merged";
+		assert (base.isEmptyDummy() || base.getClass().equals(left.getClass())) : "Only artifacts of the same type can be merged";
 
 		left.setRevision(new Revision("left"));
 		base.setRevision(new Revision("base"));
@@ -134,10 +133,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	@Override
 	public final void apply(final MergeContext context) throws IOException,
 			InterruptedException {
-		assert (mergeTriple.getLeft().exists()) 
-			: "Left artifact does not exist: " + mergeTriple.getLeft();
-		assert (mergeTriple.getRight().exists()) 
-			: "Right artifact does not exist: " + mergeTriple.getRight();
+		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: "
+				+ mergeTriple.getLeft();
+		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: "
+				+ mergeTriple.getRight();
 		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase()
 				.exists()) : "Base artifact does not exist: "
 				+ mergeTriple.getBase();
@@ -156,9 +155,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			Stats stats = context.getStats();
 			if (stats != null) {
 				stats.incrementOperation(this);
-				StatsElement element =
-						stats.getElement(mergeTriple.getLeft().getStatsKey(
-								context));
+				StatsElement element = stats.getElement(mergeTriple.getLeft()
+						.getStatsKey(context));
 				element.incrementMerged();
 			}
 		}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013 Olaf Lessenich.
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
  *
  * Contributors:
  *     Olaf Lessenich - initial API and implementation
- ******************************************************************************/
+ *******************************************************************************/
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
@@ -51,8 +52,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = Logger
-			.getLogger(StructuredStrategy.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils
+			.getShortClassName(StructuredStrategy.class));
 
 	/*
 	 * (non-Javadoc)
@@ -103,6 +104,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		int loc = 0;
 		int cloc = 0;
 		ASTStats astStats = null;
+		ASTStats leftStats = null;
+		ASTStats rightStats = null;
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Merging: " + triple.getLeft().getPath() + " "
@@ -169,7 +172,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						if (!context.isDiffOnly()) {
 							LOG.trace("Pretty-printing merge:");
 							if (mergeContext.isQuiet()) {
-								System.out.println(targetNode.prettyPrint());
+								System.out.print(targetNode.prettyPrint());
 							}
 						}
 					}
@@ -245,13 +248,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 											assert (rightlines != null);
 											// need to print the previous
 											// conflict(s)
-											mergeContext.appendLine("<<<<<<< ");
+											mergeContext.appendLine("<<<<<<< " + triple.getLeft().getPath());
 											mergeContext.append(leftlines
 													.toString());
-											mergeContext.appendLine("======= ");
+											mergeContext.appendLine("=======");
 											mergeContext.append(rightlines
 													.toString());
-											mergeContext.appendLine(">>>>>>> ");
+											mergeContext.appendLine(">>>>>>> " + triple.getRight().getPath());
 										}
 										afterconflict = false;
 										mergeContext.appendLine(line);
@@ -266,11 +269,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				runtimes.add(runtime);
 
 				// collect stats
-				ASTStats leftStats = left.getStats(right.getRevision(),
+				leftStats = left.getStats(right.getRevision(),
 						LangElem.TOPLEVELNODE, false);
-				ASTStats rightStats = right.getStats(left.getRevision(),
+				rightStats = right.getStats(left.getRevision(),
 						LangElem.TOPLEVELNODE, false);
-				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
+				ASTStats targetStats = targetNode.getStats(null,
+						LangElem.TOPLEVELNODE, false);
 
 				assert (leftStats.getDiffStats(LangElem.NODE.toString())
 						.getMatches() == rightStats.getDiffStats(
@@ -279,7 +283,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				astStats = ASTStats.add(leftStats, rightStats);
 				astStats.setConflicts(targetStats);
-				
+
 				if (LOG.isDebugEnabled() && context.hasStats()) {
 					System.out.println("---------- left ----------");
 					System.out.println(leftStats);
@@ -289,26 +293,26 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetStats);
 				}
 
-				if (LOG.isInfoEnabled()) {
+				if (LOG.isDebugEnabled()) {
 					String sep = " / ";
 					int nodes = astStats.getDiffStats(LangElem.NODE.toString())
 							.getElements();
-					int matches = astStats.getDiffStats(LangElem.NODE.toString())
-							.getMatches();
-					int changes = astStats.getDiffStats(LangElem.NODE.toString())
-							.getAdded();
-					int removals = astStats.getDiffStats(LangElem.NODE.toString())
-							.getDeleted();
+					int matches = astStats.getDiffStats(
+							LangElem.NODE.toString()).getMatches();
+					int changes = astStats.getDiffStats(
+							LangElem.NODE.toString()).getAdded();
+					int removals = astStats.getDiffStats(
+							LangElem.NODE.toString()).getDeleted();
 					int conflictnodes = astStats.getDiffStats(
 							LangElem.NODE.toString()).getConflicting();
-					LOG.info("Change awareness (nodes" + sep + "matches" + sep
+					LOG.info("Absolute (nodes" + sep + "matches" + sep
 							+ "changes" + sep + "removals" + sep
 							+ "conflicts): ");
 					LOG.info(nodes + sep + matches + sep + changes + sep
 							+ removals + sep + conflictnodes);
 
 					if (nodes > 0) {
-						LOG.info("Change awareness % (nodes" + sep + "matches"
+						LOG.info("Relative (nodes" + sep + "matches"
 								+ sep + "changes" + sep + "removals" + sep
 								+ "conflicts): ");
 						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep
@@ -321,6 +325,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				if (context.hasStats()) {
 					Stats stats = context.getStats();
 					stats.addASTStats(astStats);
+					stats.addLeftStats(leftStats);
+					stats.addRightStats(rightStats);
 				}
 
 				if (LOG.isInfoEnabled() && context.isBenchmark()
@@ -375,9 +381,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 
 				stats.increaseRuntime(runtime);
+				
+				assert (leftStats != null);
+				assert (rightStats != null);
 
 				MergeTripleStats scenariostats = new MergeTripleStats(triple,
-						conflicts, cloc, loc, runtime, astStats);
+						conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
 				stats.addScenarioStats(scenariostats);
 			}
 
@@ -430,8 +439,16 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public final void dump(final FileArtifact artifact, final boolean graphical)
+	public final void dumpTree(final FileArtifact artifact,
+			final boolean graphical) throws IOException {
+		new ASTNodeStrategy()
+				.dumpTree(new ASTNodeArtifact(artifact), graphical);
+	}
+
+	@Override
+	public void dumpFile(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
-		new ASTNodeStrategy().dump(new ASTNodeArtifact(artifact), graphical);
+		new ASTNodeStrategy()
+				.dumpFile(new ASTNodeArtifact(artifact), graphical);
 	}
 }

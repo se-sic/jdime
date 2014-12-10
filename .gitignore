@@ -1,7 +1,12 @@
 /.settings
-/nbproject/private
+/nbproject
 /bin
 /dist
 /testfiles/merge
 /build/
 /pushjar.sh
+/.project
+/nbbuild.xml
+/manifest.mf
+/.checkstyle
+/.classpath
