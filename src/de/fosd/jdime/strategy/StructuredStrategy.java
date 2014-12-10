@@ -26,9 +26,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
@@ -40,28 +37,18 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge.
- * 
+ *
  * @author Olaf Lessenich
- * 
  */
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(StructuredStrategy.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
 			final MergeContext context) throws IOException,
@@ -381,7 +368,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 
 				stats.increaseRuntime(runtime);
-				
+
 				assert (leftStats != null);
 				assert (rightStats != null);
 
@@ -410,45 +397,29 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-	 */
 	@Override
 	public final String toString() {
 		return "structured";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.StatsInterface#createStats()
-	 */
 	@Override
 	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files", "lines",
-				"nodes" });
+		return new Stats(new String[] {"directories", "files", "lines", "nodes"});
 	}
 
 	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
+	public final String getStatsKey(FileArtifact artifact) {
 		// FIXME: remove me when implementation is complete!
-		throw new NotYetImplementedException(
-				"StructuredStrategy: Implement me!");
+		throw new NotYetImplementedException("StructuredStrategy: Implement me!");
 	}
 
 	@Override
-	public final void dumpTree(final FileArtifact artifact,
-			final boolean graphical) throws IOException {
-		new ASTNodeStrategy()
-				.dumpTree(new ASTNodeArtifact(artifact), graphical);
+	public final void dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
+		new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
 	}
 
 	@Override
-	public void dumpFile(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		new ASTNodeStrategy()
-				.dumpFile(new ASTNodeArtifact(artifact), graphical);
+	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
+		new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
 	}
 }
