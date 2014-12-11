@@ -60,9 +60,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
 
-		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple.getBase().isEmptyDummy());
-		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
+		FileArtifact leftFile = triple.getLeft();
+		FileArtifact rightFile = triple.getRight();
+		FileArtifact baseFile = triple.getBase();
+		
+		assert (leftFile.exists() && !leftFile.isDirectory());
+		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
+		assert (rightFile.exists() && !rightFile.isDirectory());
 
 		context.resetStreams();
 
@@ -88,8 +92,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		ASTStats rightStats = null;
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Merging: " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " " + triple
-					.getRight().getPath());
+			LOG.debug("Merging: " + leftFile.getPath() + " " + baseFile.getPath() + " " + rightFile.getPath());
 		}
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
@@ -103,9 +106,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				long cmdStart = System.currentTimeMillis();
 
-				left = new ASTNodeArtifact(triple.getLeft());
-				base = new ASTNodeArtifact(triple.getBase());
-				right = new ASTNodeArtifact(triple.getRight());
+				left = new ASTNodeArtifact(leftFile);
+				base = new ASTNodeArtifact(baseFile);
+				right = new ASTNodeArtifact(rightFile);
 
 				// Output tree
 				// Program program = new Program();
@@ -219,11 +222,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 											assert (rightlines != null);
 											// need to print the previous
 											// conflict(s)
-											mergeContext.appendLine("<<<<<<< " + triple.getLeft().getPath());
+											mergeContext.appendLine("<<<<<<< " + leftFile.getPath());
 											mergeContext.append(leftlines.toString());
 											mergeContext.appendLine("=======");
 											mergeContext.append(rightlines.toString());
-											mergeContext.appendLine(">>>>>>> " + triple.getRight().getPath());
+											mergeContext.appendLine(">>>>>>> " + rightFile.getPath());
 										}
 										afterconflict = false;
 										mergeContext.appendLine(line);
@@ -342,8 +345,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				stats.addScenarioStats(scenariostats);
 			}
 		} catch (Throwable t) {
-			LOG.fatal(t + "  while merging " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " "
-					+ triple.getRight().getPath());
+			LOG.fatal(t + "  while merging " + leftFile.getPath() + " " + baseFile.getPath() + " " + rightFile
+					.getPath());
 			if (!context.isKeepGoing()) {
 				throw new Error(t);
 			} else {
