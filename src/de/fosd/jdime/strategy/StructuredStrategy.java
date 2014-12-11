@@ -63,6 +63,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		FileArtifact leftFile = triple.getLeft();
 		FileArtifact rightFile = triple.getRight();
 		FileArtifact baseFile = triple.getBase();
+		String lPath = leftFile.getPath();
+		String bPath = baseFile.getPath();
+		String rPath = rightFile.getPath();
 		
 		assert (leftFile.exists() && !leftFile.isDirectory());
 		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
@@ -87,10 +90,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		ASTStats astStats = null;
 		ASTStats leftStats = null;
 		ASTStats rightStats = null;
-
+		
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Merging: " + leftFile.getPath() + " " + baseFile.getPath() + " " + rightFile.getPath());
+			LOG.debug(String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 		}
+		
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
@@ -219,11 +223,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 											assert (rightlines != null);
 											// need to print the previous
 											// conflict(s)
-											mergeContext.appendLine("<<<<<<< " + leftFile.getPath());
+											mergeContext.appendLine("<<<<<<< " + lPath);
 											mergeContext.append(leftlines.toString());
 											mergeContext.appendLine("=======");
 											mergeContext.append(rightlines.toString());
-											mergeContext.appendLine(">>>>>>> " + rightFile.getPath());
+											mergeContext.appendLine(">>>>>>> " + rPath);
 										}
 										afterconflict = false;
 										mergeContext.appendLine(line);
@@ -342,14 +346,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				stats.addScenarioStats(scenariostats);
 			}
 		} catch (Throwable t) {
-			LOG.fatal(t + "  while merging " + leftFile.getPath() + " " + baseFile.getPath() + " " + rightFile
-					.getPath());
+			LOG.fatal(String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath), t);
+			
 			if (!context.isKeepGoing()) {
 				throw new Error(t);
 			} else {
 				if (context.hasStats()) {
-					MergeTripleStats scenariostats = new MergeTripleStats(triple, t.toString());
-					context.getStats().addScenarioStats(scenariostats);
+					MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
+					context.getStats().addScenarioStats(scenarioStats);
 				}
 			}
 		}
