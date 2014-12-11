@@ -59,9 +59,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
-		assert (triple.getLeft() instanceof FileArtifact);
-		assert (triple.getBase() instanceof FileArtifact);
-		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
 		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple.getBase().isEmptyDummy());
