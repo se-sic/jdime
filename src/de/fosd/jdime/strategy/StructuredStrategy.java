@@ -64,8 +64,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getRight() instanceof FileArtifact);
 
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple.getBase().isEmptyDummy());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -75,8 +74,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
 		}
 
 		// ASTNodeArtifacts are created from the input files.
@@ -93,13 +91,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		ASTStats rightStats = null;
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Merging: " + triple.getLeft().getPath() + " "
-					+ triple.getBase().getPath() + " "
-					+ triple.getRight().getPath());
+			LOG.debug("Merging: " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " " + triple
+					.getRight().getPath());
 		}
 		try {
-			for (int i = 0; i < context.getBenchmarkRuns() + 1
-					&& (i == 0 || context.isBenchmark()); i++) {
+			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
 					mergeContext = context;
 				} else {
@@ -118,8 +114,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				// Program program = new Program();
 				// program.state().reset();
 				// ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
-				ASTNodeArtifact targetNode = ASTNodeArtifact
-						.createProgram(left);
+				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
 				targetNode.forceRenumbering();
 
@@ -128,11 +123,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetNode.dumpTree());
 				}
 
-				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(
-						triple.getMergeType(), left, base, right);
+				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(triple.getMergeType(), left, base, right);
 
-				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(
-						nodeTriple, targetNode);
+				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("ASTMOperation.apply(context)");
@@ -164,9 +157,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 					if (!context.isDiffOnly()) {
 						try (
-						// process input stream
-						BufferedReader buf = new BufferedReader(
-								new StringReader(targetNode.prettyPrint()))) {
+								// process input stream
+								BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
 							boolean conflict = false;
 							boolean afterconflict = false;
 							boolean inleft = false;
@@ -178,8 +170,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 							StringBuffer rightlines = null;
 
 							while ((line = buf.readLine()) != null) {
-								if (line.matches("^$")
-										|| line.matches("^\\s*$")) {
+								if (line.matches("^$") || line.matches("^\\s*$")) {
 									// skip empty lines
 									if (!conflict && !afterconflict) {
 										mergeContext.appendLine(line);
@@ -220,12 +211,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 										cloc++;
 										if (inleft) {
 											assert (leftlines != null);
-											leftlines.append(line).append(
-													System.lineSeparator());
+											leftlines.append(line).append(System.lineSeparator());
 										} else if (inright) {
 											assert (rightlines != null);
-											rightlines.append(line).append(
-													System.lineSeparator());
+											rightlines.append(line).append(System.lineSeparator());
 										}
 									} else {
 										if (afterconflict) {
@@ -234,11 +223,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 											// need to print the previous
 											// conflict(s)
 											mergeContext.appendLine("<<<<<<< " + triple.getLeft().getPath());
-											mergeContext.append(leftlines
-													.toString());
+											mergeContext.append(leftlines.toString());
 											mergeContext.appendLine("=======");
-											mergeContext.append(rightlines
-													.toString());
+											mergeContext.append(rightlines.toString());
 											mergeContext.appendLine(">>>>>>> " + triple.getRight().getPath());
 										}
 										afterconflict = false;
@@ -254,16 +241,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				runtimes.add(runtime);
 
 				// collect stats
-				leftStats = left.getStats(right.getRevision(),
-						LangElem.TOPLEVELNODE, false);
-				rightStats = right.getStats(left.getRevision(),
-						LangElem.TOPLEVELNODE, false);
-				ASTStats targetStats = targetNode.getStats(null,
-						LangElem.TOPLEVELNODE, false);
+				leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
+				rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
+				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
 
-				assert (leftStats.getDiffStats(LangElem.NODE.toString())
-						.getMatches() == rightStats.getDiffStats(LangElem.NODE.toString()).getMatches()) : "Number of matches should be equal in left and "
-						+ "right revision.";
+				assert (leftStats.getDiffStats(LangElem.NODE.toString()).getMatches() == rightStats
+						.getDiffStats(LangElem.NODE.toString()).getMatches()) :
+						"Number of matches should be equal in left and " + "right revision.";
 
 				astStats = ASTStats.add(leftStats, rightStats);
 				astStats.setConflicts(targetStats);
@@ -279,30 +263,20 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				if (LOG.isDebugEnabled()) {
 					String sep = " / ";
-					int nodes = astStats.getDiffStats(LangElem.NODE.toString())
-							.getElements();
-					int matches = astStats.getDiffStats(
-							LangElem.NODE.toString()).getMatches();
-					int changes = astStats.getDiffStats(
-							LangElem.NODE.toString()).getAdded();
-					int removals = astStats.getDiffStats(
-							LangElem.NODE.toString()).getDeleted();
-					int conflictnodes = astStats.getDiffStats(
-							LangElem.NODE.toString()).getConflicting();
-					LOG.info("Absolute (nodes" + sep + "matches" + sep
-							+ "changes" + sep + "removals" + sep
+					int nodes = astStats.getDiffStats(LangElem.NODE.toString()).getElements();
+					int matches = astStats.getDiffStats(LangElem.NODE.toString()).getMatches();
+					int changes = astStats.getDiffStats(LangElem.NODE.toString()).getAdded();
+					int removals = astStats.getDiffStats(LangElem.NODE.toString()).getDeleted();
+					int conflictnodes = astStats.getDiffStats(LangElem.NODE.toString()).getConflicting();
+					LOG.info("Absolute (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
 							+ "conflicts): ");
-					LOG.info(nodes + sep + matches + sep + changes + sep
-							+ removals + sep + conflictnodes);
+					LOG.info(nodes + sep + matches + sep + changes + sep + removals + sep + conflictnodes);
 
 					if (nodes > 0) {
-						LOG.info("Relative (nodes" + sep + "matches"
-								+ sep + "changes" + sep + "removals" + sep
+						LOG.info("Relative (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
 								+ "conflicts): ");
-						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep
-								+ 100.0 * changes / nodes + sep + 100.0
-								* removals / nodes + sep + 100.0
-								* conflictnodes / nodes);
+						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep + 100.0 * changes / nodes + sep
+								+ 100.0 * removals / nodes + sep + 100.0 * conflictnodes / nodes);
 					}
 				}
 
@@ -313,14 +287,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					stats.addRightStats(rightStats);
 				}
 
-				if (LOG.isInfoEnabled() && context.isBenchmark()
-						&& context.hasStats()) {
+				if (LOG.isInfoEnabled() && context.isBenchmark() && context.hasStats()) {
 					if (i == 0) {
 						LOG.info("Initial run: " + runtime + " ms");
 					} else {
-						LOG.info("Run " + i + " of "
-								+ context.getBenchmarkRuns() + ": " + runtime
-								+ " ms");
+						LOG.info("Run " + i + " of " + context.getBenchmarkRuns() + ": " + runtime + " ms");
 					}
 				}
 			}
@@ -369,21 +340,18 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				assert (leftStats != null);
 				assert (rightStats != null);
 
-				MergeTripleStats scenariostats = new MergeTripleStats(triple,
-						conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
+				MergeTripleStats scenariostats =
+						new MergeTripleStats(triple, conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
 				stats.addScenarioStats(scenariostats);
 			}
-
 		} catch (Throwable t) {
-			LOG.fatal(t + "  while merging " + triple.getLeft().getPath() + " "
-					+ triple.getBase().getPath() + " "
+			LOG.fatal(t + "  while merging " + triple.getLeft().getPath() + " " + triple.getBase().getPath() + " "
 					+ triple.getRight().getPath());
 			if (!context.isKeepGoing()) {
 				throw new Error(t);
 			} else {
 				if (context.hasStats()) {
-					MergeTripleStats scenariostats = new MergeTripleStats(
-							triple, t.toString());
+					MergeTripleStats scenariostats = new MergeTripleStats(triple, t.toString());
 					context.getStats().addScenarioStats(scenariostats);
 				}
 			}
@@ -391,7 +359,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		System.gc();
 		return;
-
 	}
 
 	@Override
