@@ -21,6 +21,7 @@
  *******************************************************************************/
 package de.fosd.jdime.common;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -45,22 +46,26 @@ public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 	/**
 	 * Returns a string representation of this collection. The string representation consists of a list of the
 	 * collection's elements in the order they are returned by its iterator. Adjacent elements are separated by the
-	 * given <code>sep</code>. Elements are converted to strings as by {@link Artifact#getId()}.
+	 * given <code>separator</code>. Elements are converted to strings as by {@link Artifact#getId()}.
 	 *
-	 * @param sep
+	 * @param separator
 	 * 		the separator to be used
 	 *
 	 * @return a string representation of this collection
 	 */
-	public String toString(String sep) {
-		assert (sep != null);
+	public String toString(String separator) {
+		assert (separator != null);
 
 		StringBuilder sb = new StringBuilder("");
-		for (E element : this) {
-			sb.append(element.getId());
-			sb.append(sep);
+		
+		for (Iterator<E> it = this.iterator(); it.hasNext();) {
+			sb.append(it.next().getId());
+			
+			if (it.hasNext()) {
+				sb.append(separator);
+			}
 		}
-
+		
 		return sb.toString();
 	}
 }
