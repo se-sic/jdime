@@ -24,35 +24,35 @@ package de.fosd.jdime.common;
 import java.util.LinkedList;
 
 /**
- * @author Olaf Lessenich
+ * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
+ * {@link Artifact#getId()} to represent its contents.
+ *
  * @param <E>
- *            artifact element
+ * 		the type of elements held by this collection
+ *
+ * @author Olaf Lessenich
+ * @see Artifact
  */
 public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 
-	/**
-     *
-     */
-	private static final long serialVersionUID = 5294838641795231473L;
+	private static final String DEFAULT_SEP = " ";
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.util.AbstractCollection#toString()
-	 */
 	@Override
-	public final String toString() {
-		return toString(" ");
+	public String toString() {
+		return toString(DEFAULT_SEP);
 	}
 
 	/**
-	 * Returns a String representing a list of artifacts.
+	 * Returns a string representation of this collection. The string representation consists of a list of the
+	 * collection's elements in the order they are returned by its iterator. Adjacent elements are separated by the
+	 * given <code>sep</code>. Elements are converted to strings as by {@link Artifact#getId()}.
 	 *
 	 * @param sep
-	 *            separator
-	 * @return String representation
+	 * 		the separator to be used
+	 *
+	 * @return a string representation of this collection
 	 */
-	public final String toString(final String sep) {
+	public String toString(String sep) {
 		assert (sep != null);
 
 		StringBuilder sb = new StringBuilder("");
