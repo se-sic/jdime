@@ -21,7 +21,9 @@
  *******************************************************************************/
 package de.fosd.jdime.strategy;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -36,27 +38,21 @@ import de.fosd.jdime.merge.MergeInterface;
 public abstract class MergeStrategy<T extends Artifact<T>> implements
 		MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
 
-	/**
-	 * Map holding all strategies.
-	 */
-	private static HashMap<String, MergeStrategy<?>> strategyMap = null;
+	private static final Map<String, MergeStrategy<?>> strategyMap;
 
-	/**
-	 * Initializes the strategy map.
-	 */
-	private static void initialize() {
-		strategyMap = new HashMap<>();
-		LinebasedStrategy linebased = new LinebasedStrategy();
+	static {
+		Map<String, MergeStrategy<?>> entries = new HashMap<>();
+		LinebasedStrategy lineBased = new LinebasedStrategy();
 		StructuredStrategy structured = new StructuredStrategy();
 		CombinedStrategy combined = new CombinedStrategy();
 
-		strategyMap.put("linebased", linebased);
-		strategyMap.put("unstructured", linebased);
-
-		strategyMap.put("structured", structured);
-
-		strategyMap.put("combined", combined);
-		strategyMap.put("autotuning", combined);
+		entries.put("linebased", lineBased);
+		entries.put("unstructured", lineBased);
+		entries.put("structured", structured);
+		entries.put("combined", combined);
+		entries.put("autotuning", combined);
+		
+		strategyMap = Collections.unmodifiableMap(entries);
 	}
 
 	/**
@@ -65,12 +61,6 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 	 * @return names of available strategies
 	 */
 	public static Set<String> listStrategies() {
-		if (strategyMap == null) {
-			initialize();
-		}
-
-		assert (strategyMap != null);
-
 		return strategyMap.keySet();
 	}
 
@@ -87,18 +77,11 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 
 		String input = str.toLowerCase();
 
-		if (strategyMap == null) {
-			initialize();
-		}
-
-		assert (strategyMap != null);
-
 		if (strategyMap.containsKey(input)) {
 			return strategyMap.get(input);
 		} else {
 			throw new StrategyNotFoundException("Strategy not found: " + str);
 		}
-
 	}
 
 	/*
