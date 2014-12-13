@@ -24,6 +24,7 @@ package de.fosd.jdime.strategy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -56,7 +57,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Returns a set containing the names of available strategies.
+	 * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
 	 *
 	 * @return names of available strategies
 	 */
@@ -65,30 +66,32 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Parses a String and returns a strategy. Null is returned if no
-	 * appropriate Tool is found.
+	 * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
+	 * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
+	 * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code>
+	 * will be thrown.
 	 *
-	 * @param str
-	 *            name of the merge tool
-	 * @return MergeStrategy merge strategy
+	 * @param name
+	 * 		the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
+	 *
+	 * @return the <code>MergeStrategy</code>
+	 *
+	 * @throws StrategyNotFoundException
+	 * 		if no <code>MergeStrategy</code> for <code>name</code> is found
+	 * @throws NullPointerException
+	 * 		if <code>name</code> is <code>null</code>
 	 */
-	public static MergeStrategy<?> parse(final String str) {
-		assert str != null : "Merge strategy may not be null!";
+	public static MergeStrategy<?> parse(String name) {
+		Objects.requireNonNull(name, "name may not be null!");
+		name = name.trim().toLowerCase();
 
-		String input = str.toLowerCase();
-
-		if (strategyMap.containsKey(input)) {
-			return strategyMap.get(input);
-		} else {
-			throw new StrategyNotFoundException("Strategy not found: " + str);
+		if (!strategyMap.containsKey(name)) {
+			throw new StrategyNotFoundException("Strategy not found: " + name);
 		}
+		
+		return strategyMap.get(name);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public abstract String toString();
 }
