@@ -118,13 +118,24 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	/**
 	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeTriple</code> and <code>target</code>.
+	 * Neither <code>mergeTriple</code> nor <code>target</code> may be <code>null</code>.
 	 *
 	 * @param mergeTriple
 	 * 		the <code>Artifact</code>s to be merged
 	 * @param target
 	 * 		the output <code>Artifact</code>
+	 *
+	 * @throws IllegalArgumentException
+	 * 		if <code>mergeTriple</code> is invalid
 	 */
 	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
+		Objects.requireNonNull(mergeTriple, "mergeTriple must not be null!");
+		Objects.requireNonNull(target, "target must not be null!");
+
+		if (!mergeTriple.isValid()) {
+			throw new IllegalArgumentException("mergeTriple is invalid.");
+		}
+
 		this.mergeTriple = mergeTriple;
 		this.target = target;
 	}
