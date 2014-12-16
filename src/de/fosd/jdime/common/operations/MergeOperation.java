@@ -59,15 +59,16 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	private T target;
 
 	/**
-	 * Class constructor.
+	 * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
+	 * will be output into <code>target</code>.
 	 *
 	 * @param inputArtifacts
-	 * 		input artifacts
+	 * 		the input artifacts
 	 * @param target
-	 * 		output artifact
+	 * 		the output artifact
 	 *
 	 * @throws FileNotFoundException
-	 * 		If a file cannot be found
+	 * 		if a file cannot be found
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
 		super();
@@ -108,12 +109,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	}
 
 	/**
-	 * Class constructor.
+	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeTriple</code> and <code>target</code>.
 	 *
 	 * @param mergeTriple
-	 * 		triple containing <code>Artifact</code>s
+	 * 		the <code>Artifact</code>s to be merged
 	 * @param target
-	 * 		output <code>Artifact</code>
+	 * 		the output <code>Artifact</code>
 	 */
 	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
 		super();
