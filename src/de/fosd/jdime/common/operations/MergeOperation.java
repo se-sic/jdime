@@ -71,7 +71,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * 		if a file cannot be found
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
-		super();
 		assert (inputArtifacts != null);
 		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
 		assert inputArtifacts.size() <= MergeType.MAXFILES : "Too many input files!";
@@ -117,7 +116,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * 		the output <code>Artifact</code>
 	 */
 	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
-		super();
 		this.mergeTriple = mergeTriple;
 		this.target = target;
 	}
