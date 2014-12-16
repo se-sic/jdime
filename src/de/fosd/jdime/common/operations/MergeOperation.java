@@ -46,16 +46,15 @@ import org.apache.log4j.Logger;
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
+
 	/**
-	 * /** The merge triple containing the <code>Artifact</code>s.
+	 * The <code>MergeTriple</code> containing the <code>Artifact</code>s to be merged.
 	 */
 	private MergeTriple<T> mergeTriple;
+
 	/**
-	 * Output Artifact.
+	 * The <code>Artifact</code> to output the result of the merge to.
 	 */
 	private T target;
 
@@ -70,7 +69,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @throws FileNotFoundException
 	 * 		If a file cannot be found
 	 */
-	public MergeOperation(final ArtifactList<T> inputArtifacts, final T target) throws FileNotFoundException {
+	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
 		super();
 		assert (inputArtifacts != null);
 		assert inputArtifacts.size() >= MergeType.MINFILES : "Too few input files!";
@@ -116,19 +115,14 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @param target
 	 * 		output <code>Artifact</code>
 	 */
-	public MergeOperation(final MergeTriple<T> mergeTriple, final T target) {
+	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
 		super();
 		this.mergeTriple = mergeTriple;
 		this.target = target;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see de.fosd.jdime.common.operations.Operation#apply()
-	 */
 	@Override
-	public final void apply(final MergeContext context) throws IOException, InterruptedException {
+	public void apply(MergeContext context) throws IOException, InterruptedException {
 		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: " + mergeTriple.getLeft();
 		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: " + mergeTriple.getRight();
 		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase().exists()) :
@@ -155,21 +149,17 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	}
 
 	/**
-	 * Returns the merge triple.
+	 * Returns the <code>MergeTriple</code> containing the <code>Artifact</code>s this <code>MergeOperation</code>
+	 * is merging.
 	 *
-	 * @return merge triple
+	 * @return the <code>MergeTriple</code>
 	 */
-	public final MergeTriple<T> getMergeTriple() {
+	public MergeTriple<T> getMergeTriple() {
 		return mergeTriple;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see de.fosd.jdime.common.operations.Operation#getName()
-	 */
 	@Override
-	public final String getName() {
+	public String getName() {
 		return "MERGE";
 	}
 
@@ -178,17 +168,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 *
 	 * @return the target
 	 */
-	public final T getTarget() {
+	public T getTarget() {
 		return target;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
-	public final String toString() {
+	public String toString() {
 		assert (mergeTriple != null);
 		String dst = target == null ? "" : target.getId();
 		return getId() + ": " + getName() + " " + mergeTriple.getMergeType() + " " + mergeTriple.toString(true)
