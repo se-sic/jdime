@@ -155,7 +155,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			target.createArtifact(mergeTriple.getLeft().isLeaf());
 		}
 
-		mergeTriple.merge(this, context);
+		mergeTriple.getLeft().merge(this, context);
 
 		if (context.hasStats()) {
 			Stats stats = context.getStats();
