@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.activation.MimetypesFileTypeMap;
 
@@ -551,24 +552,30 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.equals(other);
 	}
 
-	@SuppressWarnings("unchecked")
+	
 	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
-		assert (exists());
-
-		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) (isDirectory() ? new DirectoryStrategy()
-				: context.getMergeStrategy());
-		assert (strategy != null);
-
-		if (!isDirectory()) {
+	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+		Objects.requireNonNull(operation, "operation must not be null!");
+		Objects.requireNonNull(context, "context must not be null!");
+		
+		if (!exists()) {
+			String className = getClass().getSimpleName();
+			String filePath = file.getAbsolutePath();
+			String message = String.format("Trying to merge %s whose file %s does not exist.", className, filePath);
+			
+			throw new RuntimeException(message);
+		}
+		
+		@SuppressWarnings("unchecked")
+		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+		
+		if (isDirectory()) {
+			strategy = new DirectoryStrategy();
+		} else {
 			String contentType = getContentType();
+
 			if (LOG.isTraceEnabled()) {
-				LOG.trace(getId() + "(" + this + "+ has content type: "
-						+ contentType);
+				LOG.trace(getId() + " (" + this + ") has content type: " + contentType);
 			}
 
 			if (!MIME_JAVA_SOURCE.equals(contentType)) {
@@ -578,15 +585,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Using strategy: " + strategy.toString());
+			LOG.debug("Using strategy: " + strategy);
 		}
 		LOG.info(this);
+		
 		strategy.merge(operation, context);
+		
 		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.print(context.getStdIn());
 		}
 		context.resetStreams();
-
 	}
 
 	/**
