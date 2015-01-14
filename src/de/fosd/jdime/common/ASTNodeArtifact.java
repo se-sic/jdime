@@ -556,9 +556,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("Target " + target.getId() + " expects a fixed amount of children.");
-					LOG.trace("changes in " + left.getId() + ": " + leftChanges);
-					LOG.trace("changes in " + right.getId() + ": " + rightChanges);
-					LOG.trace("We will report a conflict instead of performing the merge");
+					LOG.trace("Both " + left.getId() + " and " + right.getId() + " contain changes.");
+					LOG.trace("We will report a conflict instead of performing the merge.");
 				}
 				safeMerge = false;
 				
