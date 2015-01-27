@@ -21,10 +21,6 @@
  *******************************************************************************/
 package de.fosd.jdime.common;
 
-import java.io.IOException;
-
-import de.fosd.jdime.common.operations.MergeOperation;
-
 /**
  * This class represents a merge scenario for a standard three-way merge.
  *
@@ -121,24 +117,6 @@ public class MergeTriple<T extends Artifact<T>> {
 				&& left.getClass().equals(right.getClass())
 				&& (base.isEmptyDummy() || base.getClass().equals(
 						left.getClass()));
-	}
-
-	/**
-	 * Merges this triple.
-	 *
-	 * @param operation
-	 *            merge operation
-	 * @param context
-	 *            merge context
-	 * @throws InterruptedException
-	 *             If a thread is interrupted
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public final void merge(final MergeOperation<T> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		operation.getMergeTriple().getLeft().merge(operation, context);
 	}
 
 	/**
