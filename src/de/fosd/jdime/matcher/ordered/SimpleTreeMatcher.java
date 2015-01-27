@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.LookAhead;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.Matcher;
@@ -49,10 +50,10 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 	}
 
 	@Override
-	public final Matching<T> match(final T left, final T right) {
+	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
 		String id = "stm";
 
-		if (!left.matches(right)) {
+		if (!left.matches(right) && lookahead == LookAhead.OFF) {
 			// roots contain distinct symbols
 			return new Matching<>(left, right, 0);
 		}
@@ -82,7 +83,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 			for (int j = 1; j <= n; j++) {
 
 				Matching<T> w = matcher.match(left.getChild(i - 1),
-						right.getChild(j - 1));
+						right.getChild(j - 1), lookahead);
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
 							+ w.getScore()) {

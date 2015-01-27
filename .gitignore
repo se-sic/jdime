@@ -13,3 +13,4 @@
 /manifest.mf
 /.checkstyle
 /.classpath
+gradle.properties

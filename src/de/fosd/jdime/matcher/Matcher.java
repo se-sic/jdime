@@ -21,6 +21,7 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher;
 
+import de.fosd.jdime.common.LookAhead;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -90,7 +91,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @return Matching
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right) {
+	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
@@ -123,7 +124,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 						+ left.getId() + ", " + right.getId() + ")");
 			}
 
-			return orderedMatcher.match(left, right);
+			return orderedMatcher.match(left, right, lookahead);
 		} else {
 			unorderedCalls++;
 
@@ -134,7 +135,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedLabelMatcher.match(left, right);
+				return unorderedLabelMatcher.match(left, right, lookahead);
 			} else {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(unorderedMatcher.getClass().getSimpleName()
@@ -142,7 +143,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedMatcher.match(left, right);
+				return unorderedMatcher.match(left, right, lookahead);
 			}
 		}
 	}
@@ -158,18 +159,24 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 *            color used to highlight the matching in debug output
 	 */
 	public final void storeMatching(final Matching<T> matching,
-			final Color color) {
+			final Color color, LookAhead lookahead) {
 		T left = matching.getLeft();
 		T right = matching.getRight();
 
 		if (matching.getScore() > 0) {
-			assert (left.matches(right)) : left.getId() + " does not match "
-					+ right.getId() + " (" + left + " <-> " + right + ")";
-			matching.setColor(color);
-			left.addMatching(matching);
-			right.addMatching(matching);
+			if (left.matches(right)) {
+				// regular top-down matching
+				matching.setColor(color);
+				left.addMatching(matching);
+				right.addMatching(matching);
+			} else if (lookahead != LookAhead.OFF) {
+				// look-ahead is active and found matchings in subtree
+			} else {
+				throw new RuntimeException("Tried to store matching tree when lookahead is off and nodes do not match!");
+			}
+
 			for (Matching<T> childMatching : matching.getChildren()) {
-				storeMatching(childMatching, color);
+				storeMatching(childMatching, color, lookahead);
 			}
 		}
 
