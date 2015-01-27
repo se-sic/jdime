@@ -81,7 +81,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				// 3-way merge
 
 				// diff base left
-				m = diff.compare(base, left, Color.GREEN);
+				m = diff.compare(base, left, Color.GREEN, context.getLookAhead());
 				if (LOG.isDebugEnabled()) {
 					if (m.getScore() == 0) {
 						LOG.debug(base.getId() + " and " + left.getId()
@@ -90,7 +90,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				}
 
 				// diff base right
-				m = diff.compare(base, right, Color.GREEN);
+				m = diff.compare(base, right, Color.GREEN, context.getLookAhead());
 				if (LOG.isDebugEnabled()) {
 					if (m.getScore() == 0) {
 						LOG.debug(base.getId() + " and " + right.getId()
@@ -100,7 +100,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 
 			// diff left right
-			m = diff.compare(left, right, Color.BLUE);
+			m = diff.compare(left, right, Color.BLUE, context.getLookAhead());
 
 			// TODO: compute and write diff stats
 			if (context.isDiffOnly() && left.isRoot()

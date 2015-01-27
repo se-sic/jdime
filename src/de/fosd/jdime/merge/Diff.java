@@ -21,6 +21,7 @@
  *******************************************************************************/
 package de.fosd.jdime.merge;
 
+import de.fosd.jdime.common.LookAhead;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -54,9 +55,9 @@ public class Diff<T extends Artifact<T>> {
 	 * @return Matching of the two nodes
 	 */
 	public final Matching<T> compare(final T left, final T right,
-			final Color color) {
+			final Color color, LookAhead lookahead) {
 		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(left, right);
+		Matching<T> m = matcher.match(left, right, lookahead);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "
@@ -65,7 +66,8 @@ public class Diff<T extends Artifact<T>> {
 			LOG.trace("Store matching information within nodes.");
 		}
 
-		matcher.storeMatching(m, color);
+		matcher.storeMatching(m, color, lookahead);
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Dumping matching of " + left.getRevision() + " and "
 					+ right.getRevision());

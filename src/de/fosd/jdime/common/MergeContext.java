@@ -143,6 +143,10 @@ public class MergeContext implements Cloneable {
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
+	/**
+	 * Use lookahead while computing matches
+	 */
+	private LookAhead lookAhead = LookAhead.FULL;
 
 	/**
 	 * Class constructor.
@@ -557,5 +561,13 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setConsecutive(final boolean consecutive) {
 		this.consecutive = consecutive;
+	}
+
+	public LookAhead getLookAhead() {
+		return lookAhead;
+	}
+
+	public void setLookAhead(LookAhead doLookAhead) {
+		this.lookAhead = doLookAhead;
 	}
 }

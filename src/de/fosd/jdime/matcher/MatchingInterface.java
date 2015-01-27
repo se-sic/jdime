@@ -22,6 +22,7 @@
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.LookAhead;
 
 /**
  * @author Olaf Lessenich
@@ -39,5 +40,5 @@ public interface MatchingInterface<T extends Artifact<T>> {
 	 *            artifact
 	 * @return tree of matches
 	 */
-	Matching<T> match(final T left, final T right);
+	Matching<T> match(final T left, final T right, LookAhead lookahead);
 }
