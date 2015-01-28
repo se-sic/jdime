@@ -146,7 +146,7 @@ public class MergeContext implements Cloneable {
 	/**
 	 * Use lookahead while computing matches
 	 */
-	private LookAhead lookAhead = LookAhead.FULL;
+	private LookAhead lookAhead = LookAhead.OFF;
 
 	/**
 	 * Class constructor.

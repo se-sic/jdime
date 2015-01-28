@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.LookAhead;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
@@ -166,6 +167,7 @@ public final class Main {
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("help", false, "print this message");
 		options.addOption("keepgoing", false, "Keep running after exceptions.");
+		options.addOption("lookahead", false, "Use heuristics for matching.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
 						+ ", dumpgraph, dumpfile, prettyprint)");
@@ -272,6 +274,10 @@ public final class Main {
 				if (cmd.hasOption("consecutive")) {
 					context.setConsecutive(true);
 				}
+			}
+
+			if (cmd.hasOption("lookahead")) {
+				context.setLookAhead(LookAhead.FULL);
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")
