@@ -35,7 +35,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -43,7 +42,6 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LookAhead;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
@@ -203,7 +201,7 @@ public final class Main {
 
 			if (cmd.hasOption("mode")) {
 				try {
-					switch (cmd.getOptionValue("mode")) {
+					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
 						printStrategies(context, true);
 						break;
@@ -277,7 +275,25 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("lookahead")) {
-				context.setLookAhead(LookAhead.FULL);
+				String lookAheadValue = cmd.getOptionValue("lookahead");
+
+				// initialize with the context's default.
+				short lookAhead = context.getLookAhead();
+
+				// parse the value provided by the user
+				try {
+					lookAhead = Short.parseShort(lookAheadValue);
+				} catch (NumberFormatException e) {
+					switch(lookAheadValue) {
+						case "off":
+							break;
+						case "full":
+							lookAhead = MergeContext.LOOKAHEAD_FULL;
+							break;
+					}
+				}
+
+				context.setLookAhead(lookAhead);
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")

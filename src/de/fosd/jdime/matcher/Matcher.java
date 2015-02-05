@@ -21,11 +21,11 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher;
 
-import de.fosd.jdime.common.LookAhead;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
@@ -75,7 +75,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
+	public final Matching<T> match(MergeContext context, final T left, final T right) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
@@ -108,7 +108,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 						+ left.getId() + ", " + right.getId() + ")");
 			}
 
-			return orderedMatcher.match(left, right, lookahead);
+			return orderedMatcher.match(context, left, right);
 		} else {
 			unorderedCalls++;
 
@@ -119,7 +119,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedLabelMatcher.match(left, right, lookahead);
+				return unorderedLabelMatcher.match(context, left, right);
 			} else {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(unorderedMatcher.getClass().getSimpleName()
@@ -127,7 +127,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedMatcher.match(left, right, lookahead);
+				return unorderedMatcher.match(context, left, right);
 			}
 		}
 	}
@@ -140,25 +140,27 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @param matching used to mark nodes
 	 * @param color color used to highlight the matching in debug output
 	 */
-	public final void storeMatching(final Matching<T> matching,
-			final Color color, LookAhead lookahead) {
+	public final void storeMatching(MergeContext context, final Matching<T> matching,
+			final Color color) {
 		T left = matching.getLeft();
 		T right = matching.getRight();
 
 		if (matching.getScore() > 0) {
+			// TODO: collect statistical data about matching scores per language element and look-ahead setting
 			if (left.matches(right)) {
-				// regular top-down matching
+				// regular top-down matching where the compared nodes do match
 				matching.setColor(color);
 				left.addMatching(matching);
 				right.addMatching(matching);
-			} else if (lookahead != LookAhead.OFF) {
-				// look-ahead is active and found matchings in subtree
+			} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
+				// the compared nodes do not match but look-ahead is active and found matchings in the subtree
 			} else {
+				// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
 				throw new RuntimeException("Tried to store matching tree when lookahead is off and nodes do not match!");
 			}
 
 			for (Matching<T> childMatching : matching.getChildren()) {
-				storeMatching(childMatching, color, lookahead);
+				storeMatching(context, childMatching, color);
 			}
 		}
 

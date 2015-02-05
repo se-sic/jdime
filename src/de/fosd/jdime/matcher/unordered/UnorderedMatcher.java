@@ -22,7 +22,7 @@
 package de.fosd.jdime.matcher.unordered;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
@@ -63,5 +63,5 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements
 	 * @return largest common subtree of left and right tree
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right, LookAhead lookahead);
+	public abstract Matching<T> match(MergeContext context, final T left, final T right);
 }

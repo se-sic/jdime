@@ -41,6 +41,17 @@ public class MergeContext implements Cloneable {
 	private static final int BENCHMARKRUNS = 10;
 
 	/**
+	 * Stop looking for subtree matches if the two nodes compared are not equal.
+	 */
+	public static final short LOOKAHEAD_OFF = 0;
+
+	/**
+	 * Do look at all nodes in the subtree even if the compared nodes are not
+	 * equal.
+	 */
+	public static final short LOOKAHEAD_FULL = -1;
+
+	/**
 	 * Returns the median of a list of long values.
 	 *
 	 * @param values
@@ -63,28 +74,35 @@ public class MergeContext implements Cloneable {
 	/**
 	 * Performs benchmarks with several runs per file to get average runtimes.
 	 */
+
 	private boolean benchmark = false;
+
 	/**
 	 * Whether we are in bug-fixing mode.
 	 */
 	private boolean bugfixing = false;
+
 	/**
 	 * Whether to run only the diff.
 	 */
 	private boolean diffOnly = false;
+
 	/**
 	 * Whether to treat two input versions as consecutive versions in the
 	 * revision history.
 	 */
 	private boolean consecutive = false;
+
 	/**
 	 * Whether to dump files instead of merging.
 	 */
 	private boolean dumpFiles = false;
+
 	/**
 	 * Whether to dump ASTs instead of merging.
 	 */
 	private boolean dumpTree = false;
+
 	/**
 	 * Force overwriting of existing output files.
 	 */
@@ -99,54 +117,78 @@ public class MergeContext implements Cloneable {
 	 * Input Files.
 	 */
 	private ArtifactList<FileArtifact> inputFiles;
+
 	/**
 	 * If true, merging will be continued after exceptions.
 	 */
 	private boolean keepGoing = false;
+
 	/**
 	 * Strategy to apply for the merge.
 	 */
 	private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+
 	/**
 	 * Output file.
 	 */
 	private FileArtifact outputFile;
+
 	/**
 	 * Timestamp of program start.
 	 */
 	private long programStart;
+
 	/**
 	 * If true, the output is quiet.
 	 */
 	private boolean quiet = false;
+
 	/**
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private boolean recursive = false;
+
 	/**
 	 * Number of runs to perform for each file.
 	 */
 	private int runs = BENCHMARKRUNS;
+
 	/**
 	 * Save statistical data.
 	 */
 	private boolean saveStats = false;
+
 	/**
 	 * Statistical data are stored in a stats object.
 	 */
 	private Stats stats = null;
+
 	/**
 	 * StdOut of a merge operation.
 	 */
 	private StringWriter stdErr = new StringWriter();
+
 	/**
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
+
 	/**
-	 * Use lookahead while computing matches
+	 * How many levels to keep searching for matches in the subtree if the
+	 * currently compared nodes are not equal. If there are no matches within
+	 * the specified number of levels, do not look for matches deeper in the
+	 * subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop looking
+	 * for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
+	 * The default ist to do no look-ahead matching.
 	 */
-	private LookAhead lookAhead = LookAhead.OFF;
+	private short lookAhead = LOOKAHEAD_OFF;
+
+	/**
+	 * Remaining levels to look into. See <code>lookAhead</code> for more
+	 * explanation what this does.
+	 */
+	private short curLookAhead = lookAhead;
 
 	/**
 	 * Class constructor.
@@ -563,11 +605,48 @@ public class MergeContext implements Cloneable {
 		this.consecutive = consecutive;
 	}
 
-	public LookAhead getLookAhead() {
-		return lookAhead;
+	/**
+	 * Returns how many levels to keep searching for matches in the subtree if
+	 * the currently compared nodes are not equal. If there are no matches
+	 * within the specified number of levels, do not look for matches deeper in
+	 * the subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop
+	 * looking for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
+	 * ist to do no look-ahead matching.
+	 *
+	 * @return number of levels to look down for subtree matches if the
+	 * currently compared nodes do not match
+	 */
+	public short getLookAhead() { return lookAhead; }
+
+	/**
+	 * Sets how many levels to keep searching for matches in the subtree if
+	 * the currently compared nodes are not equal. If there are no matches
+	 * within the specified number of levels, do not look for matches deeper in
+	 * the subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop
+	 * looking for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
+	 * ist to do no look-ahead matching.
+	 *
+	 * @param lookAhead number of levels to look down for subtree matches if the
+	 * currently compared nodes do not match
+	 */
+	public void setLookAhead(short lookAhead) {
+		this.lookAhead = lookAhead;
 	}
 
-	public void setLookAhead(LookAhead doLookAhead) {
-		this.lookAhead = doLookAhead;
+	public void resetLookAhead() {
+		this.curLookAhead = lookAhead;
+	}
+
+	public boolean doLookAhead() {
+		if (curLookAhead > LOOKAHEAD_OFF) {
+			curLookAhead = (short)(curLookAhead - 1);
+		}
+
+		/* This is intentionally '!=' and not '>'
+		 * because <code>LOOKAHEAD_FULL</code> is smaller than zero.
+		 */
+		return curLookAhead != LOOKAHEAD_OFF;
 	}
 }

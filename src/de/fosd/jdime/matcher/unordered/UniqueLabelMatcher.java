@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
@@ -56,7 +56,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 	 * common.Artifact, de.fosd.jdime.common.Artifact)
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
+	public final Matching<T> match(MergeContext context, final T left, final T right) {
 		if (!left.matches(right)) {
 			return new Matching<>(left, right, 0);
 		}
@@ -95,8 +95,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				// matching
-				Matching<T> childMatching = matcher
-						.match(leftChild, rightChild, lookahead);
+				Matching<T> childMatching = matcher.match(context, leftChild, rightChild);
 
 				// Matching<T> childMatching
 				// = new Matching<T>(leftChild, rightChild, 1);

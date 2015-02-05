@@ -24,7 +24,6 @@ package de.fosd.jdime.matcher.unordered;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.fosd.jdime.common.LookAhead;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -33,6 +32,7 @@ import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
@@ -92,9 +92,10 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	}
 
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
+	public final Matching<T> match(MergeContext context, final T left, final T right) {
 
-		if (!left.matches(right) && lookahead == LookAhead.OFF) {
+		if (!left.matches(right)) {
+			// TODO: implement lookAhead HERE
 			return new Matching<>(left, right, 0);
 		}
 
@@ -124,7 +125,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching<T> w = matcher.match(childT1, childT2, lookahead);
+				Matching<T> w = matcher.match(context, childT1, childT2);
 				matching[i][j] = w;
 			}
 		}
