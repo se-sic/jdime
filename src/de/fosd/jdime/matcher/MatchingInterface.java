@@ -42,10 +42,10 @@ public interface MatchingInterface<T extends Artifact<T>> {
 	 * Returns a tree of <code>Matching</code>s for the provided
 	 * <code>Artifact</code>s.
 	 *
-	 * @param context merge context
+	 * @param context <code>MergeContext</code>
 	 * @param left <code>Artifact</code>
 	 * @param right <code>Artifact</code>
 	 * @return tree of <code>Matching</code>s
 	 */
-	Matching<T> match(MergeContext context, final T left, final T right);
+	Matching<T> match(final MergeContext context, final T left, final T right);
 }

@@ -75,7 +75,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final Matching<T> match(MergeContext context, final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
@@ -137,10 +137,11 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * The respective nodes are flagged with an appropriate
 	 * <code>matchingFlag</code> and references are set to each other.
 	 *
+	 * @param context <code>MergeContext</code>
 	 * @param matching used to mark nodes
 	 * @param color color used to highlight the matching in debug output
 	 */
-	public final void storeMatching(MergeContext context, final Matching<T> matching,
+	public final void storeMatching(final MergeContext context, final Matching<T> matching,
 			final Color color) {
 		T left = matching.getLeft();
 		T right = matching.getRight();

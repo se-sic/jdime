@@ -53,14 +53,13 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Compares two nodes.
+	 * Compares two nodes while considering the order of the elements compared.
 	 *
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
+	 * @param context <code>MergeContext</code>
+	 * @param left left node
+	 * @param right right node
+	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(MergeContext context, final T left, final T right);
+	public abstract Matching<T> match(final MergeContext context, final T left, final T right);
 }

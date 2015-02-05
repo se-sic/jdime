@@ -63,6 +63,15 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	 */
 	private String logprefix;
 
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,

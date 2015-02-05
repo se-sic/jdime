@@ -45,7 +45,8 @@ public class Diff<T extends Artifact<T>> {
 
 	/**
 	 * Compares two nodes and returns a respective matching.
-	 * 
+	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left
 	 *            left node
 	 * @param right
@@ -54,7 +55,7 @@ public class Diff<T extends Artifact<T>> {
 	 *            color of the matching (for debug output only)
 	 * @return Matching of the two nodes
 	 */
-	public final Matching<T> compare(MergeContext context, final T left, final T right,
+	public final Matching<T> compare(final MergeContext context, final T left, final T right,
 			final Color color) {
 		Matcher<T> matcher = new Matcher<>();
 		Matching<T> m = matcher.match(context, left, right);

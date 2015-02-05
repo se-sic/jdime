@@ -49,14 +49,24 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		super(matcher);
 	}
 
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 *
+	 * @param context <code>MergeContext</code>
+	 * @param left
+	 * @param right
+	 * @return
+	 */
 	@Override
-	public final Matching<T> match(MergeContext context, final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right) {
 		String id = "stm";
 
-		if (!left.matches(right)) {
-			// TODO: implement lookAhead HERE
-			// roots contain distinct symbols
-			return new Matching<>(left, right, 0);
+		int rootMatching = left.matches(right) ? 1 : 0;
+
+		if (rootMatching == 0 && !context.doLookAhead()) {
+			// roots contain distinct symbols and we don't use the look-ahead feature
+			// therefore, we ignore the rest of the subtrees and return early to save time
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		// number of first-level subtrees of t1
@@ -134,7 +144,8 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 			}
 		}
 
-		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + 1);
+		// total matching score for these trees is the score of the matched children + the matching of the root nodes
+		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
 		matching.setChildren(children);
 		return matching;
 	}
