@@ -30,17 +30,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
@@ -49,11 +50,23 @@ import de.fosd.jdime.strategy.MergeStrategy;
  */
 public class FileArtifact extends Artifact<FileArtifact> {
 
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(FileArtifact.class));
+
 	/**
-	 * Logger.
+	 * The expected MIME content type for java source files.
 	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(FileArtifact.class));
+	private static final String MIME_JAVA_SOURCE = "text/x-java";
+
+	/**
+	 * Used for determining the content type of this <code>FileArtifact</code> if
+	 * {@link Files#probeContentType(java.nio.file.Path)} fails.
+	 */
+	private static final MimetypesFileTypeMap mimeMap;
+
+	static {
+		mimeMap = new MimetypesFileTypeMap();
+		mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
+	}
 
 	/**
 	 * File in which the artifact is stored.
@@ -61,49 +74,52 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	private File file;
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
+	 * The newly constructed <code>FileArtifact</code> will not belong to a revision.
 	 *
 	 * @param file
-	 *            where the artifact is stored
+	 * 		the <code>File</code> in which the artifact is stored
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
 	 */
-	public FileArtifact(final File file) throws FileNotFoundException {
+	public FileArtifact(File file) throws FileNotFoundException {
 		this(null, file);
 	}
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
 	 *
 	 * @param revision
-	 *            the artifact belongs to
+	 * 		the <code>Revision</code> the artifact belongs to
 	 * @param file
-	 *            where the artifact is stored
+	 * 		the <code>File</code> in which the artifact is stored
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
 	 */
-	public FileArtifact(final Revision revision, final File file)
-			throws FileNotFoundException {
+	public FileArtifact(Revision revision, File file) throws FileNotFoundException {
 		this(revision, file, true);
 	}
 
 	/**
-	 * Creates a new instance of an artifact.
+	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
 	 *
 	 * @param revision
-	 *            the artifact belongs to
+	 * 		the <code>Revision</code> the artifact belongs to
 	 * @param file
-	 *            where the artifact is stored
-	 * @param checkPresence
-	 *            If true, an exception is thrown when the file does not exist
+	 * 		the <code>File</code> in which the artifact is stored
+	 * @param checkExistence
+	 * 		whether to ensure that <code>file</code> exists
+	 *
 	 * @throws FileNotFoundException
-	 *             FileNotFoundException
+	 * 		if <code>checkExistence</code> is <code>true</code> and <code>file</code> does not exist according to {@link
+	 * 		java.io.File#exists()}
 	 */
-	public FileArtifact(final Revision revision, final File file,
-			final boolean checkPresence) throws FileNotFoundException {
+	public FileArtifact(Revision revision, File file, boolean checkExistence) throws FileNotFoundException {
 		assert file != null;
 
-		if (checkPresence && !file.exists()) {
+		if (checkExistence && !file.exists()) {
 			LOG.fatal("File not found: " + file.getAbsolutePath());
 			throw new FileNotFoundException();
 		}
@@ -115,18 +131,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			LOG.trace("Artifact initialized: " + file.getPath());
 			LOG.trace("Artifact exists: " + exists());
 			LOG.trace("File exists: " + file.exists());
+
 			if (exists()) {
 				LOG.trace("Artifact isEmpty: " + isEmpty());
 			}
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#addChild(
-	 * de.fosd.jdime.common.Artifact)
-	 */
 	@Override
 	public final FileArtifact addChild(final FileArtifact child)
 			throws IOException {
@@ -152,12 +163,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.toString().compareTo(o.toString());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#copyArtifact(de.fosd.jdime.common.Artifact)
-	 */
 	@Override
 	public final void copyArtifact(final FileArtifact destination)
 			throws IOException {
@@ -206,11 +211,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#createArtifact(boolean)
-	 */
 	@Override
 	public final void createArtifact(final boolean isLeaf) throws IOException {
 
@@ -246,22 +246,23 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (exists());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
-	 */
 	@Override
 	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
-		// FIXME: The following works only for Unix-like systems.
-		// Maybe an empty file would also do the trick
-		File dummyFile = new File("/dev/null");
-		assert (dummyFile.exists()) : "Currently only Unix systems are supported!";
+		File dummyFile;
 
-		FileArtifact myEmptyDummy = new FileArtifact(dummyFile);
-		myEmptyDummy.setEmptyDummy(true);
-		LOG.trace("Artifact is a dummy artifact.");
-		return myEmptyDummy;
+		try {
+			dummyFile = Files.createTempFile(null, null).toFile();
+			dummyFile.deleteOnExit();
+		} catch (IOException e) {
+			throw new FileNotFoundException(e.getMessage());
+		}
+
+		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
+		dummyArtifact.setEmptyDummy(true);
+
+		LOG.trace("Artifact is a dummy artifact. Using temporary file " + dummyFile.getAbsolutePath());
+
+		return dummyArtifact;
 	}
 
 	@Override
@@ -303,11 +304,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return sb.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public final boolean equals(final Object obj) {
 		assert (obj != null);
@@ -318,11 +314,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.toString().equals(((FileArtifact) obj).toString());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#exists()
-	 */
 	@Override
 	public final boolean exists() {
 		assert (file != null);
@@ -330,15 +321,30 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	/**
-	 * Returns content type of file.
+	 * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
+	 * If the content type can not be determined <code>null</code> will be returned.
 	 *
-	 * @return content type of file
+	 * @return the MIME content type 
+	 *
 	 * @throws IOException
-	 *             If an input output exception occurs.
+	 *         if an I/O exception occurs while trying to determine the content type
 	 */
 	public final String getContentType() throws IOException {
 		assert (exists());
-		return Files.probeContentType(file.toPath());
+
+		String mimeType = Files.probeContentType(file.toPath());
+
+		if (mimeType == null) {
+			
+			// returns application/octet-stream if the type can not be determined
+			mimeType = mimeMap.getContentType(file); 
+			
+			if ("application/octet-stream".equals(mimeType)) { 
+				mimeType = null;
+			}
+		}
+
+		return mimeType;
 	}
 
 	/**
@@ -377,13 +383,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	public ArtifactList<FileArtifact> getJavaFiles() throws IOException {
 		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
 
-		if (isFile()) {
-			String contentType = getContentType();
-
-			if (contentType.equals("text/x-java")) {
-				javaFiles.add(this);
-			}
+		if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
+			javaFiles.add(this);
 		} else if (isDirectory()) {
+			
 			for (FileArtifact child : getDirContent()) {
 				javaFiles.addAll(child.getJavaFiles());
 			}
@@ -525,11 +528,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file.isFile();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#isLeaf()
-	 */
 	@Override
 	public final boolean isLeaf() {
 		return !file.isDirectory();
@@ -554,49 +552,49 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return this.equals(other);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
-	 */
-	@SuppressWarnings("unchecked")
+	
 	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
-		assert (exists());
-
-		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) (isDirectory() ? new DirectoryStrategy()
-				: context.getMergeStrategy());
-		assert (strategy != null);
-
-		if (!isDirectory()) {
+	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+		Objects.requireNonNull(operation, "operation must not be null!");
+		Objects.requireNonNull(context, "context must not be null!");
+		
+		if (!exists()) {
+			String className = getClass().getSimpleName();
+			String filePath = file.getAbsolutePath();
+			String message = String.format("Trying to merge %s whose file %s does not exist.", className, filePath);
+			
+			throw new RuntimeException(message);
+		}
+		
+		@SuppressWarnings("unchecked")
+		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+		
+		if (isDirectory()) {
+			strategy = new DirectoryStrategy();
+		} else {
 			String contentType = getContentType();
+
 			if (LOG.isTraceEnabled()) {
-				LOG.trace(getId() + "(" + this + "+ has content type: "
-						+ contentType);
+				LOG.trace(getId() + " (" + this + ") has content type: " + contentType);
 			}
 
-			if (!contentType.equals("text/x-java")) {
+			if (!MIME_JAVA_SOURCE.equals(contentType)) {
 				LOG.debug("Skipping non-java file.");
 				return;
 			}
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Using strategy: " + strategy.toString());
+			LOG.debug("Using strategy: " + strategy);
 		}
 		LOG.info(this);
+		
 		strategy.merge(operation, context);
+		
 		if (!context.isQuiet() && context.hasOutput()) {
 			System.out.print(context.getStdIn());
 		}
 		context.resetStreams();
-
 	}
 
 	/**
@@ -627,11 +625,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (!exists());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#toString()
-	 */
 	@Override
 	public final String toString() {
 		assert (file != null);
