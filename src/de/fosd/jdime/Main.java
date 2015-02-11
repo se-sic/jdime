@@ -70,7 +70,7 @@ public final class Main {
 	/**
 	 * Version constant.
 	 */
-	private static final String VERSION = "0.3.1";
+	private static final String VERSION = "0.3.2";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
