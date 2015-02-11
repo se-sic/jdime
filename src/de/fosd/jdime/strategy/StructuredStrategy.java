@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2013 Olaf Lessenich.
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,344 +15,374 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ *******************************************************************************/
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+
+import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.LangElem;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.ASTStats;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge.
  *
  * @author Olaf Lessenich
- *
  */
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
-    /**
-     * Logger.
-     */
-    private static final Logger LOG = Logger
-            .getLogger(StructuredStrategy.class);
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-     * de.fosd.jdime.common.operations.MergeOperation,
-     * de.fosd.jdime.common.MergeContext)
-     */
-    @Override
-    public final void merge(final MergeOperation<FileArtifact> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+	@Override
+	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 
-        assert (operation != null);
-        assert (context != null);
+		assert (operation != null);
+		assert (context != null);
 
-        MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
 
-        assert (triple != null);
-        assert (triple.isValid()) : "The merge triple is not valid!";
-        assert (triple.getLeft() instanceof FileArtifact);
-        assert (triple.getBase() instanceof FileArtifact);
-        assert (triple.getRight() instanceof FileArtifact);
+		assert (triple != null);
+		assert (triple.isValid()) : "The merge triple is not valid!";
 
-        assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-        assert ((triple.getBase().exists() && !triple.getBase().isDirectory())
-                || triple.getBase().isEmptyDummy());
-        assert (triple.getRight().exists() && !triple.getRight().isDirectory());
+		FileArtifact leftFile = triple.getLeft();
+		FileArtifact rightFile = triple.getRight();
+		FileArtifact baseFile = triple.getBase();
+		String lPath = leftFile.getPath();
+		String bPath = baseFile.getPath();
+		String rPath = rightFile.getPath();
+		
+		assert (leftFile.exists() && !leftFile.isDirectory());
+		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
+		assert (rightFile.exists() && !rightFile.isDirectory());
 
-        context.resetStreams();
+		context.resetStreams();
 
-        FileArtifact target = null;
+		FileArtifact target = operation.getTarget();
 
-        if (operation.getTarget() != null) {
-            assert (operation.getTarget() instanceof FileArtifact);
-            target = operation.getTarget();
-            assert (!target.exists() || target.isEmpty()) :
-                    "Would be overwritten: " + target;
-        }
+		assert (target != null);
+		assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+		
+		// ASTNodeArtifacts are created from the input files.
+		// Then, a ASTNodeStrategy can be applied.
+		// The Result is pretty printed and can be written into the output file.
+		ASTNodeArtifact left, base, right;
+		ArrayList<Long> runtimes = new ArrayList<>();
+		MergeContext mergeContext;
+		int conflicts = 0;
+		int loc = 0;
+		int cloc = 0;
+		ASTStats astStats = null;
+		ASTStats leftStats = null;
+		ASTStats rightStats = null;
+		
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
+		}
+		
+		try {
+			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
+				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+					mergeContext = context;
+				} else {
+					mergeContext = (MergeContext) context.clone();
+					mergeContext.setSaveStats(false);
+					mergeContext.setOutputFile(null);
+				}
 
-        // ASTNodeArtifacts are created from the input files.
-        // Then, a ASTNodeStrategy can be applied.
-        // The Result is pretty printed and can be written into the output file.
+				long cmdStart = System.currentTimeMillis();
 
-        ASTNodeArtifact left, base, right;
-        ArrayList<Long> runtimes = new ArrayList<>();
-        MergeContext mergeContext;
-        int conflicts = 0;
-        int loc = 0;
-        int cloc = 0;
+				left = new ASTNodeArtifact(leftFile);
+				base = new ASTNodeArtifact(baseFile);
+				right = new ASTNodeArtifact(rightFile);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Merging: " + triple.getLeft().getPath() + " "
-                    + triple.getBase().getPath() + " "
-                    + triple.getRight().getPath());
-        }
-        try {
-            for (int i = 0; i < context.getBenchmarkRuns() + 1
-                    && (i == 0 || context.isBenchmark()); i++) {
-                if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-                    mergeContext = context;
-                } else {
-                    mergeContext = (MergeContext) context.clone();
-                    mergeContext.setSaveStats(false);
-                    mergeContext.setOutputFile(null);
-                }
+				// Output tree
+				// Program program = new Program();
+				// program.state().reset();
+				// ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
+				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
+				targetNode.setRevision(left.getRevision());
+				targetNode.forceRenumbering();
 
-                long cmdStart = System.currentTimeMillis();
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("target.dumpTree(:");
+					System.out.println(targetNode.dumpTree());
+				}
 
-                left = new ASTNodeArtifact(triple.getLeft());
-                base = new ASTNodeArtifact(triple.getBase());
-                right = new ASTNodeArtifact(triple.getRight());
+				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(triple.getMergeType(), left, base, right);
 
-                // Output tree
-                // Program program = new Program();
-                // program.state().reset();
-                // ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
-                ASTNodeArtifact targetNode = ASTNodeArtifact
-                        .createProgram(left);
-                targetNode.setRevision(left.getRevision());
-                targetNode.forceRenumbering();
+				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("target.dumpTree(:");
-                    System.out.println(targetNode.dumpTree());
-                }
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("ASTMOperation.apply(context)");
+				}
 
-                MergeTriple<ASTNodeArtifact> nodeTriple =
-                        new MergeTriple<>(triple.getMergeType(),
-                        left, base, right);
+				astMergeOp.apply(mergeContext);
 
-                MergeOperation<ASTNodeArtifact> astMergeOp =
-                        new MergeOperation<>(nodeTriple,
-                        targetNode);
+				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Structured merge finished.");
 
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("ASTMOperation.apply(context)");
-                }
+						if (!context.isDiffOnly()) {
+							LOG.trace("target.dumpTree():");
+							System.out.println(targetNode.dumpTree());
+						}
 
-                astMergeOp.apply(mergeContext);
+						LOG.trace("Pretty-printing left:");
+						System.out.println(left.prettyPrint());
+						LOG.trace("Pretty-printing right:");
+						System.out.println(right.prettyPrint());
 
-                if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-                    if (LOG.isTraceEnabled()) {
-                        LOG.trace("Structured merge finished.");
-                        LOG.trace("target.dumpTree():");
-                        System.out.println(targetNode.dumpTree());
+						if (!context.isDiffOnly()) {
+							LOG.trace("Pretty-printing merge:");
+							if (mergeContext.isQuiet()) {
+								System.out.print(targetNode.prettyPrint());
+							}
+						}
+					}
 
-                        LOG.trace("Pretty-printing left:");
-                        System.out.println(left.prettyPrint());
-                        LOG.trace("Pretty-printing right:");
-                        System.out.println(right.prettyPrint());
-                        LOG.trace("Pretty-printing merge:");
-                        if (mergeContext.isQuiet()) {
-                            System.out.println(targetNode.prettyPrint());
-                        }
-                    }
-                    try ( // process input stream
-                            BufferedReader buf =
-                            new BufferedReader(new StringReader(
-                            targetNode.prettyPrint()))) {
-                        boolean conflict = false;
-                        boolean afterconflict = false;
-                        boolean inleft = false;
-                        boolean inright = false;
+					if (!context.isDiffOnly()) {
+						try (
+								// process input stream
+								BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
+							boolean conflict = false;
+							boolean afterconflict = false;
+							boolean inleft = false;
+							boolean inright = false;
 
-                        int tmp = 0;
-                        String line;
-                        StringBuffer leftlines = null;
-                        StringBuffer rightlines = null;
+							int tmp = 0;
+							String line;
+							StringBuffer leftlines = null;
+							StringBuffer rightlines = null;
 
-                        while ((line = buf.readLine()) != null) {
-                            if (line.matches("^$") || line.matches("^\\s*$")) {
-                                // skip empty lines
-                                if (!conflict && !afterconflict) {
-                                    mergeContext.appendLine(line);
-                                }
-                                continue;
-                            }
+							while ((line = buf.readLine()) != null) {
+								if (line.matches("^$") || line.matches("^\\s*$")) {
+									// skip empty lines
+									if (!conflict && !afterconflict) {
+										mergeContext.appendLine(line);
+									}
+									continue;
+								}
 
-                            if (line.matches("^\\s*<<<<<<<.*")) {
-                                conflict = true;
-                                tmp = cloc;
-                                conflicts++;
-                                inleft = true;
+								if (line.matches("^\\s*<<<<<<<.*")) {
+									conflict = true;
+									tmp = cloc;
+									conflicts++;
+									inleft = true;
 
-                                if (!afterconflict) {
-                                    // new conflict or new chain of conflicts
-                                    leftlines = new StringBuffer();
-                                    rightlines = new StringBuffer();
-                                } else {
-                                    // is directly after a previous conflict
-                                    // lets merge them
-                                    conflicts--;
-                                }
-                            } else if (line.matches("^\\s*=======.*")) {
-                                inleft = false;
-                                inright = true;
-                            } else if (line.matches("^\\s*>>>>>>>.*")) {
-                                conflict = false;
-                                afterconflict = true;
-                                if (tmp == cloc) {
-                                    // only empty lines
-                                    conflicts--;
-                                }
-                                inright = false;
-                            } else {
-                                loc++;
-                                if (conflict) {
-                                    cloc++;
-                                    if (inleft) {
-                                        assert (leftlines != null);
-                                        leftlines.append(line).append(
-                                                System.lineSeparator());
-                                    } else if (inright) {
-                                        assert (rightlines != null);
-                                        rightlines.append(line).append(
-                                                System.lineSeparator());
-                                    }
-                                } else {
-                                    if (afterconflict) {
-                                        assert (leftlines != null);
-                                        assert (rightlines != null);
-                                        // need to print the previous conflict(s)
-                                        mergeContext.appendLine("<<<<<<< ");
-                                        mergeContext.append(leftlines.toString());
-                                        mergeContext.appendLine("======= ");
-                                        mergeContext.append(
-                                                rightlines.toString());
-                                        mergeContext.appendLine(">>>>>>> ");
-                                    }
-                                    afterconflict = false;
-                                    mergeContext.appendLine(line);
-                                }
-                            }
-                        }
-                    }
-                }
+									if (!afterconflict) {
+										// new conflict or new chain of
+										// conflicts
+										leftlines = new StringBuffer();
+										rightlines = new StringBuffer();
+									} else {
+										// is directly after a previous conflict
+										// lets merge them
+										conflicts--;
+									}
+								} else if (line.matches("^\\s*=======.*")) {
+									inleft = false;
+									inright = true;
+								} else if (line.matches("^\\s*>>>>>>>.*")) {
+									conflict = false;
+									afterconflict = true;
+									if (tmp == cloc) {
+										// only empty lines
+										conflicts--;
+									}
+									inright = false;
+								} else {
+									loc++;
+									if (conflict) {
+										cloc++;
+										if (inleft) {
+											assert (leftlines != null);
+											leftlines.append(line).append(System.lineSeparator());
+										} else if (inright) {
+											assert (rightlines != null);
+											rightlines.append(line).append(System.lineSeparator());
+										}
+									} else {
+										if (afterconflict) {
+											assert (leftlines != null);
+											assert (rightlines != null);
+											// need to print the previous
+											// conflict(s)
+											mergeContext.appendLine("<<<<<<< " + lPath);
+											mergeContext.append(leftlines.toString());
+											mergeContext.appendLine("=======");
+											mergeContext.append(rightlines.toString());
+											mergeContext.appendLine(">>>>>>> " + rPath);
+										}
+										afterconflict = false;
+										mergeContext.appendLine(line);
+									}
+								}
+							}
+						}
+					}
+				}
 
-                long runtime = System.currentTimeMillis() - cmdStart;
-                runtimes.add(runtime);
+				long runtime = System.currentTimeMillis() - cmdStart;
+				runtimes.add(runtime);
 
-                if (LOG.isInfoEnabled() && context.isBenchmark()
-                        && context.hasStats()) {
-                    if (i == 0) {
-                        LOG.info("Initial run: " + runtime + " ms");
-                    } else {
-                        LOG.info("Run " + i + " of "
-                                + context.getBenchmarkRuns() + ": "
-                                + runtime + " ms");
-                    }
-                }
-            }
-            if (context.isBenchmark() && runtimes.size() > 1) {
-                // remove first run as it took way longer due to all the
-                // counting
-                runtimes.remove(0);
-            }
+				// collect stats
+				leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
+				rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
+				ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
 
-            Long runtime = MergeContext.median(runtimes);
-            LOG.debug("Structured merge time was " + runtime + " ms.");
+				assert (leftStats.getDiffStats(LangElem.NODE.toString()).getMatches() == rightStats
+						.getDiffStats(LangElem.NODE.toString()).getMatches()) :
+						"Number of matches should be equal in left and " + "right revision.";
 
-            if (context.hasErrors()) {
-                System.err.println(context.getStdErr());
-            }
+				astStats = ASTStats.add(leftStats, rightStats);
+				astStats.setConflicts(targetStats);
 
-            // write output
-            if (target != null) {
-                assert (target.exists());
-                target.write(context.getStdIn());
-            }
-            // add statistical data to context
-            if (context.hasStats()) {
-                assert (cloc <= loc);
+				if (LOG.isDebugEnabled() && context.hasStats()) {
+					System.out.println("---------- left ----------");
+					System.out.println(leftStats);
+					System.out.println("---------- right ----------");
+					System.out.println(rightStats);
+					System.out.println("---------- target ----------");
+					System.out.println(targetStats);
+				}
 
-                Stats stats = context.getStats();
-                StatsElement linesElement = stats.getElement("lines");
-                assert (linesElement != null);
-                StatsElement newElement = new StatsElement();
-                newElement.setMerged(loc);
-                newElement.setConflicting(cloc);
-                linesElement.addStatsElement(newElement);
+				if (LOG.isDebugEnabled()) {
+					String sep = " / ";
+					int nodes = astStats.getDiffStats(LangElem.NODE.toString()).getElements();
+					int matches = astStats.getDiffStats(LangElem.NODE.toString()).getMatches();
+					int changes = astStats.getDiffStats(LangElem.NODE.toString()).getAdded();
+					int removals = astStats.getDiffStats(LangElem.NODE.toString()).getDeleted();
+					int conflictnodes = astStats.getDiffStats(LangElem.NODE.toString()).getConflicting();
+					LOG.info("Absolute (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
+							+ "conflicts): ");
+					LOG.info(nodes + sep + matches + sep + changes + sep + removals + sep + conflictnodes);
 
-                if (conflicts > 0) {
-                    assert (cloc > 0);
-                    stats.addConflicts(conflicts);
-                    StatsElement filesElement = stats.getElement("files");
-                    assert (filesElement != null);
-                    filesElement.incrementConflicting();
-                } else {
-                    assert (cloc == 0);
-                }
+					if (nodes > 0) {
+						LOG.info("Relative (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
+								+ "conflicts): ");
+						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep + 100.0 * changes / nodes + sep
+								+ 100.0 * removals / nodes + sep + 100.0 * conflictnodes / nodes);
+					}
+				}
 
-                stats.increaseRuntime(runtime);
+				if (context.hasStats()) {
+					Stats stats = context.getStats();
+					stats.addASTStats(astStats);
+					stats.addLeftStats(leftStats);
+					stats.addRightStats(rightStats);
+				}
 
-                MergeTripleStats scenariostats = new MergeTripleStats(triple,
-                        conflicts, cloc, loc, runtime);
-                stats.addScenarioStats(scenariostats);
-            }
-        } catch (Throwable t) {
-            LOG.fatal(t + "  while merging " + triple.getLeft().getPath()
-                    + " " + triple.getBase().getPath() + " "
-                    + triple.getRight().getPath());
-            if (!context.isKeepGoing()) {
-                throw new Error(t);
-            } else {
-                if (context.hasStats()) {
-                    MergeTripleStats scenariostats = new MergeTripleStats(
-                            triple, t.toString());
-                    context.getStats().addScenarioStats(scenariostats);
-                }
-            }
-        }
-        System.gc();
+				if (LOG.isInfoEnabled() && context.isBenchmark() && context.hasStats()) {
+					if (i == 0) {
+						LOG.info("Initial run: " + runtime + " ms");
+					} else {
+						LOG.info("Run " + i + " of " + context.getBenchmarkRuns() + ": " + runtime + " ms");
+					}
+				}
+			}
+			if (context.isBenchmark() && runtimes.size() > 1) {
+				// remove first run as it took way longer due to all the
+				// counting
+				runtimes.remove(0);
+			}
 
-    }
+			Long runtime = MergeContext.median(runtimes);
+			LOG.debug("Structured merge time was " + runtime + " ms.");
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-     */
-    @Override
-    public final String toString() {
-        return "structured";
-    }
+			if (context.hasErrors()) {
+				System.err.println(context.getStdErr());
+			}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.strategy.StatsInterface#createStats()
-     */
-    @Override
-    public final Stats createStats() {
-        return new Stats(new String[]{"directories", "files", "lines",
-            "nodes"});
-    }
+			// write output
+			if (target != null) {
+				assert (target.exists());
+				target.write(context.getStdIn());
+			}
+			// add statistical data to context
+			if (context.hasStats()) {
+				assert (cloc <= loc);
 
-    @Override
-    public final String getStatsKey(final FileArtifact artifact) {
-        // FIXME: remove me when implementation is complete!
-        throw new NotYetImplementedException(
-                "StructuredStrategy: Implement me!");
-    }
+				Stats stats = context.getStats();
+				StatsElement linesElement = stats.getElement("lines");
+				assert (linesElement != null);
+				StatsElement newElement = new StatsElement();
+				newElement.setMerged(loc);
+				newElement.setConflicting(cloc);
+				linesElement.addStatsElement(newElement);
 
-    @Override
-    public final void dump(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        new ASTNodeStrategy().dump(new ASTNodeArtifact(artifact), graphical);
-    }
+				if (conflicts > 0) {
+					assert (cloc > 0);
+					stats.addConflicts(conflicts);
+					StatsElement filesElement = stats.getElement("files");
+					assert (filesElement != null);
+					filesElement.incrementConflicting();
+				} else {
+					assert (cloc == 0);
+				}
+
+				stats.increaseRuntime(runtime);
+
+				assert (leftStats != null);
+				assert (rightStats != null);
+
+				MergeTripleStats scenariostats =
+						new MergeTripleStats(triple, conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
+				stats.addScenarioStats(scenariostats);
+			}
+		} catch (Throwable t) {
+			LOG.fatal(String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath), t);
+			
+			if (!context.isKeepGoing()) {
+				throw new Error(t);
+			} else {
+				if (context.hasStats()) {
+					MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
+					context.getStats().addScenarioStats(scenarioStats);
+				}
+			}
+		}
+	}
+
+	@Override
+	public final String toString() {
+		return "structured";
+	}
+
+	@Override
+	public final Stats createStats() {
+		return new Stats(new String[] {"directories", "files", "lines", "nodes"});
+	}
+
+	@Override
+	public final String getStatsKey(FileArtifact artifact) {
+		// FIXME: remove me when implementation is complete!
+		throw new NotYetImplementedException("StructuredStrategy: Implement me!");
+	}
+
+	@Override
+	public final void dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
+		new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
+	}
+
+	@Override
+	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
+		new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
+	}
 }

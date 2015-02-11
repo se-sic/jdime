@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2013 Olaf Lessenich.
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *******************************************************************************/
 package de.fosd.jdime.stats;
 
 /**
@@ -23,133 +26,230 @@ package de.fosd.jdime.stats;
  *
  */
 public class StatsElement {
+	/**
+	 * Number of elements.
+	 */
+	private int elements = 0;
 
-    /**
-     * Number of added elements.
-     */
-    private int added = 0;
-    /**
-     * Number of deleted elements.
-     */
-    private int deleted = 0;
-    /**
-     * Number of merged elements.
-     */
-    private int merged = 0;
-    /**
-     * Number of conflicting elements.
-     */
-    private int conflicting = 0;
+	/**
+	 * Number of added elements.
+	 */
+	private int added = 0;
 
-    /**
-     * Returns the number of added elements.
-     *
-     * @return number of added elements
-     */
-    public final int getAdded() {
-        return added;
-    }
+	/**
+	 * Number of deleted elements.
+	 */
+	private int deleted = 0;
 
-    /**
-     * Returns the number of merged elements.
-     *
-     * @return the number of merged elements
-     */
-    public final int getMerged() {
-        return merged;
-    }
+	/**
+	 * Number of merged elements.
+	 */
+	private int merged = 0;
 
-    /**
-     * Returns the number of conflicting elements.
-     *
-     * @return the number of conflicting elements
-     */
-    public final int getConflicting() {
-        return conflicting;
-    }
+	/**
+	 * Number of conflicting elements.
+	 */
+	private int conflicting = 0;
 
-    /**
-     * Returns the number of deleted elements.
-     *
-     * @return number of deleted elements
-     */
-    public final int getDeleted() {
-        return deleted;
-    }
+	/**
+	 * Number of matched elements.
+	 */
+	private int matches = 0;
 
-    /**
-     * Increments the number of added elements.
-     */
-    public final void incrementAdded() {
-        added++;
-    }
+	/**
+	 * Number of changed elements.
+	 */
+	private int changes = 0;
 
-    /**
-     * Increments the number of merged elements.
-     */
-    public final void incrementMerged() {
-        merged++;
-    }
+	public int getChanges() {
+		return changes;
+	}
 
-    /**
-     * Increments the number of conflicting elements.
-     */
-    public final void incrementConflicting() {
-        conflicting++;
-    }
+	public void setChanges(int changes) {
+		this.changes = changes;
+	}
 
-    /**
-     * Increments the number of deleted elements.
-     */
-    public final void incrementDeleted() {
-        deleted++;
-    }
+	public void incrementChanges() {
+		changes++;
+	}
 
-    /**
-     * Sets the number of added elements.
-     *
-     * @param added elements to set
-     */
-    public final void setAdded(final int added) {
-        this.added = added;
-    }
+	/**
+	 * Returns the number of added elements.
+	 *
+	 * @return number of added elements
+	 */
+	public final int getAdded() {
+		return added;
+	}
 
-    /**
-     * Sets the number of merged elements.
-     *
-     * @param merged elements to set
-     */
-    public final void setMerged(final int merged) {
-        this.merged = merged;
-    }
+	/**
+	 * Returns the number of merged elements.
+	 *
+	 * @return the number of merged elements
+	 */
+	public final int getMerged() {
+		return merged;
+	}
 
-    /**
-     * Sets the number of conflicting elements.
-     *
-     * @param conflicting elements to set
-     */
-    public final void setConflicting(final int conflicting) {
-        this.conflicting = conflicting;
-    }
+	/**
+	 * Returns the number of conflicting elements.
+	 *
+	 * @return the number of conflicting elements
+	 */
+	public final int getConflicting() {
+		return conflicting;
+	}
 
-    /**
-     * Sets the number of deleted elements.
-     *
-     * @param deleted the deleted to set
-     */
-    public final void setDeleted(final int deleted) {
-        this.deleted = deleted;
-    }
+	/**
+	 * Returns the number of deleted elements.
+	 *
+	 * @return number of deleted elements
+	 */
+	public final int getDeleted() {
+		return deleted;
+	}
 
-    /**
-     * Adds another StatsElement to this one.
-     *
-     * @param other StatsElement to add
-     */
-    public final void addStatsElement(final StatsElement other) {
-        added += other.added;
-        deleted += other.deleted;
-        merged += other.merged;
-        conflicting += other.conflicting;
-    }
+	/**
+	 * Returns the number of matched elements.
+	 * 
+	 * @return matches
+	 */
+	public final int getMatches() {
+		return matches;
+	}
+
+	/**
+	 * Increments the number of added elements.
+	 */
+	public final void incrementAdded() {
+		added++;
+	}
+
+	/**
+	 * Increments the number of merged elements.
+	 */
+	public final void incrementMerged() {
+		merged++;
+	}
+
+	/**
+	 * Increments the number of conflicting elements.
+	 */
+	public final void incrementConflicting() {
+		conflicting++;
+	}
+
+	/**
+	 * Increments the number of deleted elements.
+	 */
+	public final void incrementDeleted() {
+		deleted++;
+	}
+
+	/**
+	 * Increments the number of matched elements.
+	 */
+	public final void incrementMatches() {
+		matches++;
+	}
+
+	/**
+	 * Sets the number of added elements.
+	 *
+	 * @param added
+	 *            elements to set
+	 */
+	public final void setAdded(final int added) {
+		this.added = added;
+	}
+
+	/**
+	 * Sets the number of merged elements.
+	 *
+	 * @param merged
+	 *            elements to set
+	 */
+	public final void setMerged(final int merged) {
+		this.merged = merged;
+	}
+
+	/**
+	 * Sets the number of conflicting elements.
+	 *
+	 * @param conflicting
+	 *            elements to set
+	 */
+	public final void setConflicting(final int conflicting) {
+		this.conflicting = conflicting;
+	}
+
+	/**
+	 * Sets the number of deleted elements.
+	 *
+	 * @param deleted
+	 *            the deleted to set
+	 */
+	public final void setDeleted(final int deleted) {
+		this.deleted = deleted;
+	}
+
+	/**
+	 * Sets the number of matched elements.
+	 * 
+	 * @param matches
+	 *            matches
+	 */
+	public final void setMatches(final int matches) {
+		this.matches = matches;
+	}
+
+	/**
+	 * Adds another StatsElement to this one.
+	 *
+	 * @param other
+	 *            StatsElement to add
+	 */
+	public final void addStatsElement(final StatsElement other) {
+		added += other.added;
+		deleted += other.deleted;
+		merged += other.merged;
+		conflicting += other.conflicting;
+		matches += other.matches;
+		changes += other.changes;
+		elements += other.elements;
+	}
+
+	/**
+	 * @return the elements
+	 */
+	public final int getElements() {
+		return elements;
+	}
+
+	/**
+	 * @param elements
+	 *            the elements to set
+	 */
+	public final void setElements(final int elements) {
+		this.elements = elements;
+	}
+
+	public final void incrementElements() {
+		elements++;
+	}
+
+	public StatsElement copy() {
+		return copy(new StatsElement());
+	}
+
+	public StatsElement copy(StatsElement copy) {
+		copy.setAdded(added);
+		copy.setConflicting(conflicting);
+		copy.setDeleted(deleted);
+		copy.setElements(elements);
+		copy.setMatches(matches);
+		copy.setMerged(merged);
+		copy.setChanges(changes);
+		return copy;
+	}
 }

@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2013 Olaf Lessenich.
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,31 +15,36 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *******************************************************************************/
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.stats.Stats;
 
 /**
- * @author lessenic
+ * @author Olaf Lessenich
  *
- * @param <T> type of artifact
+ * @param <T>
+ *            type of artifact
  */
 public interface StatsInterface<T extends Artifact<T>> {
 
-    /**
-     * Creates and returns a new Stats Object specific to the strategy.
-     *
-     * @return new stats object
-     */
-    Stats createStats();
+	/**
+	 * Creates and returns a new Stats Object specific to the strategy.
+	 *
+	 * @return new stats object
+	 */
+	Stats createStats();
 
-    /**
-     * Returns key of statistical element.
-     *
-     * @param artifact artifact
-     * @return key of statistical element
-     */
-    String getStatsKey(final T artifact);
+	/**
+	 * Returns key of statistical element.
+	 *
+	 * @param artifact
+	 *            artifact
+	 * @return key of statistical element
+	 */
+	String getStatsKey(final T artifact);
 }

@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2013 Olaf Lessenich.
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,45 +15,58 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ *******************************************************************************/
 package de.fosd.jdime.common;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
+ * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
+ * {@link Artifact#getId()} to represent its contents.
+ *
+ * @param <E>
+ * 		the type of elements held by this collection
+ *
  * @author Olaf Lessenich
- * @param <E> artifact element
+ * @see Artifact
  */
 public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 5294838641795231473L;
+	private static final String DEFAULT_SEP = " ";
 
-    /* (non-Javadoc)
-     * @see java.util.AbstractCollection#toString()
-     */
-    @Override
-    public final String toString() {
-        return toString(" ");
-    }
+	@Override
+	public String toString() {
+		return toString(DEFAULT_SEP);
+	}
 
-    /**
-     * Returns a String representing a list of artifacts.
-     *
-     * @param sep separator
-     * @return String representation
-     */
-    public final String toString(final String sep) {
-        assert (sep != null);
+	/**
+	 * Returns a string representation of this collection. The string representation consists of a list of the
+	 * collection's elements in the order they are returned by its iterator. Adjacent elements are separated by the
+	 * given <code>separator</code>. Elements are converted to strings as by {@link Artifact#getId()}.
+	 *
+	 * @param separator
+	 * 		the separator to be used
+	 *
+	 * @return a string representation of this collection
+	 */
+	public String toString(String separator) {
+		assert (separator != null);
 
-        StringBuilder sb = new StringBuilder("");
-        for (E element : this) {
-            sb.append(element.getId());
-            sb.append(sep);
-        }
-
-        return sb.toString();
-    }
+		StringBuilder sb = new StringBuilder("");
+		
+		for (Iterator<E> it = this.iterator(); it.hasNext();) {
+			sb.append(it.next().getId());
+			
+			if (it.hasNext()) {
+				sb.append(separator);
+			}
+		}
+		
+		return sb.toString();
+	}
 }

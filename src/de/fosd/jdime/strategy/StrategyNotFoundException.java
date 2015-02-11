@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2013 Olaf Lessenich.
+/*******************************************************************************
+ * Copyright (C) 2013, 2014 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,10 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- */
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *******************************************************************************/
 package de.fosd.jdime.strategy;
 
 /**
@@ -26,17 +29,18 @@ package de.fosd.jdime.strategy;
  */
 public class StrategyNotFoundException extends RuntimeException {
 
-    /**
+	/**
      *
      */
-    private static final long serialVersionUID = -7644611893570243018L;
+	private static final long serialVersionUID = -7644611893570243018L;
 
-    /**
-     * Class constructor.
-     *
-     * @param string description
-     */
-    public StrategyNotFoundException(final String string) {
-        super(string);
-    }
+	/**
+	 * Class constructor.
+	 *
+	 * @param string
+	 *            description
+	 */
+	public StrategyNotFoundException(final String string) {
+		super(string);
+	}
 }

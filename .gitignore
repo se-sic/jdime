@@ -1,6 +1,16 @@
 /.settings
-/nbproject/private
+/nbproject
 /bin
 /dist
 /testfiles/merge
+/.gradle/
 /build/
+/pushjar.sh
+/.idea/
+*.iml
+/.project
+/nbbuild.xml
+/manifest.mf
+/.checkstyle
+/.classpath
+gradle.properties
