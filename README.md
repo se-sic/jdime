@@ -6,14 +6,14 @@
 * gplk-java (http://glpk-java.sourceforge.net/)
 
 __Debian/Ubuntu:__  
-`apt-get install rcs glpk libglpk-java`
+`apt-get install git glpk libglpk-java`
 
 __Redhat/Fedora:__  
-`yum install rcs glpk`  
+`yum install git glpk`  
 glpk-java has to be installed manually
 
 __Suse/OpenSuse:__  
-`zypper install rcs glpk`  
+`zypper install git glpk`  
 glpk-java has to be installed manually  
 
 __Windows:__  
