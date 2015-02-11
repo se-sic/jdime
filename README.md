@@ -26,3 +26,8 @@ native libraries appropriate for your platform. `X_XX` refers to the version of 
 
 After running the command given above the directory `build/install/JDime/bin` will contain Unix and Windows scripts
 that you can use to start the application.
+
+#### Usage:
+The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows: 
+`JDime -mode [unstructured|structured|autotuning] -output [directory] <leftVersion> <baseVersion> <rightVersion>`
+
