@@ -1,4 +1,20 @@
 # JDime  -  Structured Merge with Auto-Tuning
+## Tools Used:
+JDime uses these tools/libraries:
+
+* JastAddJ (https://bitbucket.org/jastadd/jastaddj)
+> Commit [c0017e0](https://bitbucket.org/jastadd/jastaddj/src/c0017e0)
+> Copyright (c) 2005-2008, Torbj&ouml;rn Ekman
+> Copyright (c) 2005-2013, JastAddJ Committers
+> JastAddJ is covered by the Modified BSD License.
+> The full license text is distributed with this software.
+> See the file licenses/JastAddJ-BSD.
+
+The changes that were made to JastAddJ are shipped with this software
+and covered by the Modified BSD License.
+See patches/JastAddJ.patch for the changes,
+and patches/LICENSE for the license text.
+
 ## System Requirements:
 * gradle (http://www.gradle.org/)
 * git (http://git-scm.com/)
@@ -27,7 +43,8 @@ native libraries appropriate for your platform. `X_XX` refers to the version of 
 After running the command given above the directory `build/install/JDime/bin` will contain Unix and Windows scripts
 that you can use to start the application.
 
-#### Usage:
+## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows: 
+
 `JDime -mode [unstructured|structured|autotuning] -output [directory] <leftVersion> <baseVersion> <rightVersion>`
 

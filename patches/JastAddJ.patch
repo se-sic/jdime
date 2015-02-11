@@ -1,0 +1,1071 @@
+#
+# Patch to adjust JastAddJ for use in JDime
+#
+# This patch is covered by the Modified BSD License.
+# The full license text is distributed with this software.
+# See the LICENSE file in the same directory as this patch.
+#
+diff --git README.JDime README.JDime
+new file mode 100644
+index 0000000..6985df2
+--- /dev/null
++++ README.JDime
+@@ -0,0 +1,9 @@
++# generate the classes
++ant
++
++# patch the classes to fix low level bugs 
++# and cut out stuff to improve performance
++patch -s -p0 < JDime.patch
++
++# build and copy the jar
++ant jar && cp jastaddj.jar ../jdime-ng/lib/JJ7.jar
+diff --git build.xml build.xml
+index 5ea084a..e624d52 100644
+--- build.xml
++++ build.xml
+@@ -154,6 +154,9 @@ Build a standard release:
+ 			<fileset dir="${bin.dir}">
+ 				<include name="**/*"/>
+ 			</fileset>
++			<fileset dir=".">
++				<include name="**/*.java"/>
++			</fileset>
+ 		</jar>
+ 	</target>
+ 
+diff --git java4/backend/FlushCaches.jrag java4/backend/FlushCaches.jrag
+index 17e96ff..2c4f02f 100644
+--- java4/backend/FlushCaches.jrag
++++ java4/backend/FlushCaches.jrag
+@@ -4,5 +4,11 @@ aspect FlushCaches {
+       flushCache();
+       for(int i = 0; i < getNumChild(); i++)
+         getChild(i).flushCaches();
++      if (left != null) {
++	  left.flushCaches();
++      }
++      if (right != null) {
++	  right.flushCaches();
++      }
+     }
+ }
+diff --git java4/frontend/JDime.jadd java4/frontend/JDime.jadd
+new file mode 100644
+index 0000000..9e7407a
+--- /dev/null
++++ java4/frontend/JDime.jadd
+@@ -0,0 +1,62 @@
++aspect JDime {
++    public void ASTNode.setChildren(ASTNode[] newchildren) {
++	children = newchildren;
++	numChildren = children.length;
++	//if (jdimeChanges)
++	//    flushCaches();
++    }
++
++    public void ASTNode.removeChildren() {
++	children = null;
++	numChildren = 0;
++    }
++  
++    public String ASTNode.jdimeId = "";
++
++    public boolean ASTNode.jdimeChanges = false;
++    
++    public boolean ASTNode.isConflict = false;
++
++    public ASTNode<?> ASTNode.left;
++
++    public ASTNode<?> ASTNode.right;
++
++    public boolean ASTNode.printConflict(StringBuffer s) {
++	if (isConflict) {
++	    s.append("\n<<<<<<< \n");
++	    if (left != null) {
++		//T leftClone;
++		//try {
++		//    leftClone = (T) this.clone();
++		//} catch (CloneNotSupportedException e) {
++		//   // TODO Auto-generated catch block
++		//    e.printStackTrace();
++		//    throw new RuntimeException();
++		//}
++		//leftClone.setChildren(left.children);
++		//s.append(leftClone.toString());
++		s.append(left.prettyPrint());
++		s.append("\n");
++	    }
++	    s.append("======= \n");
++	    if (right != null) {
++		//T rightClone;
++		//try {
++		//    rightClone = (T) this.clone();
++		//} catch (CloneNotSupportedException e) {
++		//    // TODO Auto-generated catch block
++		//    e.printStackTrace();
++		//    throw new RuntimeException();
++		//}
++		//rightClone.setChildren(right.children);
++		//s.append(rightClone.toString());
++		s.append(right.prettyPrint());
++		s.append("\n");
++	    }
++	    s.append(">>>>>>> \n");
++	    return true;
++	} 
++	return false;
++    } 
++
++}
+diff --git java4/frontend/PrettyPrint.jadd java4/frontend/PrettyPrint.jadd
+index 4656bcf..6bfd3f8 100644
+--- java4/frontend/PrettyPrint.jadd
++++ java4/frontend/PrettyPrint.jadd
+@@ -37,6 +37,9 @@ aspect PrettyPrint {
+   }
+ 
+   public void Program.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
++
+     for (Iterator iter = compilationUnitIterator(); iter.hasNext(); ) {
+       CompilationUnit cu = (CompilationUnit) iter.next();
+       if (cu.fromSource()) {
+@@ -46,6 +49,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void CompilationUnit.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     try {
+       if (!getPackageDecl().equals("")) {
+         sb.append("package " + getPackageDecl() + ";\n");
+@@ -64,18 +69,24 @@ aspect PrettyPrint {
+   }
+ 
+   public void SingleTypeImportDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("import ");
+     getAccess().prettyPrint(sb);
+     sb.append(";\n");
+   }
+ 
+   public void TypeImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("import ");
+     getAccess().prettyPrint(sb);
+     sb.append(".*;\n");
+   }
+ 
+   protected void TypeDecl.ppBodyDecls(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(" {");
+     for(int i=0; i < getNumBodyDecl(); i++) {
+       getBodyDecl(i).prettyPrint(sb);
+@@ -84,6 +95,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ClassDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     sb.append("class " + name());
+@@ -103,6 +116,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void InterfaceDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     sb.append("interface " + name());
+@@ -120,12 +135,16 @@ aspect PrettyPrint {
+   // Type body decl
+ 
+   public void InstanceInitializer.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     if(getBlock().getNumStmt() == 0) return;
+     sb.append(indent());
+     getBlock().prettyPrint(sb);
+   }
+ 
+   public void StaticInitializer.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     if(getBlock().getNumStmt() == 0) return;
+     sb.append(indent());
+     sb.append("static ");
+@@ -133,6 +152,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ConstructorDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     if(isDefaultConstructor()) return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+@@ -166,6 +187,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void FieldDeclaration.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+@@ -178,6 +201,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void VariableDeclaration.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+@@ -190,6 +215,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void MethodDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+@@ -220,21 +247,29 @@ aspect PrettyPrint {
+   }
+ 
+   public void MemberClassDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getClassDecl().prettyPrint(sb);
+   }
+ 
+   public void MemberInterfaceDecl.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getInterfaceDecl().prettyPrint(sb);
+   }
+ 
+   public void EmptyType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append(";");
+   }
+ 
+   public void ArrayInit.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("{ ");
+     if(getNumInit() > 0) {
+       getInit(0).prettyPrint(sb);
+@@ -247,6 +282,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ParameterDeclaration.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+     sb.append(" " + name());
+@@ -255,6 +292,8 @@ aspect PrettyPrint {
+   // Assign Expression
+ 
+   public void AssignExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getDest().prettyPrint(sb);
+     sb.append(printOp());
+     getSource().prettyPrint(sb);
+@@ -277,28 +316,40 @@ aspect PrettyPrint {
+   // Literals
+ 
+   public void Literal.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getLITERAL());
+   }
+ 
+   public void StringLiteral.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("\"" + escape(getLITERAL()) + "\"");
+   }
+ 
+   public void CharacterLiteral.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("'" + escape(getLITERAL()) + "'");
+   }
+ 
+   public void LongLiteral.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getLITERAL());
+     sb.append("L");
+   }
+ 
+   public void FloatingPointLiteral.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getLITERAL());
+     sb.append("F");
+   }
+ 
+   public void DoubleLiteral.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getLITERAL());
+     sb.append("D");
+   }
+@@ -338,12 +389,16 @@ aspect PrettyPrint {
+   }
+ 
+   public void ParExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("(");
+     getExpr().prettyPrint(sb);
+     sb.append(")");
+   }
+ 
+   public void ClassInstanceExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("new ");
+     getAccess().prettyPrint(sb);
+     sb.append("(");
+@@ -373,6 +428,8 @@ aspect PrettyPrint {
+   eq Program.getChild().typeDeclIndent() = "";
+ 
+   public void ArrayCreationExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("new ");
+     getTypeAccess().prettyPrint(sb);
+     if(hasArrayInit()) {
+@@ -383,6 +440,8 @@ aspect PrettyPrint {
+   // Pre and post operations for unary expression
+ 
+   public void Unary.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(printPreOp());
+     getOperand().prettyPrint(sb);
+     sb.append(printPostOp());
+@@ -402,6 +461,8 @@ aspect PrettyPrint {
+ 
+ 
+   public void CastExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("(");
+     getTypeAccess().prettyPrint(sb);
+     sb.append(")");
+@@ -411,6 +472,8 @@ aspect PrettyPrint {
+   // Binary Expr
+ 
+   public void Binary.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getLeftOperand().prettyPrint(sb);
+     sb.append(printOp());
+     getRightOperand().prettyPrint(sb);
+@@ -438,12 +501,16 @@ aspect PrettyPrint {
+   eq NEExpr.printOp() = " != ";
+ 
+   public void InstanceOfExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getExpr().prettyPrint(sb);
+     sb.append(" instanceof ");
+     getTypeAccess().prettyPrint(sb);
+   }
+ 
+   public void ConditionalExpr.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getCondition().prettyPrint(sb);
+     sb.append(" ? ");
+     getTrueExpr().prettyPrint(sb);
+@@ -452,6 +519,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void Modifiers.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     for(int i = 0; i < getNumModifier(); i++) {
+       getModifier(i).prettyPrint(sb);
+       sb.append(" ");
+@@ -459,10 +528,14 @@ aspect PrettyPrint {
+   }
+ 
+   public void Modifier.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getID());
+   }
+ 
+   public void AbstractDot.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getLeft().prettyPrint(sb);
+     if(!nextAccess().isArrayAccess())
+       sb.append(".");
+@@ -470,10 +543,14 @@ aspect PrettyPrint {
+   }
+ 
+   public void VarAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(name());
+   }
+ 
+   public void MethodAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(name());
+     sb.append("(");
+     if(getNumArg() > 0) {
+@@ -487,6 +564,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ConstructorAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(name());
+     sb.append("(");
+     if(getNumArg() > 0) {
+@@ -500,6 +579,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void TypeAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     if(decl().isReferenceType())
+       sb.append(nameWithPackage());
+     else
+@@ -507,11 +588,15 @@ aspect PrettyPrint {
+   }
+ 
+   public void ArrayTypeAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getAccess().prettyPrint(sb);
+     sb.append("[]");
+   }
+ 
+   public void ArrayTypeWithSizeAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getAccess().prettyPrint(sb);
+     sb.append("[");
+     getExpr().prettyPrint(sb);
+@@ -519,30 +604,42 @@ aspect PrettyPrint {
+   }
+ 
+   public void ThisAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("this");
+   }
+ 
+   public void SuperAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("super");
+   }
+ 
+   public void PackageAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(getPackage());
+   }
+ 
+   public void ArrayAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("[");
+     getExpr().prettyPrint(sb);
+     sb.append("]");
+   }
+ 
+   public void ClassAccess.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("class");
+   }
+ 
+   // Stmts
+ 
+   public void Block.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     String indent = indent();
+     sb.append(shouldHaveIndent() ? indent : "");
+     sb.append("{");
+@@ -554,23 +651,31 @@ aspect PrettyPrint {
+   }
+ 
+   public void EmptyStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append(";");
+   }
+ 
+   public void LabeledStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append(getLabel() + ":");
+     getStmt().prettyPrint(sb);
+   }
+ 
+   public void ExprStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     getExpr().prettyPrint(sb);
+     sb.append(";");
+   }
+ 
+   public void SwitchStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("switch (");
+     getExpr().prettyPrint(sb);
+@@ -579,6 +684,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ConstCase.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("case ");
+     getValue().prettyPrint(sb);
+@@ -586,11 +693,15 @@ aspect PrettyPrint {
+   }
+ 
+   public void DefaultCase.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("default:");
+   }
+ 
+   public void IfStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("if(");
+     getCondition().prettyPrint(sb);
+@@ -604,6 +715,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void WhileStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("while(");
+     getCondition().prettyPrint(sb);
+@@ -612,6 +725,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void DoStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("do ");
+     getStmt().prettyPrint(sb);
+@@ -621,6 +736,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ForStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("for(");
+     if(getNumInitStmt() > 0) {
+@@ -684,6 +801,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void BreakStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("break ");
+     if(hasLabel())
+@@ -692,6 +811,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ContinueStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("continue ");
+     if(hasLabel())
+@@ -700,6 +821,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ReturnStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("return ");
+     if(hasResult()) {
+@@ -709,6 +832,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void ThrowStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("throw ");
+     getExpr().prettyPrint(sb);
+@@ -716,6 +841,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void SynchronizedStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("synchronized(");
+     getExpr().prettyPrint(sb);
+@@ -724,6 +851,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void TryStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("try ");
+     getBlock().prettyPrint(sb);
+@@ -739,6 +868,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void BasicCatch.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("catch (");
+     getParameter().prettyPrint(sb);
+     sb.append(") ");
+@@ -746,6 +877,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void AssertStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append(indent());
+     sb.append("assert ");
+     getCondition().prettyPrint(sb);
+@@ -757,6 +890,8 @@ aspect PrettyPrint {
+   }
+ 
+   public void LocalClassDeclStmt.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     getClassDecl().prettyPrint(sb);
+   }
+ 
+@@ -851,33 +986,53 @@ aspect PrettyPrint {
+   }
+ 
+   public void BooleanType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("boolean");
+   }
+   public void ByteType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("byte");
+   }
+   public void ShortType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("short");
+   }
+   public void IntType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("int");
+   }
+   public void LongType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("long");
+   }
+   public void CharType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("char");
+   }
+   public void FloatType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("float");
+   }
+   public void DoubleType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("double");
+   }
+   public void NullType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("null");
+   }
+   public void VoidType.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++      return;
+     sb.append("void");
+   }
+ 
+diff --git java5/frontend/Annotations.jrag java5/frontend/Annotations.jrag
+index 2e683a6..9b4ded9 100644
+--- java5/frontend/Annotations.jrag
++++ java5/frontend/Annotations.jrag
+@@ -574,11 +574,15 @@ aspect Annotations {
+ aspect AnnotationPrettyPrinting {
+ 
+   public void AnnotatedCompilationUnit.prettyPrint(StringBuffer sb) {
++	  if (printConflict(sb))
++		return;
+       getModifiers().prettyPrint(sb);
+       super.prettyPrint(sb);
+   }
+ 
+   public void AnnotationDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     sb.append("@interface " + name());
+     sb.append(" {");
+@@ -589,6 +593,8 @@ aspect AnnotationPrettyPrinting {
+   }
+ 
+   public void AnnotationMethodDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+@@ -601,6 +607,8 @@ aspect AnnotationPrettyPrinting {
+   }
+ 
+   public void Annotation.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("@");
+     getAccess().prettyPrint(sb);
+     if (getNumElementValuePair() > 0) {
+@@ -616,19 +624,27 @@ aspect AnnotationPrettyPrinting {
+   }
+ 
+   public void ElementValuePair.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(getName() + " = ");
+     getElementValue().prettyPrint(sb);
+   }
+ 
+   public void ElementConstantValue.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getExpr().prettyPrint(sb);
+   }
+ 
+   public void ElementAnnotationValue.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getAnnotation().prettyPrint(sb);
+   }
+ 
+   public void ElementArrayValue.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("{");
+     for (int i = 0; i < getNumElementValue(); i++) {
+       getElementValue(i).prettyPrint(sb);
+diff --git java5/frontend/EnhancedFor.jrag java5/frontend/EnhancedFor.jrag
+index 0cb40c1..671c4eb 100644
+--- java5/frontend/EnhancedFor.jrag
++++ java5/frontend/EnhancedFor.jrag
+@@ -61,6 +61,8 @@ aspect EnhancedFor {
+ 
+   // pretty printing
+   public void EnhancedForStmt.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent());
+     sb.append("for (");
+     getVariableDeclaration().getModifiers().prettyPrint(sb);
+diff --git java5/frontend/Enums.jrag java5/frontend/Enums.jrag
+index c386836..72a5d0c 100644
+--- java5/frontend/Enums.jrag
++++ java5/frontend/Enums.jrag
+@@ -525,6 +525,8 @@ aspect Enums {
+   }
+ 
+   public void EnumDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     sb.append("enum " + name());
+     if (getNumImplements() > 0) {
+@@ -590,6 +592,8 @@ aspect Enums {
+   }
+ 
+   public void EnumConstant.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+     sb.append(getID());
+diff --git java5/frontend/GenericMethods.jrag java5/frontend/GenericMethods.jrag
+index 6f8c62f..bb814eb 100644
+--- java5/frontend/GenericMethods.jrag
++++ java5/frontend/GenericMethods.jrag
+@@ -174,6 +174,8 @@ aspect GenericMethodsNameAnalysis {
+ aspect GenericMethodsPrettyPrint {
+ 
+   public void ParMethodAccess.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("<");
+     for(int i = 0; i < getNumTypeArgument(); i++) {
+       if(i != 0) sb.append(", ");
+@@ -184,6 +186,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   public void ParConstructorAccess.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("<");
+     for(int i = 0; i < getNumTypeArgument(); i++) {
+       if(i != 0) sb.append(", ");
+@@ -194,6 +198,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   public void ParSuperConstructorAccess.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("<");
+     for(int i = 0; i < getNumTypeArgument(); i++) {
+       if(i != 0) sb.append(", ");
+@@ -204,6 +210,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   public void ParClassInstanceExpr.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("<");
+     for(int i = 0; i < getNumTypeArgument(); i++) {
+       if(i != 0) sb.append(", ");
+@@ -214,6 +222,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   private void GenericMethodDecl.ppTypeParameters(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(" <");
+     for(int i = 0; i < getNumTypeParameter(); i++) {
+       if(i != 0) sb.append(", ");
+@@ -223,6 +233,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   public void GenericMethodDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+ 
+@@ -257,6 +269,8 @@ aspect GenericMethodsPrettyPrint {
+   }
+ 
+   public void GenericConstructorDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent());
+     getModifiers().prettyPrint(sb);
+ 
+diff --git java5/frontend/GenericsPrettyPrint.jrag java5/frontend/GenericsPrettyPrint.jrag
+index 427400f..ca2dc6b 100644
+--- java5/frontend/GenericsPrettyPrint.jrag
++++ java5/frontend/GenericsPrettyPrint.jrag
+@@ -9,6 +9,8 @@
+ 
+ aspect GenericsPrettyPrint {
+   public void TypeVariable.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(name());
+     if (getNumTypeBound() > 0) {
+       sb.append(" extends ");
+@@ -21,6 +23,8 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   public void ParTypeAccess.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getTypeAccess().prettyPrint(sb);
+     sb.append("<");
+     for (int i = 0; i < getNumTypeArgument(); i++) {
+@@ -33,6 +37,8 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   public void ParClassDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     sb.append("class " + getID());
+     sb.append('<');
+@@ -60,6 +66,8 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   private void GenericClassDecl.ppTypeParameters(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append('<');
+     if (getNumTypeParameter() > 0) {
+       getTypeParameter(0).prettyPrint(sb);
+@@ -72,6 +80,8 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   public void GenericClassDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     sb.append("class " + getID());
+     ppTypeParameters(sb);
+@@ -92,6 +102,8 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   public void GenericInterfaceDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     sb.append("interface " + getID());
+     sb.append('<');
+@@ -120,11 +132,15 @@ aspect GenericsPrettyPrint {
+   }
+ 
+   public void WildcardExtends.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("? extends ");
+     getAccess().prettyPrint(sb);
+   }
+ 
+   public void WildcardSuper.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("? super ");
+     getAccess().prettyPrint(sb);
+   }
+diff --git java5/frontend/StaticImports.jrag java5/frontend/StaticImports.jrag
+index 929113a..c94b8a6 100644
+--- java5/frontend/StaticImports.jrag
++++ java5/frontend/StaticImports.jrag
+@@ -219,6 +219,8 @@ aspect StaticImports {
+ 
+   // PrettyPrinting
+   public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("import static ");
+     getAccess().prettyPrint(sb);
+     sb.append("." + getID());
+@@ -226,6 +228,8 @@ aspect StaticImports {
+   }
+ 
+   public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("import static ");
+     getAccess().prettyPrint(sb);
+     sb.append(".*;\n");
+diff --git java5/frontend/VariableArityParameters.jrag java5/frontend/VariableArityParameters.jrag
+index af36d8d..8b69f6b 100644
+--- java5/frontend/VariableArityParameters.jrag
++++ java5/frontend/VariableArityParameters.jrag
+@@ -99,6 +99,8 @@ specified in section 
+ */
+ 
+   public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     getTypeAccess().prettyPrint(sb);
+     sb.append(" ... " + name());
+diff --git java7/frontend/Diamond.jrag java7/frontend/Diamond.jrag
+index ee4c313..8debc7f 100644
+--- java7/frontend/Diamond.jrag
++++ java7/frontend/Diamond.jrag
+@@ -507,6 +507,8 @@ aspect Diamond {
+    * Pretty printing of diamond access.
+    */
+   public void DiamondAccess.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getTypeAccess().prettyPrint(sb);
+     sb.append("<>");
+   }
+diff --git java7/frontend/MultiCatch.jrag java7/frontend/MultiCatch.jrag
+index 6dfe442..01e65b1 100644
+--- java7/frontend/MultiCatch.jrag
++++ java7/frontend/MultiCatch.jrag
+@@ -144,6 +144,8 @@ aspect MultiCatch {
+    * Pretty printing of multi-catch clause.
+    */
+   public void MultiCatch.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append("catch (");
+     getParameter().prettyPrint(sb);
+     sb.append(") ");
+@@ -154,6 +156,8 @@ aspect MultiCatch {
+    * Pretty printing of catch parameter declaration.
+    */
+   public void CatchParameterDeclaration.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     getModifiers().prettyPrint(sb);
+     for (int i = 0; i < getNumTypeAccess(); ++i) {
+       if (i > 0) sb.append(" | ");
+diff --git java7/frontend/PrettyPrint.jrag java7/frontend/PrettyPrint.jrag
+index b448d19..bbe1f76 100644
+--- java7/frontend/PrettyPrint.jrag
++++ java7/frontend/PrettyPrint.jrag
+@@ -12,6 +12,8 @@ aspect PrettyPrint {
+    * Parser debug printout.
+    */
+   public void ParseName.prettyPrint(StringBuffer sb) {
++    if (printConflict(sb))
++       return;
+     sb.append(getID());
+   }
+ 
+diff --git java7/frontend/TryWithResources.jrag java7/frontend/TryWithResources.jrag
+index e190d77..afe31b0 100644
+--- java7/frontend/TryWithResources.jrag
++++ java7/frontend/TryWithResources.jrag
+@@ -242,6 +242,8 @@ aspect PrettyPrint {
+    * Pretty printing of try-with-resources
+    */
+   public void TryWithResources.prettyPrint(StringBuffer sb) {
++	if (printConflict(sb))
++	  return;
+     sb.append(indent() + "try (");
+     for (ResourceDeclaration resource : getResourceList()) {
+       resource.prettyPrint(sb);
