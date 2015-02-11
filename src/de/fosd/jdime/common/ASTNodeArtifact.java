@@ -25,10 +25,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 import AST.ASTNode;
 import AST.BytecodeParser;
@@ -45,12 +43,15 @@ import AST.MethodDecl;
 import AST.Program;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -520,69 +521,57 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#merge(de.fosd.jdime.common.operations.
-	 * MergeOperation, de.fosd.jdime.common.MergeContext)
-	 */
 	@Override
-	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
+	public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+		Objects.requireNonNull(operation, "operation must not be null!");
+		Objects.requireNonNull(context, "context must not be null!");
 
-		MergeStrategy<ASTNodeArtifact> strategy = new ASTNodeStrategy();
+		MergeStrategy<ASTNodeArtifact> astNodeStrategy = new ASTNodeStrategy();
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Using strategy: " + strategy.toString());
+			LOG.debug("Using strategy: " + astNodeStrategy);
 		}
 
 		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
-		assert (triple != null);
-		ASTNodeArtifact left, right, target;
-		left = triple.getLeft();
-		right = triple.getRight();
-		target = operation.getTarget();
+		ASTNodeArtifact left = triple.getLeft();
+		ASTNodeArtifact right = triple.getRight();
+		ASTNodeArtifact target = operation.getTarget();
 
 		boolean safeMerge = true;
 
+		int numChildNoTransform;
 		try {
-			if (!isRoot()
-					&& target.astnode.getClass().newInstance()
-							.getNumChildNoTransform() > 0) {
-				// this language element has a fixed number of children
-				// we need to be careful with this one
-				boolean leftChanges = left.hasChanges(false);
-				boolean rightChanges = right.hasChanges(false);
-
-				if (leftChanges && rightChanges) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("target " + target.getId()
-								+ " expects a fixed amount of children.");
-						LOG.trace("changes in " + left.getId() + ": "
-								+ leftChanges);
-						LOG.trace("changes in " + right.getId() + ": "
-								+ rightChanges);
-						LOG.trace("We will report a conflict "
-								+ "instead of performing the merge");
-					}
-					safeMerge = false;
-					// to be safe, we will report a conflict instead of merging
-					ASTNodeArtifact targetParent = target.getParent();
-					targetParent.removeChild(target);
-					ConflictOperation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(
-							left, left, right, targetParent);
-					conflictOp.apply(context);
-				}
-			}
+			numChildNoTransform = target.astnode.getClass().newInstance().getNumChildNoTransform();
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException();
 		}
 
+		if (!isRoot() && numChildNoTransform > 0) {
+		
+			// this language element has a fixed number of children, we need to be careful with this one
+			boolean leftChanges = left.hasChanges(false);
+			boolean rightChanges = right.hasChanges(false);
+
+			if (leftChanges && rightChanges) {
+				
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("Target " + target.getId() + " expects a fixed amount of children.");
+					LOG.trace("Both " + left.getId() + " and " + right.getId() + " contain changes.");
+					LOG.trace("We will report a conflict instead of performing the merge.");
+				}
+				safeMerge = false;
+				
+				// to be safe, we will report a conflict instead of merging
+				ASTNodeArtifact targetParent = target.getParent();
+				targetParent.removeChild(target);
+				
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent);
+				conflictOp.apply(context);
+			}
+		}
+		
 		if (safeMerge) {
-			strategy.merge(operation, context);
+			astNodeStrategy.merge(operation, context);
 		}
 
 		if (!context.isQuiet() && context.hasOutput()) {

@@ -21,7 +21,10 @@
  *******************************************************************************/
 package de.fosd.jdime.strategy;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -36,76 +39,59 @@ import de.fosd.jdime.merge.MergeInterface;
 public abstract class MergeStrategy<T extends Artifact<T>> implements
 		MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
 
-	/**
-	 * Map holding all strategies.
-	 */
-	private static HashMap<String, MergeStrategy<?>> strategyMap = null;
+	private static final Map<String, MergeStrategy<?>> strategyMap;
 
-	/**
-	 * Initializes the strategy map.
-	 */
-	private static void initialize() {
-		strategyMap = new HashMap<>();
-		LinebasedStrategy linebased = new LinebasedStrategy();
+	static {
+		Map<String, MergeStrategy<?>> entries = new HashMap<>();
+		LinebasedStrategy lineBased = new LinebasedStrategy();
 		StructuredStrategy structured = new StructuredStrategy();
 		CombinedStrategy combined = new CombinedStrategy();
 
-		strategyMap.put("linebased", linebased);
-		strategyMap.put("unstructured", linebased);
-
-		strategyMap.put("structured", structured);
-
-		strategyMap.put("combined", combined);
-		strategyMap.put("autotuning", combined);
+		entries.put("linebased", lineBased);
+		entries.put("unstructured", lineBased);
+		entries.put("structured", structured);
+		entries.put("combined", combined);
+		entries.put("autotuning", combined);
+		
+		strategyMap = Collections.unmodifiableMap(entries);
 	}
 
 	/**
-	 * Returns a set containing the names of available strategies.
+	 * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
 	 *
 	 * @return names of available strategies
 	 */
 	public static Set<String> listStrategies() {
-		if (strategyMap == null) {
-			initialize();
-		}
-
-		assert (strategyMap != null);
-
 		return strategyMap.keySet();
 	}
 
 	/**
-	 * Parses a String and returns a strategy. Null is returned if no
-	 * appropriate Tool is found.
+	 * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
+	 * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
+	 * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code>
+	 * will be thrown.
 	 *
-	 * @param str
-	 *            name of the merge tool
-	 * @return MergeStrategy merge strategy
+	 * @param name
+	 * 		the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
+	 *
+	 * @return the <code>MergeStrategy</code>
+	 *
+	 * @throws StrategyNotFoundException
+	 * 		if no <code>MergeStrategy</code> for <code>name</code> is found
+	 * @throws NullPointerException
+	 * 		if <code>name</code> is <code>null</code>
 	 */
-	public static MergeStrategy<?> parse(final String str) {
-		assert str != null : "Merge strategy may not be null!";
+	public static MergeStrategy<?> parse(String name) {
+		Objects.requireNonNull(name, "name may not be null!");
+		name = name.trim().toLowerCase();
 
-		String input = str.toLowerCase();
-
-		if (strategyMap == null) {
-			initialize();
+		if (!strategyMap.containsKey(name)) {
+			throw new StrategyNotFoundException("Strategy not found: " + name);
 		}
-
-		assert (strategyMap != null);
-
-		if (strategyMap.containsKey(input)) {
-			return strategyMap.get(input);
-		} else {
-			throw new StrategyNotFoundException("Strategy not found: " + str);
-		}
-
+		
+		return strategyMap.get(name);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public abstract String toString();
 }
