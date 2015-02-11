@@ -1,0 +1,95 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { // for glpk-java
+        name = 'Xypron Release'
+        url = 'http://rsync.xypron.de/repository'
+    }
+}
+
+dependencies {
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'commons-cli:commons-cli:1.2'
+    compile 'org.gnu.glpk:glpk-java:1.0.37'
+    compile 'log4j:log4j:1.2.17'
+    compile files('lib/JJ7.jar', 'lib/btc-ascii-table-1.0.jar')
+}
+
+task natives {
+    def fail = false;
+    def glpk_version = "4_55"
+    def glpk_java_prop_name = "glpkJava"
+    def glpk_prop_name = "glpk"
+    def glpk_java_name
+    def glpk_name
+
+    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        glpk_java_name = "glpk_${glpk_version}_java.dll"
+        glpk_name = "glpk_${glpk_version}.dll"
+    } else {
+        glpk_java_name = "libglpk_java.so"
+        glpk_name = "libglpk.so"
+    }
+
+    if (!rootProject.hasProperty(glpk_java_prop_name)) {
+        println "Provide the path to the $glpk_java_name native library using the $glpk_java_prop_name property."
+        fail = true;
+    }
+    if (!rootProject.hasProperty(glpk_prop_name)) {
+        println "Provide the path to the $glpk_name native library using the $glpk_prop_name property."
+        fail = true;
+    }
+
+    if (fail) {
+        throw new InvalidUserDataException("Missing native library paths.");
+    }
+
+    def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
+    def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
+
+    if (glpkJavaFile.exists()) {
+        if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
+            println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name."
+            fail = true;
+        }
+    } else {
+        println "$glpkJavaFile does not exist."
+        fail = true;
+    }
+
+    if (glpkFile.exists()) {
+        if (!glpkFile.isFile() || glpkFile.getName() != glpk_name) {
+            println "$glpkFile is not a file or does not have the correct name. Expecting $glpk_name."
+            fail = true;
+        }
+    } else {
+        println "$glpkFile does not exist."
+        fail = true;
+    }
+
+    if (fail) {
+        throw new InvalidUserDataException("Invalid native libraries.");
+    }
+
+    inputs.files(glpkFile, glpkJavaFile)
+    outputs.files(glpkFile, glpkJavaFile)
+}
+
+applicationName = rootProject.name
+mainClassName = "de.fosd.jdime.Main"
+applicationDefaultJvmArgs = ["-Xmx2048m", "-ea"]
+
+applicationDistribution.from(natives) {
+    into("bin")
+}

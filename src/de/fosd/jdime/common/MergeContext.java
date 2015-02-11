@@ -73,6 +73,11 @@ public class MergeContext implements Cloneable {
 	 */
 	private boolean diffOnly = false;
 	/**
+	 * Whether to treat two input versions as consecutive versions in the
+	 * revision history.
+	 */
+	private boolean consecutive = false;
+	/**
 	 * Whether to dump files instead of merging.
 	 */
 	private boolean dumpFiles = false;
@@ -138,12 +143,14 @@ public class MergeContext implements Cloneable {
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
+
 	/**
 	 * Class constructor.
 	 */
 	public MergeContext() {
 		programStart = System.currentTimeMillis();
 	}
+
 	/**
 	 * Adds statistical data to already collected data.
 	 *
@@ -438,7 +445,8 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
-	 * @param dumpFiles the dumpFiles to set
+	 * @param dumpFiles
+	 *            the dumpFiles to set
 	 */
 	public final void setDumpFiles(boolean dumpFiles) {
 		this.dumpFiles = dumpFiles;
@@ -474,7 +482,8 @@ public class MergeContext implements Cloneable {
 	 * @param inputFiles
 	 *            the inputFiles to set
 	 */
-	public final void setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
+	public final void
+			setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
 		this.inputFiles = inputFiles;
 	}
 
@@ -534,5 +543,19 @@ public class MergeContext implements Cloneable {
 		if (saveStats) {
 			stats = mergeStrategy.createStats();
 		}
+	}
+
+	/**
+	 * @return the consecutive
+	 */
+	public final boolean isConsecutive() {
+		return consecutive;
+	}
+
+	/**
+	 * @param consecutive the consecutive to set
+	 */
+	public final void setConsecutive(final boolean consecutive) {
+		this.consecutive = consecutive;
 	}
 }
