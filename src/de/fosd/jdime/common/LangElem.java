@@ -35,7 +35,7 @@ package de.fosd.jdime.common;
  * <p>
  * This distinction was mainly introduced to gather statistical data.
  *
- * @author lessenic
+ * @author Olaf Lessenich
  */
 public enum LangElem {
 	/**
