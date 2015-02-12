@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+def glpkJavaIncludeDir = null
+
 sourceSets {
     main {
         java {
@@ -57,6 +59,17 @@ task natives {
 
     def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
     def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
+    glpkJavaIncludeDir = glpkJavaFile.getParentFile()
+
+    if (glpkJavaIncludeDir.exists()) {
+        if (glpkJavaIncludeDir.isFile()) {
+            println "$glpkJavaIncludeDir is not a directory."
+            fail = true;
+        }
+    } else {
+        println "$glpkJavaIncludeDir does not exist."
+        fail = true;
+    }
 
     if (glpkJavaFile.exists()) {
         if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
@@ -88,7 +101,8 @@ task natives {
 
 applicationName = rootProject.name
 mainClassName = "de.fosd.jdime.Main"
-applicationDefaultJvmArgs = ["-Xmx2048m", "-ea"]
+def includePath = "-Djava.library.path=" + glpkJavaIncludeDir.toString()
+applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", includePath]
 
 applicationDistribution.from(natives) {
     into("bin")
