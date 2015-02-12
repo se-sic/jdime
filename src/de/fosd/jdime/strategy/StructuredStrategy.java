@@ -50,6 +50,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
+	/**
+	 * TODO: high-level documentation.
+	 *
+	 * @param operation
+	 * @param context
+	 */
 	@Override
 	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 

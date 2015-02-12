@@ -53,7 +53,7 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Returns the largest common subtree of two unordered trees.
+	 * Compares two nodes while ignoring the order of the elements.
 	 *
 	 * @param left
 	 *            left tree

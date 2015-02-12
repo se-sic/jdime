@@ -32,6 +32,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
+ * TODO: high-level documentation
+ *
  * @author Olaf Lessenich
  *
  * @param <T>

@@ -39,6 +39,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	/**
 	 * Used to renumber artifacts.
+	 * This number is mainly used for debugging purposes or when drawing the tree.
 	 */
 	private static int count = 1;
 
@@ -73,38 +74,47 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Children of the artifact.
 	 */
 	protected ArtifactList<T> children = null;
+
 	/**
 	 * Left side of a conflict.
 	 */
 	protected T left = null;
+
 	/**
 	 * Right side of a conflict.
 	 */
 	protected T right = null;
+
 	/**
 	 * Whether this artifact represents a conflict.
 	 */
 	private boolean conflict = false;
+
 	/**
 	 * If true, this artifact is an empty dummy.
 	 */
 	private boolean emptyDummy = false;
+
 	/**
 	 * Map to store matches.
 	 */
 	protected LinkedHashMap<Revision, Matching<T>> matches = null;
+
 	/**
 	 * Whether the artifact has been already merged.
 	 */
 	private boolean merged;
+
 	/**
 	 * Number used to identify the artifact.
 	 */
 	private int number = -1;
+
 	/**
 	 * Parent artifact.
 	 */
 	private T parent;
+
 	/**
 	 * Revision the artifact belongs to.
 	 */

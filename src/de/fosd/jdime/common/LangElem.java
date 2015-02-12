@@ -19,7 +19,6 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
-
 package de.fosd.jdime.common;
 
 /**
@@ -39,7 +38,7 @@ package de.fosd.jdime.common;
  */
 public enum LangElem {
 	/**
-	 * Every node.
+	 * Any node.
 	 */
 	NODE,
 

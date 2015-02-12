@@ -62,6 +62,15 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
+	/**
+	 * TODO: high-level documentation
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
 			final MergeContext context) throws IOException,

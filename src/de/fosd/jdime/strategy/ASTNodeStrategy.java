@@ -40,9 +40,6 @@ import de.fosd.jdime.stats.Stats;
  */
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(ASTNodeStrategy.class));
 	/**
@@ -50,12 +47,13 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
      */
 	private static Merge<ASTNodeArtifact> merge = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
-	 * de.fosd.jdime.common.operations .MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
+	/**
+	 * TODO: high-level documentation
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	@Override
 	public final void merge(final MergeOperation<ASTNodeArtifact> operation,

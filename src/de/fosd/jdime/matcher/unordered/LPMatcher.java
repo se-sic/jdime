@@ -37,6 +37,7 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
+ * TODO: this needs more explanation, I'll fix that soon
  *
  * @author Olaf Lessenich
  *
@@ -45,10 +46,8 @@ import de.fosd.jdime.matcher.Matching;
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	/**
-     *
-     */
 	private static String id = "unordered";
+
 	/**
 	 * Threshold for rounding errors.
 	 */

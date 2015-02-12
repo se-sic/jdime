@@ -52,7 +52,7 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Compares two nodes.
+	 * Compares two nodes while considering the order of the elements important.
 	 *
 	 * @param left
 	 *            left node

@@ -64,27 +64,33 @@ public class MergeContext implements Cloneable {
 	 * Performs benchmarks with several runs per file to get average runtimes.
 	 */
 	private boolean benchmark = false;
+
 	/**
 	 * Whether we are in bug-fixing mode.
 	 */
 	private boolean bugfixing = false;
+
 	/**
 	 * Whether to run only the diff.
 	 */
 	private boolean diffOnly = false;
+
 	/**
 	 * Whether to treat two input versions as consecutive versions in the
 	 * revision history.
 	 */
 	private boolean consecutive = false;
+
 	/**
 	 * Whether to dump files instead of merging.
 	 */
 	private boolean dumpFiles = false;
+
 	/**
 	 * Whether to dump ASTs instead of merging.
 	 */
 	private boolean dumpTree = false;
+
 	/**
 	 * Force overwriting of existing output files.
 	 */
@@ -99,46 +105,57 @@ public class MergeContext implements Cloneable {
 	 * Input Files.
 	 */
 	private ArtifactList<FileArtifact> inputFiles;
+
 	/**
 	 * If true, merging will be continued after exceptions.
 	 */
 	private boolean keepGoing = false;
+
 	/**
 	 * Strategy to apply for the merge.
 	 */
 	private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+
 	/**
 	 * Output file.
 	 */
 	private FileArtifact outputFile;
+
 	/**
 	 * Timestamp of program start.
 	 */
 	private long programStart;
+
 	/**
 	 * If true, the output is quiet.
 	 */
 	private boolean quiet = false;
+
 	/**
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private boolean recursive = false;
+
 	/**
 	 * Number of runs to perform for each file.
 	 */
 	private int runs = BENCHMARKRUNS;
+
 	/**
 	 * Save statistical data.
 	 */
 	private boolean saveStats = false;
+
 	/**
 	 * Statistical data are stored in a stats object.
 	 */
 	private Stats stats = null;
+
 	/**
 	 * StdOut of a merge operation.
 	 */
 	private StringWriter stdErr = new StringWriter();
+
 	/**
 	 * StdIn of a merge operation.
 	 */

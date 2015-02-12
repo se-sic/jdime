@@ -33,9 +33,5 @@ import de.fosd.jdime.common.Artifact;
  *
  */
 public class OperationStack<T extends Artifact<T>> extends Stack<Operation<T>> {
-
-	/**
-     *
-     */
 	private static final long serialVersionUID = -8820110802865564142L;
 }

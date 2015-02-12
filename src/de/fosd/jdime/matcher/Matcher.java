@@ -153,7 +153,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 				storeMatching(childMatching, color);
 			}
 		}
-
 	}
 
 	/**

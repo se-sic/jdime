@@ -36,16 +36,9 @@ import de.fosd.jdime.strategy.LinebasedStrategy;
  */
 public final class StatsPrinter {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(StatsPrinter.class));
-	/**
-	 * Delimiter.
-	 */
-	private static String delimiter =
-			"=================================================";
+	private static String delimiter = "=================================================";
 
 	/**
 	 * Prints statistical information.

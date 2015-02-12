@@ -37,14 +37,17 @@ public class MergeTriple<T extends Artifact<T>> {
 	 * Type of merge.
 	 */
 	private MergeType mergeType;
+
 	/**
 	 * Left artifact.
 	 */
 	private T left;
+
 	/**
 	 * Base artifact.
 	 */
 	private T base;
+
 	/**
 	 * Right artifact.
 	 */

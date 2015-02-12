@@ -25,51 +25,20 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeTriple;
 
 /**
+ * TODO: high-level documentation
  * @author Olaf Lessenich
  *
  */
 public class MergeTripleStats {
 
-	/**
-     *
-     */
 	private MergeTriple<FileArtifact> triple;
-
-	/**
-     *
-     */
 	private int conflicts;
-
-	/**
-     *
-     */
 	private int conflictingLines;
-
-	/**
-     *
-     */
 	private int lines;
-
-	/**
-     *
-     */
 	private long runtime;
-
-	/**
-     *
-     */
 	private boolean error = false;
-
-	/**
-     *
-     */
 	private String errormsg;
-
-	/**
-     * 
-     */
 	private ASTStats astStats;
-	
 	private ASTStats leftStats;
 	private ASTStats rightStats;
 

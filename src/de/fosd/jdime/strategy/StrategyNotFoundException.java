@@ -29,9 +29,6 @@ package de.fosd.jdime.strategy;
  */
 public class StrategyNotFoundException extends RuntimeException {
 
-	/**
-     *
-     */
 	private static final long serialVersionUID = -7644611893570243018L;
 
 	/**

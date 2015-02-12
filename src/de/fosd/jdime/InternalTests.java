@@ -19,7 +19,6 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
-
 package de.fosd.jdime;
 
 import java.util.HashMap;

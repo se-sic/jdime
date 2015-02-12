@@ -43,6 +43,7 @@ public interface MergeInterface<T extends Artifact<T>> {
 	 * At least two input files are needed.
 	 */
 	int MINFILES = MergeType.MINFILES;
+
 	/**
 	 * More than three input files are not supported at the moment.
 	 */

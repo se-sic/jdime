@@ -48,11 +48,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.matcher.unordered.UnorderedMatcher#match(de.fosd.jdime.
-	 * common.Artifact, de.fosd.jdime.common.Artifact)
+	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
 	public final Matching<T> match(final T left, final T right) {

@@ -32,6 +32,7 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
+ * TODO: This needs more explanation, I'll fix that soon.
  *
  * @author Olaf Lessenich
  *

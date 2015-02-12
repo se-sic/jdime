@@ -19,9 +19,6 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
-/**
- * 
- */
 package de.fosd.jdime.stats;
 
 import java.text.DecimalFormat;
@@ -35,13 +32,12 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.LangElem;
 
 /**
+ * TODO: high-level documentation
+ * 
  * @author Olaf Lessenich
  * 
  */
 public class ASTStats {
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(ASTStats.class));
 
@@ -190,16 +186,10 @@ public class ASTStats {
 		this.hasChanges = hasChanges;
 	}
 
-	/**
-	 * 
-	 */
 	public final void incrementNodes() {
 		nodes++;
 	}
 
-	/**
-	 * 
-	 */
 	public final void incrementTreeDepth() {
 		treedepth++;
 	}
@@ -314,9 +304,6 @@ public class ASTStats {
 				/ (double) fragments;
 	}
 
-	/**
-	 *
-	 */
 	public void incrementFragments() {
 		assert (hasChanges());
 		this.fragments++;
@@ -338,10 +325,6 @@ public class ASTStats {
 					+ System.lineSeparator());
 		}
 
-		String[] head =
-				{ "LEVEL", "NODES", "MATCHED", "CHANGED", "ADDED", "REMOVED",
-						"CONFLICTS" };
-
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
 		String[] csvHead = new String[36];
@@ -359,9 +342,6 @@ public class ASTStats {
 			int removed = s.getDeleted();
 			int conflicts = s.getConflicting();
 
-			// sanity checks
-			// assert(changed == added + removed);
-			// assert (nodes == matched + changed);
 			if (i > 0) {
 				sum[0] += nodes;
 				sum[1] += matched;
@@ -420,23 +400,10 @@ public class ASTStats {
 			i++;
 		}
 
-		// sanity checks
-		// assert (sum[0] == Integer.parseInt(absolute[0][1]));
-		// assert (sum[1] == Integer.parseInt(absolute[0][2]));
-		// assert (sum[2] == Integer.parseInt(absolute[0][3]));
-		// assert (sum[3] == Integer.parseInt(absolute[0][4]));
-		// assert (sum[4] == Integer.parseInt(absolute[0][5]));
-
-		
-
 		// CSV
 		sb.append(StringUtils.join(csvHead, ';'));
 		sb.append(System.lineSeparator());
 		sb.append(StringUtils.join(csv, ';'));
-
-		// return general.toString() + System.lineSeparator()
-		// + absolute.toString() + System.lineSeparator()
-		// + relative.toString();
 
 		return sb.toString();
 	}

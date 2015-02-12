@@ -35,9 +35,6 @@ import de.fosd.jdime.common.operations.Operation;
  */
 public class Stats {
 
-	/**
-     *
-     */
 	private List<MergeTripleStats> scenariostats;
 
 	/**
@@ -61,9 +58,7 @@ public class Stats {
 	private HashMap<String, Integer> operations;
 
 	private ASTStats astStats;
-	
 	private ASTStats leftStats;
-	
 	private ASTStats rightStats;
 
 	/**

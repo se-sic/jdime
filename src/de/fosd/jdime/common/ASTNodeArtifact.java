@@ -61,9 +61,6 @@ import org.apache.log4j.Logger;
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(ASTNodeArtifact.class));
 

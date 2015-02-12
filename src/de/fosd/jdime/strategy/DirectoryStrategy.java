@@ -40,22 +40,18 @@ import de.fosd.jdime.stats.Stats;
  */
 public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(DirectoryStrategy.class));
-	/**
-     *
-     */
 	private static Merge<FileArtifact> merge = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
+	/**
+	 * TODO: high-level documentation
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,

@@ -52,7 +52,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Number.
+	 * Number of the current operation.
 	 */
 	private long number;
 
@@ -65,7 +65,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Applies the operation and returns a report.
+	 * Applies the operation.
 	 *
 	 * @param context
 	 *            merge context
