@@ -22,7 +22,7 @@
 package de.fosd.jdime.matcher.ordered;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
@@ -53,14 +53,13 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Compares two nodes.
+	 * Compares two nodes while considering the order of the elements compared.
 	 *
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
+	 * @param context <code>MergeContext</code>
+	 * @param left left node
+	 * @param right right node
+	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right, LookAhead lookahead);
+	public abstract Matching<T> match(final MergeContext context, final T left, final T right);
 }

@@ -21,18 +21,18 @@
  *******************************************************************************/
 package de.fosd.jdime.merge;
 
-import de.fosd.jdime.common.LookAhead;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
- * 
+ *
  * @param <T>
  *            type of artifact
  */
@@ -45,7 +45,8 @@ public class Diff<T extends Artifact<T>> {
 
 	/**
 	 * Compares two nodes and returns a respective matching.
-	 * 
+	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left
 	 *            left node
 	 * @param right
@@ -54,10 +55,10 @@ public class Diff<T extends Artifact<T>> {
 	 *            color of the matching (for debug output only)
 	 * @return Matching of the two nodes
 	 */
-	public final Matching<T> compare(final T left, final T right,
-			final Color color, LookAhead lookahead) {
+	public final Matching<T> compare(final MergeContext context, final T left, final T right,
+			final Color color) {
 		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(left, right, lookahead);
+		Matching<T> m = matcher.match(context, left, right);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "
@@ -66,7 +67,7 @@ public class Diff<T extends Artifact<T>> {
 			LOG.trace("Store matching information within nodes.");
 		}
 
-		matcher.storeMatching(m, color, lookahead);
+		matcher.storeMatching(context, m, color);
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Dumping matching of " + left.getRevision() + " and "

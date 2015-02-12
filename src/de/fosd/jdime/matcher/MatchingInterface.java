@@ -22,7 +22,7 @@
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 
 /**
  * This interface should be implemented by Matcher classes that compare
@@ -42,9 +42,10 @@ public interface MatchingInterface<T extends Artifact<T>> {
 	 * Returns a tree of <code>Matching</code>s for the provided
 	 * <code>Artifact</code>s.
 	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left <code>Artifact</code>
 	 * @param right <code>Artifact</code>
 	 * @return tree of <code>Matching</code>s
 	 */
-	Matching<T> match(final T left, final T right, LookAhead lookahead);
+	Matching<T> match(final MergeContext context, final T left, final T right);
 }

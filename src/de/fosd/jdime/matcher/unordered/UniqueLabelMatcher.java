@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
@@ -48,21 +48,26 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 		super(matcher);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.matcher.unordered.UnorderedMatcher#match(de.fosd.jdime.
-	 * common.Artifact, de.fosd.jdime.common.Artifact)
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 *
+	 * @param context <code>MergeContext</code>
+	 * @param left
+	 * @param right
+	 * @return
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
-		if (!left.matches(right)) {
-			return new Matching<>(left, right, 0);
+	public final Matching<T> match(final MergeContext context, final T left, final T right) {
+		int rootMatching = left.matches(right) ? 1 : 0;
+
+		if (rootMatching == 0 && !context.doLookAhead()) {
+			// roots contain distinct symbols and we don't use the look-ahead feature
+			// therefore, we ignore the rest of the subtrees and return early to save time
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
-			return new Matching<>(left, right, 1);
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		List<Matching<T>> childrenMatchings = new LinkedList<>();
@@ -95,8 +100,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				// matching
-				Matching<T> childMatching = matcher
-						.match(leftChild, rightChild, lookahead);
+				Matching<T> childMatching = matcher.match(context, leftChild, rightChild);
 
 				// Matching<T> childMatching
 				// = new Matching<T>(leftChild, rightChild, 1);
@@ -112,8 +116,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 			}
 		}
 
-		Matching<T> rootmatching = new Matching<>(left, right, sum + 1);
-		rootmatching.setChildren(childrenMatchings);
-		return rootmatching;
+		Matching<T> matching = new Matching<>(left, right, sum + rootMatching);
+		matching.setChildren(childrenMatchings);
+		return matching;
 	}
 }

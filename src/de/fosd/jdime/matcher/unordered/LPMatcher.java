@@ -24,7 +24,6 @@ package de.fosd.jdime.matcher.unordered;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.fosd.jdime.common.LookAhead;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -33,6 +32,7 @@ import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
@@ -91,11 +91,21 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		super(matcher);
 	}
 
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 * @param context <code>MergeContext</code>
+	 * @param left
+	 * @param right
+	 * @return
+	 */
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right) {
+		int rootMatching = left.matches(right) ? 1 : 0;
 
-		if (!left.matches(right) && lookahead == LookAhead.OFF) {
-			return new Matching<>(left, right, 0);
+		if (rootMatching == 0 && !context.doLookAhead()) {
+			// roots contain distinct symbols and we don't use the look-ahead feature
+			// therefore, we ignore the rest of the subtrees and return early to save time
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		// number of first-level subtrees of t1
@@ -105,7 +115,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return new Matching<>(left, right, 1);
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -124,12 +134,12 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching<T> w = matcher.match(childT1, childT2, lookahead);
+				Matching<T> w = matcher.match(context, childT1, childT2);
 				matching[i][j] = w;
 			}
 		}
 
-		return solveLP(left, right, matching);
+		return solveLP(left, right, matching, rootMatching);
 	}
 
 	/**
@@ -139,14 +149,14 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 *            left artifact
 	 * @param right
 	 *            right artifact
-	 * @param matching
+	 * @param childrenMatching
 	 *            matrix of matchings
 	 * @return matching of root nodes
 	 */
 	private Matching<T> solveLP(final T left, final T right,
-			final Matching<T>[][] matching) {
-		int m = matching.length;
-		int n = matching[0].length;
+			final Matching<T>[][] childrenMatching, final int rootMatching) {
+		int m = childrenMatching.length;
+		int n = childrenMatching[0].length;
 		int width = m > n ? m : n;
 		int cols = width * width;
 
@@ -226,7 +236,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			int j = indices[1];
 			// take care of dummy rows/cols
 			// TODO: verify that m and n are correct
-			int score = i < m && j < n ? matching[i][j].getScore() : 0;
+			int score = i < m && j < n ? childrenMatching[i][j].getScore() : 0;
 			GLPK.glp_set_obj_coef(lp, c, score);
 		}
 
@@ -258,7 +268,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				int i = indices[0];
 				int j = indices[1];
 				if (i < m && j < n) { // TODO: verify that this is correct
-					Matching<T> curMatching = matching[i][j];
+					Matching<T> curMatching = childrenMatching[i][j];
 					if (curMatching.getScore() > 0) {
 						children.add(curMatching);
 						curMatching.setAlgorithm(id);
@@ -268,9 +278,9 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		}
 		GLPK.glp_delete_prob(lp);
 
-		Matching<T> rootmatching = new Matching<>(left, right, objective + 1);
-		rootmatching.setChildren(children);
+		Matching<T> matching = new Matching<>(left, right, objective + rootMatching);
+		matching.setChildren(children);
 
-		return rootmatching;
+		return matching;
 	}
 }
