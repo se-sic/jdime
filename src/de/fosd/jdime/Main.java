@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime;
 
@@ -71,7 +71,7 @@ public final class Main {
 	/**
 	 * Version constant.
 	 */
-	private static final String VERSION = "0.3.0";
+	private static final String VERSION = "0.3.2";
 
 	/**
 	 * Perform a merge operation on the input files or directories.

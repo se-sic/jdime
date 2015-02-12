@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 /**
  * 
@@ -31,8 +31,6 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
-import com.bethecoder.ascii_table.ASCIITable;
 
 import de.fosd.jdime.common.LangElem;
 
@@ -431,18 +429,10 @@ public class ASTStats {
 
 		
 
-		if (LOG.isDebugEnabled()) {
-			// Table
-			sb.append(System.lineSeparator());
-			sb.append(ASCIITable.getInstance().getTable(head, absolute));
-			sb.append(System.lineSeparator());
-			sb.append(ASCIITable.getInstance().getTable(head, relative));
-		} else {
-			// CSV
-			sb.append(StringUtils.join(csvHead, ';'));
-			sb.append(System.lineSeparator());
-			sb.append(StringUtils.join(csv, ';'));
-		}
+		// CSV
+		sb.append(StringUtils.join(csvHead, ';'));
+		sb.append(System.lineSeparator());
+		sb.append(StringUtils.join(csv, ';'));
 
 		// return general.toString() + System.lineSeparator()
 		// + absolute.toString() + System.lineSeparator()
