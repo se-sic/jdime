@@ -16,10 +16,10 @@ See patches/JastAddJ.patch for the changes,
 and patches/LICENSE for the license text.
 
 ## System Requirements:
-* gradle (http://www.gradle.org/)
+* gradle (http://www.gradle.org/) __>=2.2__
 * git (http://git-scm.com/)
-* glpk (http://www.gnu.org/software/glpk/)
-* glpk-java (http://glpk-java.sourceforge.net/)
+* glpk (http://www.gnu.org/software/glpk/) __=4.55__
+* glpk-java (http://glpk-java.sourceforge.net/) __=4.55__
 
 __Debian/Ubuntu:__  
 `apt-get install git glpk libglpk-java`
