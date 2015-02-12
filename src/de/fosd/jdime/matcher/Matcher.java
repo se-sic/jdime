@@ -32,46 +32,38 @@ import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
+ * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
+ * compute and store <code>Matching</code>s.
+ * <p>
+ * The computation of <code>Matching</code>s is done recursively. Depending on
+ * the <code>Artifact</code>, the matcher decides whether the order of elements
+ * is important (e.g., statements within a method in a Java AST) or not (e.g.,
+ * method declarations in a Java AST) for syntactic correctness. Then either an
+ * implementation of <code>OrderedMatcher</code> or
+ * <code>UnorderedMatcher</code> is called to compute the actual Matching.
+ * Usually, those subclass implementations use this <code>Matcher</code>
+ * superclass for the recursive call of the match() method.
+ * <p>
+ * When the computation is done and the best combination of matches have been
+ * selected, they are stored recursively within the <code>Artifact</code> nodes
+ * themselves, assigning each matched <code>Artifact</code> a pointer to the
+ * corresponding matching <code>Artifact</code>.
+ *
  * @author Olaf Lessenich
  *
- * @param <T>
- *            type of artifact
+ * @param <T> type of <code>Artifact</code>
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(Matcher.class));
-	/**
-     *
-     */
 	private int calls = 0;
-	/**
-     *
-     */
 	private int orderedCalls = 0;
-	/**
-     *
-     */
 	private int unorderedCalls = 0;
-	/**
-     *
-     */
 	private UnorderedMatcher<T> unorderedMatcher;
-	/**
-     *
-     */
 	private UnorderedMatcher<T> unorderedLabelMatcher;
-	/**
-     *
-     */
 	private OrderedMatcher<T> orderedMatcher;
 
-	/**
-     *
-     */
 	public Matcher() {
 		unorderedMatcher = new LPMatcher<>(this);
 		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
@@ -79,17 +71,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Logger.
+	 * {@inheritDoc}
 	 */
-	// private static final Logger LOG = Logger.getLogger(ASTMatcher.class);
-	/**
-	 * @param left
-	 *            artifact
-	 * @param right
-	 *            artifact
-	 * @return Matching
-	 */
-	@Override
 	public final Matching<T> match(final T left, final T right) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
@@ -148,14 +131,12 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Marks corresponding nodes using an already computed matching. The
-	 * respective nodes are flagged with <code>matchingFlag</code> and
-	 * references are set to each other.
+	 * Recursively marks corresponding nodes using an already computed matching.
+	 * The respective nodes are flagged with an appropriate
+	 * <code>matchingFlag</code> and references are set to each other.
 	 *
-	 * @param matching
-	 *            used to mark nodes
-	 * @param color
-	 *            color used to highlight the matching in debug output
+	 * @param matching used to mark nodes
+	 * @param color color used to highlight the matching in debug output
 	 */
 	public final void storeMatching(final Matching<T> matching,
 			final Color color) {

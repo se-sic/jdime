@@ -24,20 +24,26 @@ package de.fosd.jdime.matcher;
 import de.fosd.jdime.common.Artifact;
 
 /**
+ * This interface should be implemented by Matcher classes that compare
+ * <code>Artifact</code>s and compute <code>Matching</code>s.
+ * <p>
+ * Based on the computed <code>Matching</code>, the <code>Merge</code>
+ * implementation (see also <code>MergeInterface</code>) amalgamates a new,
+ * unified <code>Artifact</code>.
+ *
  * @author Olaf Lessenich
  *
- * @param <T>
+ * @param <T> type of <code>Artifact</code>
  */
 public interface MatchingInterface<T extends Artifact<T>> {
 
 	/**
-	 * Returns a tree of matches for the provided artifacts.
+	 * Returns a tree of <code>Matching</code>s for the provided
+	 * <code>Artifact</code>s.
 	 *
-	 * @param left
-	 *            artifact
-	 * @param right
-	 *            artifact
-	 * @return tree of matches
+	 * @param left <code>Artifact</code>
+	 * @param right <code>Artifact</code>
+	 * @return tree of <code>Matching</code>s
 	 */
 	Matching<T> match(final T left, final T right);
 }
