@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,12 +17,12 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
@@ -53,14 +53,13 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Compares two nodes.
+	 * Compares two nodes while considering the order of the elements important.
 	 *
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
+	 * @param context <code>MergeContext</code>
+	 * @param left left node
+	 * @param right right node
+	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right, LookAhead lookahead);
+	public abstract Matching<T> match(final MergeContext context, final T left, final T right);
 }

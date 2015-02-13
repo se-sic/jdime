@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.merge;
 
@@ -29,7 +29,7 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
- * Interface for the merge strategies.
+ * Interface for merge algorithms.
  *
  * @author Olaf Lessenich
  *
@@ -39,17 +39,20 @@ import de.fosd.jdime.common.operations.MergeOperation;
  */
 public interface MergeInterface<T extends Artifact<T>> {
 
-	/**
-	 * At least two input files are needed.
-	 */
 	int MINFILES = MergeType.MINFILES;
-	/**
-	 * More than three input files are not supported at the moment.
-	 */
 	int MAXFILES = MergeType.MAXFILES;
 
 	/**
-	 * Performs a merge.
+	 * Executes a merge based on a <code>MergeOperation</code>.
+	 * <p>
+	 * The source and target <code>Artifacts</code> are extracted from the
+	 * <code>MergeOperation</code>.
+	 * It is determined what kind of merge (e.g., two-way or three-way) has to be done.
+	 * The source <code>Artifacts</code> are compared to each other using
+	 * implementations of <code>MatchingInterface</code>.
+	 * Finally, a unified <code>Artifact</code> is created, the target <code>Artifact</code>.
+	 * Therefore, it should be considered by the merge implementation whether
+	 * the order of elements is significant or not.
 	 *
 	 * @param operation
 	 *            merge operation

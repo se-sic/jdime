@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.strategy;
 
@@ -43,18 +43,16 @@ import de.fosd.jdime.stats.Stats;
  */
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(CombinedStrategy.class));
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
+	/**
+	 * TODO: high-level documentation
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
@@ -67,7 +65,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 		FileArtifact target = null;
 
-		if (operation.getTarget() != null) {
+		if (!context.isDiffOnly() && operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = operation.getTarget();
 			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,8 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.common.operations;
 
@@ -82,7 +83,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
-		Objects.requireNonNull(target, "target must not be null!");
 
 		this.target = target;
 

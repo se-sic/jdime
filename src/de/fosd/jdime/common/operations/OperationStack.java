@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.common.operations;
 
@@ -33,9 +33,5 @@ import de.fosd.jdime.common.Artifact;
  *
  */
 public class OperationStack<T extends Artifact<T>> extends Stack<Operation<T>> {
-
-	/**
-     *
-     */
 	private static final long serialVersionUID = -8820110802865564142L;
 }

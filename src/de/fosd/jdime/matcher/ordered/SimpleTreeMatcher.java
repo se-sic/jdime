@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.Matcher;
@@ -33,6 +33,7 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
+ * TODO: This needs more explanation, I'll fix that soon.
  *
  * @author Olaf Lessenich
  *
@@ -49,13 +50,24 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		super(matcher);
 	}
 
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 *
+	 * @param context <code>MergeContext</code>
+	 * @param left
+	 * @param right
+	 * @return
+	 */
 	@Override
-	public final Matching<T> match(final T left, final T right, LookAhead lookahead) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right) {
 		String id = "stm";
 
-		if (!left.matches(right) && lookahead == LookAhead.OFF) {
-			// roots contain distinct symbols
-			return new Matching<>(left, right, 0);
+		int rootMatching = left.matches(right) ? 1 : 0;
+
+		if (rootMatching == 0 && !context.doLookAhead()) {
+			// roots contain distinct symbols and we don't use the look-ahead feature
+			// therefore, we ignore the rest of the subtrees and return early to save time
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		// number of first-level subtrees of t1
@@ -82,8 +94,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
 
-				Matching<T> w = matcher.match(left.getChild(i - 1),
-						right.getChild(j - 1), lookahead);
+				Matching<T> w = matcher.match(context, left.getChild(i - 1), right.getChild(j - 1));
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
 							+ w.getScore()) {
@@ -134,7 +145,8 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 			}
 		}
 
-		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + 1);
+		// total matching score for these trees is the score of the matched children + the matching of the root nodes
+		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
 		matching.setChildren(children);
 		return matching;
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.stats;
 
@@ -25,51 +25,20 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeTriple;
 
 /**
+ * TODO: high-level documentation
  * @author Olaf Lessenich
  *
  */
 public class MergeTripleStats {
 
-	/**
-     *
-     */
 	private MergeTriple<FileArtifact> triple;
-
-	/**
-     *
-     */
 	private int conflicts;
-
-	/**
-     *
-     */
 	private int conflictingLines;
-
-	/**
-     *
-     */
 	private int lines;
-
-	/**
-     *
-     */
 	private long runtime;
-
-	/**
-     *
-     */
 	private boolean error = false;
-
-	/**
-     *
-     */
 	private String errormsg;
-
-	/**
-     * 
-     */
 	private ASTStats astStats;
-	
 	private ASTStats leftStats;
 	private ASTStats rightStats;
 

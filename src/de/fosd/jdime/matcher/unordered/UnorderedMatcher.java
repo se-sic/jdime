@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,12 +17,12 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.LookAhead;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
@@ -54,8 +54,9 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Returns the largest common subtree of two unordered trees.
+	 * Compares two nodes while ignoring the order of the elements.
 	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left
 	 *            left tree
 	 * @param right
@@ -63,5 +64,5 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements
 	 * @return largest common subtree of left and right tree
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right, LookAhead lookahead);
+	public abstract Matching<T> match(final MergeContext context, final T left, final T right);
 }

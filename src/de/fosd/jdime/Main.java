@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime;
 
@@ -35,7 +35,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -43,7 +42,6 @@ import org.apache.log4j.Logger;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LookAhead;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
@@ -59,19 +57,9 @@ import de.fosd.jdime.strategy.StrategyNotFoundException;
  */
 public final class Main {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Main.class));
-	/**
-	 * Tool name constant.
-	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	/**
-	 * Version constant.
-	 */
-	private static final String VERSION = "0.3.0";
+	private static final String VERSION = "0.3.4";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -203,7 +191,7 @@ public final class Main {
 
 			if (cmd.hasOption("mode")) {
 				try {
-					switch (cmd.getOptionValue("mode")) {
+					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
 						printStrategies(context, true);
 						break;
@@ -263,8 +251,9 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
-				// TODO: The default needs to be overwriting file1 so we are
-				// compatible with gnu merge
+				// TODO[low priority]: The default should in a later,
+				// rock-stable version be changed to be overwriting file1 so
+				// that we are compatible with gnu merge call syntax
 				context.setOutputFile(new FileArtifact(new Revision("merge"),
 						new File(cmd.getOptionValue("output")), false));
 			}
@@ -277,7 +266,25 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("lookahead")) {
-				context.setLookAhead(LookAhead.FULL);
+				String lookAheadValue = cmd.getOptionValue("lookahead");
+
+				// initialize with the context's default.
+				short lookAhead = context.getLookAhead();
+
+				// parse the value provided by the user
+				try {
+					lookAhead = Short.parseShort(lookAheadValue);
+				} catch (NumberFormatException e) {
+					switch(lookAheadValue) {
+						case "off":
+							break;
+						case "full":
+							lookAhead = MergeContext.LOOKAHEAD_FULL;
+							break;
+					}
+				}
+
+				context.setLookAhead(lookAhead);
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")
@@ -460,6 +467,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -475,6 +484,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -490,6 +501,8 @@ public final class Main {
 	}
 
 	/**
+	 * Only used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 *
