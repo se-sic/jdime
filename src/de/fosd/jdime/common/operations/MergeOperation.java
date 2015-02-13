@@ -83,7 +83,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
-		Objects.requireNonNull(target, "target must not be null!");
 
 		this.target = target;
 

@@ -65,7 +65,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 		FileArtifact target = null;
 
-		if (operation.getTarget() != null) {
+		if (!context.isDiffOnly() && operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = operation.getTarget();
 			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
