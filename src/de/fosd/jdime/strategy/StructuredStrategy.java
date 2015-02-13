@@ -90,8 +90,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		FileArtifact target = operation.getTarget();
 
-		assert (target != null);
-		assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+		if (!context.isDiffOnly() && target != null) {
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+		}
 		
 		/* ASTNodeArtifacts are created from the input files.
 		 * Then, a ASTNodeStrategy can be applied.
