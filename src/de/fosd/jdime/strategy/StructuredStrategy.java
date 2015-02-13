@@ -42,7 +42,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Performs a structured merge.
+ * Performs a structured merge on <code>FileArtifacts</code>.
  *
  * @author Olaf Lessenich
  */
@@ -51,7 +51,15 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
 
 	/**
-	 * TODO: high-level documentation.
+	 * The source <code>FileArtifacts</code> are extracted from the
+	 * <code>MergeOperation</code>, parsed by the <code>JastAddJ</code> parser
+	 * into abstract syntax trees, and on the fly encapsulated into
+	 * <code>ASTNodeArtifacts</code>.
+	 * <p>
+	 * A new <code>MergeOperation</code>, encapsulating
+	 * <code>ASTNodeArtifacts</code> as source and target nodes, is created and applied.
+	 *
+	 * TODO: more high-level documentation.
 	 *
 	 * @param operation
 	 * @param context
@@ -85,9 +93,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (target != null);
 		assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
 		
-		// ASTNodeArtifacts are created from the input files.
-		// Then, a ASTNodeStrategy can be applied.
-		// The Result is pretty printed and can be written into the output file.
+		/* ASTNodeArtifacts are created from the input files.
+		 * Then, a ASTNodeStrategy can be applied.
+		 * The result is pretty printed and can be written into the output file.
+		 */
 		ASTNodeArtifact left, base, right;
 		ArrayList<Long> runtimes = new ArrayList<>();
 		MergeContext mergeContext;
@@ -118,10 +127,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				base = new ASTNodeArtifact(baseFile);
 				right = new ASTNodeArtifact(rightFile);
 
-				// Output tree
-				// Program program = new Program();
-				// program.state().reset();
-				// ASTNodeArtifact targetNode = new ASTNodeArtifact(program);
 				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
 				targetNode.forceRenumbering();
