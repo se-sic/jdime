@@ -23,6 +23,7 @@ package de.fosd.jdime.merge;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -70,6 +71,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
+
+		if (!context.isDiffOnly()) {
+			Objects.requireNonNull(target, "target must not be null!");
+		}
+
 		Diff<T> diff = new Diff<>();
 
 		Matching<T> m;
