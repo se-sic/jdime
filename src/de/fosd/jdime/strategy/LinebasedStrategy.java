@@ -45,6 +45,8 @@ import org.apache.log4j.Logger;
 
 /**
  * Performs an unstructured, line based merge.
+ * <p>
+ * The current implementation uses the merge provided by <code>git</code>.
  *
  * @author Olaf Lessenich
  */
