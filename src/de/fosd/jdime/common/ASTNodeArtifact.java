@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -61,9 +61,6 @@ import org.apache.log4j.Logger;
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(ASTNodeArtifact.class));
 

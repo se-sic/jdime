@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,20 +19,26 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
-
 package de.fosd.jdime.common;
 
 /**
+ * This enum provides several types/"classes" of language elements in Java.
+ * <p>
+ * We want to distinct between language elements above class declarations
+ * (<code>TOPLEVELNODE</code>), elements between class declarations and method
+ * bodies (<code>CLASSLEVELNODE</code>), and elements within method bodies
+ * <code>METHODLEVELNODE</code>. Additionally, there are the types
+ * <code>CLASS</code> and <code>Method</code>, that represent the declarations
+ * of classes and methods. Also, there is an element type <code>NODE</code>,
+ * which every language element belongs to.
+ * <p>
+ * This distinction was mainly introduced to gather statistical data.
  *
  * @author Olaf Lessenich
  */
-/**
- * @author lessenic
- *
- */
 public enum LangElem {
 	/**
-	 * Every node.
+	 * Any node.
 	 */
 	NODE,
 

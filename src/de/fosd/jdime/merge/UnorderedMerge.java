@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -46,16 +46,19 @@ import de.fosd.jdime.matcher.Matching;
  */
 public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(UnorderedMerge.class));
-	/**
-	 * Logging prefix.
-	 */
 	private String logprefix;
 
+	/**
+	 * TODO: this needs high-level documentation. Probably also detailed documentation.
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,

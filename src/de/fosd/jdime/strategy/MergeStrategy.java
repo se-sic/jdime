@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
+ * TODO: high-level documentation
+ *
  * @author Olaf Lessenich
  *
  * @param <T>

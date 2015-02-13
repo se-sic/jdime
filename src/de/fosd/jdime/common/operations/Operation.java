@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Number.
+	 * Number of the current operation.
 	 */
 	private long number;
 
@@ -65,7 +65,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Applies the operation and returns a report.
+	 * Applies the operation.
 	 *
 	 * @param context
 	 *            merge context
