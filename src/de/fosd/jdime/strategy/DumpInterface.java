@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,8 @@ import de.fosd.jdime.common.Artifact;
 public interface DumpInterface<T extends Artifact<T>> {
 
 	/**
+	 * TODO: documentation
+	 *
 	 * @param artifact
 	 *            artifact to dump
 	 * @param graphical
@@ -43,6 +45,8 @@ public interface DumpInterface<T extends Artifact<T>> {
 	void dumpTree(final T artifact, final boolean graphical) throws IOException;
 	
 	/**
+	 * TODO: documentation
+	 *
 	 * @param artifact
 	 *            artifact to dump
 	 * @param graphical

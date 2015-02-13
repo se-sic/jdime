@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	}
 
 	/**
-	 * Compares two nodes.
+	 * Compares two nodes while considering the order of the elements important.
 	 *
 	 * @param left
 	 *            left node

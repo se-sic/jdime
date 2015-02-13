@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,6 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
-
 package de.fosd.jdime;
 
 import java.util.HashMap;

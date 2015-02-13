@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,18 +43,16 @@ import de.fosd.jdime.stats.Stats;
  */
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(CombinedStrategy.class));
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeInterface#merge(
-	 * de.fosd.jdime.common.operations.MergeOperation,
-	 * de.fosd.jdime.common.MergeContext)
+	/**
+	 * TODO: high-level documentation
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,

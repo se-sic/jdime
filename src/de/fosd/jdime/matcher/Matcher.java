@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -153,7 +153,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 				storeMatching(childMatching, color);
 			}
 		}
-
 	}
 
 	/**

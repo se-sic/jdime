@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,9 +35,6 @@ import de.fosd.jdime.common.operations.Operation;
  */
 public class Stats {
 
-	/**
-     *
-     */
 	private List<MergeTripleStats> scenariostats;
 
 	/**
@@ -61,9 +58,7 @@ public class Stats {
 	private HashMap<String, Integer> operations;
 
 	private ASTStats astStats;
-	
 	private ASTStats leftStats;
-	
 	private ASTStats rightStats;
 
 	/**

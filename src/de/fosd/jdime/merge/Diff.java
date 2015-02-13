@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,15 +30,14 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
 /**
+ * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
+ *
  * @author Olaf Lessenich
  * 
  * @param <T>
  *            type of artifact
  */
 public class Diff<T extends Artifact<T>> {
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(Diff.class));
 

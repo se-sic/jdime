@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,14 +37,17 @@ public class MergeTriple<T extends Artifact<T>> {
 	 * Type of merge.
 	 */
 	private MergeType mergeType;
+
 	/**
 	 * Left artifact.
 	 */
 	private T left;
+
 	/**
 	 * Base artifact.
 	 */
 	private T base;
+
 	/**
 	 * Right artifact.
 	 */
