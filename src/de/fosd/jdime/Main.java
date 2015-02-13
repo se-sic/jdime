@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -57,19 +57,9 @@ import de.fosd.jdime.strategy.StrategyNotFoundException;
  */
 public final class Main {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Main.class));
-	/**
-	 * Tool name constant.
-	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	/**
-	 * Version constant.
-	 */
-	private static final String VERSION = "0.3.3";
+	private static final String VERSION = "0.3.4";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -261,8 +251,9 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
-				// TODO: The default needs to be overwriting file1 so we are
-				// compatible with gnu merge
+				// TODO[low priority]: The default should in a later,
+				// rock-stable version be changed to be overwriting file1 so
+				// that we are compatible with gnu merge call syntax
 				context.setOutputFile(new FileArtifact(new Revision("merge"),
 						new File(cmd.getOptionValue("output")), false));
 			}
@@ -476,6 +467,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -491,6 +484,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -506,6 +501,8 @@ public final class Main {
 	}
 
 	/**
+	 * Only used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 *

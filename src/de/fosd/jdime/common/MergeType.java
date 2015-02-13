@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,22 +31,27 @@ public enum MergeType {
 	 * Two-way merge.
 	 */
 	TWOWAY(2, "left", "right"),
+
 	/**
 	 * Three-way merge.
 	 */
 	THREEWAY(3, "left", "base", "right");
+
 	/**
 	 * At least two input files are needed.
 	 */
 	public static final int MINFILES = TWOWAY.numFiles;
+
 	/**
 	 * More than three input files are not supported at the moment.
 	 */
 	public static final int MAXFILES = THREEWAY.numFiles;
+
 	/**
 	 * Number of required input files.
 	 */
 	private int numFiles;
+
 	/**
 	 * Names of input revisions.
 	 */

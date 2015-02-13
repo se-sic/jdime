@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,12 +49,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 	}
 
 	/**
-	 * TODO: this really needs documentation. I'll soon take care of that.
-	 *
-	 * @param context <code>MergeContext</code>
-	 * @param left
-	 * @param right
-	 * @return
+	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
 	public final Matching<T> match(final MergeContext context, final T left, final T right) {

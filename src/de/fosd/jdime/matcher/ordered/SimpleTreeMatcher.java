@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
+ * TODO: This needs more explanation, I'll fix that soon.
  *
  * @author Olaf Lessenich
  *

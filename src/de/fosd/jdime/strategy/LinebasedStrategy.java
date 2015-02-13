@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2015 Olaf Lessenich.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,8 @@ import org.apache.log4j.Logger;
 
 /**
  * Performs an unstructured, line based merge.
+ * <p>
+ * The current implementation uses the merge provided by <code>git</code>.
  *
  * @author Olaf Lessenich
  */
@@ -62,6 +64,15 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 */
 	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
+	/**
+	 * TODO: high-level documentation
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	public final void merge(final MergeOperation<FileArtifact> operation,
 			final MergeContext context) throws IOException,
