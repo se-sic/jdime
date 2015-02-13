@@ -59,7 +59,7 @@ public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.4";
+	private static final String VERSION = "0.3.5";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
