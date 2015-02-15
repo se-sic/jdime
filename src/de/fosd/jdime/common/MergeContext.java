@@ -645,6 +645,10 @@ public class MergeContext implements Cloneable {
 		this.curLookAhead = lookAhead;
 	}
 
+	public boolean isLookAhead() {
+		return lookAhead != LOOKAHEAD_OFF;
+	}
+
 	public boolean doLookAhead() {
 		if (curLookAhead > LOOKAHEAD_OFF) {
 			curLookAhead = (short)(curLookAhead - 1);
@@ -661,7 +665,7 @@ public class MergeContext implements Cloneable {
 	}
 
 	public void matchedElement(Artifact<?> element) {
-		String key = element.toString();
+		String key = element.toString().split(" ")[0];
 		Integer value = matchedElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		matchedElements.put(key, value);
@@ -672,7 +676,7 @@ public class MergeContext implements Cloneable {
 	}
 
 	public void skippedLeftElement(Artifact<?> element) {
-		String key = element.toString();
+		String key = element.toString().split(" ")[0];
 		Integer value = skippedLeftElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedLeftElements.put(key, value);
@@ -683,7 +687,7 @@ public class MergeContext implements Cloneable {
 	}
 
 	public void skippedRightElement(Artifact<?> element) {
-		String key = element.toString();
+		String key = element.toString().split(" ")[0];
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);

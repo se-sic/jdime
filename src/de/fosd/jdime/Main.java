@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -123,6 +124,10 @@ public final class Main {
 
 		if (context.hasStats()) {
 			StatsPrinter.print(context);
+		}
+
+		if (context.isDiffOnly()) {
+			printElementScores(context);
 		}
 
 		exit(context, 0);
@@ -529,6 +534,32 @@ public final class Main {
 			System.out.println("MaxChildren: " + s[2]);
 			System.out.println("--------------------------------------------");
 		}
+	}
+
+	private static void printElementScores(final MergeContext context) {
+		HashMap<String, Integer> matchedElements = context.getMatchedElements();
+		HashMap<String, Integer> skippedLeftElements = context.getskippedLeftElements();
+		HashMap<String, Integer> skippedRightElements = context.getskippedRightElements();
+
+		System.out.println("--------------------------------------------");
+		System.out.println("Matches found per element:");
+		for (String elem : matchedElements.keySet()) {
+			System.out.println(elem + ": " + matchedElements.get(elem));
+		}
+		System.out.println();
+		System.out.println("--------------------------------------------");
+		System.out.println("Skipped elements:");
+		for (String elem : skippedLeftElements.keySet()) {
+			int value = skippedLeftElements.get(elem);
+			if (skippedRightElements.containsKey(elem)) {
+				value = value + skippedRightElements.remove(elem);
+			} 
+			System.out.println(elem + ": " + value);
+		}
+		for (String elem : skippedRightElements.keySet()) {
+			System.out.println(elem + ": " + skippedRightElements.get(elem));
+		}
+		System.out.println("--------------------------------------------");
 	}
 
 	/**
