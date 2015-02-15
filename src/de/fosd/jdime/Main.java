@@ -199,7 +199,12 @@ public final class Main {
 				if (!cmd.hasOption("debug")) {
 					setLogLevel("WARN");
 				}
-				runLookAheadTests();
+				
+				String path = null;
+				if (cmd.getArgs().length > 0){
+					path = cmd.getArgs()[0];
+				}
+				runLookAheadTests(path);
 				System.exit(0);
 			}
 
@@ -543,8 +548,12 @@ public final class Main {
 		}
 	}
 
-	private static final void runLookAheadTests() {
-		String[] files = new File("testfiles/left/lookahead/").list();
+	private static final void runLookAheadTests(String path) {
+		if (path == null) {
+			path = "lookahead";
+		}
+		
+		String[] files = new File("testfiles/left/" + path + "/").list();
 		int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
 			(int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
 		MergeContext context;
@@ -561,9 +570,9 @@ public final class Main {
 			skippedRightElements = new HashMap<>();
 			try {
 				ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-				inputArtifacts.add(new FileArtifact(new File("testfiles/left/lookahead/"
+				inputArtifacts.add(new FileArtifact(new File("testfiles/left/" + path + "/"
 								+ file)));
-				inputArtifacts.add(new FileArtifact(new File("testfiles/right/lookahead/"
+				inputArtifacts.add(new FileArtifact(new File("testfiles/right/" + path + "/"
 								+ file)));
 
 				for (int lookAhead : lookaheads) {
