@@ -155,7 +155,8 @@ public final class Main {
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("help", false, "print this message");
 		options.addOption("keepgoing", false, "Keep running after exceptions.");
-		options.addOption("lookahead", false, "Use heuristics for matching.");
+		options.addOption("lookahead", true,
+				"Use heuristics for matching. Supply off, full, or a number as argument.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
 						+ ", dumpgraph, dumpfile, prettyprint)");
@@ -285,6 +286,10 @@ public final class Main {
 				}
 
 				context.setLookAhead(lookAhead);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("lookahead = " + lookAhead);
+					LOG.trace("doLookAhead() = " + context.doLookAhead());
+				}
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")

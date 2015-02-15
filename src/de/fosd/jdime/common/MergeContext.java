@@ -24,6 +24,7 @@ package de.fosd.jdime.common;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -189,6 +190,10 @@ public class MergeContext implements Cloneable {
 	 * explanation what this does.
 	 */
 	private short curLookAhead = lookAhead;
+
+	private HashMap<String, Integer> matchedElements = new HashMap<>();
+	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
+	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
 
 	/**
 	 * Class constructor.
@@ -633,6 +638,7 @@ public class MergeContext implements Cloneable {
 	 */
 	public void setLookAhead(short lookAhead) {
 		this.lookAhead = lookAhead;
+		this.curLookAhead = lookAhead;
 	}
 
 	public void resetLookAhead() {
@@ -648,5 +654,38 @@ public class MergeContext implements Cloneable {
 		 * because <code>LOOKAHEAD_FULL</code> is smaller than zero.
 		 */
 		return curLookAhead != LOOKAHEAD_OFF;
+	}
+
+	public HashMap<String, Integer> getMatchedElements() {
+		return matchedElements;
+	}
+
+	public void matchedElement(Artifact<?> element) {
+		String key = element.toString();
+		Integer value = matchedElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		matchedElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedLeftElements() {
+		return skippedLeftElements;
+	}
+
+	public void skippedLeftElement(Artifact<?> element) {
+		String key = element.toString();
+		Integer value = skippedLeftElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedLeftElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedRightElements() {
+		return skippedRightElements;
+	}
+
+	public void skippedRightElement(Artifact<?> element) {
+		String key = element.toString();
+		Integer value = skippedRightElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedRightElements.put(key, value);
 	}
 }
