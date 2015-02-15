@@ -26,8 +26,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -543,20 +546,26 @@ public final class Main {
 
 		System.out.println("--------------------------------------------");
 		System.out.println("Matches found per element:");
-		for (String elem : matchedElements.keySet()) {
+		ArrayList<String> keys = new ArrayList<>(matchedElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
 			System.out.println(elem + ": " + matchedElements.get(elem));
 		}
 		System.out.println();
 		System.out.println("--------------------------------------------");
 		System.out.println("Skipped elements:");
-		for (String elem : skippedLeftElements.keySet()) {
+		keys = new ArrayList<>(skippedLeftElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
 			int value = skippedLeftElements.get(elem);
 			if (skippedRightElements.containsKey(elem)) {
 				value = value + skippedRightElements.remove(elem);
 			} 
 			System.out.println(elem + ": " + value);
 		}
-		for (String elem : skippedRightElements.keySet()) {
+		keys = new ArrayList<>(skippedRightElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
 			System.out.println(elem + ": " + skippedRightElements.get(elem));
 		}
 		System.out.println("--------------------------------------------");
