@@ -42,17 +42,6 @@ public class MergeContext implements Cloneable {
 	private static final int BENCHMARKRUNS = 10;
 
 	/**
-	 * Stop looking for subtree matches if the two nodes compared are not equal.
-	 */
-	public static final short LOOKAHEAD_OFF = 0;
-
-	/**
-	 * Do look at all nodes in the subtree even if the compared nodes are not
-	 * equal.
-	 */
-	public static final short LOOKAHEAD_FULL = -1;
-
-	/**
 	 * Returns the median of a list of long values.
 	 *
 	 * @param values
@@ -183,17 +172,22 @@ public class MergeContext implements Cloneable {
 	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
 	 * The default ist to do no look-ahead matching.
 	 */
-	private short lookAhead = LOOKAHEAD_OFF;
-
-	/**
-	 * Remaining levels to look into. See <code>lookAhead</code> for more
-	 * explanation what this does.
-	 */
-	private short curLookAhead = lookAhead;
+	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
 
 	private HashMap<String, Integer> matchedElements = new HashMap<>();
 	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
 	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
+
+	/**
+	 * Do look at all nodes in the subtree even if the compared nodes are not
+	 * equal.
+	 */
+	public static final int LOOKAHEAD_FULL = -1;
+
+	/**
+	 * Stop looking for subtree matches if the two nodes compared are not equal.
+	 */
+	public static final int LOOKAHEAD_OFF = 0;
 
 	/**
 	 * Class constructor.
@@ -622,7 +616,7 @@ public class MergeContext implements Cloneable {
 	 * @return number of levels to look down for subtree matches if the
 	 * currently compared nodes do not match
 	 */
-	public short getLookAhead() { return lookAhead; }
+	public int getLookAhead() { return lookAhead; }
 
 	/**
 	 * Sets how many levels to keep searching for matches in the subtree if
@@ -636,28 +630,12 @@ public class MergeContext implements Cloneable {
 	 * @param lookAhead number of levels to look down for subtree matches if the
 	 * currently compared nodes do not match
 	 */
-	public void setLookAhead(short lookAhead) {
+	public void setLookAhead(int lookAhead) {
 		this.lookAhead = lookAhead;
-		this.curLookAhead = lookAhead;
-	}
-
-	public void resetLookAhead() {
-		this.curLookAhead = lookAhead;
 	}
 
 	public boolean isLookAhead() {
-		return lookAhead != LOOKAHEAD_OFF;
-	}
-
-	public boolean doLookAhead() {
-		if (curLookAhead > LOOKAHEAD_OFF) {
-			curLookAhead = (short)(curLookAhead - 1);
-		}
-
-		/* This is intentionally '!=' and not '>'
-		 * because <code>LOOKAHEAD_FULL</code> is smaller than zero.
-		 */
-		return curLookAhead != LOOKAHEAD_OFF;
+		return lookAhead != MergeContext.LOOKAHEAD_OFF;
 	}
 
 	public HashMap<String, Integer> getMatchedElements() {

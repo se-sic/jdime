@@ -62,22 +62,35 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 	 * @param context <code>MergeContext</code>
 	 * @param left
 	 * @param right
+	 * @param lookAhead How many levels to keep searching for matches in the
+	 * subtree if the currently compared nodes are not equal. If there are no
+	 * matches within the specified number of levels, do not look for matches
+	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
+	 * stop looking for subtree matches if two nodes do not match. If this is
+	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
+	 * default ist to do no look-ahead matching.
 	 * @return
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		String id = "stm";
 
 		int rootMatching = left.matches(right) ? 1 : 0;
 
-		if (rootMatching == 0 && !context.doLookAhead()) {
-			// roots contain distinct symbols and we don't use the look-ahead feature
-			// therefore, we ignore the rest of the subtrees and return early to save time
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(id + " - " + "early return while matching " + left.getId()
-						+ " and " + right.getId());
+		if (rootMatching == 0) {
+			if (lookAhead == 0) {
+				// roots contain distinct symbols and we cannot use the look-ahead feature
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(id + " - " + "early return while matching " + left.getId()
+							+ " and " + right.getId() + " (LookAhead = " + context.getLookAhead() + ")");
+				}
+				return new Matching<>(left, right, rootMatching);
+			} else {
+				lookAhead = lookAhead - 1;
 			}
-			return new Matching<>(left, right, rootMatching);
+		} else if (context.isLookAhead()) {
+			lookAhead = context.getLookAhead();
 		}
 
 		// number of first-level subtrees of t1
@@ -104,7 +117,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
 
-				Matching<T> w = matcher.match(context, left.getChild(i - 1), right.getChild(j - 1));
+				Matching<T> w = matcher.match(context, left.getChild(i - 1), right.getChild(j - 1), lookAhead);
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
 							+ w.getScore()) {

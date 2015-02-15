@@ -52,13 +52,20 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		int rootMatching = left.matches(right) ? 1 : 0;
 
-		if (rootMatching == 0 && !context.doLookAhead()) {
-			// roots contain distinct symbols and we don't use the look-ahead feature
-			// therefore, we ignore the rest of the subtrees and return early to save time
-			return new Matching<>(left, right, rootMatching);
+		if (rootMatching == 0) {
+			if (lookAhead == 0) {
+				// roots contain distinct symbols and we cannot use the look-ahead feature
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				return new Matching<>(left, right, rootMatching);
+			} else {
+				lookAhead = lookAhead - 1;
+			}
+		} else if (context.isLookAhead()) {
+			lookAhead = context.getLookAhead();
 		}
 
 		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
@@ -95,7 +102,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				// matching
-				Matching<T> childMatching = matcher.match(context, leftChild, rightChild);
+				Matching<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
 
 				// Matching<T> childMatching
 				// = new Matching<T>(leftChild, rightChild, 1);
