@@ -23,13 +23,13 @@ package de.fosd.jdime;
 
 import java.util.HashMap;
 
-import org.gnu.glpk.GLPK;
-
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
+import org.gnu.glpk.GLPK;
 
 /**
+ * Contains static methods testing the functionality of various aspects of the program.
  * 
  * @author Olaf Lessenich
  */
@@ -38,30 +38,35 @@ public final class InternalTests {
 	private static String delimiter = "====================================================";
 
 	/**
-	 * 
+	 * Utility class constructor.
 	 */
 	private InternalTests() {
 
 	}
 
 	/**
-     * 
+     * Runs all internal tests.
      */
 	public static void run() {
 		runEnvironmentTest();
 		runASTStatsTests();
 	}
 
+    /**
+     * Checks whether the environment for the program is correctly configured. Particularly this verifies that
+     * the native libraries are working. 
+     */
 	public static void runEnvironmentTest() {
-		try {
-			GLPK.glp_create_prob();
-			System.out.println(InternalTests.class.getCanonicalName() + ": OK");
-		} catch (Throwable t) {
-			System.out.println(t);
-			System.out.println(InternalTests.class.getCanonicalName() + ": FAILED");
-			throw(t);
-		}
 		
+        try {
+            System.out.println("GLPK " + GLPK.glp_version() +  " is working.");
+            System.out.println(InternalTests.class.getCanonicalName() + " : OK");
+		} catch (Throwable t) {
+            System.out.println(t);
+            System.out.println(InternalTests.class.getCanonicalName() + " : FAILED");
+			
+            throw t;
+		}
 	}
 
 	public static void runASTStatsTests() {
