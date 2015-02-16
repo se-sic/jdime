@@ -21,19 +21,18 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
 import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
-
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
@@ -248,7 +247,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		// prevent precision problems
 		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
-		List<Matching<T>> children = new LinkedList<>();
+        List<Matching<T>> children = new ArrayList<>();
 
 		for (int c = 1; c <= cols; c++) {
 			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {

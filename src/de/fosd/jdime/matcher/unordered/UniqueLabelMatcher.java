@@ -21,9 +21,9 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -60,7 +60,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 			return new Matching<>(left, right, 1);
 		}
 
-		List<Matching<T>> childrenMatchings = new LinkedList<>();
+        List<Matching<T>> childrenMatchings = new ArrayList<>();
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
 

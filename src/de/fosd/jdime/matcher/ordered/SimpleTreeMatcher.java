@@ -21,7 +21,7 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -108,7 +108,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 		int i = m;
 		int j = n;
-		List<Matching<T>> children = new LinkedList<>();
+        List<Matching<T>> children = new ArrayList<>();
 
 		while (i >= 1 && j >= 1) {
 			switch (matrixT[i][j].getDirection()) {
