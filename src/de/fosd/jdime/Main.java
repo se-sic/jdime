@@ -575,6 +575,12 @@ public final class Main {
 				inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
 								+ path + "/" + file)));
 
+				for (FileArtifact artifact : inputArtifacts) {
+					if (!artifact.exists()) {
+						continue;
+					}
+				}
+
 				for (int lookAhead : lookaheads) {
 					context = new MergeContext();
 					context.setQuiet(true);
@@ -582,6 +588,7 @@ public final class Main {
 					context.setMergeStrategy(new StructuredStrategy());
 					context.setDiffOnly(true);
 					context.setLookAhead(lookAhead);
+					context.setKeepGoing(true);
 					Main.merge(context);
 					curMatchedElements = context.getMatchedElements();
 					curSkippedLeftElements = context.getskippedLeftElements();
