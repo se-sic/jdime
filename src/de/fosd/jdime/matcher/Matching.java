@@ -21,7 +21,7 @@
  *******************************************************************************/
 package de.fosd.jdime.matcher;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -44,7 +44,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable {
 	/**
 	 * List of child matchings.
 	 */
-	private List<Matching<T>> children = new LinkedList<>();
+	private List<Matching<T>> children = new ArrayList<>();
 
 	/**
 	 * String representing a color to highlight the matching in.

@@ -22,8 +22,8 @@
  *******************************************************************************/
 package de.fosd.jdime.common;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
@@ -35,7 +35,7 @@ import java.util.LinkedList;
  * @author Olaf Lessenich
  * @see Artifact
  */
-public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
+public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 
 	private static final String DEFAULT_SEP = " ";
 
