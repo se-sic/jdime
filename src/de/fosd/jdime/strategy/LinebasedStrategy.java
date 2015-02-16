@@ -46,7 +46,7 @@ import org.apache.log4j.Logger;
 /**
  * Performs an unstructured, line based merge.
  * <p>
- * The current implementation uses the merge provided by <code>git</code>.
+ * The current implementation uses the merge routine provided by <code>git</code>.
  *
  * @author Olaf Lessenich
  */
@@ -65,10 +65,24 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
 	/**
-	 * TODO: high-level documentation
+	 * This line-based <code>merge</code> method uses the merging routine of
+	 * the external tool <code>git</code>.
+	 * <p>
+	 * Basically, the input <code>FileArtifacts</code> are passed as arguments to
+	 * `git merge-file -q -p`.
+	 * <p>
+	 * In a common run, the number of processed lines of code, the number of
+	 * conflicting situations, and the number of conflicting lines of code will
+	 * be counted. Empty lines and comments are skipped to keep
+	 * <code>MergeStrategies</code> comparable, as JDime does (in its current
+	 * implementation) not respect comments.
+	 * <p>
+	 * In case of a performance benchmark, the output is simply ignored for the
+	 * sake of speed, and the merge will be run the specified amount of times,
+	 * aiming to allow the computation of a reasonable mean runtime.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation <code>MergeOperation</code> that is executed by this strategy
+	 * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException

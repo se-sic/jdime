@@ -33,7 +33,10 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
- * TODO: high-level documentation
+ * A <code>MergeStrategy</code> implements an algorithm to merge a certain type of <code>Artifacts</code>.
+ * <p>
+ * The respective <code>MergeStrategies</code> can be optimized regarding different objectives,
+ * e.g., generalization, performance, precision, or also a trade-off of concerns.
  *
  * @author Olaf Lessenich
  *
