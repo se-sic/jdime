@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,10 +19,11 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.ordered;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -108,7 +110,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 		int i = m;
 		int j = n;
-		List<Matching<T>> children = new LinkedList<>();
+        List<Matching<T>> children = new ArrayList<>();
 
 		while (i >= 1 && j >= 1) {
 			switch (matrixT[i][j].getDirection()) {

@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,12 +19,13 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -60,7 +62,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 			return new Matching<>(left, right, 1);
 		}
 
-		List<Matching<T>> childrenMatchings = new LinkedList<>();
+        List<Matching<T>> childrenMatchings = new ArrayList<>();
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
 

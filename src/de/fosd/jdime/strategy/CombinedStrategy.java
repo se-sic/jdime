@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -65,7 +66,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 		FileArtifact target = null;
 
-		if (operation.getTarget() != null) {
+		if (!context.isDiffOnly() && operation.getTarget() != null) {
 			assert (operation.getTarget() instanceof FileArtifact);
 			target = operation.getTarget();
 			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "

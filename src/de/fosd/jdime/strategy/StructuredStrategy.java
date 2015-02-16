@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -90,8 +91,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 		FileArtifact target = operation.getTarget();
 
-		assert (target != null);
-		assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+		if (!context.isDiffOnly() && target != null) {
+			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+		}
 		
 		/* ASTNodeArtifacts are created from the input files.
 		 * Then, a ASTNodeStrategy can be applied.

@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -102,7 +102,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 					+ target;
 		}
 
-		List<String> cmd = new LinkedList<>();
+        List<String> cmd = new ArrayList<>();
 		cmd.add(BASECMD);
 		cmd.addAll(Arrays.asList(BASEARGS));
 
