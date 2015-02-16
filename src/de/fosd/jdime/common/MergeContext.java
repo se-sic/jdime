@@ -24,6 +24,7 @@ package de.fosd.jdime.common;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -39,17 +40,6 @@ public class MergeContext implements Cloneable {
 	 * Default value of benchmark runs.
 	 */
 	private static final int BENCHMARKRUNS = 10;
-
-	/**
-	 * Stop looking for subtree matches if the two nodes compared are not equal.
-	 */
-	public static final short LOOKAHEAD_OFF = 0;
-
-	/**
-	 * Do look at all nodes in the subtree even if the compared nodes are not
-	 * equal.
-	 */
-	public static final short LOOKAHEAD_FULL = -1;
 
 	/**
 	 * Returns the median of a list of long values.
@@ -182,13 +172,22 @@ public class MergeContext implements Cloneable {
 	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
 	 * The default ist to do no look-ahead matching.
 	 */
-	private short lookAhead = LOOKAHEAD_OFF;
+	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
+
+	private HashMap<String, Integer> matchedElements = new HashMap<>();
+	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
+	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
 
 	/**
-	 * Remaining levels to look into. See <code>lookAhead</code> for more
-	 * explanation what this does.
+	 * Do look at all nodes in the subtree even if the compared nodes are not
+	 * equal.
 	 */
-	private short curLookAhead = lookAhead;
+	public static final int LOOKAHEAD_FULL = -1;
+
+	/**
+	 * Stop looking for subtree matches if the two nodes compared are not equal.
+	 */
+	public static final int LOOKAHEAD_OFF = 0;
 
 	/**
 	 * Class constructor.
@@ -617,7 +616,7 @@ public class MergeContext implements Cloneable {
 	 * @return number of levels to look down for subtree matches if the
 	 * currently compared nodes do not match
 	 */
-	public short getLookAhead() { return lookAhead; }
+	public int getLookAhead() { return lookAhead; }
 
 	/**
 	 * Sets how many levels to keep searching for matches in the subtree if
@@ -631,22 +630,44 @@ public class MergeContext implements Cloneable {
 	 * @param lookAhead number of levels to look down for subtree matches if the
 	 * currently compared nodes do not match
 	 */
-	public void setLookAhead(short lookAhead) {
+	public void setLookAhead(int lookAhead) {
 		this.lookAhead = lookAhead;
 	}
 
-	public void resetLookAhead() {
-		this.curLookAhead = lookAhead;
+	public boolean isLookAhead() {
+		return lookAhead != MergeContext.LOOKAHEAD_OFF;
 	}
 
-	public boolean doLookAhead() {
-		if (curLookAhead > LOOKAHEAD_OFF) {
-			curLookAhead = (short)(curLookAhead - 1);
-		}
+	public HashMap<String, Integer> getMatchedElements() {
+		return matchedElements;
+	}
 
-		/* This is intentionally '!=' and not '>'
-		 * because <code>LOOKAHEAD_FULL</code> is smaller than zero.
-		 */
-		return curLookAhead != LOOKAHEAD_OFF;
+	public void matchedElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = matchedElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		matchedElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedLeftElements() {
+		return skippedLeftElements;
+	}
+
+	public void skippedLeftElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = skippedLeftElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedLeftElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedRightElements() {
+		return skippedRightElements;
+	}
+
+	public void skippedRightElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = skippedRightElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedRightElements.put(key, value);
 	}
 }

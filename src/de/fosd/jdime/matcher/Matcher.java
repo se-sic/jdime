@@ -75,7 +75,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
@@ -108,7 +108,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 						+ left.getId() + ", " + right.getId() + ")");
 			}
 
-			return orderedMatcher.match(context, left, right);
+			return orderedMatcher.match(context, left, right, lookAhead);
 		} else {
 			unorderedCalls++;
 
@@ -119,7 +119,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedLabelMatcher.match(context, left, right);
+				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(unorderedMatcher.getClass().getSimpleName()
@@ -127,7 +127,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedMatcher.match(context, left, right);
+				return unorderedMatcher.match(context, left, right, lookAhead);
 			}
 		}
 	}
@@ -153,8 +153,16 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 				matching.setColor(color);
 				left.addMatching(matching);
 				right.addMatching(matching);
+
+				// just for statistics
+				context.matchedElement(left);
+				context.matchedElement(right);
 			} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
 				// the compared nodes do not match but look-ahead is active and found matchings in the subtree
+
+				// just for statistics
+				context.skippedLeftElement(left);
+				context.skippedRightElement(left);
 			} else {
 				// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
 				throw new RuntimeException("Tried to store matching tree when lookahead is off and nodes do not match!");

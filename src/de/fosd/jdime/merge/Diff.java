@@ -57,7 +57,7 @@ public class Diff<T extends Artifact<T>> {
 	public final Matching<T> compare(final MergeContext context, final T left, final T right,
 			final Color color) {
 		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(context, left, right);
+		Matching<T> m = matcher.match(context, left, right, context.getLookAhead());
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "

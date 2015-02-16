@@ -58,8 +58,15 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	 * @param context <code>MergeContext</code>
 	 * @param left left node
 	 * @param right right node
+	 * @param lookAhead How many levels to keep searching for matches in the
+	 * subtree if the currently compared nodes are not equal. If there are no
+	 * matches within the specified number of levels, do not look for matches
+	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
+	 * stop looking for subtree matches if two nodes do not match. If this is
+	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
+	 * default ist to do no look-ahead matching.
 	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(final MergeContext context, final T left, final T right);
+	public abstract Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead);
 }
