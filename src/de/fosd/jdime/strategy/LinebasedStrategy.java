@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -102,7 +101,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 					+ target;
 		}
 
-		List<String> cmd = new LinkedList<>();
+        List<String> cmd = new ArrayList<>();
 		cmd.add(BASECMD);
 		cmd.addAll(Arrays.asList(BASEARGS));
 
