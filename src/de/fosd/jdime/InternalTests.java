@@ -22,6 +22,7 @@
 package de.fosd.jdime;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.stats.ASTStats;
@@ -69,33 +70,36 @@ public final class InternalTests {
 		}
 	}
 
+    /**
+     * Checks whether the <code>ASTStats</code> are working correctly.
+     */
     public static void runASTStatsTests() {
         ASTStats[] stats = new ASTStats[2];
-
+        Random rng = new Random();
+        
         for (int i = 0; i < stats.length; i++) {
             HashMap<String, StatsElement> diffstats = new HashMap<>();
-
             StatsElement all = new StatsElement();
+            
             for (LangElem level : LangElem.values()) {
                 if (level.equals(LangElem.NODE)) {
                     continue;
                 }
 
                 StatsElement s = new StatsElement();
-                s.setAdded((int) (5 * Math.random()));
-                s.setMatches((int) (5 * Math.random()));
-                s.setDeleted((int) (5 * Math.random()));
+                s.setAdded(rng.nextInt(5));
+                s.setMatches(rng.nextInt(5));
+                s.setDeleted(rng.nextInt(5));
                 s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
-                s.setConflicting((int) (s.getElements() * Math.random()));
+                s.setConflicting(rng.nextInt(s.getElements()));
                 s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
+                
                 all.addStatsElement(s);
                 diffstats.put(level.toString(), s);
             }
 
             diffstats.put(LangElem.NODE.toString(), all);
-
-            stats[i] = new ASTStats(all.getElements(), (int) (5 * Math.random()), (int) (5 * Math.random()), diffstats,
-                    all.getChanges() != 0);
+            stats[i] = new ASTStats(all.getElements(), rng.nextInt(5), rng.nextInt(5), diffstats, all.getChanges() != 0);
         }
 
         ASTStats sum = ASTStats.add(stats[0], stats[1]);
