@@ -21,9 +21,9 @@
  *******************************************************************************/
 package de.fosd.jdime.stats;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -76,7 +76,7 @@ public class Stats {
 
 		// If necessary, initialize lists and maps
 		if (this.scenariostats == null) {
-			this.scenariostats = new LinkedList<>();
+            this.scenariostats = new ArrayList<>();
 		}
 
 		if (scenariostats != null) {
@@ -274,7 +274,7 @@ public class Stats {
 	 * Reset the triple statistics.
 	 */
 	public final void resetScenarioStats() {
-		scenariostats = new LinkedList<>();
+        scenariostats = new ArrayList<>();
 	}
 
 	/**
