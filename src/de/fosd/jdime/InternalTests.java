@@ -69,48 +69,47 @@ public final class InternalTests {
 		}
 	}
 
-	public static void runASTStatsTests() {
-		ASTStats[] stats = new ASTStats[2];
+    public static void runASTStatsTests() {
+        ASTStats[] stats = new ASTStats[2];
 
-		for (int i = 0; i < stats.length; i++) {
-			HashMap<String, StatsElement> diffstats = new HashMap<>();
+        for (int i = 0; i < stats.length; i++) {
+            HashMap<String, StatsElement> diffstats = new HashMap<>();
 
-			StatsElement all = new StatsElement();
-			for (LangElem level : LangElem.values()) {
-				if (level.equals(LangElem.NODE)) {
-					continue;
-				}
+            StatsElement all = new StatsElement();
+            for (LangElem level : LangElem.values()) {
+                if (level.equals(LangElem.NODE)) {
+                    continue;
+                }
 
-				StatsElement s = new StatsElement();
-				s.setAdded((int) (5 * Math.random()));
-				s.setMatches((int) (5 * Math.random()));
-				s.setDeleted((int) (5 * Math.random()));
-				s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
-				s.setConflicting((int) (s.getElements() * Math.random()));
-				s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
-				all.addStatsElement(s);
-				diffstats.put(level.toString(), s);
-			}
+                StatsElement s = new StatsElement();
+                s.setAdded((int) (5 * Math.random()));
+                s.setMatches((int) (5 * Math.random()));
+                s.setDeleted((int) (5 * Math.random()));
+                s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
+                s.setConflicting((int) (s.getElements() * Math.random()));
+                s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
+                all.addStatsElement(s);
+                diffstats.put(level.toString(), s);
+            }
 
-			diffstats.put(LangElem.NODE.toString(), all);
+            diffstats.put(LangElem.NODE.toString(), all);
 
-			stats[i] = new ASTStats(all.getElements(),
-					(int) (5 * Math.random()), (int) (5 * Math.random()),
-					diffstats, all.getChanges() != 0);
-		}
+            stats[i] = new ASTStats(all.getElements(), (int) (5 * Math.random()), (int) (5 * Math.random()), diffstats,
+                    all.getChanges() != 0);
+        }
 
-		ASTStats sum = ASTStats.add(stats[0], stats[1]);
+        ASTStats sum = ASTStats.add(stats[0], stats[1]);
 
-		System.out.println(delimiter);
-		System.out.println("Left:");
-		System.out.println(stats[0]);
+        System.out.println(delimiter);
+        System.out.println("Left:");
+        System.out.println(stats[0]);
 
-		System.out.println(delimiter);
-		System.out.println("Right:");
-		System.out.println(stats[1]);
+        System.out.println(delimiter);
+        System.out.println("Right:");
+        System.out.println(stats[1]);
 
-		System.out.println(delimiter);
-		System.out.println("Sum:");
-		System.out.println(sum);
-	}
+        System.out.println(delimiter);
+        System.out.println("Sum:");
+        System.out.println(sum);
+    }
 }
