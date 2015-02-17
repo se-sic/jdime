@@ -62,6 +62,14 @@ public final class InternalTests {
 	public static void runEnvironmentTest() {
 		
         try {
+            System.out.println("Library search path: ");
+
+            String[] split = System.getProperty("java.library.path").split(";");
+            for (int i = 0; i < split.length; i++) {
+                System.out.println(i + ": " + split[i]);
+            }
+            System.out.println();
+            
             System.out.println("GLPK " + GLPK.glp_version() +  " is working.");
             System.out.println(InternalTests.class.getCanonicalName() + " : OK");
 		} catch (Throwable t) {
@@ -93,7 +101,7 @@ public final class InternalTests {
                 s.setMatches(rng.nextInt(5));
                 s.setDeleted(rng.nextInt(5));
                 s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
-                s.setConflicting(rng.nextInt(s.getElements()));
+                s.setConflicting(s.getElements() == 0 ? 0 : rng.nextInt(s.getElements()));
                 s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
                 
                 all.addStatsElement(s);
