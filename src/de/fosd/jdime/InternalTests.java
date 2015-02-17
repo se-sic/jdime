@@ -101,7 +101,7 @@ public final class InternalTests {
                 s.setMatches(rng.nextInt(5));
                 s.setDeleted(rng.nextInt(5));
                 s.setElements(s.getAdded() + s.getDeleted() + s.getMatches());
-                s.setConflicting(rng.nextInt(s.getElements()));
+                s.setConflicting(s.getElements() == 0 ? 0 : rng.nextInt(s.getElements()));
                 s.setChanges(s.getAdded() + s.getDeleted() + s.getConflicting());
                 
                 all.addStatsElement(s);
