@@ -201,11 +201,13 @@ public final class Main {
 					setLogLevel("WARN");
 				}
 				
+				String wd = null;
 				String path = null;
-				if (cmd.getArgs().length > 0){
-					path = cmd.getArgs()[0];
+				if (cmd.getArgs().length > 1){
+					wd = cmd.getArgs()[0];
+					path = cmd.getArgs()[1];
 				}
-				runLookAheadTests(path);
+				runLookAheadTests(wd, path);
 				System.exit(0);
 			}
 
@@ -549,12 +551,12 @@ public final class Main {
 		}
 	}
 
-	private static final void runLookAheadTests(String path) {
+	private static final void runLookAheadTests(String wd, String path) {
 		if (path == null) {
 			path = "lookahead";
 		}
 		
-		String[] files = new File("testfiles/left/" + path + "/").list();
+		String[] files = new File(wd + "/left/" + path + "/").list();
 		int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
 			(int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
 		MergeContext context;
@@ -571,9 +573,9 @@ public final class Main {
 		for (String file : files) {
 			try {
 				ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-				inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
+				inputArtifacts.add(new FileArtifact(new File(wd + "/left/"
 								+ path + "/" + file)));
-				inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
+				inputArtifacts.add(new FileArtifact(new File(wd + "/right/"
 								+ path + "/" + file)));
 
 				for (FileArtifact artifact : inputArtifacts) {
@@ -638,7 +640,6 @@ public final class Main {
 						}
 					}
 				}
-
 			} catch (Exception e) {
 				System.err.println(e.toString());
 			}
