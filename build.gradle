@@ -93,3 +93,7 @@ applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
 applicationDistribution.from(natives) {
     into("bin")
 }
+
+run {
+	args System.getProperty("exec.args").split()
+}
