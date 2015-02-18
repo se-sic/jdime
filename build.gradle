@@ -95,5 +95,7 @@ applicationDistribution.from(natives) {
 }
 
 run {
-	args System.getProperty("exec.args").split()
+	if (System.getProperty("exec.args") != null) {
+		args System.getProperty("exec.args").split()
+	}
 }
