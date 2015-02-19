@@ -1,0 +1,5 @@
+1. "Simple" look-ahead that works on same tree level (solves renamed method example)
+2. "Advanced" look-ahead that works on different tree level (solves moved node example)
+3. Run case studies with look-ahead and without (diff only, 2-way)
+4. Show different matching results and ask user which is better
+5. Print statistics of better/worse matchings overall and grouped by language element

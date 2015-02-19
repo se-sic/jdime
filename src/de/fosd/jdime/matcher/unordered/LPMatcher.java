@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,13 +18,18 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -31,12 +37,9 @@ import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
+ * TODO: this needs more explanation, I'll fix that soon
  *
  * @author Olaf Lessenich
  *
@@ -45,10 +48,8 @@ import de.fosd.jdime.matcher.Matching;
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	/**
-     *
-     */
 	private static String id = "unordered";
+
 	/**
 	 * Threshold for rounding errors.
 	 */
@@ -90,11 +91,34 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		super(matcher);
 	}
 
+	/**
+	 * TODO: this really needs documentation. I'll soon take care of that.
+	 * @param context <code>MergeContext</code>
+	 * @param left
+	 * @param right
+	 * @param lookAhead How many levels to keep searching for matches in the
+	 * subtree if the currently compared nodes are not equal. If there are no
+	 * matches within the specified number of levels, do not look for matches
+	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
+	 * stop looking for subtree matches if two nodes do not match. If this is
+	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
+	 * default ist to do no look-ahead matching.
+	 * @return
+	 */
 	@Override
-	public final Matching<T> match(final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+		int rootMatching = left.matches(right) ? 1 : 0;
 
-		if (!left.matches(right)) {
-			return new Matching<>(left, right, 0);
+		if (rootMatching == 0) {
+			if (lookAhead == 0) {
+				// roots contain distinct symbols and we cannot use the look-ahead feature
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				return new Matching<>(left, right, rootMatching);
+			} else {
+				lookAhead = lookAhead - 1;
+			}
+		} else if (context.isLookAhead()) {
+			lookAhead = context.getLookAhead();
 		}
 
 		// number of first-level subtrees of t1
@@ -104,7 +128,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return new Matching<>(left, right, 1);
+			return new Matching<>(left, right, rootMatching);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -123,12 +147,12 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching<T> w = matcher.match(childT1, childT2);
+				Matching<T> w = matcher.match(context, childT1, childT2, lookAhead);
 				matching[i][j] = w;
 			}
 		}
 
-		return solveLP(left, right, matching);
+		return solveLP(left, right, matching, rootMatching);
 	}
 
 	/**
@@ -138,14 +162,14 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 *            left artifact
 	 * @param right
 	 *            right artifact
-	 * @param matching
+	 * @param childrenMatching
 	 *            matrix of matchings
 	 * @return matching of root nodes
 	 */
 	private Matching<T> solveLP(final T left, final T right,
-			final Matching<T>[][] matching) {
-		int m = matching.length;
-		int n = matching[0].length;
+			final Matching<T>[][] childrenMatching, final int rootMatching) {
+		int m = childrenMatching.length;
+		int n = childrenMatching[0].length;
 		int width = m > n ? m : n;
 		int cols = width * width;
 
@@ -225,7 +249,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			int j = indices[1];
 			// take care of dummy rows/cols
 			// TODO: verify that m and n are correct
-			int score = i < m && j < n ? matching[i][j].getScore() : 0;
+			int score = i < m && j < n ? childrenMatching[i][j].getScore() : 0;
 			GLPK.glp_set_obj_coef(lp, c, score);
 		}
 
@@ -249,7 +273,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		// prevent precision problems
 		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
-		List<Matching<T>> children = new LinkedList<>();
+        List<Matching<T>> children = new ArrayList<>();
 
 		for (int c = 1; c <= cols; c++) {
 			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
@@ -257,7 +281,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				int i = indices[0];
 				int j = indices[1];
 				if (i < m && j < n) { // TODO: verify that this is correct
-					Matching<T> curMatching = matching[i][j];
+					Matching<T> curMatching = childrenMatching[i][j];
 					if (curMatching.getScore() > 0) {
 						children.add(curMatching);
 						curMatching.setAlgorithm(id);
@@ -267,9 +291,9 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		}
 		GLPK.glp_delete_prob(lp);
 
-		Matching<T> rootmatching = new Matching<>(left, right, objective + 1);
-		rootmatching.setChildren(children);
+		Matching<T> matching = new Matching<>(left, right, objective + rootMatching);
+		matching.setChildren(children);
 
-		return rootmatching;
+		return matching;
 	}
 }

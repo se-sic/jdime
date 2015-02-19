@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,16 +18,18 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
@@ -47,24 +50,31 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 		super(matcher);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.matcher.unordered.UnorderedMatcher#match(de.fosd.jdime.
-	 * common.Artifact, de.fosd.jdime.common.Artifact)
+	/**
+	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right) {
-		if (!left.matches(right)) {
-			return new Matching<>(left, right, 0);
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+		int rootMatching = left.matches(right) ? 1 : 0;
+
+		if (rootMatching == 0) {
+			if (lookAhead == 0) {
+				// roots contain distinct symbols and we cannot use the look-ahead feature
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				// therefore, we ignore the rest of the subtrees and return early to save time
+				return new Matching<>(left, right, rootMatching);
+			} else {
+				lookAhead = lookAhead - 1;
+			}
+		} else if (context.isLookAhead()) {
+			lookAhead = context.getLookAhead();
 		}
 
 		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
-			return new Matching<>(left, right, 1);
+			return new Matching<>(left, right, rootMatching);
 		}
 
-		List<Matching<T>> childrenMatchings = new LinkedList<>();
+        List<Matching<T>> childrenMatchings = new ArrayList<>();
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
 
@@ -94,8 +104,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				// matching
-				Matching<T> childMatching = matcher
-						.match(leftChild, rightChild);
+				Matching<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
 
 				// Matching<T> childMatching
 				// = new Matching<T>(leftChild, rightChild, 1);
@@ -111,8 +120,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 			}
 		}
 
-		Matching<T> rootmatching = new Matching<>(left, right, sum + 1);
-		rootmatching.setChildren(childrenMatchings);
-		return rootmatching;
+		Matching<T> matching = new Matching<>(left, right, sum + rootMatching);
+		matching.setChildren(childrenMatchings);
+		return matching;
 	}
 }

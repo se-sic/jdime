@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.merge;
 
@@ -25,26 +26,27 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 
 /**
+ * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
+ *
  * @author Olaf Lessenich
- * 
+ *
  * @param <T>
  *            type of artifact
  */
 public class Diff<T extends Artifact<T>> {
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(Diff.class));
 
 	/**
 	 * Compares two nodes and returns a respective matching.
-	 * 
+	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left
 	 *            left node
 	 * @param right
@@ -53,10 +55,10 @@ public class Diff<T extends Artifact<T>> {
 	 *            color of the matching (for debug output only)
 	 * @return Matching of the two nodes
 	 */
-	public final Matching<T> compare(final T left, final T right,
+	public final Matching<T> compare(final MergeContext context, final T left, final T right,
 			final Color color) {
 		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(left, right);
+		Matching<T> m = matcher.match(context, left, right, context.getLookAhead());
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "
@@ -65,7 +67,8 @@ public class Diff<T extends Artifact<T>> {
 			LOG.trace("Store matching information within nodes.");
 		}
 
-		matcher.storeMatching(m, color);
+		matcher.storeMatching(context, m, color);
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Dumping matching of " + left.getRevision() + " and "
 					+ right.getRevision());

@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.merge;
 
@@ -46,16 +47,19 @@ import de.fosd.jdime.matcher.Matching;
  */
 public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(OrderedMerge.class));
-	/**
-	 * Logging prefix.
-	 */
 	private String logprefix;
 
+	/**
+	 * TODO: this needs high-level documentation. Probably also detailed documentation.
+	 *
+	 * @param operation
+	 * @param context
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,

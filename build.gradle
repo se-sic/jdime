@@ -23,7 +23,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile 'log4j:log4j:1.2.17'
-    compile files('lib/JJ7.jar', 'lib/btc-ascii-table-1.0.jar')
+    compile files('lib/JJ7.jar')
 }
 
 task natives {
@@ -57,7 +57,7 @@ task natives {
 
     def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
     def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
-
+    
     if (glpkJavaFile.exists()) {
         if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
             println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name."
@@ -88,7 +88,7 @@ task natives {
 
 applicationName = rootProject.name
 mainClassName = "de.fosd.jdime.Main"
-applicationDefaultJvmArgs = ["-Xmx2048m", "-ea"]
+applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
 
 applicationDistribution.from(natives) {
     into("bin")

@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,13 +18,14 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.stats;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,9 +37,6 @@ import de.fosd.jdime.common.operations.Operation;
  */
 public class Stats {
 
-	/**
-     *
-     */
 	private List<MergeTripleStats> scenariostats;
 
 	/**
@@ -61,9 +60,7 @@ public class Stats {
 	private HashMap<String, Integer> operations;
 
 	private ASTStats astStats;
-	
 	private ASTStats leftStats;
-	
 	private ASTStats rightStats;
 
 	/**
@@ -81,7 +78,7 @@ public class Stats {
 
 		// If necessary, initialize lists and maps
 		if (this.scenariostats == null) {
-			this.scenariostats = new LinkedList<>();
+            this.scenariostats = new ArrayList<>();
 		}
 
 		if (scenariostats != null) {
@@ -279,7 +276,7 @@ public class Stats {
 	 * Reset the triple statistics.
 	 */
 	public final void resetScenarioStats() {
-		scenariostats = new LinkedList<>();
+        scenariostats = new ArrayList<>();
 	}
 
 	/**

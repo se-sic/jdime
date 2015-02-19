@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime;
 
@@ -26,7 +27,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -35,7 +39,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -51,6 +54,7 @@ import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
+import de.fosd.jdime.strategy.StructuredStrategy;
 
 /**
  * @author Olaf Lessenich
@@ -58,19 +62,9 @@ import de.fosd.jdime.strategy.StrategyNotFoundException;
  */
 public final class Main {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Main.class));
-	/**
-	 * Tool name constant.
-	 */
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	/**
-	 * Version constant.
-	 */
-	private static final String VERSION = "0.3.0";
+	private static final String VERSION = "0.3.5";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -166,6 +160,8 @@ public final class Main {
 		options.addOption("f", false, "force overwriting of output files");
 		options.addOption("help", false, "print this message");
 		options.addOption("keepgoing", false, "Keep running after exceptions.");
+		options.addOption("lookahead", true,
+				"Use heuristics for matching. Supply off, full, or a number as argument.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
 						+ ", dumpgraph, dumpfile, prettyprint)");
@@ -175,6 +171,7 @@ public final class Main {
 				"print configuration information");
 		options.addOption("stats", false,
 				"collects statistical data of the merge");
+		options.addOption("runLookAheadTests", false, "Run diffs with lookahead and print statistics");
 		options.addOption("p", false, "prints merge result to stdout");
 		options.addOption("version", false,
 				"print the version information and exit");
@@ -199,9 +196,24 @@ public final class Main {
 				setLogLevel(cmd.getOptionValue("debug"));
 			}
 
+			if (cmd.hasOption("runLookAheadTests")) {
+				if (!cmd.hasOption("debug")) {
+					setLogLevel("WARN");
+				}
+				
+				String wd = null;
+				String path = null;
+				if (cmd.getArgs().length > 1){
+					wd = cmd.getArgs()[0];
+					path = cmd.getArgs()[1];
+				}
+				runLookAheadTests(wd, path);
+				System.exit(0);
+			}
+
 			if (cmd.hasOption("mode")) {
 				try {
-					switch (cmd.getOptionValue("mode")) {
+					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
 						printStrategies(context, true);
 						break;
@@ -261,8 +273,9 @@ public final class Main {
 			}
 
 			if (cmd.hasOption("output")) {
-				// TODO: The default needs to be overwriting file1 so we are
-				// compatible with gnu merge
+				// TODO[low priority]: The default should in a later,
+				// rock-stable version be changed to be overwriting file1 so
+				// that we are compatible with gnu merge call syntax
 				context.setOutputFile(new FileArtifact(new Revision("merge"),
 						new File(cmd.getOptionValue("output")), false));
 			}
@@ -271,6 +284,31 @@ public final class Main {
 				context.setDiffOnly(true);
 				if (cmd.hasOption("consecutive")) {
 					context.setConsecutive(true);
+				}
+			}
+
+			if (cmd.hasOption("lookahead")) {
+				String lookAheadValue = cmd.getOptionValue("lookahead");
+
+				// initialize with the context's default.
+				int lookAhead = context.getLookAhead();
+
+				// parse the value provided by the user
+				try {
+					lookAhead = Integer.parseInt(lookAheadValue);
+				} catch (NumberFormatException e) {
+					switch(lookAheadValue) {
+						case "off":
+							break;
+						case "full":
+							lookAhead = MergeContext.LOOKAHEAD_FULL;
+							break;
+					}
+				}
+
+				context.setLookAhead(lookAhead);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("lookahead = " + lookAhead);
 				}
 			}
 
@@ -454,6 +492,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -469,6 +509,8 @@ public final class Main {
 	}
 
 	/**
+	 * Mainly used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 * @throws IOException
@@ -484,6 +526,8 @@ public final class Main {
 	}
 
 	/**
+	 * Only used for debugging purposes.
+	 *
 	 * @param context
 	 *            merge context
 	 *
@@ -505,6 +549,158 @@ public final class Main {
 			System.out.println("MaxChildren: " + s[2]);
 			System.out.println("--------------------------------------------");
 		}
+	}
+
+	private static final void runLookAheadTests(String wd, String path) {
+		if (path == null) {
+			path = "lookahead";
+		}
+		
+		String[] files = new File(wd + "/left/" + path + "/").list();
+		int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
+			(int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
+		MergeContext context;
+		HashMap<String, HashMap<Integer, Integer>> matchedElements = new HashMap<>();
+		HashMap<String, HashMap<Integer, Integer>> skippedLeftElements = new HashMap<>();
+		HashMap<String, HashMap<Integer, Integer>> skippedRightElements = new HashMap<>();
+		HashMap<String, Integer> curMatchedElements;
+		HashMap<String, Integer> curSkippedLeftElements;
+		HashMap<String, Integer> curSkippedRightElements;
+		HashMap<Integer, Integer> tmpMatchedElements;
+		HashMap<Integer, Integer> tmpSkippedLeftElements;
+		HashMap<Integer, Integer> tmpSkippedRightElements;
+
+		for (String file : files) {
+			try {
+				ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+				inputArtifacts.add(new FileArtifact(new File(wd + "/left/"
+								+ path + "/" + file)));
+				inputArtifacts.add(new FileArtifact(new File(wd + "/right/"
+								+ path + "/" + file)));
+
+				for (FileArtifact artifact : inputArtifacts) {
+					if (!artifact.exists()) {
+						continue;
+					}
+				}
+
+				for (int lookAhead : lookaheads) {
+					context = new MergeContext();
+					context.setQuiet(true);
+					context.setInputFiles(inputArtifacts);
+					context.setMergeStrategy(new StructuredStrategy());
+					context.setDiffOnly(true);
+					context.setLookAhead(lookAhead);
+					context.setKeepGoing(true);
+					Main.merge(context);
+					curMatchedElements = context.getMatchedElements();
+					curSkippedLeftElements = context.getskippedLeftElements();
+					curSkippedRightElements = context.getskippedRightElements();
+
+					for (String elem : curMatchedElements.keySet()) {
+						if (!matchedElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curMatchedElements.get(elem));
+							matchedElements.put(elem, lookAheadMap);
+						} else {
+							tmpMatchedElements = matchedElements.get(elem);
+							int value =
+								tmpMatchedElements.containsKey(lookAhead) ?
+								tmpMatchedElements.get(lookAhead) : 0;
+							matchedElements.get(elem).put(lookAhead, value +
+									curMatchedElements.get(elem));
+						}
+					}
+					for (String elem : curSkippedLeftElements.keySet()) {
+						if (!skippedLeftElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curSkippedLeftElements.get(elem));
+							skippedLeftElements.put(elem, lookAheadMap);
+						} else {
+							tmpSkippedLeftElements = skippedLeftElements.get(elem);
+							int value =
+								tmpSkippedLeftElements.containsKey(lookAhead) ?
+								tmpSkippedLeftElements.get(lookAhead) : 0;
+							skippedLeftElements.get(elem).put(lookAhead, value
+									+ curSkippedLeftElements.get(elem));
+						}
+					}
+					for (String elem : curSkippedRightElements.keySet()) {
+						if (!skippedRightElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curSkippedRightElements.get(elem));
+							skippedRightElements.put(elem, lookAheadMap);
+						} else {
+							tmpSkippedRightElements = skippedRightElements.get(elem);
+							int value =
+								tmpSkippedRightElements.containsKey(lookAhead)
+								? tmpSkippedRightElements.get(lookAhead) : 0;
+							skippedRightElements.get(elem).put(lookAhead, value
+									+ curSkippedRightElements.get(elem));
+						}
+					}
+				}
+			} catch (Exception e) {
+				System.err.println(e.toString());
+			}
+		}
+
+		// output
+		StringBuilder s = new StringBuilder();
+		s.append("Matched elements\n\n");
+		s.append("LangElem;");
+		for (int lookAhead : lookaheads) {
+			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+				s.append("n=full;");
+			} else {
+				s.append("n=" + lookAhead + ";");
+			}
+		}
+		s.append("\n");
+
+		ArrayList<String> keys = new ArrayList<>(matchedElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
+			s.append(elem + ";");
+			tmpMatchedElements = matchedElements.get(elem);
+			for (int lookAhead : lookaheads) {
+				int value = tmpMatchedElements.containsKey(lookAhead) ?
+					tmpMatchedElements.get(lookAhead) : 0;
+				s.append(value + ";");
+			}
+			s.append("\n");
+		}
+
+		s.append("\n\n");
+		s.append("Skipped elements\n\n");
+		s.append("LangElem;");
+		for (int lookAhead : lookaheads) {
+			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+				s.append("n=full;");
+			} else {
+				s.append("n=" + lookAhead + ";");
+			}
+		}
+		s.append("\n");
+		keys = new ArrayList<>(skippedLeftElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
+			s.append(elem + ";");
+			tmpSkippedLeftElements = skippedLeftElements.get(elem);
+			tmpSkippedRightElements = skippedRightElements.get(elem);
+			for (int lookAhead : lookaheads) {
+				int value = tmpSkippedLeftElements.containsKey(lookAhead) ?
+					tmpSkippedLeftElements.get(lookAhead) : 0;
+				if (tmpSkippedRightElements != null) {
+					value = tmpSkippedRightElements.containsKey(lookAhead) ?
+						value + tmpSkippedRightElements.get(lookAhead) : value;
+				}
+				s.append(value + ";");
+			}
+			s.append("\n");
+		}
+
+		System.out.println(s);
 	}
 
 	/**

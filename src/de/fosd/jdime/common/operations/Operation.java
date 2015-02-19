@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.common.operations;
 
@@ -52,7 +53,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Number.
+	 * Number of the current operation.
 	 */
 	private long number;
 
@@ -65,7 +66,7 @@ public abstract class Operation<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Applies the operation and returns a report.
+	 * Applies the operation.
 	 *
 	 * @param context
 	 *            merge context

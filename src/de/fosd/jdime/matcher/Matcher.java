@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +18,7 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.matcher;
 
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
@@ -32,46 +34,38 @@ import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
+ * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
+ * compute and store <code>Matching</code>s.
+ * <p>
+ * The computation of <code>Matching</code>s is done recursively. Depending on
+ * the <code>Artifact</code>, the matcher decides whether the order of elements
+ * is important (e.g., statements within a method in a Java AST) or not (e.g.,
+ * method declarations in a Java AST) for syntactic correctness. Then either an
+ * implementation of <code>OrderedMatcher</code> or
+ * <code>UnorderedMatcher</code> is called to compute the actual Matching.
+ * Usually, those subclass implementations use this <code>Matcher</code>
+ * superclass for the recursive call of the match() method.
+ * <p>
+ * When the computation is done and the best combination of matches have been
+ * selected, they are stored recursively within the <code>Artifact</code> nodes
+ * themselves, assigning each matched <code>Artifact</code> a pointer to the
+ * corresponding matching <code>Artifact</code>.
+ *
  * @author Olaf Lessenich
  *
- * @param <T>
- *            type of artifact
+ * @param <T> type of <code>Artifact</code>
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	/**
-	 * Logger.
-	 */
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(Matcher.class));
-	/**
-     *
-     */
 	private int calls = 0;
-	/**
-     *
-     */
 	private int orderedCalls = 0;
-	/**
-     *
-     */
 	private int unorderedCalls = 0;
-	/**
-     *
-     */
 	private UnorderedMatcher<T> unorderedMatcher;
-	/**
-     *
-     */
 	private UnorderedMatcher<T> unorderedLabelMatcher;
-	/**
-     *
-     */
 	private OrderedMatcher<T> orderedMatcher;
 
-	/**
-     *
-     */
 	public Matcher() {
 		unorderedMatcher = new LPMatcher<>(this);
 		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
@@ -79,18 +73,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Logger.
-	 */
-	// private static final Logger LOG = Logger.getLogger(ASTMatcher.class);
-	/**
-	 * @param left
-	 *            artifact
-	 * @param right
-	 *            artifact
-	 * @return Matching
+	 * {@inheritDoc}
 	 */
 	@Override
-	public final Matching<T> match(final T left, final T right) {
+	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
@@ -123,7 +109,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 						+ left.getId() + ", " + right.getId() + ")");
 			}
 
-			return orderedMatcher.match(left, right);
+			return orderedMatcher.match(context, left, right, lookAhead);
 		} else {
 			unorderedCalls++;
 
@@ -134,7 +120,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedLabelMatcher.match(left, right);
+				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(unorderedMatcher.getClass().getSimpleName()
@@ -142,37 +128,51 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 							+ ")");
 				}
 
-				return unorderedMatcher.match(left, right);
+				return unorderedMatcher.match(context, left, right, lookAhead);
 			}
 		}
 	}
 
 	/**
-	 * Marks corresponding nodes using an already computed matching. The
-	 * respective nodes are flagged with <code>matchingFlag</code> and
-	 * references are set to each other.
+	 * Recursively marks corresponding nodes using an already computed matching.
+	 * The respective nodes are flagged with an appropriate
+	 * <code>matchingFlag</code> and references are set to each other.
 	 *
-	 * @param matching
-	 *            used to mark nodes
-	 * @param color
-	 *            color used to highlight the matching in debug output
+	 * @param context <code>MergeContext</code>
+	 * @param matching used to mark nodes
+	 * @param color color used to highlight the matching in debug output
 	 */
-	public final void storeMatching(final Matching<T> matching,
+	public final void storeMatching(final MergeContext context, final Matching<T> matching,
 			final Color color) {
 		T left = matching.getLeft();
 		T right = matching.getRight();
 
 		if (matching.getScore() > 0) {
-			assert (left.matches(right)) : left.getId() + " does not match "
-					+ right.getId() + " (" + left + " <-> " + right + ")";
-			matching.setColor(color);
-			left.addMatching(matching);
-			right.addMatching(matching);
+			// TODO: collect statistical data about matching scores per language element and look-ahead setting
+			if (left.matches(right)) {
+				// regular top-down matching where the compared nodes do match
+				matching.setColor(color);
+				left.addMatching(matching);
+				right.addMatching(matching);
+
+				// just for statistics
+				context.matchedElement(left);
+				context.matchedElement(right);
+			} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
+				// the compared nodes do not match but look-ahead is active and found matchings in the subtree
+
+				// just for statistics
+				context.skippedLeftElement(left);
+				context.skippedRightElement(left);
+			} else {
+				// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
+				throw new RuntimeException("Tried to store matching tree when lookahead is off and nodes do not match!");
+			}
+
 			for (Matching<T> childMatching : matching.getChildren()) {
-				storeMatching(childMatching, color);
+				storeMatching(context, childMatching, color);
 			}
 		}
-
 	}
 
 	/**

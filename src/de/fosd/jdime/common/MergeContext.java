@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (C) 2013, 2014 Olaf Lessenich.
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,13 +18,14 @@
  * MA 02110-1301  USA
  *
  * Contributors:
- *     Olaf Lessenich - initial API and implementation
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *******************************************************************************/
 package de.fosd.jdime.common;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -63,28 +65,35 @@ public class MergeContext implements Cloneable {
 	/**
 	 * Performs benchmarks with several runs per file to get average runtimes.
 	 */
+
 	private boolean benchmark = false;
+
 	/**
 	 * Whether we are in bug-fixing mode.
 	 */
 	private boolean bugfixing = false;
+
 	/**
 	 * Whether to run only the diff.
 	 */
 	private boolean diffOnly = false;
+
 	/**
 	 * Whether to treat two input versions as consecutive versions in the
 	 * revision history.
 	 */
 	private boolean consecutive = false;
+
 	/**
 	 * Whether to dump files instead of merging.
 	 */
 	private boolean dumpFiles = false;
+
 	/**
 	 * Whether to dump ASTs instead of merging.
 	 */
 	private boolean dumpTree = false;
+
 	/**
 	 * Force overwriting of existing output files.
 	 */
@@ -99,50 +108,87 @@ public class MergeContext implements Cloneable {
 	 * Input Files.
 	 */
 	private ArtifactList<FileArtifact> inputFiles;
+
 	/**
 	 * If true, merging will be continued after exceptions.
 	 */
 	private boolean keepGoing = false;
+
 	/**
 	 * Strategy to apply for the merge.
 	 */
 	private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+
 	/**
 	 * Output file.
 	 */
 	private FileArtifact outputFile;
+
 	/**
 	 * Timestamp of program start.
 	 */
 	private long programStart;
+
 	/**
 	 * If true, the output is quiet.
 	 */
 	private boolean quiet = false;
+
 	/**
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private boolean recursive = false;
+
 	/**
 	 * Number of runs to perform for each file.
 	 */
 	private int runs = BENCHMARKRUNS;
+
 	/**
 	 * Save statistical data.
 	 */
 	private boolean saveStats = false;
+
 	/**
 	 * Statistical data are stored in a stats object.
 	 */
 	private Stats stats = null;
+
 	/**
 	 * StdOut of a merge operation.
 	 */
 	private StringWriter stdErr = new StringWriter();
+
 	/**
 	 * StdIn of a merge operation.
 	 */
 	private StringWriter stdIn = new StringWriter();
+
+	/**
+	 * How many levels to keep searching for matches in the subtree if the
+	 * currently compared nodes are not equal. If there are no matches within
+	 * the specified number of levels, do not look for matches deeper in the
+	 * subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop looking
+	 * for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
+	 * The default ist to do no look-ahead matching.
+	 */
+	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
+
+	private HashMap<String, Integer> matchedElements = new HashMap<>();
+	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
+	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
+
+	/**
+	 * Do look at all nodes in the subtree even if the compared nodes are not
+	 * equal.
+	 */
+	public static final int LOOKAHEAD_FULL = -1;
+
+	/**
+	 * Stop looking for subtree matches if the two nodes compared are not equal.
+	 */
+	public static final int LOOKAHEAD_OFF = 0;
 
 	/**
 	 * Class constructor.
@@ -229,6 +275,7 @@ public class MergeContext implements Cloneable {
 		clone.recursive = recursive;
 		clone.saveStats = saveStats;
 		clone.keepGoing = keepGoing;
+		clone.lookAhead = lookAhead;
 		return clone;
 	}
 
@@ -557,5 +604,72 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setConsecutive(final boolean consecutive) {
 		this.consecutive = consecutive;
+	}
+
+	/**
+	 * Returns how many levels to keep searching for matches in the subtree if
+	 * the currently compared nodes are not equal. If there are no matches
+	 * within the specified number of levels, do not look for matches deeper in
+	 * the subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop
+	 * looking for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
+	 * ist to do no look-ahead matching.
+	 *
+	 * @return number of levels to look down for subtree matches if the
+	 * currently compared nodes do not match
+	 */
+	public int getLookAhead() { return lookAhead; }
+
+	/**
+	 * Sets how many levels to keep searching for matches in the subtree if
+	 * the currently compared nodes are not equal. If there are no matches
+	 * within the specified number of levels, do not look for matches deeper in
+	 * the subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop
+	 * looking for subtree matches if two nodes do not match. If this is set to
+	 * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
+	 * ist to do no look-ahead matching.
+	 *
+	 * @param lookAhead number of levels to look down for subtree matches if the
+	 * currently compared nodes do not match
+	 */
+	public void setLookAhead(int lookAhead) {
+		this.lookAhead = lookAhead;
+	}
+
+	public boolean isLookAhead() {
+		return lookAhead != MergeContext.LOOKAHEAD_OFF;
+	}
+
+	public HashMap<String, Integer> getMatchedElements() {
+		return matchedElements;
+	}
+
+	public void matchedElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = matchedElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		matchedElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedLeftElements() {
+		return skippedLeftElements;
+	}
+
+	public void skippedLeftElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = skippedLeftElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedLeftElements.put(key, value);
+	}
+
+	public HashMap<String, Integer> getskippedRightElements() {
+		return skippedRightElements;
+	}
+
+	public void skippedRightElement(Artifact<?> element) {
+		String key = element.toString().split(" ")[0];
+		Integer value = skippedRightElements.get(key);
+		value = value == null ? new Integer(1) : new Integer(value + 1);
+		skippedRightElements.put(key, value);
 	}
 }
