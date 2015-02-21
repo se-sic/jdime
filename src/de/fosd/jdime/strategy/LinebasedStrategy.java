@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
- *******************************************************************************/
+ */
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
@@ -29,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -46,7 +46,7 @@ import org.apache.log4j.Logger;
 /**
  * Performs an unstructured, line based merge.
  * <p>
- * The current implementation uses the merge provided by <code>git</code>.
+ * The current implementation uses the merge routine provided by <code>git</code>.
  *
  * @author Olaf Lessenich
  */
@@ -65,10 +65,24 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
 
 	/**
-	 * TODO: high-level documentation
+	 * This line-based <code>merge</code> method uses the merging routine of
+	 * the external tool <code>git</code>.
+	 * <p>
+	 * Basically, the input <code>FileArtifacts</code> are passed as arguments to
+	 * `git merge-file -q -p`.
+	 * <p>
+	 * In a common run, the number of processed lines of code, the number of
+	 * conflicting situations, and the number of conflicting lines of code will
+	 * be counted. Empty lines and comments are skipped to keep
+	 * <code>MergeStrategies</code> comparable, as JDime does (in its current
+	 * implementation) not respect comments.
+	 * <p>
+	 * In case of a performance benchmark, the output is simply ignored for the
+	 * sake of speed, and the merge will be run the specified amount of times,
+	 * aiming to allow the computation of a reasonable mean runtime.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation <code>MergeOperation</code> that is executed by this strategy
+	 * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -102,7 +116,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 					+ target;
 		}
 
-		List<String> cmd = new LinkedList<>();
+        List<String> cmd = new ArrayList<>();
 		cmd.add(BASECMD);
 		cmd.addAll(Arrays.asList(BASEARGS));
 

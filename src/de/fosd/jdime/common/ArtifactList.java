@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,11 +20,11 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
- *******************************************************************************/
+ */
 package de.fosd.jdime.common;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
@@ -35,7 +36,7 @@ import java.util.LinkedList;
  * @author Olaf Lessenich
  * @see Artifact
  */
-public class ArtifactList<E extends Artifact<E>> extends LinkedList<E> {
+public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 
 	private static final String DEFAULT_SEP = " ";
 

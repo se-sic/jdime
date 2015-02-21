@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,10 +19,11 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *******************************************************************************/
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.matcher;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
@@ -44,7 +46,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable {
 	/**
 	 * List of child matchings.
 	 */
-	private List<Matching<T>> children = new LinkedList<>();
+	private List<Matching<T>> children = new ArrayList<>();
 
 	/**
 	 * String representing a color to highlight the matching in.

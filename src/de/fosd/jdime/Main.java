@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +19,7 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *******************************************************************************/
+ */
 package de.fosd.jdime;
 
 import java.io.BufferedReader;
@@ -59,7 +60,7 @@ public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.5";
+	private static final String VERSION = "0.3.6";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
