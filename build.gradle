@@ -34,9 +34,14 @@ task natives {
     def glpk_java_name
     def glpk_name
 
-    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+    def os = System.getProperty("os.name").toLowerCase()
+
+    if (os.contains("windows")) {
         glpk_java_name = "glpk_${glpk_version}_java.dll"
         glpk_name = "glpk_${glpk_version}.dll"
+    } else if (os.contains("mac")) {
+        glpk_java_name = "libglpk_java.dylib"
+        glpk_name = "libglpk.dylib"
     } else {
         glpk_java_name = "libglpk_java.so"
         glpk_name = "libglpk.so"
