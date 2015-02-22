@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +19,7 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *******************************************************************************/
+ */
 package de.fosd.jdime;
 
 import java.io.BufferedReader;
@@ -63,7 +64,7 @@ public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.5";
+	private static final String VERSION = "0.3.6";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -200,11 +201,13 @@ public final class Main {
 					setLogLevel("WARN");
 				}
 				
+				String wd = null;
 				String path = null;
-				if (cmd.getArgs().length > 0){
-					path = cmd.getArgs()[0];
+				if (cmd.getArgs().length > 1){
+					wd = cmd.getArgs()[0];
+					path = cmd.getArgs()[1];
 				}
-				runLookAheadTests(path);
+				runLookAheadTests(wd, path);
 				System.exit(0);
 			}
 
@@ -548,149 +551,156 @@ public final class Main {
 		}
 	}
 
-	private static final void runLookAheadTests(String path) {
+	private static final void runLookAheadTests(String wd, String path) {
 		if (path == null) {
 			path = "lookahead";
 		}
-
-		int[] lookaheads =
-				{ MergeContext.LOOKAHEAD_OFF, (int) 1, (int) 2, (int) 3,
-						(int) 4, (int) 5, MergeContext.LOOKAHEAD_FULL };
+		
+		String[] files = new File(wd + "/left/" + path + "/").list();
+		int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
+			(int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
 		MergeContext context;
-		HashMap<String, HashMap<Integer, Integer>> matchedElements;
-		HashMap<String, HashMap<Integer, Integer>> skippedLeftElements;
-		HashMap<String, HashMap<Integer, Integer>> skippedRightElements;
+		HashMap<String, HashMap<Integer, Integer>> matchedElements = new HashMap<>();
+		HashMap<String, HashMap<Integer, Integer>> skippedLeftElements = new HashMap<>();
+		HashMap<String, HashMap<Integer, Integer>> skippedRightElements = new HashMap<>();
 		HashMap<String, Integer> curMatchedElements;
 		HashMap<String, Integer> curSkippedLeftElements;
 		HashMap<String, Integer> curSkippedRightElements;
-		matchedElements = new HashMap<>();
-		skippedLeftElements = new HashMap<>();
-		skippedRightElements = new HashMap<>();
+		HashMap<Integer, Integer> tmpMatchedElements;
+		HashMap<Integer, Integer> tmpSkippedLeftElements;
+		HashMap<Integer, Integer> tmpSkippedRightElements;
 
-		try {
-			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-			inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
-					+ path)));
-			inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
-					+ path)));
+		for (String file : files) {
+			try {
+				ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+				inputArtifacts.add(new FileArtifact(new File(wd + "/left/"
+								+ path + "/" + file)));
+				inputArtifacts.add(new FileArtifact(new File(wd + "/right/"
+								+ path + "/" + file)));
 
-			for (int lookAhead : lookaheads) {
-				context = new MergeContext();
-				context.setQuiet(false);
-				context.setInputFiles(inputArtifacts);
-				context.setMergeStrategy(new StructuredStrategy());
-				context.setDiffOnly(true);
-				context.setLookAhead(lookAhead);
-				context.setRecursive(true);
-				Main.merge(context);
-				curMatchedElements = context.getMatchedElements();
-				curSkippedLeftElements = context.getskippedLeftElements();
-				curSkippedRightElements = context.getskippedRightElements();
-
-				for (String elem : curMatchedElements.keySet()) {
-					if (!matchedElements.containsKey(elem)) {
-						HashMap<Integer, Integer> lookAheadMap =
-								new HashMap<>();
-						lookAheadMap.put(lookAhead,
-								curMatchedElements.get(elem));
-						matchedElements.put(elem, lookAheadMap);
-					} else {
-						matchedElements.get(elem).put(lookAhead,
-								curMatchedElements.get(elem));
+				for (FileArtifact artifact : inputArtifacts) {
+					if (!artifact.exists()) {
+						continue;
 					}
 				}
-				for (String elem : curSkippedLeftElements.keySet()) {
-					if (!skippedLeftElements.containsKey(elem)) {
-						HashMap<Integer, Integer> lookAheadMap =
-								new HashMap<>();
-						lookAheadMap.put(lookAhead,
-								curSkippedLeftElements.get(elem));
-						skippedLeftElements.put(elem, lookAheadMap);
-					} else {
-						skippedLeftElements.get(elem).put(lookAhead,
-								curSkippedLeftElements.get(elem));
-					}
-				}
-				for (String elem : curSkippedRightElements.keySet()) {
-					if (!skippedRightElements.containsKey(elem)) {
-						HashMap<Integer, Integer> lookAheadMap =
-								new HashMap<>();
-						lookAheadMap.put(lookAhead,
-								curSkippedRightElements.get(elem));
-						skippedRightElements.put(elem, lookAheadMap);
-					} else {
-						skippedRightElements.get(elem).put(lookAhead,
-								curSkippedRightElements.get(elem));
-					}
-				}
-			}
 
-			// output
-			StringBuilder s = new StringBuilder();
-			s.append("----------------------------------------------\n");
-			s.append("Matched elements\n\n");
-			s.append("LangElem;");
-			for (int lookAhead : lookaheads) {
-				if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-					s.append("n=full;");
-				} else {
-					s.append("n=" + lookAhead + ";");
-				}
-			}
-			s.append("\n");
-
-			HashMap<Integer, Integer> curMap;
-			ArrayList<String> keys = new ArrayList<>(matchedElements.keySet());
-			Collections.sort(keys);
-			for (String elem : keys) {
-				s.append(elem + ";");
-				curMap = matchedElements.get(elem);
 				for (int lookAhead : lookaheads) {
-					int value =
-							curMap.containsKey(lookAhead) ? curMap
-									.get(lookAhead) : 0;
-					s.append(value + ";");
-				}
-				s.append("\n");
-			}
+					context = new MergeContext();
+					context.setQuiet(true);
+					context.setInputFiles(inputArtifacts);
+					context.setMergeStrategy(new StructuredStrategy());
+					context.setDiffOnly(true);
+					context.setLookAhead(lookAhead);
+					context.setKeepGoing(true);
+					Main.merge(context);
+					curMatchedElements = context.getMatchedElements();
+					curSkippedLeftElements = context.getskippedLeftElements();
+					curSkippedRightElements = context.getskippedRightElements();
 
-			s.append("\n\n");
-			s.append("Skipped elements\n\n");
-			s.append("LangElem;");
-			for (int lookAhead : lookaheads) {
-				if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-					s.append("n=full;");
-				} else {
-					s.append("n=" + lookAhead + ";");
-				}
-			}
-			s.append("\n");
-			HashMap<Integer, Integer> leftMap;
-			HashMap<Integer, Integer> rightMap;
-			keys = new ArrayList<>(skippedLeftElements.keySet());
-			Collections.sort(keys);
-			for (String elem : keys) {
-				s.append(elem + ";");
-				leftMap = skippedLeftElements.get(elem);
-				rightMap = skippedRightElements.get(elem);
-				for (int lookAhead : lookaheads) {
-					int value =
-							leftMap.containsKey(lookAhead) ? leftMap
-									.get(lookAhead) : 0;
-					if (rightMap != null) {
-						value =
-								rightMap.containsKey(lookAhead) ? value
-										+ rightMap.get(lookAhead) : value;
+					for (String elem : curMatchedElements.keySet()) {
+						if (!matchedElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curMatchedElements.get(elem));
+							matchedElements.put(elem, lookAheadMap);
+						} else {
+							tmpMatchedElements = matchedElements.get(elem);
+							int value =
+								tmpMatchedElements.containsKey(lookAhead) ?
+								tmpMatchedElements.get(lookAhead) : 0;
+							matchedElements.get(elem).put(lookAhead, value +
+									curMatchedElements.get(elem));
+						}
 					}
-					s.append(value + ";");
+					for (String elem : curSkippedLeftElements.keySet()) {
+						if (!skippedLeftElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curSkippedLeftElements.get(elem));
+							skippedLeftElements.put(elem, lookAheadMap);
+						} else {
+							tmpSkippedLeftElements = skippedLeftElements.get(elem);
+							int value =
+								tmpSkippedLeftElements.containsKey(lookAhead) ?
+								tmpSkippedLeftElements.get(lookAhead) : 0;
+							skippedLeftElements.get(elem).put(lookAhead, value
+									+ curSkippedLeftElements.get(elem));
+						}
+					}
+					for (String elem : curSkippedRightElements.keySet()) {
+						if (!skippedRightElements.containsKey(elem)) {
+							HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
+							lookAheadMap.put(lookAhead, curSkippedRightElements.get(elem));
+							skippedRightElements.put(elem, lookAheadMap);
+						} else {
+							tmpSkippedRightElements = skippedRightElements.get(elem);
+							int value =
+								tmpSkippedRightElements.containsKey(lookAhead)
+								? tmpSkippedRightElements.get(lookAhead) : 0;
+							skippedRightElements.get(elem).put(lookAhead, value
+									+ curSkippedRightElements.get(elem));
+						}
+					}
 				}
-				s.append("\n");
+			} catch (Exception e) {
+				System.err.println(e.toString());
 			}
-
-			System.out.println(s);
-		} catch (Exception e) {
-			System.err.println(e.toString());
 		}
+
+		// output
+		StringBuilder s = new StringBuilder();
+		s.append("Matched elements\n\n");
+		s.append("LangElem;");
+		for (int lookAhead : lookaheads) {
+			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+				s.append("n=full;");
+			} else {
+				s.append("n=" + lookAhead + ";");
+			}
+		}
+		s.append("\n");
+
+		ArrayList<String> keys = new ArrayList<>(matchedElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
+			s.append(elem + ";");
+			tmpMatchedElements = matchedElements.get(elem);
+			for (int lookAhead : lookaheads) {
+				int value = tmpMatchedElements.containsKey(lookAhead) ?
+					tmpMatchedElements.get(lookAhead) : 0;
+				s.append(value + ";");
+			}
+			s.append("\n");
+		}
+
+		s.append("\n\n");
+		s.append("Skipped elements\n\n");
+		s.append("LangElem;");
+		for (int lookAhead : lookaheads) {
+			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+				s.append("n=full;");
+			} else {
+				s.append("n=" + lookAhead + ";");
+			}
+		}
+		s.append("\n");
+		keys = new ArrayList<>(skippedLeftElements.keySet());
+		Collections.sort(keys);
+		for (String elem : keys) {
+			s.append(elem + ";");
+			tmpSkippedLeftElements = skippedLeftElements.get(elem);
+			tmpSkippedRightElements = skippedRightElements.get(elem);
+			for (int lookAhead : lookaheads) {
+				int value = tmpSkippedLeftElements.containsKey(lookAhead) ?
+					tmpSkippedLeftElements.get(lookAhead) : 0;
+				if (tmpSkippedRightElements != null) {
+					value = tmpSkippedRightElements.containsKey(lookAhead) ?
+						value + tmpSkippedRightElements.get(lookAhead) : value;
+				}
+				s.append(value + ";");
+			}
+			s.append("\n");
+		}
+
+		System.out.println(s);
 	}
 
 	/**
