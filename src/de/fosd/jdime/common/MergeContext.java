@@ -655,6 +655,7 @@ public class MergeContext implements Cloneable {
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void matchedElement(Artifact<?> element) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = matchedElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		matchedElements.put(key, value);
@@ -668,6 +669,7 @@ public class MergeContext implements Cloneable {
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void skippedLeftElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = skippedLeftElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedLeftElements.put(key, value);
@@ -684,6 +686,7 @@ public class MergeContext implements Cloneable {
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void skippedRightElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);
