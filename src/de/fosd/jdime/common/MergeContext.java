@@ -275,6 +275,7 @@ public class MergeContext implements Cloneable {
 		clone.recursive = recursive;
 		clone.saveStats = saveStats;
 		clone.keepGoing = keepGoing;
+		clone.diffOnly = diffOnly;
 		clone.lookAhead = lookAhead;
 		return clone;
 	}
