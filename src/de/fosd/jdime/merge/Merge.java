@@ -73,9 +73,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T right = triple.getRight();
 		T target = operation.getTarget();
 
-		if (!context.isDiffOnly()) {
-			Objects.requireNonNull(target, "target must not be null!");
-		}
 
 		Diff<T> diff = new Diff<>();
 
@@ -120,6 +117,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				}
 				return;
 			}
+		}
+		
+		if (context.isDiffOnly() && left.isRoot()) {
+			assert (right.isRoot());
+			return;
 		}
 
 		assert (left.hasMatching(right) && right.hasMatching(left));

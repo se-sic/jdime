@@ -131,7 +131,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
 		Objects.requireNonNull(mergeTriple, "mergeTriple must not be null!");
-		Objects.requireNonNull(target, "target must not be null!");
 
 		if (!mergeTriple.isValid()) {
 			throw new IllegalArgumentException("mergeTriple is invalid.");

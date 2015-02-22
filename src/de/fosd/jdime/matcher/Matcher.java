@@ -162,11 +162,12 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 				// the compared nodes do not match but look-ahead is active and found matchings in the subtree
 
 				// just for statistics
-				context.skippedLeftElement(left);
-				context.skippedRightElement(left);
+				context.skippedLeftElement(left, matching.getScore());
+				context.skippedRightElement(left, matching.getScore());
 			} else {
 				// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
-				throw new RuntimeException("Tried to store matching tree when lookahead is off and nodes do not match!");
+				throw new RuntimeException("Tried to store matching tree when"
+						+ "lookahead is off and nodes do not match!");
 			}
 
 			for (Matching<T> childMatching : matching.getChildren()) {

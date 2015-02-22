@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -49,6 +50,7 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.StatsPrinter;
@@ -551,6 +553,10 @@ public final class Main {
 		}
 	}
 
+	/**
+	 * This is only for debugging and messing around with the look-ahead feature.
+	 * TODO: remove this method when the feature is merged into develop.
+	 */
 	private static final void runLookAheadTests(String wd, String path) {
 		if (path == null) {
 			path = "lookahead";
@@ -563,9 +569,11 @@ public final class Main {
 		HashMap<String, HashMap<Integer, Integer>> matchedElements = new HashMap<>();
 		HashMap<String, HashMap<Integer, Integer>> skippedLeftElements = new HashMap<>();
 		HashMap<String, HashMap<Integer, Integer>> skippedRightElements = new HashMap<>();
+		List<Tuple<String, Tuple<Integer, Double>>> skippedElements = new ArrayList<>();
 		HashMap<String, Integer> curMatchedElements;
 		HashMap<String, Integer> curSkippedLeftElements;
 		HashMap<String, Integer> curSkippedRightElements;
+		List<Tuple<String, Double>> curSkippedElements;
 		HashMap<Integer, Integer> tmpMatchedElements;
 		HashMap<Integer, Integer> tmpSkippedLeftElements;
 		HashMap<Integer, Integer> tmpSkippedRightElements;
@@ -591,11 +599,19 @@ public final class Main {
 					context.setMergeStrategy(new StructuredStrategy());
 					context.setDiffOnly(true);
 					context.setLookAhead(lookAhead);
-					context.setKeepGoing(true);
+					context.setKeepGoing(false);
+					//context.setRecursive(true);
 					Main.merge(context);
 					curMatchedElements = context.getMatchedElements();
 					curSkippedLeftElements = context.getskippedLeftElements();
 					curSkippedRightElements = context.getskippedRightElements();
+					curSkippedElements = context.getSkippedElements();
+
+					for (Tuple<String, Double> t : curSkippedElements) {
+						skippedElements.add(
+								new Tuple<String, Tuple<Integer, Double>>(
+									t.x, new Tuple<>(lookAhead, t.y)));
+					}
 
 					for (String elem : curMatchedElements.keySet()) {
 						if (!matchedElements.containsKey(elem)) {
@@ -698,6 +714,14 @@ public final class Main {
 				s.append(value + ";");
 			}
 			s.append("\n");
+		}
+
+		s.append("\n\n");
+		s.append("Skipped elements (Detailed)\n\n");
+		s.append("LangElem;LookAhead;Relative Matches;\n");
+		for (Tuple<String, Tuple<Integer, Double>> t : skippedElements) {
+			String lookAhead = t.y.x == -1 ? "full" : "" + t.y.x;
+			s.append(t.x + ";" + lookAhead + ";" + t.y.y + ";\n");
 		}
 
 		System.out.println(s);

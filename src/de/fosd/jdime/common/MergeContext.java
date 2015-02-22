@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -175,9 +176,14 @@ public class MergeContext implements Cloneable {
 	 */
 	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> matchedElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	private List<Tuple<String, Double>> skippedElements = new ArrayList<>();
 
 	/**
 	 * Do look at all nodes in the subtree even if the compared nodes are not
@@ -275,6 +281,7 @@ public class MergeContext implements Cloneable {
 		clone.recursive = recursive;
 		clone.saveStats = saveStats;
 		clone.keepGoing = keepGoing;
+		clone.diffOnly = diffOnly;
 		clone.lookAhead = lookAhead;
 		return clone;
 	}
@@ -640,36 +647,54 @@ public class MergeContext implements Cloneable {
 		return lookAhead != MergeContext.LOOKAHEAD_OFF;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getMatchedElements() {
 		return matchedElements;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void matchedElement(Artifact<?> element) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = matchedElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		matchedElements.put(key, value);
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getskippedLeftElements() {
 		return skippedLeftElements;
 	}
 
-	public void skippedLeftElement(Artifact<?> element) {
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	public void skippedLeftElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = skippedLeftElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedLeftElements.put(key, value);
+
+		// subtreeSize should never be zero if this is a skipped element.
+		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getskippedRightElements() {
 		return skippedRightElements;
 	}
 
-	public void skippedRightElement(Artifact<?> element) {
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	public void skippedRightElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);
+		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+	}
+
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	public List<Tuple<String, Double>> getSkippedElements() {
+		return skippedElements;
 	}
 }
