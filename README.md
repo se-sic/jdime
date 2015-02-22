@@ -1,4 +1,14 @@
 # JDime  -  Structured Merge with Auto-Tuning
+## License & Copyright
+* Copyright (C) 2013-2014 Olaf Lessenich  
+* Copyright (C) 2014-2015 University of Passau, Germany  
+> Authors: Olaf Lessenich, Georg Seibt
+
+All rights reserved.  
+
+JDime is covered by the GNU Lesser General Public License.  
+The full license text is distributed with this software. See the `LICENSE` file.
+
 ## Tools Used:
 JDime uses these tools/libraries:
 

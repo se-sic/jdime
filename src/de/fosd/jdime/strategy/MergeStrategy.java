@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (C) 2013-2015 Olaf Lessenich.
+/*
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
- *******************************************************************************/
+ */
 package de.fosd.jdime.strategy;
 
 import java.util.Collections;
@@ -32,7 +33,10 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
- * TODO: high-level documentation
+ * A <code>MergeStrategy</code> implements an algorithm to merge a certain type of <code>Artifacts</code>.
+ * <p>
+ * The respective <code>MergeStrategies</code> can be optimized regarding different objectives,
+ * e.g., generalization, performance, precision, or also a trade-off of concerns.
  *
  * @author Olaf Lessenich
  *
