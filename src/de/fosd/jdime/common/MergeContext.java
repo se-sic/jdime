@@ -176,9 +176,13 @@ public class MergeContext implements Cloneable {
 	 */
 	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> matchedElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private List<Tuple<String, Double>> skippedElements = new ArrayList<>();
 
 	/**
@@ -643,10 +647,12 @@ public class MergeContext implements Cloneable {
 		return lookAhead != MergeContext.LOOKAHEAD_OFF;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getMatchedElements() {
 		return matchedElements;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void matchedElement(Artifact<?> element) {
 		String key = element.toString().split(" ")[0];
 		Integer value = matchedElements.get(key);
@@ -654,10 +660,12 @@ public class MergeContext implements Cloneable {
 		matchedElements.put(key, value);
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getskippedLeftElements() {
 		return skippedLeftElements;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void skippedLeftElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
 		Integer value = skippedLeftElements.get(key);
@@ -668,10 +676,12 @@ public class MergeContext implements Cloneable {
 		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public HashMap<String, Integer> getskippedRightElements() {
 		return skippedRightElements;
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public void skippedRightElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
 		Integer value = skippedRightElements.get(key);
@@ -680,6 +690,7 @@ public class MergeContext implements Cloneable {
 		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public List<Tuple<String, Double>> getSkippedElements() {
 		return skippedElements;
 	}

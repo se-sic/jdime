@@ -553,6 +553,10 @@ public final class Main {
 		}
 	}
 
+	/**
+	 * This is only for debugging and messing around with the look-ahead feature.
+	 * TODO: remove this method when the feature is merged into develop.
+	 */
 	private static final void runLookAheadTests(String wd, String path) {
 		if (path == null) {
 			path = "lookahead";
