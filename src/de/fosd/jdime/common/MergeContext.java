@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -178,6 +179,7 @@ public class MergeContext implements Cloneable {
 	private HashMap<String, Integer> matchedElements = new HashMap<>();
 	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
 	private HashMap<String, Integer> skippedRightElements = new HashMap<>();
+	private List<Tuple<String, Double>> skippedElements = new ArrayList<>();
 
 	/**
 	 * Do look at all nodes in the subtree even if the compared nodes are not
@@ -656,21 +658,27 @@ public class MergeContext implements Cloneable {
 		return skippedLeftElements;
 	}
 
-	public void skippedLeftElement(Artifact<?> element) {
+	public void skippedLeftElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
 		Integer value = skippedLeftElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedLeftElements.put(key, value);
+		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
 	public HashMap<String, Integer> getskippedRightElements() {
 		return skippedRightElements;
 	}
 
-	public void skippedRightElement(Artifact<?> element) {
+	public void skippedRightElement(Artifact<?> element, int score) {
 		String key = element.toString().split(" ")[0];
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);
+		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+	}
+
+	public List<Tuple<String, Double>> getSkippedElements() {
+		return skippedElements;
 	}
 }
