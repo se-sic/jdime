@@ -663,6 +663,8 @@ public class MergeContext implements Cloneable {
 		Integer value = skippedLeftElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedLeftElements.put(key, value);
+
+		// subtreeSize should never be zero if this is a skipped element.
 		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
