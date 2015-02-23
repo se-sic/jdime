@@ -177,6 +177,8 @@ public class MergeContext implements Cloneable {
 	private int lookAhead = MergeContext.LOOKAHEAD_OFF;
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	private HashMap<String, Integer> elements = new HashMap<>();
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> matchedElements = new HashMap<>();
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
@@ -645,6 +647,22 @@ public class MergeContext implements Cloneable {
 
 	public boolean isLookAhead() {
 		return lookAhead != MergeContext.LOOKAHEAD_OFF;
+	}
+
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	public HashMap<String, Integer> getElements() {
+		return elements;
+	}
+
+	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
+	public void addElements(ASTNodeArtifact element) {
+		HashMap<String, Integer> elementStats = element.getLanguageElementStatistics();
+
+		for (String key : elementStats.keySet()) {
+			Integer value = elements.get(key);
+			value = value == null ? elementStats.get(key) : value + elementStats.get(key);
+			elements.put(key, value);
+		}
 	}
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */

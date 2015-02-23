@@ -837,4 +837,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		return stats;
 	}
+
+	public HashMap<String, Integer> getLanguageElementStatistics() {
+		HashMap<String, Integer> elements = new HashMap<>();
+
+		String key = this.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
+		elements.put(key, new Integer(1));
+
+		for (int i = 0; i < getNumChildren(); i++) {
+			HashMap<String, Integer> childElements = getChild(i).getLanguageElementStatistics();
+			for (String childKey : childElements.keySet()) {
+				Integer value = elements.get(childKey);
+				value = value == null ? childElements.get(childKey) : value + childElements.get(childKey);
+				elements.put(childKey, value);
+			}
+		}
+		
+		return elements;
+	}
 }

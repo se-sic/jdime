@@ -566,6 +566,7 @@ public final class Main {
 		int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
 			(int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
 		MergeContext context;
+		HashMap<String, Integer> allElements = new HashMap<>();
 		HashMap<String, HashMap<Integer, Integer>> matchedElements = new HashMap<>();
 		HashMap<String, HashMap<Integer, Integer>> skippedLeftElements = new HashMap<>();
 		HashMap<String, HashMap<Integer, Integer>> skippedRightElements = new HashMap<>();
@@ -606,6 +607,15 @@ public final class Main {
 					curSkippedLeftElements = context.getskippedLeftElements();
 					curSkippedRightElements = context.getskippedRightElements();
 					curSkippedElements = context.getSkippedElements();
+
+					if (lookAhead == lookaheads[0]) {
+						HashMap<String, Integer> elements = context.getElements();
+						for (String key : elements.keySet()) {
+							Integer value = allElements.get(key);
+							value = value == null ? elements.get(key) : value + elements.get(key);
+							allElements.put(key, value);
+						}
+					}
 
 					for (Tuple<String, Double> t : curSkippedElements) {
 						skippedElements.add(
@@ -663,7 +673,7 @@ public final class Main {
 
 		// output
 		StringBuilder s = new StringBuilder();
-		s.append("Matched elements\n\n");
+		s.append("Matched elements (absolute)\n\n");
 		s.append("LangElem;");
 		for (int lookAhead : lookaheads) {
 			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
@@ -683,6 +693,30 @@ public final class Main {
 				int value = tmpMatchedElements.containsKey(lookAhead) ?
 					tmpMatchedElements.get(lookAhead) : 0;
 				s.append(value + ";");
+			}
+			s.append("\n");
+		}
+
+		s.append("\n\n");
+		s.append("Matched elements (relative)\n\n");
+		s.append("LangElem;");
+		for (int lookAhead : lookaheads) {
+			if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+				s.append("n=full;");
+			} else {
+				s.append("n=" + lookAhead + ";");
+			}
+		}
+		s.append("\n");
+
+		Collections.sort(keys);
+		for (String elem : keys) {
+			s.append(elem + ";");
+			tmpMatchedElements = matchedElements.get(elem);
+			for (int lookAhead : lookaheads) {
+				int value = tmpMatchedElements.containsKey(lookAhead) ?
+					tmpMatchedElements.get(lookAhead) : 0;
+				s.append((double) Math.round(100 * (double) value / (double) allElements.get(elem)) / 100 + ";");
 			}
 			s.append("\n");
 		}
