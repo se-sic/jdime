@@ -280,7 +280,12 @@ public final class Main {
 			context.setBenchmark(cmd.hasOption("benchmark"));
 			context.setForceOverwriting(cmd.hasOption("f"));
 			context.setRecursive(cmd.hasOption("r"));
-			context.setQuiet(!cmd.hasOption("p"));
+			
+			if (cmd.hasOption("p")) {
+				context.setPretend(true);
+				context.setQuiet(false);
+			}
+			
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
 
 			if (cmd.hasOption("showconfig")) {
@@ -454,6 +459,7 @@ public final class Main {
 	 *
 	 */
 	private static void bugfixing(final MergeContext context) {
+		context.setPretend(true);
 		context.setQuiet(false);
 		setLogLevel("trace");
 

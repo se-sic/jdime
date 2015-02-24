@@ -133,6 +133,11 @@ public class MergeContext implements Cloneable {
 	private boolean quiet = false;
 
 	/**
+	 * If true, output is not written to an output file.
+	 */
+	private boolean pretend = true;
+
+	/**
 	 * Merge directories recursively. Can be set with the '-r' argument.
 	 */
 	private boolean recursive = false;
@@ -413,6 +418,15 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
+	 * Returns true if the merge is only simulated but not written to an output file.
+	 *
+	 * @return true, if the merge is only simulated but not written to an output file.
+	 */
+	public final boolean isPretend() {
+		return pretend;
+	}
+
+	/**
 	 * Returns whether directories are merged recursively.
 	 *
 	 * @return true, if directories are merged recursively
@@ -539,6 +553,15 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setQuiet(final boolean quiet) {
 		this.quiet = quiet;
+	}
+
+	/**
+	 * Sets whether the merge is only simulated and not written to an output file.
+	 *
+	 * @param pretend do not write the merge result to an output file
+	 */
+	public final void setPretend(final boolean pretend) {
+		this.pretend = pretend;
 	}
 
 	/**
