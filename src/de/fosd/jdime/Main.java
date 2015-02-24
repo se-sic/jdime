@@ -319,20 +319,6 @@ public final class Main {
 		return continueRun;
 	}
 
-
-	/**
-	 * Print help on usage.
-	 *
-	 * @param context
-	 *            merge context
-	 * @param options
-	 *            Available command line options
-	 */
-	private static void help(final MergeContext context, final Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(TOOLNAME, options, true);
-	}
-
 	/**
 	 * Print short information.
 	 *
@@ -346,6 +332,19 @@ public final class Main {
 		System.out.println();
 		System.out.println("Run the program with the argument '--help' in "
 				+ "order to retrieve information on its usage!");
+	}
+
+	/**
+	 * Print help on usage.
+	 *
+	 * @param context
+	 *            merge context
+	 * @param options
+	 *            Available command line options
+	 */
+	private static void help(final MergeContext context, final Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		formatter.printHelp(TOOLNAME, options, true);
 	}
 
 	/**
