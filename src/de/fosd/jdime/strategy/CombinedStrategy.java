@@ -176,7 +176,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		// write output
-		if (target != null) {
+		if (!context.isPretend() && target != null) {
 			assert (target.exists());
 			target.write(context.getStdIn());
 		}

@@ -170,9 +170,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 						if (!context.isDiffOnly()) {
 							LOG.trace("Pretty-printing merge:");
-							if (mergeContext.isQuiet()) {
-								System.out.print(targetNode.prettyPrint());
-							}
+							System.out.print(targetNode.prettyPrint());
 						}
 					}
 
@@ -330,7 +328,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			}
 
 			// write output
-			if (target != null) {
+			if (!context.isPretend() && target != null) {
 				assert (target.exists());
 				target.write(context.getStdIn());
 			}

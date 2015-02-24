@@ -73,7 +73,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T right = triple.getRight();
 		T target = operation.getTarget();
 
-		if (!context.isDiffOnly() && context.isQuiet()) {
+		if (!context.isDiffOnly() && !context.isPretend()) {
 			Objects.requireNonNull(target, "target must not be null!");
 		}
 
