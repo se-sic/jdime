@@ -26,9 +26,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -38,6 +35,8 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -73,7 +72,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T right = triple.getRight();
 		T target = operation.getTarget();
 
-		if (!context.isDiffOnly()) {
+		if (!context.isDiffOnly() && context.isQuiet()) {
 			Objects.requireNonNull(target, "target must not be null!");
 		}
 
