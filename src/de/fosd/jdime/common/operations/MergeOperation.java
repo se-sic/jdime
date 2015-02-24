@@ -62,9 +62,9 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	/**
 	 * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
-	 * will be output into <code>target</code>. Neither <code>inputArtifacts</code> nor <code>target</code> may be
-	 * <code>null</code>.
-	 * <p>
+	 * will be output into <code>target</code> if output is enabled. <code>inputArtifacts</code> may not be
+	 * <code>null</code>. <br><br>
+	 *
 	 * <code>inputArtifacts</code> must have either two or three elements which will be interpreted as
 	 * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
 	 * three-way-merge for one of length three.
@@ -119,7 +119,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	/**
 	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeTriple</code> and <code>target</code>.
-	 * Neither <code>mergeTriple</code> nor <code>target</code> may be <code>null</code>.
+	 * <code>mergeTriple</code> may be <code>null</code>.
 	 *
 	 * @param mergeTriple
 	 * 		the <code>Artifact</code>s to be merged
@@ -131,7 +131,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
 		Objects.requireNonNull(mergeTriple, "mergeTriple must not be null!");
-		Objects.requireNonNull(target, "target must not be null!");
 
 		if (!mergeTriple.isValid()) {
 			throw new IllegalArgumentException("mergeTriple is invalid.");
