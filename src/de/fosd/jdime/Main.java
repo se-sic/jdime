@@ -600,7 +600,7 @@ public final class Main {
 					context.setDiffOnly(true);
 					context.setLookAhead(lookAhead);
 					context.setKeepGoing(false);
-					//context.setRecursive(true);
+					context.setRecursive(true);
 					Main.merge(context);
 					curMatchedElements = context.getMatchedElements();
 					curSkippedLeftElements = context.getskippedLeftElements();
