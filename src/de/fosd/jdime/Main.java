@@ -19,6 +19,7 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime;
 
@@ -28,17 +29,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -51,6 +41,16 @@ import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -60,7 +60,7 @@ public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.6";
+	private static final String VERSION = "0.3.7";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -165,7 +165,7 @@ public final class Main {
 				"print configuration information");
 		options.addOption("stats", false,
 				"collects statistical data of the merge");
-		options.addOption("p", false, "prints merge result to stdout");
+		options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
 		options.addOption("version", false,
 				"print the version information and exit");
 
@@ -320,8 +320,8 @@ public final class Main {
 			final int exitcode) {
 		version(context, false);
 		System.out.println();
-		System.out.println("Run the program with the argument '--help' in "
-				+ "order to retrieve information on its usage!");
+		System.out.println(
+				"Run the program with the argument '--help' in " + "order to retrieve information on its usage!");
 		exit(context, exitcode);
 	}
 
@@ -379,8 +379,7 @@ public final class Main {
 	private static void exit(final MergeContext context, final int exitcode) {
 		long programStop = System.currentTimeMillis();
 		LOG.debug("stopping program");
-		LOG.debug("runtime: " + (programStop - context.getProgramStart())
-				+ " ms");
+		LOG.debug("runtime: " + (programStop - context.getProgramStart()) + " ms");
 		LOG.debug("exit code: " + exitcode);
 		System.exit(exitcode);
 	}
