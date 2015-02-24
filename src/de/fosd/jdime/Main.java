@@ -65,68 +65,72 @@ public final class Main {
 	/**
 	 * Perform a merge operation on the input files or directories.
 	 *
-	 * @param args
-	 *            command line arguments
-	 * @throws IOException
-	 *             If an input or output exception occurs
-	 * @throws InterruptedException
-	 *             If a thread is interrupted
+	 * @param args command line arguments
 	 */
-	public static void main(final String[] args) throws IOException,
-			InterruptedException {
+	public static void main(final String[] args) {
 		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
-
 		setLogLevel("INFO");
 
-		parseCommandLineArgs(context, args);
-		ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
-		FileArtifact output = context.getOutputFile();
+		try {
+			if (!parseCommandLineArgs(context, args)) {
+				System.exit(0);
+			}
 
-		assert inputFiles != null : "List of input artifacts may not be null!";
+			ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
+			FileArtifact output = context.getOutputFile();
 
-		for (FileArtifact inputFile : inputFiles) {
-			assert (inputFile != null);
-			if (inputFile.isDirectory() && !context.isRecursive()) {
-				LOG.fatal("To merge directories, the argument '-r' "
+			assert inputFiles != null : "List of input artifacts may not be null!";
+
+			for (FileArtifact inputFile : inputFiles) {
+				assert (inputFile != null);
+				if (inputFile.isDirectory() && !context.isRecursive()) {
+					String msg = "To merge directories, the argument '-r' "
 						+ "has to be supplied. "
-						+ "See '-help' for more information!");
-				exit(context, -1);
+						+ "See '-help' for more information!";
+					LOG.fatal(msg);
+					throw new RuntimeException(msg);
+				}
 			}
-		}
 
-		if (output != null && output.exists() && !output.isEmpty()) {
-			System.err.println("Output directory is not empty!");
-			System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-			BufferedReader reader =
-					new BufferedReader(new InputStreamReader(System.in));
-			String response = reader.readLine();
+			if (output != null && output.exists() && !output.isEmpty()) {
+				System.err.println("Output directory is not empty!");
+				System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
+				BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+				String response = reader.readLine();
 
-			if (response.length() == 0
-					|| response.toLowerCase().charAt(0) != 'y') {
-				System.err.println("File not overwritten. Exiting.");
-				exit(context, 1);
+				if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
+					String msg = "File exists and will not be overwritten.";
+					LOG.warn(msg);
+					throw new RuntimeException(msg);
+				} else {
+					LOG.warn("File exists and will be overwritten.");
+					output.remove();
+				}
+
+			}
+
+			if (context.isBugfixing()) {
+				bugfixing(context);
+			} else if (context.isDumpTree()) {
+				dumpTrees(context);
+			} else if (context.isDumpFile()) {
+				dumpFiles(context);
 			} else {
-				output.remove();
+				merge(context);
 			}
 
+			if (context.hasStats()) {
+				StatsPrinter.print(context);
+			}
+		} catch (Throwable t) {
+			LOG.debug("stopping program");
+			LOG.debug("runtime: " + (System.currentTimeMillis() - context.getProgramStart())
+					+ " ms");
+			System.exit(-1);
 		}
 
-		if (context.isBugfixing()) {
-			bugfixing(context);
-		} else if (context.isDumpTree()) {
-			dumpTrees(context);
-		} else if (context.isDumpFile()) {
-			dumpFiles(context);
-		} else {
-			merge(context);
-		}
-
-		if (context.hasStats()) {
-			StatsPrinter.print(context);
-		}
-
-		exit(context, 0);
+		System.exit(0);
 	}
 
 	/**
@@ -136,13 +140,17 @@ public final class Main {
 	 *            merge context
 	 * @param args
 	 *            command line arguments
+	 * @return true if program should continue
 	 * @throws IOException
 	 *             If an input output exception occurs
+	 * @throws ParseException
+	 *             If arguments cannot be parsed
 	 */
-	private static void parseCommandLineArgs(final MergeContext context,
-			final String[] args) throws IOException {
+	private static boolean parseCommandLineArgs(final MergeContext context,
+			final String[] args) throws IOException, ParseException {
 		assert (context != null);
 		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
+		boolean continueRun = true;
 
 		Options options = new Options();
 		options.addOption("benchmark", false,
@@ -174,15 +182,18 @@ public final class Main {
 			CommandLine cmd = parser.parse(options, args);
 
 			if (cmd.hasOption("help")) {
-				help(context, options, 0);
+				help(context, options);
+				return false;
 			}
 
 			if (cmd.hasOption("info")) {
-				info(context, options, 0);
+				info(context, options);
+				return false;
 			}
 
 			if (cmd.hasOption("version")) {
-				version(context, true);
+				version(context);
+				return false;
 			}
 
 			if (cmd.hasOption("debug")) {
@@ -193,8 +204,8 @@ public final class Main {
 				try {
 					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
-						printStrategies(context, true);
-						break;
+						printStrategies(context);
+						return false;
 					case "bugfixing":
 						context.setMergeStrategy(MergeStrategy
 								.parse("structured"));
@@ -202,12 +213,10 @@ public final class Main {
 						break;
 					case "test":
 						InternalTests.run();
-						System.exit(0);
-						break;
+						return false;
 					case "testenvironment":
 						InternalTests.runEnvironmentTest();
-						System.exit(0);
-						break;
+						return false;
 					case "dumptree":
 						// User only wants to display the ASTs
 						context.setMergeStrategy(MergeStrategy
@@ -242,11 +251,12 @@ public final class Main {
 					}
 				} catch (StrategyNotFoundException e) {
 					LOG.fatal(e.getMessage());
-					exit(context, -1);
+					throw e;
 				}
 
 				if (context.getMergeStrategy() == null) {
-					help(context, options, -1);
+					help(context, options);
+					return false;
 				}
 			}
 
@@ -274,7 +284,8 @@ public final class Main {
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
 
 			if (cmd.hasOption("showconfig")) {
-				showConfig(context, true);
+				showConfig(context);
+				return false;
 			}
 
 			int numInputFiles = cmd.getArgList().size();
@@ -282,7 +293,8 @@ public final class Main {
 			if (!((context.isDumpTree() || context.isDumpFile() || context
 					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
 					&& numInputFiles <= MergeType.MAXFILES)) {
-				help(context, options, 0);
+				help(context, options);
+				return false;
 			}
 
 			// prepare the list of input files
@@ -301,61 +313,49 @@ public final class Main {
 			context.setInputFiles(inputArtifacts);
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
-			LOG.fatal("aborting program");
-			exit(context, -1);
+			throw e;
 		}
+
+		return continueRun;
 	}
 
+
 	/**
-	 * Print short information and exit.
+	 * Print help on usage.
 	 *
 	 * @param context
 	 *            merge context
 	 * @param options
 	 *            Available command line options
-	 * @param exitcode
-	 *            the code to return on termination
 	 */
-	private static void info(final MergeContext context, final Options options,
-			final int exitcode) {
-		version(context, false);
+	private static void help(final MergeContext context, final Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		formatter.printHelp(TOOLNAME, options, true);
+	}
+
+	/**
+	 * Print short information.
+	 *
+	 * @param context
+	 *            merge context
+	 * @param options
+	 *            Available command line options
+	 */
+	private static void info(final MergeContext context, final Options options) {
+		version(context);
 		System.out.println();
 		System.out.println("Run the program with the argument '--help' in "
 				+ "order to retrieve information on its usage!");
-		exit(context, exitcode);
 	}
 
 	/**
-	 * Print help on usage and exit.
+	 * Print version information.
 	 *
 	 * @param context
 	 *            merge context
-	 * @param options
-	 *            Available command line options
-	 * @param exitcode
-	 *            the code to return on termination
 	 */
-	private static void help(final MergeContext context, final Options options,
-			final int exitcode) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(TOOLNAME, options, true);
-		exit(context, exitcode);
-	}
-
-	/**
-	 * Print version information and exit.
-	 *
-	 * @param context
-	 *            merge context
-	 * @param exit
-	 *            program exists if true
-	 */
-	private static void version(final MergeContext context, final boolean exit) {
+	private static void version(final MergeContext context) {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
-
-		if (exit) {
-			exit(context, 0);
-		}
 	}
 
 	/**
@@ -369,39 +369,15 @@ public final class Main {
 	}
 
 	/**
-	 * Exit program with provided return code.
-	 *
-	 * @param context
-	 *            merge context
-	 * @param exitcode
-	 *            the code to return on termination
-	 */
-	private static void exit(final MergeContext context, final int exitcode) {
-		long programStop = System.currentTimeMillis();
-		LOG.debug("stopping program");
-		LOG.debug("runtime: " + (programStop - context.getProgramStart())
-				+ " ms");
-		LOG.debug("exit code: " + exitcode);
-		System.exit(exitcode);
-	}
-
-	/**
 	 * Prints configuration information.
 	 *
 	 * @param context
 	 *            merge context
-	 * @param exit
-	 *            whether to exit after printing the configuration
 	 */
-	private static void showConfig(final MergeContext context,
-			final boolean exit) {
+	private static void showConfig(final MergeContext context) {
 		assert (context != null);
 		System.out.println("Merge strategy: " + context.getMergeStrategy());
 		System.out.println();
-
-		if (exit) {
-			exit(context, 0);
-		}
 	}
 
 	/**
@@ -409,19 +385,12 @@ public final class Main {
 	 *
 	 * @param context
 	 *            merge context
-	 * @param exit
-	 *            whether to exit after printing the strategies
 	 */
-	private static void printStrategies(final MergeContext context,
-			final boolean exit) {
+	private static void printStrategies(final MergeContext context) {
 		System.out.println("Available merge strategies:");
 
 		for (String s : MergeStrategy.listStrategies()) {
 			System.out.println("\t- " + s);
-		}
-
-		if (exit) {
-			exit(context, 0);
 		}
 	}
 
