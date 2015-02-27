@@ -60,10 +60,39 @@ public class BalancedSequence {
 		return index;
 	}
 
+	/**
+	 * Partitions the balanced sequence into its head and tail. The head and tail of a balanced sequence <code>s</code>
+	 * are unique balanced sequences such that <code>s = 1 head(s) 0 tail(s)</code>.
+	 *
+	 * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
+	 */
 	public Pair<BalancedSequence, BalancedSequence> partition() {
 
-		assert false : "Not implemented.";
-		return Pair.of(null, null);
+		if (seq.length == 0 || seq.length == 2) {
+			return Pair.of(new BalancedSequence(new boolean[0]), new BalancedSequence(new boolean[0]));
+		}
+
+		int numZeros = 0;
+		int index = 0;
+
+		do {
+			if (seq[index++]) {
+				numZeros--;
+			} else {
+				numZeros++;
+			}
+		} while (numZeros > 0);
+
+		int headLength = index - 2;
+		int tailLength = seq.length - index;
+
+		boolean[] head = new boolean[headLength];
+		boolean[] tail = new boolean[tailLength];
+
+		System.arraycopy(seq, 1, head, 0, headLength);
+		System.arraycopy(seq, index, tail, 0, tailLength);
+
+		return Pair.of(new BalancedSequence(head), new BalancedSequence(tail));
 	}
 
 	public Set<BalancedSequence> decompose() {
