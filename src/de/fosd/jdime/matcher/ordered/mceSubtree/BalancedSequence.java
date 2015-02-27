@@ -2,6 +2,7 @@ package de.fosd.jdime.matcher.ordered.mceSubtree;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -115,8 +116,21 @@ public class BalancedSequence {
 
 	public Set<BalancedSequence> decompose() {
 
-		assert false : "Not implemented.";
-		return Collections.emptySet();
+		if (isEmpty()) {
+			return Collections.singleton(EMPTY_SEQ);
+		}
+
+		Set<BalancedSequence> decomposition = new HashSet<>(Collections.singleton(this));
+
+		Pair<BalancedSequence, BalancedSequence> partition = partition();
+		BalancedSequence head = partition.getLeft();
+		BalancedSequence tail = partition.getRight();
+
+		decomposition.addAll(head.decompose());
+		decomposition.addAll(tail.decompose());
+		decomposition.addAll(concatenate(head, tail).decompose());
+
+		return decomposition;
 	}
 
 	/**
