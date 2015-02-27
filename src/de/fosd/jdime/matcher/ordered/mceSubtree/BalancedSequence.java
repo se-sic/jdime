@@ -1,5 +1,6 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
@@ -115,6 +116,38 @@ public class BalancedSequence {
 		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
 
 		return new BalancedSequence(result);
+	}
+
+	/**
+	 * Returns whether this <code>BalancedSequence</code> is empty.
+	 *
+	 * @return true iff the <code>BalancedSequence</code> is empty
+	 */
+	public boolean isEmpty() {
+		return seq.length == 0;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		BalancedSequence sequence = (BalancedSequence) o;
+
+		if (!Arrays.equals(seq, sequence.seq)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(seq);
 	}
 
 	@Override
