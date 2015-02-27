@@ -15,7 +15,6 @@ import org.apache.commons.lang3.tuple.Pair;
  * one preceded by a 0 and followed by a 1. The balanced sequence of a tree is the balanced sequence of its root node.
  *
  * @author Georg Seibt
- *
  * @see <a href="http://www.cs.upc.edu/~antoni/subtree.pdf">This Paper</a>
  */
 public class BalancedSequence {
@@ -27,8 +26,10 @@ public class BalancedSequence {
 	/**
 	 * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
 	 *
-	 * @param tree the tree of <code>Artifact</code>s
-	 * @param <T> the type of the <code>Artifact</code>
+	 * @param tree
+	 * 		the tree of <code>Artifact</code>s
+	 * @param <T>
+	 * 		the type of the <code>Artifact</code>
 	 */
 	public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree) {
 		this.seq = new boolean[tree.getSubtreeSize() * 2];
@@ -38,7 +39,8 @@ public class BalancedSequence {
 	/**
 	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>boolean[]</code>.
 	 *
-	 * @param seq the sequence to wrap
+	 * @param seq
+	 * 		the sequence to wrap
 	 */
 	private BalancedSequence(boolean[] seq) {
 		this.seq = seq;
@@ -147,8 +149,11 @@ public class BalancedSequence {
 	/**
 	 * Concatenates the two given <code>BalancedSequence</code>s.
 	 *
-	 * @param left the left part of the resulting <code>BalancedSequence</code>
-	 * @param right the right part of the resulting <code>BalancedSequence</code>
+	 * @param left
+	 * 		the left part of the resulting <code>BalancedSequence</code>
+	 * @param right
+	 * 		the right part of the resulting <code>BalancedSequence</code>
+	 *
 	 * @return the concatenation result
 	 */
 	private static BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
@@ -168,8 +173,11 @@ public class BalancedSequence {
 	 * Returns the length of the longest common balanced sequence between the balanced sequences <code>s</code> and
 	 * <code>t</code>.
 	 *
-	 * @param s the first <code>BalancedSequence</code>
-	 * @param t the second <code>BalancedSequence</code>
+	 * @param s
+	 * 		the first <code>BalancedSequence</code>
+	 * @param t
+	 * 		the second <code>BalancedSequence</code>
+	 *
 	 * @return the length of the longest common balanced sequence
 	 */
 	public static int lcs(BalancedSequence s, BalancedSequence t) {
