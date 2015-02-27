@@ -15,6 +15,8 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class BalancedSequence {
 
+	private static final BalancedSequence EMPTY_SEQ = new BalancedSequence(new boolean[0]);
+
 	private boolean[] seq;
 
 	/**
@@ -70,7 +72,7 @@ public class BalancedSequence {
 	public Pair<BalancedSequence, BalancedSequence> partition() {
 
 		if (seq.length == 0 || seq.length == 2) {
-			return Pair.of(new BalancedSequence(new boolean[0]), new BalancedSequence(new boolean[0]));
+			return Pair.of(EMPTY_SEQ, EMPTY_SEQ);
 		}
 
 		int numZeros = 0;
@@ -84,16 +86,31 @@ public class BalancedSequence {
 			}
 		} while (numZeros > 0);
 
+		BalancedSequence head;
+		BalancedSequence tail;
+
 		int headLength = index - 2;
 		int tailLength = seq.length - index;
 
-		boolean[] head = new boolean[headLength];
-		boolean[] tail = new boolean[tailLength];
+		if (headLength != 0) {
+			boolean[] headArray = new boolean[headLength];
+			System.arraycopy(seq, 1, headArray, 0, headLength);
 
-		System.arraycopy(seq, 1, head, 0, headLength);
-		System.arraycopy(seq, index, tail, 0, tailLength);
+			head = new BalancedSequence(headArray);
+		} else {
+			head = EMPTY_SEQ;
+		}
 
-		return Pair.of(new BalancedSequence(head), new BalancedSequence(tail));
+		if (tailLength != 0) {
+			boolean[] tailArray = new boolean[tailLength];
+			System.arraycopy(seq, index, tailArray, 0, tailLength);
+
+			tail = new BalancedSequence(tailArray);
+		} else {
+			tail = EMPTY_SEQ;
+		}
+
+		return Pair.of(head, tail);
 	}
 
 	public Set<BalancedSequence> decompose() {
@@ -111,6 +128,10 @@ public class BalancedSequence {
 	 */
 	private BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
 		boolean[] result = new boolean[left.seq.length + right.seq.length];
+
+		if (result.length == 0) {
+			return EMPTY_SEQ;
+		}
 
 		System.arraycopy(left.seq, 0, result, 0, left.seq.length);
 		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
