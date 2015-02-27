@@ -147,7 +147,7 @@ public class BalancedSequence {
 	 * @param right the right part of the resulting <code>BalancedSequence</code>
 	 * @return the concatenation result
 	 */
-	private BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
+	private static BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
 		boolean[] result = new boolean[left.seq.length + right.seq.length];
 
 		if (result.length == 0) {
@@ -158,6 +158,30 @@ public class BalancedSequence {
 		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
 
 		return new BalancedSequence(result);
+	}
+
+	/**
+	 * Returns the length of the longest common balanced sequence between the balanced sequences <code>s</code> and
+	 * <code>t</code>.
+	 *
+	 * @param s the first <code>BalancedSequence</code>
+	 * @param t the second <code>BalancedSequence</code>
+	 * @return the length of the longest common balanced sequence
+	 */
+	public static int lcs(BalancedSequence s, BalancedSequence t) {
+
+		if (s.isEmpty() || t.isEmpty()) {
+			return 0;
+		}
+
+		Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
+		Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
+
+		int a = lcs(sPart.getLeft(), tPart.getLeft()) + lcs(sPart.getLeft(), tPart.getLeft()) + 1;
+		int b = lcs(concatenate(sPart.getLeft(), sPart.getRight()), t);
+		int c = lcs(s, concatenate(tPart.getLeft(), tPart.getRight()));
+
+		return Math.max(a, Math.max(b, c));
 	}
 
 	/**
