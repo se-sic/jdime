@@ -177,7 +177,7 @@ public class BalancedSequence {
 		Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
 		Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
 
-		int a = lcs(sPart.getLeft(), tPart.getLeft()) + lcs(sPart.getLeft(), tPart.getLeft()) + 1;
+		int a = lcs(sPart.getLeft(), tPart.getLeft()) + lcs(sPart.getRight(), tPart.getRight()) + 1;
 		int b = lcs(concatenate(sPart.getLeft(), sPart.getRight()), t);
 		int c = lcs(s, concatenate(tPart.getLeft(), tPart.getRight()));
 
