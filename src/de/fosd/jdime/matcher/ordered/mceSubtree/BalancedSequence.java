@@ -66,7 +66,7 @@ public class BalancedSequence {
 
 	/**
 	 * Partitions the balanced sequence into its head and tail. The head and tail of a balanced sequence <code>s</code>
-	 * are unique balanced sequences such that <code>s = 1 head(s) 0 tail(s)</code>.
+	 * are unique balanced sequences such that <code>s = 0 head(s) 1 tail(s)</code>.
 	 *
 	 * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
 	 */
@@ -114,6 +114,13 @@ public class BalancedSequence {
 		return Pair.of(head, tail);
 	}
 
+	/**
+	 * Returns the decomposition of this balanced sequence. The decomposition of the empty balanced sequence is a set
+	 * containing only the empty balanced sequence. For all other sequences s the decomposition is the union of a
+	 * set containing s and the decompositions of head(s), tail(s) and the concatenation of head(s) and tail(s).
+	 *
+	 * @return the decomposition of this balanced sequence
+	 */
 	public Set<BalancedSequence> decompose() {
 
 		if (isEmpty()) {
