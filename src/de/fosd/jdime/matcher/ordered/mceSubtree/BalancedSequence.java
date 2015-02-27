@@ -101,6 +101,22 @@ public class BalancedSequence {
 		return Collections.emptySet();
 	}
 
+	/**
+	 * Concatenates the two given <code>BalancedSequence</code>s.
+	 *
+	 * @param left the left part of the resulting <code>BalancedSequence</code>
+	 * @param right the right part of the resulting <code>BalancedSequence</code>
+	 * @return the concatenation result
+	 */
+	private BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
+		boolean[] result = new boolean[left.seq.length + right.seq.length];
+
+		System.arraycopy(left.seq, 0, result, 0, left.seq.length);
+		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
+
+		return new BalancedSequence(result);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(seq.length);
