@@ -172,8 +172,8 @@ public class BalancedSequence {
 	}
 
 	/**
-	 * Returns the length of the longest common balanced sequence between the balanced sequences <code>s</code> and
-	 * <code>t</code>.
+	 * Returns the length (being the number of edges of the tree it represents) of the longest common balanced sequence
+     * between the balanced sequences <code>s</code> and <code>t</code>.
 	 *
 	 * @param s
 	 * 		the first <code>BalancedSequence</code>
@@ -187,6 +187,10 @@ public class BalancedSequence {
         Integer[][] results;
         int code = 0;
 
+        /*
+         * The decompositions of s and t contain all balanced sequences that will be produced during the recursion
+         * through lcsRec. We assign each balanced sequence an index into the results array.
+         */
         Set<BalancedSequence> dec = new HashSet<>(s.decompose());
         dec.addAll(t.decompose());
 
@@ -194,6 +198,11 @@ public class BalancedSequence {
             codes.put(seq.hashCode(), code++);
         }
 
+        /*
+         * We build a triangular array because the lcs problem is symmetric (lcs(s, t) = lcs(t, s)).
+         * The functions lookup and store are then used to correctly address sub-problems (the recursive cases in
+         * lcsRec) using the codes of their balanced sequences.
+         */
         results = new Integer[codes.size()][];
 
         for (int i = 0; i < results.length; i++) {
