@@ -221,21 +221,35 @@ public class BalancedSequence {
      *
      * @return the length of the longest common balanced sequence
      */
-    private static int lcsRec(BalancedSequence s, BalancedSequence t, Map<Integer, Integer> codes, Integer[][] results) {
+    private static Integer lcsRec(BalancedSequence s, BalancedSequence t, Map<Integer, Integer> codes, Integer[][] results) {
 
         if (s.isEmpty() || t.isEmpty()) {
             return 0;
         }
 
+        Integer codeS = codes.get(s.hashCode());
+        Integer codeT = codes.get(t.hashCode());
+        Integer result = lookup(codeS, codeT, results);
+
+        if (result != null) {
+            return result;
+        }
+
         Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
         Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
+        BalancedSequence sHead = sPart.getLeft();
+        BalancedSequence tHead = tPart.getLeft();
+        BalancedSequence sTail = sPart.getRight();
+        BalancedSequence tTail = tPart.getRight();
 
-        int a = lcsRec(sPart.getLeft(), tPart.getLeft(), codes, results) +
-                lcsRec(sPart.getRight(), tPart.getRight(), codes, results) + 1;
-        int b = lcsRec(concatenate(sPart.getLeft(), sPart.getRight()), t, codes, results);
-        int c = lcsRec(s, concatenate(tPart.getLeft(), tPart.getRight()), codes, results);
+        Integer a = lcsRec(sHead, tHead, codes, results) + lcsRec(sTail, tTail, codes, results) + 1;
+        Integer b = lcsRec(concatenate(sHead, sTail), t, codes, results);
+        Integer c = lcsRec(s, concatenate(tHead, tTail), codes, results);
 
-        return Math.max(a, Math.max(b, c));
+        result = max(a, max(b, c));
+        store(codeS, codeT, results, result);
+
+        return result;
     }
 
     private static Integer lookup(int codeA, int codeB, Integer[][] results) {
@@ -253,6 +267,15 @@ public class BalancedSequence {
             results[codeA][codeB] = result;
         } else {
             results[codeB][codeA] = result;
+        }
+    }
+
+    private static Integer max(Integer a, Integer b) {
+
+        if (a.compareTo(b) > 0) {
+            return a;
+        } else {
+            return b;
         }
     }
 
