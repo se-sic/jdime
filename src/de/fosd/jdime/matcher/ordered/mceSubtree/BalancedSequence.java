@@ -266,7 +266,7 @@ public class BalancedSequence {
      * @return the solution to the lcs problem or <code>null</code> if <code>results</code> contains none
      */
     private static Integer lookup(Integer codeA, Integer codeB, Integer[][] results) {
-        return codeB.compareTo(codeA) > 0 ? results[codeA][codeB] : results[codeB][codeA];
+        return codeA.compareTo(codeB) > 0 ? results[codeA][codeB] : results[codeB][codeA];
     }
 
     /**
@@ -284,7 +284,7 @@ public class BalancedSequence {
      */
     private static void store(Integer codeA, Integer codeB, Integer[][] results, Integer result) {
 
-        if (codeB.compareTo(codeA) > 0) {
+        if (codeA.compareTo(codeB) > 0) {
             results[codeA][codeB] = result;
         } else {
             results[codeB][codeA] = result;
