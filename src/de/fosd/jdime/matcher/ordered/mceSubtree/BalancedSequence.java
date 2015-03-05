@@ -252,31 +252,57 @@ public class BalancedSequence {
         return result;
     }
 
-    private static Integer lookup(int codeA, int codeB, Integer[][] results) {
-
-        if (codeB > codeA) {
-            return results[codeA][codeB];
-        } else {
-            return results[codeB][codeA];
-        }
+    /**
+     * Looks up the result of the lcs problem for the balanced sequences with the given codes in the
+     * <code>results</code> array.
+     *
+     * @param codeA
+     *         the code of the first balanced sequence
+     * @param codeB
+     *         the code of the second balanced sequence
+     * @param results
+     *         the results array
+     *
+     * @return the solution to the lcs problem or <code>null</code> if <code>results</code> contains none
+     */
+    private static Integer lookup(Integer codeA, Integer codeB, Integer[][] results) {
+        return codeB.compareTo(codeA) > 0 ? results[codeA][codeB] : results[codeB][codeA];
     }
 
-    private static void store(int codeA, int codeB, Integer[][] results, Integer result) {
+    /**
+     * Stores the solution to an lcs problem between the balanced sequences with the given codes in the
+     * <code>results</code> array.
+     *
+     * @param codeA
+     *         the code of the first balanced sequence
+     * @param codeB
+     *         the code of the second balanced sequence
+     * @param results
+     *         the results array
+     * @param result
+     *         the result to be stored
+     */
+    private static void store(Integer codeA, Integer codeB, Integer[][] results, Integer result) {
 
-        if (codeB > codeA) {
+        if (codeB.compareTo(codeA) > 0) {
             results[codeA][codeB] = result;
         } else {
             results[codeB][codeA] = result;
         }
     }
 
+    /**
+     * Returns the maximum of two <code>Integer</code>s.
+     *
+     * @param a
+     *         the first <code>Integer</code>
+     * @param b
+     *         the second <code>Integer</code>
+     *
+     * @return the bigger of both <code>Integer</code>s
+     */
     private static Integer max(Integer a, Integer b) {
-
-        if (a.compareTo(b) > 0) {
-            return a;
-        } else {
-            return b;
-        }
+        return a.compareTo(b) > 0 ? a : b;
     }
 
 	/**
