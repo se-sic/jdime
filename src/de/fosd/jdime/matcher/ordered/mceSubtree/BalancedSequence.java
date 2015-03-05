@@ -2,7 +2,9 @@ package de.fosd.jdime.matcher.ordered.mceSubtree;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -181,20 +183,78 @@ public class BalancedSequence {
 	 * @return the length of the longest common balanced sequence
 	 */
 	public static int lcs(BalancedSequence s, BalancedSequence t) {
+        Map<Integer, Integer> codes = new HashMap<>();
+        Integer[][] results;
+        int code = 0;
 
-		if (s.isEmpty() || t.isEmpty()) {
-			return 0;
-		}
+        Set<BalancedSequence> dec = new HashSet<>(s.decompose());
+        dec.addAll(t.decompose());
 
-		Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
-		Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
+        for (BalancedSequence seq : dec) {
+            codes.put(seq.hashCode(), code++);
+        }
 
-		int a = lcs(sPart.getLeft(), tPart.getLeft()) + lcs(sPart.getRight(), tPart.getRight()) + 1;
-		int b = lcs(concatenate(sPart.getLeft(), sPart.getRight()), t);
-		int c = lcs(s, concatenate(tPart.getLeft(), tPart.getRight()));
+        results = new Integer[codes.size()][];
 
-		return Math.max(a, Math.max(b, c));
-	}
+        for (int i = 0; i < results.length; i++) {
+            results[i] = new Integer[i + 1];
+        }
+
+        return lcsRec(s, t, codes, results);
+    }
+
+    /**
+     * Recursive helper function for {@link BalancedSequence#lcs(BalancedSequence, BalancedSequence)}. Computes
+     * the longest common balanced sequence between the balanced sequences <code>s</code> and <code>t</code> using
+     * the <code>results</code> array to store results of sub-problems. <code>codes</code> must
+     * contain mappings for the hashes of every balanced sequence in the decompositions of <code>s</code> and
+     * <code>t</code> to an index in the array <code>results</code>.
+     *
+     * @param s
+     *         the first <code>BalancedSequence</code>
+     * @param t
+     *         the seconds <code>BalancedSequence</code>
+     * @param codes
+     *         the codes of the <code>BalancedSequence</code>s in the decompositions
+     * @param results
+     *         the array of solutions to sub-problems
+     *
+     * @return the length of the longest common balanced sequence
+     */
+    private static int lcsRec(BalancedSequence s, BalancedSequence t, Map<Integer, Integer> codes, Integer[][] results) {
+
+        if (s.isEmpty() || t.isEmpty()) {
+            return 0;
+        }
+
+        Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
+        Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
+
+        int a = lcsRec(sPart.getLeft(), tPart.getLeft(), codes, results) +
+                lcsRec(sPart.getRight(), tPart.getRight(), codes, results) + 1;
+        int b = lcsRec(concatenate(sPart.getLeft(), sPart.getRight()), t, codes, results);
+        int c = lcsRec(s, concatenate(tPart.getLeft(), tPart.getRight()), codes, results);
+
+        return Math.max(a, Math.max(b, c));
+    }
+
+    private static Integer lookup(int codeA, int codeB, Integer[][] results) {
+
+        if (codeB > codeA) {
+            return results[codeA][codeB];
+        } else {
+            return results[codeB][codeA];
+        }
+    }
+
+    private static void store(int codeA, int codeB, Integer[][] results, Integer result) {
+
+        if (codeB > codeA) {
+            results[codeA][codeB] = result;
+        } else {
+            results[codeB][codeA] = result;
+        }
+    }
 
 	/**
 	 * Returns whether this <code>BalancedSequence</code> is empty.
