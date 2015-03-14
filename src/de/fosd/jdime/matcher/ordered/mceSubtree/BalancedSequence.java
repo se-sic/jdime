@@ -25,17 +25,33 @@ public class BalancedSequence {
 
 	private boolean[] seq;
 
-	/**
-	 * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
-	 *
-	 * @param tree
-	 * 		the tree of <code>Artifact</code>s
-	 * @param <T>
-	 * 		the type of the <code>Artifact</code>
-	 */
-	public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree) {
-		this.seq = new boolean[tree.getSubtreeSize() * 2];
-		initSeq(tree, 0);
+    /**
+     * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
+     * 
+     * @param <T>
+     * 		the type of the <code>Artifact</code>
+     * @param tree
+     * 		the tree of <code>Artifact</code>s
+     */
+    public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree) {
+        this.seq = new boolean[tree.getSubtreeSize() * 2];
+        initSeq(tree, 0, 0, Integer.MAX_VALUE);    
+    }
+
+    /**
+     * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
+     * All nodes with depth <code>maxDepth</code> will be considered leaf nodes.
+     *
+     * @param <T>
+     *         the type of the <code>Artifact</code>
+     * @param tree
+     *         the tree of <code>Artifact</code>s
+     * @param maxDepth
+     *         the maximum depth of nodes to consider
+     */
+    public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree, int maxDepth) {
+		this.seq = new boolean[getSize(tree, maxDepth) * 2];
+		initSeq(tree, 0, 0, maxDepth);
 	}
 
 	/**
@@ -57,7 +73,7 @@ public class BalancedSequence {
      * @param depth
      *         the maximum depth of nodes to count
      * @param <T>
-     *         the type of the artifact
+     *         the type of the <code>Artifact</code>
      *
      * @return the number of nodes
      */
@@ -75,29 +91,35 @@ public class BalancedSequence {
 
         return num;
     }
-    
-	/**
-	 * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
-	 *
-	 * @param tree
-	 * 		the tree whose balanced sequence is to be inserted in the <code>seq</code> array
-	 * @param index
-	 * 		the index for the 0 before the first child
-	 * @param <T>
-	 * 		the type of the artifact
-	 *
-	 * @return the index after the last index written to; this return value is only relevant for the recursive calls
-	 * of this method as the following 1 will be placed there
-	 */
-	private <T extends Artifact<T>> int initSeq(Artifact<T> tree, int index) {
 
-		for (T t : tree.getChildren()) {
-			index++;
-			index = initSeq(t, index);
-			seq[index++] = true;
-		}
+    /**
+     * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
+     *
+     * @param <T>
+     *         the type of the artifact
+     * @param tree
+     *         the tree whose balanced sequence is to be inserted in the <code>seq</code> array
+     * @param index
+     *         the index for the 0 before the first child
+     * @param currentDepth
+     *         the current depth in the tree
+     * @param maxDepth
+     *         the maximum Depth of nodes to add
+     *
+     * @return the index after the last index written to; this return value is only relevant for the recursive calls
+     * of this method as the following 1 will be placed there
+     */
+    private <T extends Artifact<T>> int initSeq(Artifact<T> tree, int index, int currentDepth, int maxDepth) {
 
-		return index;
+        if (currentDepth < maxDepth) {
+            for (T t : tree.getChildren()) {
+                index++;
+                index = initSeq(t, index, currentDepth + 1, maxDepth);
+                seq[index++] = true;
+            }
+        }
+
+        return index;
 	}
 
 	/**
