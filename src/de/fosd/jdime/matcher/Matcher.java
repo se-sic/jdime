@@ -22,16 +22,20 @@
  */
 package de.fosd.jdime.matcher;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
+import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -65,11 +69,13 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	private UnorderedMatcher<T> unorderedMatcher;
 	private UnorderedMatcher<T> unorderedLabelMatcher;
 	private OrderedMatcher<T> orderedMatcher;
+    private OrderedMatcher<T> mceSubtreeMatcher;
 
 	public Matcher() {
 		unorderedMatcher = new LPMatcher<>(this);
 		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
 		orderedMatcher = new SimpleTreeMatcher<>(this);
+        mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
 	}
 
 	/**
@@ -77,9 +83,20 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 */
 	@Override
 	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-		boolean isOrdered = false;
+		boolean fullyOrdered = true;
+        boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
+        Queue<T> wait = new LinkedList<>(Arrays.asList(left, right));
+        while (fullyOrdered && !wait.isEmpty()) {
+            T node = wait.poll();
+            fullyOrdered = node.isOrdered();
+
+            for (T t : node.getChildren()) {
+                wait.offer(t);
+            }
+        }
+        
 		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
 			T leftChild = left.getChild(i);
 			if (leftChild.isOrdered()) {
@@ -102,6 +119,17 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 		calls++;
 
+        if (fullyOrdered) {
+            orderedCalls++;
+            
+            if (LOG.isTraceEnabled()) {
+                String matcherName = mceSubtreeMatcher.getClass().getSimpleName();
+                LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
+            }
+            
+            return mceSubtreeMatcher.match(context, left, right, lookAhead);
+        }
+        
 		if (isOrdered) {
 			orderedCalls++;
 			if (LOG.isTraceEnabled()) {
