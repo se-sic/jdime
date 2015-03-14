@@ -16,24 +16,25 @@ import org.apache.commons.lang3.tuple.Pair;
  * The balanced sequence of a non leaf node is the concatenation of the balanced sequences of its children, every
  * one preceded by a 0 and followed by a 1. The balanced sequence of a tree is the balanced sequence of its root node.
  *
+ * @param <T>
+ *         the type of the <code>Artifact</code> whose balanced sequence is to be constructed
+ *
  * @author Georg Seibt
  * @see <a href="http://www.cs.upc.edu/~antoni/subtree.pdf">This Paper</a>
  */
-public class BalancedSequence {
+public class BalancedSequence<T extends Artifact<T>> {
 
-	private static final BalancedSequence EMPTY_SEQ = new BalancedSequence(new boolean[0]);
+	private final BalancedSequence<T> EMPTY_SEQ = new BalancedSequence<>(new boolean[0]);
 
 	private boolean[] seq;
 
     /**
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
-     * 
-     * @param <T>
-     * 		the type of the <code>Artifact</code>
+     *
      * @param tree
      * 		the tree of <code>Artifact</code>s
      */
-    public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree) {
+    public BalancedSequence(Artifact<T> tree) {
         this.seq = new boolean[tree.getSubtreeSize() * 2];
         initSeq(tree, 0, 0, Integer.MAX_VALUE);    
     }
@@ -42,14 +43,12 @@ public class BalancedSequence {
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
      * All nodes with depth <code>maxDepth</code> will be considered leaf nodes.
      *
-     * @param <T>
-     *         the type of the <code>Artifact</code>
      * @param tree
      *         the tree of <code>Artifact</code>s
      * @param maxDepth
      *         the maximum depth of nodes to consider
      */
-    public <T extends Artifact<T>> BalancedSequence(Artifact<T> tree, int maxDepth) {
+    public BalancedSequence(Artifact<T> tree, int maxDepth) {
 		this.seq = new boolean[getSize(tree, maxDepth) * 2];
 		initSeq(tree, 0, 0, maxDepth);
 	}
@@ -72,12 +71,10 @@ public class BalancedSequence {
      *         the tree whose nodes are to be counted
      * @param depth
      *         the maximum depth of nodes to count
-     * @param <T>
-     *         the type of the <code>Artifact</code>
      *
      * @return the number of nodes
      */
-    private <T extends Artifact<T>> int getSize(Artifact<T> tree, int depth) {
+    private int getSize(Artifact<T> tree, int depth) {
 
         if (depth == 0) {
             return 0;
@@ -95,8 +92,6 @@ public class BalancedSequence {
     /**
      * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
      *
-     * @param <T>
-     *         the type of the artifact
      * @param tree
      *         the tree whose balanced sequence is to be inserted in the <code>seq</code> array
      * @param index
@@ -109,7 +104,7 @@ public class BalancedSequence {
      * @return the index after the last index written to; this return value is only relevant for the recursive calls
      * of this method as the following 1 will be placed there
      */
-    private <T extends Artifact<T>> int initSeq(Artifact<T> tree, int index, int currentDepth, int maxDepth) {
+    private int initSeq(Artifact<T> tree, int index, int currentDepth, int maxDepth) {
 
         if (currentDepth < maxDepth) {
             for (T t : tree.getChildren()) {
@@ -128,7 +123,7 @@ public class BalancedSequence {
 	 *
 	 * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
 	 */
-	public Pair<BalancedSequence, BalancedSequence> partition() {
+	public Pair<BalancedSequence<T>, BalancedSequence<T>> partition() {
 
 		if (seq.length == 0 || seq.length == 2) {
 			return Pair.of(EMPTY_SEQ, EMPTY_SEQ);
@@ -145,8 +140,8 @@ public class BalancedSequence {
 			}
 		} while (numZeros > 0);
 
-		BalancedSequence head;
-		BalancedSequence tail;
+		BalancedSequence<T> head;
+		BalancedSequence<T> tail;
 
 		int headLength = index - 2;
 		int tailLength = seq.length - index;
@@ -155,7 +150,7 @@ public class BalancedSequence {
 			boolean[] headArray = new boolean[headLength];
 			System.arraycopy(seq, 1, headArray, 0, headLength);
 
-			head = new BalancedSequence(headArray);
+			head = new BalancedSequence<>(headArray);
 		} else {
 			head = EMPTY_SEQ;
 		}
@@ -164,7 +159,7 @@ public class BalancedSequence {
 			boolean[] tailArray = new boolean[tailLength];
 			System.arraycopy(seq, index, tailArray, 0, tailLength);
 
-			tail = new BalancedSequence(tailArray);
+			tail = new BalancedSequence<>(tailArray);
 		} else {
 			tail = EMPTY_SEQ;
 		}
@@ -179,17 +174,17 @@ public class BalancedSequence {
 	 *
 	 * @return the decomposition of this balanced sequence
 	 */
-	public Set<BalancedSequence> decompose() {
+	public Set<BalancedSequence<T>> decompose() {
 
 		if (isEmpty()) {
 			return Collections.singleton(EMPTY_SEQ);
 		}
 
-		Set<BalancedSequence> decomposition = new HashSet<>(Collections.singleton(this));
+		Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
 
-		Pair<BalancedSequence, BalancedSequence> partition = partition();
-		BalancedSequence head = partition.getLeft();
-		BalancedSequence tail = partition.getRight();
+		Pair<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
+		BalancedSequence<T> head = partition.getLeft();
+		BalancedSequence<T> tail = partition.getRight();
 
 		decomposition.addAll(head.decompose());
 		decomposition.addAll(tail.decompose());
@@ -198,41 +193,45 @@ public class BalancedSequence {
 		return decomposition;
 	}
 
-	/**
-	 * Concatenates the two given <code>BalancedSequence</code>s.
-	 *
-	 * @param left
-	 * 		the left part of the resulting <code>BalancedSequence</code>
-	 * @param right
-	 * 		the right part of the resulting <code>BalancedSequence</code>
-	 *
-	 * @return the concatenation result
-	 */
-	private static BalancedSequence concatenate(BalancedSequence left, BalancedSequence right) {
+    /**
+     * Concatenates the two given <code>BalancedSequence</code>s.
+     *
+     * @param left
+     *         the left part of the resulting <code>BalancedSequence</code>
+     * @param right
+     *         the right part of the resulting <code>BalancedSequence</code>
+     * @param <T>
+     *         the type of the <code>Artifact</code>s
+     *
+     * @return the concatenation result
+     */
+    private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
 		boolean[] result = new boolean[left.seq.length + right.seq.length];
 
 		if (result.length == 0) {
-			return EMPTY_SEQ;
+			return new BalancedSequence<>(new boolean[0]);
 		}
 
 		System.arraycopy(left.seq, 0, result, 0, left.seq.length);
 		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
 
-		return new BalancedSequence(result);
+		return new BalancedSequence<>(result);
 	}
 
-	/**
-	 * Returns the length (being the number of edges of the tree it represents) of the longest common balanced sequence
+    /**
+     * Returns the length (being the number of edges of the tree it represents) of the longest common balanced sequence
      * between the balanced sequences <code>s</code> and <code>t</code>.
-	 *
-	 * @param s
-	 * 		the first <code>BalancedSequence</code>
-	 * @param t
-	 * 		the second <code>BalancedSequence</code>
-	 *
-	 * @return the length of the longest common balanced sequence
-	 */
-	public static int lcs(BalancedSequence s, BalancedSequence t) {
+     *
+     * @param s
+     *         the first <code>BalancedSequence</code>
+     * @param t
+     *         the second <code>BalancedSequence</code>
+     * @param <T>
+     *         the type of the <code>Artifact</code>s
+     *
+     * @return the length of the longest common balanced sequence
+     */
+    public static <T extends Artifact<T>> int lcs(BalancedSequence<T> s, BalancedSequence<T> t) {
         Map<Integer, Integer> codes = new HashMap<>();
         Integer[][] results;
         int code = 0;
@@ -241,10 +240,10 @@ public class BalancedSequence {
          * The decompositions of s and t contain all balanced sequences that will be produced during the recursion
          * through lcsRec. We assign each balanced sequence an index into the results array.
          */
-        Set<BalancedSequence> dec = new HashSet<>(s.decompose());
+        Set<BalancedSequence<T>> dec = new HashSet<>(s.decompose());
         dec.addAll(t.decompose());
 
-        for (BalancedSequence seq : dec) {
+        for (BalancedSequence<T> seq : dec) {
             codes.put(seq.hashCode(), code++);
         }
 
@@ -277,10 +276,13 @@ public class BalancedSequence {
      *         the codes of the <code>BalancedSequence</code>s in the decompositions
      * @param results
      *         the array of solutions to sub-problems
+     * @param <T>
+     *         the type of the <code>Artifact</code>s
      *
      * @return the length of the longest common balanced sequence
      */
-    private static Integer lcsRec(BalancedSequence s, BalancedSequence t, Map<Integer, Integer> codes, Integer[][] results) {
+    private static <T extends Artifact<T>> Integer lcsRec(BalancedSequence<T> s, BalancedSequence<T> t, 
+            Map<Integer, Integer> codes, Integer[][] results) {
 
         if (s.isEmpty() || t.isEmpty()) {
             return 0;
@@ -294,12 +296,12 @@ public class BalancedSequence {
             return result;
         }
 
-        Pair<BalancedSequence, BalancedSequence> sPart = s.partition();
-        Pair<BalancedSequence, BalancedSequence> tPart = t.partition();
-        BalancedSequence sHead = sPart.getLeft();
-        BalancedSequence tHead = tPart.getLeft();
-        BalancedSequence sTail = sPart.getRight();
-        BalancedSequence tTail = tPart.getRight();
+        Pair<BalancedSequence<T>, BalancedSequence<T>> sPart = s.partition();
+        Pair<BalancedSequence<T>, BalancedSequence<T>> tPart = t.partition();
+        BalancedSequence<T> sHead = sPart.getLeft();
+        BalancedSequence<T> tHead = tPart.getLeft();
+        BalancedSequence<T> sTail = sPart.getRight();
+        BalancedSequence<T> tTail = tPart.getRight();
 
         Integer a = lcsRec(sHead, tHead, codes, results) + lcsRec(sTail, tTail, codes, results) + 1;
         Integer b = lcsRec(concatenate(sHead, sTail), t, codes, results);
