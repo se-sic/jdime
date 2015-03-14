@@ -301,12 +301,17 @@ public class BalancedSequence<T extends Artifact<T>> {
         BalancedSequence<T> tHead = tPart.getLeft();
         BalancedSequence<T> sTail = sPart.getRight();
         BalancedSequence<T> tTail = tPart.getRight();
-
-        Integer a = lcsRec(sHead, tHead, codes, results) + lcsRec(sTail, tTail, codes, results) + 1;
-        Integer b = lcsRec(concatenate(sHead, sTail), t, codes, results);
-        Integer c = lcsRec(s, concatenate(tHead, tTail), codes, results);
-
-        result = max(a, max(b, c));
+        
+        Integer a = lcsRec(concatenate(sHead, sTail), t, codes, results);
+        Integer b = lcsRec(s, concatenate(tHead, tTail), codes, results);
+        
+        if (s.seq.get(0).matches(t.seq.get(0))) {
+            Integer c = lcsRec(sHead, tHead, codes, results) + lcsRec(sTail, tTail, codes, results) + 1;
+            result = max(a, max(b, c));
+        } else {
+            result = max(a, b);
+        }
+        
         store(codeS, codeT, results, result);
 
         return result;
