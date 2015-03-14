@@ -48,6 +48,34 @@ public class BalancedSequence {
 		this.seq = seq;
 	}
 
+    /**
+     * Returns one less (the root node) than the number of nodes in the tree that have at most the given
+     * <code>depth</code>.
+     *
+     * @param tree
+     *         the tree whose nodes are to be counted
+     * @param depth
+     *         the maximum depth of nodes to count
+     * @param <T>
+     *         the type of the artifact
+     *
+     * @return the number of nodes
+     */
+    private <T extends Artifact<T>> int getSize(Artifact<T> tree, int depth) {
+
+        if (depth == 0) {
+            return 0;
+        }
+
+        int num = tree.getNumChildren();
+
+        for (T t : tree.getChildren()) {
+            num += getSize(t, depth - 1);
+        }
+
+        return num;
+    }
+    
 	/**
 	 * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
 	 *
