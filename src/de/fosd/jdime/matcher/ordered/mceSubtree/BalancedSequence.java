@@ -1,9 +1,10 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,10 +24,8 @@ import org.apache.commons.lang3.tuple.Pair;
  * @see <a href="http://www.cs.upc.edu/~antoni/subtree.pdf">This Paper</a>
  */
 public class BalancedSequence<T extends Artifact<T>> {
-
-	private final BalancedSequence<T> EMPTY_SEQ = new BalancedSequence<>(new boolean[0]);
-
-	private boolean[] seq;
+    
+	private List<T> seq;
 
     /**
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
@@ -35,7 +34,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * 		the tree of <code>Artifact</code>s
      */
     public BalancedSequence(Artifact<T> tree) {
-        this.seq = new boolean[tree.getSubtreeSize() * 2];
+        this.seq = new ArrayList<>(Collections.<T>nCopies(tree.getSubtreeSize() * 2, null));
         initSeq(tree, 0, 0, Integer.MAX_VALUE);    
     }
 
@@ -49,7 +48,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(Artifact<T> tree, int maxDepth) {
-		this.seq = new boolean[getSize(tree, maxDepth) * 2];
+		this.seq = new ArrayList<>(Collections.<T>nCopies(getSize(tree, maxDepth) * 2, null));
 		initSeq(tree, 0, 0, maxDepth);
 	}
 
@@ -59,7 +58,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	 * @param seq
 	 * 		the sequence to wrap
 	 */
-	private BalancedSequence(boolean[] seq) {
+	private BalancedSequence(List<T> seq) {
 		this.seq = seq;
 	}
 
@@ -108,9 +107,9 @@ public class BalancedSequence<T extends Artifact<T>> {
 
         if (currentDepth < maxDepth) {
             for (T t : tree.getChildren()) {
-                index++;
+                seq.set(index++, t);
                 index = initSeq(t, index, currentDepth + 1, maxDepth);
-                seq[index++] = true;
+                index++;
             }
         }
 
@@ -125,15 +124,15 @@ public class BalancedSequence<T extends Artifact<T>> {
 	 */
 	public Pair<BalancedSequence<T>, BalancedSequence<T>> partition() {
 
-		if (seq.length == 0 || seq.length == 2) {
-			return Pair.of(EMPTY_SEQ, EMPTY_SEQ);
+		if (seq.size() == 0 || seq.size() == 2) {
+			return Pair.of(emptySeq(), emptySeq());
 		}
 
 		int numZeros = 0;
 		int index = 0;
 
 		do {
-			if (seq[index++]) {
+			if (seq.get(index++) == null) {
 				numZeros--;
 			} else {
 				numZeros++;
@@ -144,30 +143,33 @@ public class BalancedSequence<T extends Artifact<T>> {
 		BalancedSequence<T> tail;
 
 		int headLength = index - 2;
-		int tailLength = seq.length - index;
+		int tailLength = seq.size() - index;
 
 		if (headLength != 0) {
-			boolean[] headArray = new boolean[headLength];
-			System.arraycopy(seq, 1, headArray, 0, headLength);
-
-			head = new BalancedSequence<>(headArray);
+			head = new BalancedSequence<>(seq.subList(1, 1 + headLength));
 		} else {
-			head = EMPTY_SEQ;
+			head = emptySeq();
 		}
 
 		if (tailLength != 0) {
-			boolean[] tailArray = new boolean[tailLength];
-			System.arraycopy(seq, index, tailArray, 0, tailLength);
-
-			tail = new BalancedSequence<>(tailArray);
+			tail = new BalancedSequence<>(seq.subList(index, index + tailLength));
 		} else {
-			tail = EMPTY_SEQ;
+			tail = emptySeq();
 		}
 
 		return Pair.of(head, tail);
 	}
 
-	/**
+    /**
+     * Returns a new empty sequence.
+     *
+     * @return an empty sequence
+     */
+    private BalancedSequence<T> emptySeq() {
+        return new BalancedSequence<>(new ArrayList<T>());
+    }
+
+    /**
 	 * Returns the decomposition of this balanced sequence. The decomposition of the empty balanced sequence is a set
 	 * containing only the empty balanced sequence. For all other sequences s the decomposition is the union of a
 	 * set containing s and the decompositions of head(s), tail(s) and the concatenation of head(s) and tail(s).
@@ -177,7 +179,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	public Set<BalancedSequence<T>> decompose() {
 
 		if (isEmpty()) {
-			return Collections.singleton(EMPTY_SEQ);
+			return Collections.singleton(emptySeq());
 		}
 
 		Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
@@ -206,15 +208,12 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @return the concatenation result
      */
     private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
-		boolean[] result = new boolean[left.seq.length + right.seq.length];
+		int length = left.seq.size() + right.seq.size();
 
-		if (result.length == 0) {
-			return new BalancedSequence<>(new boolean[0]);
-		}
-
-		System.arraycopy(left.seq, 0, result, 0, left.seq.length);
-		System.arraycopy(right.seq, 0, result, left.seq.length, right.seq.length);
-
+        List<T> result = new ArrayList<>(length); 
+        result.addAll(left.seq);
+        result.addAll(right.seq);
+        
 		return new BalancedSequence<>(result);
 	}
 
@@ -372,40 +371,40 @@ public class BalancedSequence<T extends Artifact<T>> {
 	 * @return true iff the <code>BalancedSequence</code> is empty
 	 */
 	public boolean isEmpty() {
-		return seq.length == 0;
+		return seq.isEmpty();
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-		BalancedSequence sequence = (BalancedSequence) o;
+        BalancedSequence that = (BalancedSequence) o;
 
-		if (!Arrays.equals(seq, sequence.seq)) {
-			return false;
-		}
+        if (!seq.equals(that.seq)) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		return Arrays.hashCode(seq);
-	}
+    @Override
+    public int hashCode() {
+        return seq.hashCode();
+    }
 
-	@Override
+    @Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder(seq.length);
+		StringBuilder builder = new StringBuilder(seq.size());
 
-		for (boolean bit : seq) {
-			builder.append(bit ? '1' : '0');
-		}
-
+        for (Artifact<T> bit : seq) {
+            builder.append((bit == null) ? '1' : '0');
+        }
+      
 		return builder.toString();
 	}
 }
