@@ -13,9 +13,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
- * {0, 1} here represented by a boolean array. The balanced sequence of a leaf node is the empty sequence.
- * The balanced sequence of a non leaf node is the concatenation of the balanced sequences of its children, every
- * one preceded by a 0 and followed by a 1. The balanced sequence of a tree is the balanced sequence of its root node.
+ * {0, 1}. The balanced sequence of a leaf node is the empty sequence. The balanced sequence of a non leaf node is the 
+ * concatenation of the balanced sequences of its children, every one preceded by a 0 and followed by a 1. The balanced 
+ * sequence of a tree is the balanced sequence of its root node.
  *
  * @param <T>
  *         the type of the <code>Artifact</code> whose balanced sequence is to be constructed
