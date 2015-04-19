@@ -1,15 +1,9 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import de.fosd.jdime.common.Artifact;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.*;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
@@ -24,7 +18,8 @@ import org.apache.commons.lang3.tuple.Pair;
  * @see <a href="http://www.cs.upc.edu/~antoni/subtree.pdf">This Paper</a>
  */
 public class BalancedSequence<T extends Artifact<T>> {
-    
+
+    private Artifact<T> root;
 	private List<T> seq;
 
     /**
@@ -34,6 +29,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * 		the tree of <code>Artifact</code>s
      */
     public BalancedSequence(Artifact<T> tree) {
+        this.root = tree;
         this.seq = new ArrayList<>(Collections.<T>nCopies(tree.getSubtreeSize() * 2, null));
         initSeq(tree, 0, 0, Integer.MAX_VALUE);    
     }
@@ -48,6 +44,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(Artifact<T> tree, int maxDepth) {
+        this.root = tree;
 		this.seq = new ArrayList<>(Collections.<T>nCopies(getSize(tree, maxDepth) * 2, null));
 		initSeq(tree, 0, 0, maxDepth);
 	}
