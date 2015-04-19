@@ -1,14 +1,15 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
- * {0, 1}. The balanced sequence of a leaf node is the empty sequence. The balanced sequence of a non leaf node is the 
- * concatenation of the balanced sequences of its children, every one preceded by a 0 and followed by a 1. The balanced 
+ * {0, 1}. The balanced sequence of a leaf node is the empty sequence. The balanced sequence of a non leaf node is the
+ * concatenation of the balanced sequences of its children, every one preceded by a 0 and followed by a 1. The balanced
  * sequence of a tree is the balanced sequence of its root node.
  *
  * @param <T>
@@ -19,7 +20,7 @@ import java.util.*;
  */
 public class BalancedSequence<T extends Artifact<T>> {
 
-    private Artifact<T> root;
+    private T root;
 	private List<T> seq;
 
     /**
@@ -28,10 +29,10 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @param tree
      * 		the tree of <code>Artifact</code>s
      */
-    public BalancedSequence(Artifact<T> tree) {
+    public BalancedSequence(T tree) {
         this.root = tree;
         this.seq = new ArrayList<>(Collections.<T>nCopies(tree.getSubtreeSize() * 2, null));
-        initSeq(tree, 0, 0, Integer.MAX_VALUE);    
+        initSeq(tree, 0, 0, Integer.MAX_VALUE);
     }
 
     /**
@@ -43,7 +44,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @param maxDepth
      *         the maximum depth of nodes to consider
      */
-    public BalancedSequence(Artifact<T> tree, int maxDepth) {
+    public BalancedSequence(T tree, int maxDepth) {
         this.root = tree;
 		this.seq = new ArrayList<>(Collections.<T>nCopies(getSize(tree, maxDepth) * 2, null));
 		initSeq(tree, 0, 0, maxDepth);
@@ -70,7 +71,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *
      * @return the number of nodes
      */
-    private int getSize(Artifact<T> tree, int depth) {
+    private int getSize(T tree, int depth) {
 
         if (depth == 0) {
             return 0;
@@ -100,7 +101,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @return the index after the last index written to; this return value is only relevant for the recursive calls
      * of this method as the following 1 will be placed there
      */
-    private int initSeq(Artifact<T> tree, int index, int currentDepth, int maxDepth) {
+    private int initSeq(T tree, int index, int currentDepth, int maxDepth) {
 
         if (currentDepth < maxDepth) {
             for (T t : tree.getChildren()) {
@@ -207,10 +208,10 @@ public class BalancedSequence<T extends Artifact<T>> {
     private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
 		int length = left.seq.size() + right.seq.size();
 
-        List<T> result = new ArrayList<>(length); 
+        List<T> result = new ArrayList<>(length);
         result.addAll(left.seq);
         result.addAll(right.seq);
-        
+
 		return new BalancedSequence<>(result);
 	}
 
@@ -227,7 +228,8 @@ public class BalancedSequence<T extends Artifact<T>> {
      *
      * @return the length of the longest common balanced sequence
      */
-    public static <T extends Artifact<T>> int lcs(BalancedSequence<T> s, BalancedSequence<T> t) {
+    public static <T extends Artifact<T>> Set<NewMatching<T>> lcs(BalancedSequence<T> s, BalancedSequence<T> t) {
+
         Map<Integer, Integer> codes = new HashMap<>();
         Integer[][] results;
         int code = 0;
@@ -254,7 +256,113 @@ public class BalancedSequence<T extends Artifact<T>> {
             results[i] = new Integer[i + 1];
         }
 
-        return lcsRec(s, t, codes, results);
+        lcsRec(s, t, codes, results);
+
+        List<BalancedSequence<T>> leftSequences = getSequences(preOrder(s.root));
+        List<BalancedSequence<T>> rightSequences = getSequences(preOrder(t.root));
+        Set<NewMatching<T>> matchings = getMatchings(results, leftSequences, rightSequences);
+
+        /*
+         * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
+         * already in the left tree.
+         */
+        for (ListIterator<BalancedSequence<T>> it = rightSequences.listIterator(); it.hasNext(); ) {
+            BalancedSequence<T> rightSeq = it.next();
+
+            for (BalancedSequence<T> leftSeq : leftSequences) {
+
+                if (rightSeq.root.matches(leftSeq.root)) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+
+        matchings.addAll(getMatchings(results, rightSequences, leftSequences));
+
+        return matchings;
+    }
+
+    /**
+     * Returns for every element of <code>leftSequences</code> a <code>NewMatching</code> with the element of
+     * <code>rightSequences</code> for which the <code>results</code> array contains the highest score.
+     *
+     * @param results
+     * 		the results array produced by {@link #lcsRec(BalancedSequence, BalancedSequence, Map, Integer[][])}
+     * @param leftSequences
+     * 		the <code>BalancedSequence</code>s of the nodes of the left tree
+     * @param rightSequences
+     * 		the <code>BalancedSequence</code>s of the nodes of the right tree
+     * @param <T>
+     * 		the type of the <code>Artifact</code>
+     * @return a <code>Set</code> of <code>NewMatching</code>s of the described format
+     */
+    private static <T extends Artifact<T>> Set<NewMatching<T>> getMatchings(Integer[][] results,
+            List<BalancedSequence<T>> leftSequences, List<BalancedSequence<T>> rightSequences) {
+
+        Set<NewMatching<T>> matchings = new HashSet<>();
+        NewMatching<T> matching = null;
+
+        for (BalancedSequence<T> left : leftSequences) {
+            int hcLeft = left.hashCode();
+
+            for (BalancedSequence<T> right : rightSequences) {
+                int hcRight = right.hashCode();
+                Integer res = lookup(hcLeft, hcRight, results);
+                Integer score = left.root.matches(right.root) ? res : res + 1;
+
+                if (matching == null || matching.getScore() < score) {
+                    matching = new NewMatching<>(left.root, right.root, score);
+                }
+            }
+
+            matchings.add(matching);
+            matching = null;
+        }
+
+        return matchings;
+    }
+
+    /**
+     * Returns the tree with root <code>root</code> in pre-order.
+     *
+     * @param root
+     * 		the root of the tree
+     * @param <T>
+     * 		the type of the <code>Artifact</code>
+     * @return the tree in pre-order
+     */
+    private static <T extends Artifact<T>> List<T> preOrder(T root) {
+        List<T> nodes = new ArrayList<>();
+        Queue<T> waitQ = new LinkedList<>(Collections.singleton(root));
+        T node;
+
+        while (!waitQ.isEmpty()) {
+            node = waitQ.poll();
+            nodes.add(node);
+            waitQ.addAll(node.getChildren());
+        }
+
+        return nodes;
+    }
+
+    /**
+     * Transforms the <code>List of T</code> into a list containing the corresponding <code>BalancedSequence</code>s.
+     *
+     * @param nodes
+     * 		the nodes to transform
+     * @param <T>
+     * 		the type of the <code>Artifact</code>
+     * @return the <code>BalancedSequence</code>s of the nodes
+     */
+    private static <T extends Artifact<T>> List<BalancedSequence<T>> getSequences(List<T> nodes) {
+        List<BalancedSequence<T>> sequences = new ArrayList<>(nodes.size());
+
+        for (T node : nodes) {
+            sequences.add(new BalancedSequence<>(node));
+        }
+
+        return sequences;
     }
 
     /**
@@ -277,7 +385,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *
      * @return the length of the longest common balanced sequence
      */
-    private static <T extends Artifact<T>> Integer lcsRec(BalancedSequence<T> s, BalancedSequence<T> t, 
+    private static <T extends Artifact<T>> Integer lcsRec(BalancedSequence<T> s, BalancedSequence<T> t,
             Map<Integer, Integer> codes, Integer[][] results) {
 
         if (s.isEmpty() || t.isEmpty()) {
@@ -298,17 +406,17 @@ public class BalancedSequence<T extends Artifact<T>> {
         BalancedSequence<T> tHead = tPart.getLeft();
         BalancedSequence<T> sTail = sPart.getRight();
         BalancedSequence<T> tTail = tPart.getRight();
-        
+
         Integer a = lcsRec(concatenate(sHead, sTail), t, codes, results);
         Integer b = lcsRec(s, concatenate(tHead, tTail), codes, results);
-        
+
         if (s.seq.get(0).matches(t.seq.get(0))) {
             Integer c = lcsRec(sHead, tHead, codes, results) + lcsRec(sTail, tTail, codes, results) + 1;
             result = max(a, max(b, c));
         } else {
             result = max(a, b);
         }
-        
+
         store(codeS, codeT, results, result);
 
         return result;
@@ -403,10 +511,10 @@ public class BalancedSequence<T extends Artifact<T>> {
 	public String toString() {
 		StringBuilder builder = new StringBuilder(seq.size());
 
-        for (Artifact<T> bit : seq) {
+        for (T bit : seq) {
             builder.append((bit == null) ? '1' : '0');
         }
-      
+
 		return builder.toString();
 	}
 }

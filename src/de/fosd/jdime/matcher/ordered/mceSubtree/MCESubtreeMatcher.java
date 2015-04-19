@@ -4,7 +4,10 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
+
+import java.util.Set;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
@@ -38,8 +41,10 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
             s = new BalancedSequence<>(left, lookAhead);
             t = new BalancedSequence<>(right, lookAhead);
         }
-        
-        // TODO the child matchings are missing, how are they constructed?
-        return new Matching<>(left, right, BalancedSequence.lcs(s, t) + 1);
+
+        Set<NewMatching<T>> matchings = BalancedSequence.lcs(s, t);
+
+        // TODO returning nonsense for now until we can return a Set of NewMatchings as produced by the BalancedSequence
+        return new Matching<>(left, right, 1);
     }
 }
