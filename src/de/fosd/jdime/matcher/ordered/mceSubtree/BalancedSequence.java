@@ -216,8 +216,8 @@ public class BalancedSequence<T extends Artifact<T>> {
 	}
 
     /**
-     * Returns the length (being the number of edges of the tree it represents) of the longest common balanced sequence
-     * between the balanced sequences <code>s</code> and <code>t</code>.
+     * Returns a <code>Set</code> of <code>NewMatching</code>s containing as scores the sizes of the largest common
+     * embedded subtree between two nodes of <code>s</code> and <code>t</code>.
      *
      * @param s
      *         the first <code>BalancedSequence</code>
@@ -226,7 +226,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @param <T>
      *         the type of the <code>Artifact</code>s
      *
-     * @return the length of the longest common balanced sequence
+     * @return the set of <code>NewMatching</code>s
      */
     public static <T extends Artifact<T>> Set<NewMatching<T>> lcs(BalancedSequence<T> s, BalancedSequence<T> t) {
 
