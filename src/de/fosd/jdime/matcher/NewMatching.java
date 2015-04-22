@@ -41,7 +41,7 @@ public class NewMatching<T extends Artifact<T>> {
 	 * @return the left <code>Artifact</code>
 	 */
 	public T getLeft() {
-		return matchedArtifacts.x;
+		return matchedArtifacts.getX();
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class NewMatching<T extends Artifact<T>> {
 	 * @return the right <code>Artifact</code>
 	 */
 	public T getRight() {
-		return matchedArtifacts.y;
+		return matchedArtifacts.getY();
 	}
 
 	/**
