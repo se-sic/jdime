@@ -8,7 +8,7 @@ import de.fosd.jdime.common.UnorderedTuple;
  *
  * @param <T> the type of the <code>Artifact</code>
  */
-public class NewMatching<T extends Artifact<T>> {
+public class NewMatching<T extends Artifact<T>> implements Cloneable {
 
 	/**
 	 * The algorithm that found the matching.
@@ -125,6 +125,11 @@ public class NewMatching<T extends Artifact<T>> {
 	}
 
 	@Override
+	public String toString() {
+		return String.format("(%s, %s) = %d", getLeft().getId(), getRight().getId(), score);
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -142,5 +147,10 @@ public class NewMatching<T extends Artifact<T>> {
 	@Override
 	public int hashCode() {
 		return matchedArtifacts.hashCode();
+	}
+
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 }
