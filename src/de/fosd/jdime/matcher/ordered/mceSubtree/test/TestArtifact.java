@@ -89,7 +89,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public boolean hasUniqueLabels() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -104,17 +104,17 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public boolean isLeaf() {
-		return false;
+		return children.isEmpty();
 	}
 
 	@Override
 	public boolean isOrdered() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean matches(TestArtifact other) {
-		return false;
+		return id == other.id;
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public String toString() {
-		return null;
+		return String.valueOf(id);
 	}
 
 	@Override
@@ -134,6 +134,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public int compareTo(TestArtifact o) {
-		return 0;
+		return id - o.id;
 	}
 }
