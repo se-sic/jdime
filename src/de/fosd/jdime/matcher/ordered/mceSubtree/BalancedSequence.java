@@ -260,7 +260,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 
         List<BalancedSequence<T>> leftSequences = getSequences(preOrder(s.root));
         List<BalancedSequence<T>> rightSequences = getSequences(preOrder(t.root));
-        Set<NewMatching<T>> matchings = getMatchings(results, leftSequences, rightSequences);
+        Set<NewMatching<T>> matchings = getMatchings(results, codes, leftSequences, rightSequences);
 
         /*
          * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
@@ -278,27 +278,29 @@ public class BalancedSequence<T extends Artifact<T>> {
             }
         }
 
-        matchings.addAll(getMatchings(results, rightSequences, leftSequences));
+        matchings.addAll(getMatchings(results, codes, rightSequences, leftSequences));
 
         return matchings;
     }
 
-    /**
-     * Returns for every element of <code>leftSequences</code> a <code>NewMatching</code> with the element of
-     * <code>rightSequences</code> for which the <code>results</code> array contains the highest score.
-     *
-     * @param results
-     * 		the results array produced by {@link #lcsRec(BalancedSequence, BalancedSequence, Map, Integer[][])}
-     * @param leftSequences
-     * 		the <code>BalancedSequence</code>s of the nodes of the left tree
-     * @param rightSequences
-     * 		the <code>BalancedSequence</code>s of the nodes of the right tree
-     * @param <T>
-     * 		the type of the <code>Artifact</code>
-     * @return a <code>Set</code> of <code>NewMatching</code>s of the described format
-     */
-    private static <T extends Artifact<T>> Set<NewMatching<T>> getMatchings(Integer[][] results,
-            List<BalancedSequence<T>> leftSequences, List<BalancedSequence<T>> rightSequences) {
+	/**
+	 * Returns for every element of <code>leftSequences</code> a <code>NewMatching</code> with the element of
+	 * <code>rightSequences</code> for which the <code>results</code> array contains the highest score.
+	 *
+	 * @param <T>
+	 * 		the type of the <code>Artifact</code>
+	 * @param results
+	 * 		the results array produced by {@link #lcsRec(BalancedSequence, BalancedSequence, Map, Integer[][])}
+	 * @param codes
+	 * 		the codes map containing mappings from hashcodes of <code>BalancedSequence</code>s to their indices in the
+	 * 		<code>results</code> array
+	 * @param leftSequences
+	 * 		the <code>BalancedSequence</code>s of the nodes of the left tree
+	 * @param rightSequences
+	 * 		the <code>BalancedSequence</code>s of the nodes of the right tree   @return a <code>Set</code> of <code>NewMatching</code>s of the described format
+	 */
+	private static <T extends Artifact<T>> Set<NewMatching<T>> getMatchings(Integer[][] results,
+            Map<Integer, Integer> codes, List<BalancedSequence<T>> leftSequences, List<BalancedSequence<T>> rightSequences) {
 
         Set<NewMatching<T>> matchings = new HashSet<>();
         NewMatching<T> matching = null;
@@ -308,7 +310,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 
             for (BalancedSequence<T> right : rightSequences) {
                 int hcRight = right.hashCode();
-                Integer res = lookup(hcLeft, hcRight, results);
+                Integer res = lookup(codes.get(hcLeft), codes.get(hcRight), results);
                 Integer score = left.root.matches(right.root) ? res : res + 1;
 
                 if (matching == null || matching.getScore() < score) {
