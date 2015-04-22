@@ -1,13 +1,12 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple <code>Artifact</code> to test the functionality of <code>MCESubtreeMatcher</code>. Not all all methods
@@ -17,12 +16,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	private static int nextID = 0;
 
-	private List<TestArtifact> children;
 	private int id;
 
 	public TestArtifact() {
-		this.children = new ArrayList<>();
 		this.id = nextID++;
+		this.children = new ArtifactList<>();
 	}
 
 	@Override
@@ -79,7 +77,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 		TestArtifact that = (TestArtifact) o;
 
 		return id == that.id;
-
 	}
 
 	@Override
