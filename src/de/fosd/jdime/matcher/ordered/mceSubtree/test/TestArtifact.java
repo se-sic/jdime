@@ -6,6 +6,8 @@ import de.fosd.jdime.common.operations.MergeOperation;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple <code>Artifact</code> to test the functionality of <code>MCESubtreeMatcher</code>. Not all all methods
@@ -13,9 +15,20 @@ import java.io.IOException;
  */
 public class TestArtifact extends Artifact<TestArtifact> {
 
+	private static int nextID = 0;
+
+	private List<TestArtifact> children;
+	private int id;
+
+	public TestArtifact() {
+		this.children = new ArrayList<>();
+		this.id = nextID++;
+	}
+
 	@Override
 	public TestArtifact addChild(TestArtifact child) throws IOException {
-		return null;
+		children.add(child);
+		return child;
 	}
 
 	@Override
@@ -45,12 +58,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public boolean exists() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public String getId() {
-		return null;
+		return String.valueOf(id);
 	}
 
 	@Override
@@ -59,8 +72,19 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		TestArtifact that = (TestArtifact) o;
+
+		return id == that.id;
+
+	}
+
+	@Override
 	public int hashCode() {
-		return 0;
+		return id;
 	}
 
 	@Override
