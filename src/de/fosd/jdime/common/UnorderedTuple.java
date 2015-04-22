@@ -6,14 +6,16 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  * A <code>Tuple</code> whose {@link #equals(Object)} and {@link #hashCode()} methods are implemented for unordered
  * value equality.
  *
- * @author Georg Seibt
- *
  * @param <X>
  * 		the type of the first object
  * @param <Y>
  * 		the type of the second object
+ * @author Georg Seibt
  */
-public class UnorderedTuple<X, Y> extends Tuple<X, Y> {
+public class UnorderedTuple<X, Y> {
+
+	private X x;
+	private Y y;
 
 	/**
 	 * Constructs an <code>UnorderedTuple</code> of the two given objects.
@@ -41,7 +43,26 @@ public class UnorderedTuple<X, Y> extends Tuple<X, Y> {
 	 * 		the second object
 	 */
 	private UnorderedTuple(X x, Y y) {
-		super(x, y);
+		this.x = x;
+		this.y = y;
+	}
+
+	/**
+	 * Returns the first object contained in the <code>UnorderedTuple</code>.
+	 *
+	 * @return the first obejct
+	 */
+	public X getX() {
+		return x;
+	}
+
+	/**
+	 * Returns the second object contained in the <code>UnorderedTuple</code>.
+	 *
+	 * @return the second object
+	 */
+	public Y getY() {
+		return y;
 	}
 
 	@Override
