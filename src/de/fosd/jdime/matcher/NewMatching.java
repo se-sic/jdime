@@ -10,8 +10,25 @@ import de.fosd.jdime.common.UnorderedTuple;
  */
 public class NewMatching<T extends Artifact<T>> {
 
+	/**
+	 * The algorithm that found the matching.
+	 */
+	private String algorithm;
+
+	/**
+	 * The color to highlight the matching in.
+	 */
+	private Color highlightColor;
+
 	private UnorderedTuple<T, T> matchedArtifacts;
 	private int score;
+
+	/**
+	 * Constructs a new empty <code>NewMatching</code> with score 0.
+	 */
+	public NewMatching() {
+		this(null, null, 0);
+	}
 
 	/**
 	 * Constructs a new <code>NewMatching</code> between the two given <code>T</code>s.
@@ -69,6 +86,42 @@ public class NewMatching<T extends Artifact<T>> {
 	 */
 	public int getScore() {
 		return score;
+	}
+
+	/**
+	 * Returns a <code>String</code> describing the algorithm that found the matching.
+	 *
+	 * @return the algorithm description
+	 */
+	public String getAlgorithm() {
+		return algorithm;
+	}
+
+	/**
+	 * Sets the <code>String</code> describing the algorithm that found the matching to the given value.
+	 *
+	 * @param algorithm the new algorithm description
+	 */
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
+	}
+
+	/**
+	 * Returns the color to highlight the matching in.
+	 *
+	 * @return the highlight color
+	 */
+	public Color getHighlightColor() {
+		return highlightColor;
+	}
+
+	/**
+	 * Sets the color to highlight the matching in to the given value.
+	 *
+	 * @param highlightColor the new highlight color
+	 */
+	public void setHighlightColor(Color highlightColor) {
+		this.highlightColor = highlightColor;
 	}
 
 	@Override
