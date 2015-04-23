@@ -121,8 +121,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 									+ "has changes in subtree.");
 						}
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+								leftChild, leftChild, rightChild, target);
 						conflictOp.apply(context);
+						if (rightIt.hasNext()) {
+							rightChild = rightIt.next();
+						} else {
+							rightdone = true;
+						}
+						if (leftIt.hasNext()) {
+							leftChild = leftIt.next();
+						} else {
+							leftdone = true;
+						}
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<>(
@@ -152,8 +162,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								}
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										rightChild, null, rightChild, target);
+										rightChild, leftChild, rightChild, target);
 								conflictOp.apply(context);
+								if (rightIt.hasNext()) {
+									rightChild = rightIt.next();
+								} else {
+									rightdone = true;
+								}
+								if (leftIt.hasNext()) {
+									leftChild = leftIt.next();
+								} else {
+									leftdone = true;
+								}
 							} else {
 								// add the left change
 								AddOperation<T> addOp = new AddOperation<>(
@@ -213,8 +233,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						}
 						// insertion-deletion-conflict
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+								rightChild, leftChild, rightChild, target);
 						conflictOp.apply(context);
+						if (rightIt.hasNext()) {
+							rightChild = rightIt.next();
+						} else {
+							rightdone = true;
+						}
+						if (leftIt.hasNext()) {
+							leftChild = leftIt.next();
+						} else {
+							leftdone = true;
+						}
 					} else {
 						// can be safely deleted
 						DeleteOperation<T> delOp = new DeleteOperation<>(
@@ -243,8 +273,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								}
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										leftChild, leftChild, null, target);
+										leftChild, leftChild, right, target);
 								conflictOp.apply(context);
+								if (rightIt.hasNext()) {
+									rightChild = rightIt.next();
+								} else {
+									rightdone = true;
+								}
+								if (leftIt.hasNext()) {
+									leftChild = leftIt.next();
+								} else {
+									leftdone = true;
+								}
 							} else {
 								if (LOG.isTraceEnabled()) {
 									LOG.trace(prefix(rightChild)
