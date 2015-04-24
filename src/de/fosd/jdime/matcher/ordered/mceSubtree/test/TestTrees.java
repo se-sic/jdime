@@ -1,10 +1,11 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
-import java.util.Set;
-
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
+import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
@@ -93,16 +94,17 @@ public class TestTrees {
 		BalancedSequence<TestArtifact> s = new BalancedSequence<>(trees.x);
 		BalancedSequence<TestArtifact> t = new BalancedSequence<>(trees.y);
 
-		Set<NewMatching<TestArtifact>> lcs = BalancedSequence.lcs(s, t);
+		MCESubtreeMatcher<TestArtifact> matcher = new MCESubtreeMatcher<>(new Matcher<TestArtifact>());
+		Matching<TestArtifact> matchings = matcher.match(null, trees.x, trees.y, MergeContext.LOOKAHEAD_FULL);
 
 		System.out.println("Left tree as BalancedSequence:");
 		System.out.println(s);
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-		System.out.println("Found Matchings:");
-		for (NewMatching<TestArtifact> lc : lcs) {
-			System.out.println(lc);
-		}
+//		System.out.println("Found Matchings:");
+//		for (NewMatching<TestArtifact> lc : matchings) {
+//			System.out.println(lc);
+//		}
 	}
 }
