@@ -1,12 +1,12 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 /**
  * A simple <code>Artifact</code> to test the functionality of <code>MCESubtreeMatcher</code>. Not all all methods
@@ -23,8 +23,17 @@ public class TestArtifact extends Artifact<TestArtifact> {
 		this.children = new ArtifactList<>();
 	}
 
+	public TestArtifact(int id) {
+		if (!(id >= 0 && id < nextID)) {
+			throw new AssertionError("Invalid ID");
+		}
+
+		this.id = id;
+		this.children = new ArtifactList<>();
+	}
+
 	@Override
-	public TestArtifact addChild(TestArtifact child) throws IOException {
+	public TestArtifact addChild(TestArtifact child) {
 		children.add(child);
 		return child;
 	}
@@ -121,7 +130,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
 	@Override
 	public String toString() {
-		return String.valueOf(id);
+		return getClass().getSimpleName() + ": " + String.valueOf(id);
 	}
 
 	@Override
