@@ -1,11 +1,11 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
-
-import java.io.IOException;
-import java.util.Set;
+import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
@@ -17,8 +17,55 @@ public class TestTrees {
 	 *
 	 * @return the trees
 	 */
-	private static Tuple<TestArtifact, TestArtifact> paperTree() {
-		return null;
+	private static TestArtifact paperTree() {
+		TestArtifact t = new TestArtifact();
+		TestArtifact t1 = new TestArtifact();
+		TestArtifact t2 = new TestArtifact();
+		TestArtifact t3 = new TestArtifact();
+		TestArtifact t4 = new TestArtifact();
+		TestArtifact t5 = new TestArtifact();
+		TestArtifact t6 = new TestArtifact();
+		TestArtifact t7 = new TestArtifact();
+		TestArtifact t8 = new TestArtifact();
+		TestArtifact t9 = new TestArtifact();
+		TestArtifact t10 = new TestArtifact();
+		TestArtifact t11 = new TestArtifact();
+		TestArtifact t12 = new TestArtifact();
+		TestArtifact t13 = new TestArtifact();
+		TestArtifact t14 = new TestArtifact();
+		TestArtifact t15 = new TestArtifact();
+		TestArtifact t16 = new TestArtifact();
+		TestArtifact t17 = new TestArtifact();
+		TestArtifact t18 = new TestArtifact();
+
+		t.addChild(t1);
+		t.addChild(t2);
+
+		t1.addChild(t3);
+		t1.addChild(t4);
+
+		t2.addChild(t5);
+		t2.addChild(t6);
+
+		t4.addChild(t7);
+		t4.addChild(t8);
+
+		t7.addChild(t11);
+		t7.addChild(t12);
+
+		t5.addChild(t9);
+		t5.addChild(t10);
+
+		t10.addChild(t13);
+		t10.addChild(t14);
+
+		t13.addChild(t15);
+		t13.addChild(t16);
+
+		t16.addChild(t17);
+		t16.addChild(t18);
+
+		return t;
 	}
 
 	/**
@@ -26,7 +73,7 @@ public class TestTrees {
 	 *
 	 * @return the trees
 	 */
-	private static Tuple<TestArtifact, TestArtifact> simpleTree() throws IOException {
+	private static Tuple<TestArtifact, TestArtifact> simpleTree() {
 		TestArtifact t0 = new TestArtifact();
 		TestArtifact t1 = new TestArtifact();
 		TestArtifact t2 = new TestArtifact();
@@ -41,22 +88,23 @@ public class TestTrees {
 		return new Tuple<>(t0, t2);
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		Tuple<TestArtifact, TestArtifact> trees = simpleTree();
 
 		BalancedSequence<TestArtifact> s = new BalancedSequence<>(trees.x);
 		BalancedSequence<TestArtifact> t = new BalancedSequence<>(trees.y);
 
-		Set<NewMatching<TestArtifact>> lcs = BalancedSequence.lcs(s, t);
+		MCESubtreeMatcher<TestArtifact> matcher = new MCESubtreeMatcher<>(new Matcher<TestArtifact>());
+		Matching<TestArtifact> matchings = matcher.match(null, trees.x, trees.y, MergeContext.LOOKAHEAD_FULL);
 
 		System.out.println("Left tree as BalancedSequence:");
 		System.out.println(s);
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-		System.out.println("Found Matchings:");
-		for (NewMatching<TestArtifact> lc : lcs) {
-			System.out.println(lc);
-		}
+//		System.out.println("Found Matchings:");
+//		for (NewMatching<TestArtifact> lc : matchings) {
+//			System.out.println(lc);
+//		}
 	}
 }
