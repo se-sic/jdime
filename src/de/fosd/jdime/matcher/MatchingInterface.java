@@ -46,7 +46,7 @@ public interface MatchingInterface<T extends Artifact<T>> {
 	 * @param context <code>MergeContext</code>
 	 * @param left <code>Artifact</code>
 	 * @param right <code>Artifact</code>
-	 * @param lookahead How many levels to keep searching for matches in the
+	 * @param lookAhead How many levels to keep searching for matches in the
 	 * subtree if the currently compared nodes are not equal. If there are no
 	 * matches within the specified number of levels, do not look for matches
 	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
