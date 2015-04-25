@@ -150,7 +150,8 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	@SuppressWarnings("unchecked") // the warning is inevitable but harmless
+	protected NewMatching<T> clone() throws CloneNotSupportedException {
+		return (NewMatching<T>) super.clone();
 	}
 }
