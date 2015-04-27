@@ -55,5 +55,5 @@ public interface MatchingInterface<T extends Artifact<T>> {
 	 * default ist to do no look-ahead matching.
 	 * @return tree of <code>Matching</code>s
 	 */
-	Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead);
+	Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead);
 }

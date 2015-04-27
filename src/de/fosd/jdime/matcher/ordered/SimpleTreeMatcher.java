@@ -23,18 +23,18 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.NewMatching;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
@@ -74,7 +74,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 	 * @return
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		String id = "stm";
 
 		int rootMatching = left.matches(right) ? 1 : 0;
@@ -87,7 +87,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 					LOG.trace(id + " - " + "early return while matching " + left.getId()
 							+ " and " + right.getId() + " (LookAhead = " + context.getLookAhead() + ")");
 				}
-				return new Matching<>(left, right, rootMatching);
+				return Matchings.of(left, right, rootMatching);
 			} else {
 				lookAhead = lookAhead - 1;
 			}
@@ -119,23 +119,27 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
 
-				Matching<T> w = matcher.match(context, left.getChild(i - 1), right.getChild(j - 1), lookAhead);
+				T leftChild = left.getChild(i - 1);
+				T rightChild = right.getChild(j - 1);
+				Matchings<T> w = matcher.match(context, leftChild, rightChild, lookAhead);
+				NewMatching<T> matching = w.get(leftChild, rightChild);
+
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
-							+ w.getScore()) {
+							+ matching.getScore()) {
 						matrixM[i][j] = matrixM[i][j - 1];
 						matrixT[i][j] = new Entry<>(Direction.LEFT, w);
 					} else {
-						matrixM[i][j] = matrixM[i - 1][j - 1] + w.getScore();
+						matrixM[i][j] = matrixM[i - 1][j - 1] + matching.getScore();
 						matrixT[i][j] = new Entry<>(Direction.DIAG, w);
 					}
 				} else {
 					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1]
-							+ w.getScore()) {
+							+ matching.getScore()) {
 						matrixM[i][j] = matrixM[i - 1][j];
 						matrixT[i][j] = new Entry<>(Direction.TOP, w);
 					} else {
-						matrixM[i][j] = matrixM[i - 1][j - 1] + w.getScore();
+						matrixM[i][j] = matrixM[i - 1][j - 1] + matching.getScore();
 						matrixT[i][j] = new Entry<>(Direction.DIAG, w);
 					}
 				}
@@ -144,7 +148,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 		int i = m;
 		int j = n;
-        List<Matching<T>> children = new ArrayList<>();
+        List<Matchings<T>> children = new ArrayList<>();
 
 		while (i >= 1 && j >= 1) {
 			switch (matrixT[i][j].getDirection()) {
@@ -160,7 +164,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 					// matrixM[i][j]-matrixM[i - 1][j - 1],
 					// t1.getChild(i - 1), t2.getChild(j - 1));
 					children.add(matrixT[i][j].getMatching());
-					matrixT[i][j].getMatching().setAlgorithm(id);
+					// matrixT[i][j].getMatching().setAlgorithm(id); TODO This matching was produced by a different Matcher, why set the algorithm to a new ID?
 				}
 				i--;
 				j--;
@@ -171,8 +175,13 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		}
 
 		// total matching score for these trees is the score of the matched children + the matching of the root nodes
-		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
-		matching.setChildren(children);
-		return matching;
+		NewMatching<T> matching = new NewMatching<>(left, right, matrixM[m][n] + rootMatching);
+		matching.setAlgorithm(id);
+
+		Matchings<T> matchings = new Matchings<>();
+		matchings.add(matching);
+		matchings.addAllMatchings(children);
+
+		return matchings;
 	}
 }

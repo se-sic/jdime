@@ -25,8 +25,8 @@ package de.fosd.jdime.matcher.ordered;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.Matchings;
 
 /**
  * @author Olaf Lessenich
@@ -69,5 +69,5 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead);
+	public abstract Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead);
 }
