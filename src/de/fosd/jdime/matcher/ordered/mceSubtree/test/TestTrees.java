@@ -3,7 +3,8 @@ package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 
@@ -95,16 +96,15 @@ public class TestTrees {
 		BalancedSequence<TestArtifact> t = new BalancedSequence<>(trees.y);
 
 		MCESubtreeMatcher<TestArtifact> matcher = new MCESubtreeMatcher<>(new Matcher<TestArtifact>());
-		Matching<TestArtifact> matchings = matcher.match(null, trees.x, trees.y, MergeContext.LOOKAHEAD_FULL);
+		Matchings<TestArtifact> matchings = matcher.match(null, trees.x, trees.y, MergeContext.LOOKAHEAD_FULL);
 
 		System.out.println("Left tree as BalancedSequence:");
 		System.out.println(s);
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-//		System.out.println("Found Matchings:");
-//		for (NewMatching<TestArtifact> lc : matchings) {
-//			System.out.println(lc);
-//		}
+		for (NewMatching<TestArtifact> matching : matchings.getMatchings()) {
+			System.out.println(matching);
+		}
 	}
 }
