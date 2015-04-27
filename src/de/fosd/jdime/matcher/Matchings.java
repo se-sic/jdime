@@ -23,7 +23,7 @@ public class Matchings<T extends Artifact<T>> {
 	}
 
 	public void add(NewMatching<T> matching) {
-		getMatchings().put(matching.getMatchedArtifacts(), matching);
+		getMappings().put(matching.getMatchedArtifacts(), matching);
 	}
 
 	public void addAll(Collection<? extends NewMatching<T>> matchings) {
@@ -38,14 +38,14 @@ public class Matchings<T extends Artifact<T>> {
 			return;
 		}
 
-		for (Map.Entry<UnorderedTuple<T, T>, NewMatching<T>> entry : matchings.getMatchings().entrySet()) {
+		for (Map.Entry<UnorderedTuple<T, T>, NewMatching<T>> entry : matchings.getMappings().entrySet()) {
 			if (!entry.getKey().equals(entry.getValue().getMatchedArtifacts())) {
 				LOG.warning("Ignoring a call to Matchings#addAllMatchings(Matching<T>) because the Matchings instance contains invalid mappings.");
 				return;
 			}
 		}
 
-		getMatchings().putAll(matchings.getMatchings());
+		getMappings().putAll(matchings.getMappings());
 	}
 
 	public void addAllMatchings(Collection<? extends Matchings<T>> matchings) {
@@ -55,11 +55,11 @@ public class Matchings<T extends Artifact<T>> {
 	}
 
 	public NewMatching<T> get(UnorderedTuple<T, T> artifacts) {
-		return getMatchings().get(artifacts);
+		return getMappings().get(artifacts);
 	}
 
 	public NewMatching<T> get(T left, T rigt) {
-		return getMatchings().get(UnorderedTuple.of(left, rigt));
+		return getMappings().get(UnorderedTuple.of(left, rigt));
 	}
 
 	public int getScore(UnorderedTuple<T, T> artifacts) {
@@ -75,14 +75,18 @@ public class Matchings<T extends Artifact<T>> {
 	}
 
 	public boolean contains(UnorderedTuple<T, T> artifacts) {
-		return getMatchings().containsKey(artifacts);
+		return getMappings().containsKey(artifacts);
 	}
 
 	public boolean contains(T left, T right) {
-		return getMatchings().containsKey(UnorderedTuple.of(left, right));
+		return getMappings().containsKey(UnorderedTuple.of(left, right));
 	}
 
-	public Map<UnorderedTuple<T, T>, NewMatching<T>> getMatchings() {
+	public Collection<NewMatching<T>> getMatchings() {
+		return matchings.values();
+	}
+
+	private Map<UnorderedTuple<T, T>, NewMatching<T>> getMappings() {
 
 		if (matchings == null) {
 			matchings = new HashMap<>();
