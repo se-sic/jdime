@@ -3,11 +3,18 @@ package de.fosd.jdime.matcher.ordered.mceSubtree;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
@@ -30,7 +37,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
     }
 
     @Override
-    public Matching<T> match(MergeContext context, T left, T right, int lookAhead) {
+    public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
         BalancedSequence<T> s;
         BalancedSequence<T> t;
 
@@ -64,8 +71,10 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
         matchings.addAll(getMatchings(rightSequences, leftSequences));
 
-        // TODO returning nonsense for now until we can return a Set of NewMatchings as produced by the BalancedSequence
-        return new Matching<>(left, right, 1);
+        Matchings<T> result = new Matchings<>();
+        result.addAll(matchings);
+
+        return result;
     }
 
     /**
