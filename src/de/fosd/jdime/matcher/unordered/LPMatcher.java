@@ -23,19 +23,21 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.NewMatching;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
 import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
@@ -106,14 +108,14 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 * @return
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
 				// roots contain distinct symbols and we cannot use the look-ahead feature
 				// therefore, we ignore the rest of the subtrees and return early to save time
-				return new Matching<>(left, right, rootMatching);
+				return Matchings.of(left, right, rootMatching);
 			} else {
 				lookAhead = lookAhead - 1;
 			}
@@ -128,15 +130,15 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return new Matching<>(left, right, rootMatching);
+			return Matchings.of(left, right, rootMatching);
 		}
 
 		@SuppressWarnings("unchecked")
-		Matching<T>[][] matching = new Matching[m][n];
+		Tuple<Integer, Matchings<T>>[][] matchtings = new Tuple[m][n];
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matching[i][j] = new Matching<>();
+				matchtings[i][j] = new Tuple<>(0, new Matchings<T>());
 			}
 		}
 
@@ -147,12 +149,13 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			childT1 = left.getChild(i);
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
-				Matching<T> w = matcher.match(context, childT1, childT2, lookAhead);
-				matching[i][j] = w;
+				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
+				NewMatching<T> matching = w.get(childT1, childT2);
+				matchtings[i][j] = new Tuple<>(matching.getScore(), w);
 			}
 		}
 
-		return solveLP(left, right, matching, rootMatching);
+		return solveLP(left, right, matchtings, rootMatching);
 	}
 
 	/**
@@ -166,8 +169,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 *            matrix of matchings
 	 * @return matching of root nodes
 	 */
-	private Matching<T> solveLP(final T left, final T right,
-			final Matching<T>[][] childrenMatching, final int rootMatching) {
+	private Matchings<T> solveLP(T left, T right, Tuple<Integer, Matchings<T>>[][] childrenMatching, int rootMatching) {
 		int m = childrenMatching.length;
 		int n = childrenMatching[0].length;
 		int width = m > n ? m : n;
@@ -249,7 +251,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			int j = indices[1];
 			// take care of dummy rows/cols
 			// TODO: verify that m and n are correct
-			int score = i < m && j < n ? childrenMatching[i][j].getScore() : 0;
+			int score = i < m && j < n ? childrenMatching[i][j].x : 0;
 			GLPK.glp_set_obj_coef(lp, c, score);
 		}
 
@@ -273,7 +275,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		// prevent precision problems
 		int objective = (int) Math.round(GLPK.glp_get_obj_val(lp));
 
-        List<Matching<T>> children = new ArrayList<>();
+        List<Matchings<T>> children = new ArrayList<>();
 
 		for (int c = 1; c <= cols; c++) {
 			if (Math.abs(1.0 - GLPK.glp_get_col_prim(lp, c)) < THRESHOLD) {
@@ -281,19 +283,23 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				int i = indices[0];
 				int j = indices[1];
 				if (i < m && j < n) { // TODO: verify that this is correct
-					Matching<T> curMatching = childrenMatching[i][j];
-					if (curMatching.getScore() > 0) {
-						children.add(curMatching);
-						curMatching.setAlgorithm(id);
+					Tuple<Integer, Matchings<T>> curMatching = childrenMatching[i][j];
+					if (curMatching.x > 0) {
+						children.add(curMatching.y);
+						// curMatching.setAlgorithm(id); TODO This matching was produced by a different Matcher, why set the algorithm to a new ID?
 					}
 				}
 			}
 		}
 		GLPK.glp_delete_prob(lp);
 
-		Matching<T> matching = new Matching<>(left, right, objective + rootMatching);
-		matching.setChildren(children);
+		NewMatching<T> matching = new NewMatching<>(left, right, objective + rootMatching);
+		matching.setAlgorithm(id);
 
-		return matching;
+		Matchings<T> result = new Matchings<>();
+		result.add(matching);
+		result.addAllMatchings(children);
+
+		return result;
 	}
 }
