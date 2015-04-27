@@ -22,10 +22,6 @@
  */
 package de.fosd.jdime.matcher;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
@@ -36,6 +32,10 @@ import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -82,7 +82,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final Matching<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
 		boolean fullyOrdered = true;
         boolean isOrdered = false;
 		boolean uniqueLabels = true;
@@ -162,44 +162,45 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Recursively marks corresponding nodes using an already computed matching.
-	 * The respective nodes are flagged with an appropriate
-	 * <code>matchingFlag</code> and references are set to each other.
+	 * Stores the <code>NewMatching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
+	 * match.
 	 *
-	 * @param context <code>MergeContext</code>
-	 * @param matching used to mark nodes
-	 * @param color color used to highlight the matching in debug output
+	 * @param context
+	 * 		the <code>MergeContext</code> of the current merge
+	 * @param matchings
+	 * 		the <code>Matchings</code> to store
+	 * @param color
+	 * 		the <code>Color</code> used to highlight the matchings in the debug output
 	 */
-	public final void storeMatching(final MergeContext context, final Matching<T> matching,
-			final Color color) {
-		T left = matching.getLeft();
-		T right = matching.getRight();
+	public final void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
-		if (matching.getScore() > 0) {
-			// TODO: collect statistical data about matching scores per language element and look-ahead setting
-			if (left.matches(right)) {
-				// regular top-down matching where the compared nodes do match
-				matching.setColor(color);
-				left.addMatching(matching);
-				right.addMatching(matching);
+		for (NewMatching<T> matching : matchings.getMatchings()) {
 
-				// just for statistics
-				context.matchedElement(left);
-				context.matchedElement(right);
-			} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
-				// the compared nodes do not match but look-ahead is active and found matchings in the subtree
+			if (matching.getScore() > 0) {
+				T left = matching.getLeft();
+				T right = matching.getRight();
 
-				// just for statistics
-				context.skippedLeftElement(left, matching.getScore());
-				context.skippedRightElement(left, matching.getScore());
-			} else {
-				// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
-				throw new RuntimeException("Tried to store matching tree when"
-						+ "lookahead is off and nodes do not match!");
-			}
+				// TODO: collect statistical data about matching scores per language element and look-ahead setting
+				if (left.matches(right)) {
+					// regular top-down matching where the compared nodes do match
+					matching.setHighlightColor(color);
+					left.addMatching(matching);
+					right.addMatching(matching);
 
-			for (Matching<T> childMatching : matching.getChildren()) {
-				storeMatching(context, childMatching, color);
+					// just for statistics
+					context.matchedElement(left);
+					context.matchedElement(right);
+				} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
+					// the compared nodes do not match but look-ahead is active and found matchings in the subtree
+
+					// just for statistics
+					context.skippedLeftElement(left, matching.getScore());
+					context.skippedRightElement(left, matching.getScore());
+				} else {
+					// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
+					String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";
+					throw new RuntimeException(msg);
+				}
 			}
 		}
 	}
