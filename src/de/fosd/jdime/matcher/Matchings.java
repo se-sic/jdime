@@ -94,4 +94,15 @@ public class Matchings<T extends Artifact<T>> {
 	public boolean isEmpty() {
 		return matchings == null || matchings.isEmpty();
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+
+		for (Map.Entry<UnorderedTuple<T, T>, NewMatching<T>> entry : matchings.entrySet()) {
+			builder.append(entry.getValue()).append(System.lineSeparator());
+		}
+
+		return builder.toString();
+	}
 }
