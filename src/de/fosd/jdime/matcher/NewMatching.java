@@ -80,6 +80,22 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 	}
 
 	/**
+	 * If one of the <code>Artifact</code>s contained in this <code>NewMatching</code> is referentially equal to
+	 * <code>artifact</code> this method returns the other <code>Artifact</code> in this <code>NewMatching</code>.
+	 * Otherwise <code>null</code> is returned.
+	 *
+	 * @param artifact
+	 * 		the <code>Artifact</code> whose match is to be returned
+	 * @return the match of the <code>artifact</code> or <code>null</code>
+	 */
+	public T getMatchingArtifact(Artifact<T> artifact) {
+		T left = getLeft();
+		T right = getRight();
+
+		return left == artifact ? right : right == artifact ? left : null;
+	}
+
+	/**
 	 * Returns the score of the matching.
 	 *
 	 * @return the score
@@ -151,7 +167,7 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 
 	@Override
 	@SuppressWarnings("unchecked") // the warning is inevitable but harmless
-	protected NewMatching<T> clone() throws CloneNotSupportedException {
+	public NewMatching<T> clone() throws CloneNotSupportedException {
 		return (NewMatching<T>) super.clone();
 	}
 }
