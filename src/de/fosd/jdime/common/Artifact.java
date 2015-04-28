@@ -22,13 +22,14 @@
  */
 package de.fosd.jdime.common;
 
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.NewMatching;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Set;
-
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
 
 /**
  * @author Olaf Lessenich
@@ -99,7 +100,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Map to store matches.
 	 */
-	protected LinkedHashMap<Revision, Matching<T>> matches = null;
+	protected LinkedHashMap<Revision, NewMatching<T>> matches = null;
 
 	/**
 	 * Whether the artifact has been already merged.
@@ -136,17 +137,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Adds a matching.
 	 *
 	 * @param matching
-	 *            matching to be added
+	 * 		matching to be added
 	 */
-	@SuppressWarnings("unchecked")
-	public final void addMatching(final Matching<T> matching) {
+	public void addMatching(NewMatching<T> matching) {
 		if (matches == null) {
 			matches = new LinkedHashMap<>();
 		}
 
-		assert (matching != null);
-		matches.put(matching.getMatchingArtifact((T) this).getRevision(),
-				matching);
+		matches.put(matching.getMatchingArtifact(this).getRevision(), matching);
 	}
 
 	/**
