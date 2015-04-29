@@ -80,12 +80,32 @@ public class UnorderedTuple<X, Y> {
 	}
 
 	/**
+	 * Sets the first object contained in the <code>UnorderedTuple</code> to the given value.
+	 *
+	 * @param x
+	 * 		the new first object
+	 */
+	public void setX(X x) {
+		this.x = x;
+	}
+
+	/**
 	 * Returns the second object contained in the <code>UnorderedTuple</code>.
 	 *
 	 * @return the second object
 	 */
 	public Y getY() {
 		return y;
+	}
+
+	/**
+	 * Sets the second object contained in the <code>UnorderedTuple</code> to the given value.
+	 *
+	 * @param y
+	 * 		the new second object
+	 */
+	public void setY(Y y) {
+		this.y = y;
 	}
 
 	@Override
