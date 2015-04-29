@@ -167,7 +167,12 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 
 	@Override
 	@SuppressWarnings("unchecked") // the warning is inevitable but harmless
-	public NewMatching<T> clone() throws CloneNotSupportedException {
-		return (NewMatching<T>) super.clone();
+	public NewMatching<T> clone() {
+
+		try {
+			return (NewMatching<T>) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
