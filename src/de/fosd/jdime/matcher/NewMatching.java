@@ -189,7 +189,10 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 	public NewMatching<T> clone() {
 
 		try {
-			return (NewMatching<T>) super.clone();
+			NewMatching<T> clone = (NewMatching<T>) super.clone();
+			clone.matchedArtifacts = matchedArtifacts.clone();
+
+			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e);
 		}

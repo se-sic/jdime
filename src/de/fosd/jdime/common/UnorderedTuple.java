@@ -35,7 +35,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  * 		the type of the second object
  * @author Georg Seibt
  */
-public class UnorderedTuple<X, Y> {
+public class UnorderedTuple<X, Y> implements Cloneable {
 
 	private X x;
 	private Y y;
@@ -141,5 +141,16 @@ public class UnorderedTuple<X, Y> {
 		int hashY = y == null ? 0 : y.hashCode();
 
 		return hashX ^ hashY;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public UnorderedTuple<X, Y> clone() {
+
+		try {
+			return (UnorderedTuple<X, Y>) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
