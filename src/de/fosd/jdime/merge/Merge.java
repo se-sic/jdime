@@ -23,10 +23,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -35,9 +31,13 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Olaf Lessenich
@@ -79,13 +79,13 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 		Diff<T> diff = new Diff<>();
 
-		Matching<T> m;
+		NewMatching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge
 
 				// diff base left
-				m = diff.compare(context, base, left, Color.GREEN);
+				m = diff.compare(context, base, left, Color.GREEN).get(base, left);
 				if (LOG.isDebugEnabled()) {
 					if (m.getScore() == 0) {
 						LOG.debug(base.getId() + " and " + left.getId()
@@ -94,7 +94,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 				}
 
 				// diff base right
-				m = diff.compare(context, base, right, Color.GREEN);
+				m = diff.compare(context, base, right, Color.GREEN).get(base, right);
 				if (LOG.isDebugEnabled()) {
 					if (m.getScore() == 0) {
 						LOG.debug(base.getId() + " and " + right.getId()
@@ -104,7 +104,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 
 			// diff left right
-			m = diff.compare(context, left, right, Color.BLUE);
+			m = diff.compare(context, left, right, Color.BLUE).get(left, right);
 
 			// TODO: compute and write diff stats
 			if (context.isDiffOnly() && left.isRoot()

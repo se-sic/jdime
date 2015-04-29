@@ -22,12 +22,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
-import java.util.Iterator;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -37,7 +31,12 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.NewMatching;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * @author Olaf Lessenich
@@ -218,11 +217,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge left
 				if (!leftChild.isMerged()) {
-					Matching<T> mRight = leftChild.getMatching(r);
+					NewMatching<T> mRight = leftChild.getMatching(r);
 					T rightMatch = mRight.getMatchingArtifact(leftChild);
 
 					// determine whether the child is 2 or 3-way merged
-					Matching<T> mBase = leftChild.getMatching(b);
+					NewMatching<T> mBase = leftChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
@@ -250,11 +249,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge right
 				if (!rightChild.isMerged()) {
-					Matching<T> mLeft = rightChild.getMatching(l);
+					NewMatching<T> mLeft = rightChild.getMatching(l);
 					T leftMatch = mLeft.getMatchingArtifact(rightChild);
 
 					// determine whether the child is 2 or 3-way merged
-					Matching<T> mBase = rightChild.getMatching(b);
+					NewMatching<T> mBase = rightChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
