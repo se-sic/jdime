@@ -96,6 +96,25 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 	}
 
 	/**
+	 * Replaces one of the <code>Artifact</code>s contained in this <code>NewMatching</code> if it has the same id (as
+	 * per {@link Artifact#getId()}) with <code>artifact</code>. Do not use if you do not exactly know what you are
+	 * doing.
+	 *
+	 * @param artifact
+	 * 		the artifact to possibly insert into this <code>NewMatching</code>
+	 */
+	public void updateMatching(T artifact) {
+		T left = getLeft();
+		T right = getRight();
+
+		if (left.getId().equals(artifact.getId())) {
+			matchedArtifacts.setX(artifact);
+		} else if (right.getId().equals(artifact.getId())) {
+			matchedArtifacts.setY(artifact);
+		}
+	}
+
+	/**
 	 * Returns the score of the matching.
 	 *
 	 * @return the score
