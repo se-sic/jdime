@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,17 +57,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
          * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
          * already in the left tree.
          */
-        for (ListIterator<BalancedSequence<T>> it = rightSeqs.listIterator(); it.hasNext(); ) {
-            BalancedSequence<T> rightSeq = it.next();
-
-            for (BalancedSequence<T> leftSeq : leftSeqs) {
-
-                if (rightSeq.getRoot().matches(leftSeq.getRoot())) {
-                    it.remove();
-                    break;
-                }
-            }
-        }
+        rightSeqs.removeIf(rightSeq -> leftSeqs.stream().anyMatch(leftSeq -> rightSeq.getRoot().matches(leftSeq.getRoot())));
 
         matchings.addAll(getMatchings(rightSeqs, leftSeqs));
 
