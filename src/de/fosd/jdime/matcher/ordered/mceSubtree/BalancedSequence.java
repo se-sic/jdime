@@ -393,20 +393,18 @@ public class BalancedSequence<T extends Artifact<T>> {
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        BalancedSequence that = (BalancedSequence) o;
+        BalancedSequence<?> that = (BalancedSequence<?>) o;
 
-        if (!seq.equals(that.seq)) {
-            return false;
-        }
-
-        return true;
+        return seq.equals(that.seq);
     }
 
     @Override
@@ -416,12 +414,6 @@ public class BalancedSequence<T extends Artifact<T>> {
 
     @Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder(seq.size());
-
-        for (T bit : seq) {
-            builder.append((bit == null) ? '1' : '0');
-        }
-
-		return builder.toString();
+		return seq.stream().map(bit -> bit == null ? "1" : "0").reduce("", String::concat);
 	}
 }
