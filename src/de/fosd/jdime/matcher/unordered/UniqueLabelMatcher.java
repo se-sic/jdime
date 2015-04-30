@@ -105,7 +105,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				Matchings<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
-				NewMatching<T> matching = childMatching.get(leftChild, rightChild);
+				NewMatching<T> matching = childMatching.get(leftChild, rightChild).get();
 
 				childrenMatchings.add(childMatching);
 				sum += matching.getScore();

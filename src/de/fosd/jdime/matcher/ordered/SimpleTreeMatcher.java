@@ -122,7 +122,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 				T leftChild = left.getChild(i - 1);
 				T rightChild = right.getChild(j - 1);
 				Matchings<T> w = matcher.match(context, leftChild, rightChild, lookAhead);
-				NewMatching<T> matching = w.get(leftChild, rightChild);
+				NewMatching<T> matching = w.get(leftChild, rightChild).get();
 
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]

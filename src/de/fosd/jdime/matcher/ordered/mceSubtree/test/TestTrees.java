@@ -103,7 +103,7 @@ public class TestTrees {
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-		for (NewMatching<TestArtifact> matching : matchings.getMatchings()) {
+		for (NewMatching<TestArtifact> matching : matchings) {
 			System.out.println(matching);
 		}
 	}

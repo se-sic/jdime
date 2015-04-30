@@ -174,7 +174,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 */
 	public final void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
-		for (NewMatching<T> matching : matchings.getMatchings()) {
+		for (NewMatching<T> matching : matchings) {
 
 			if (matching.getScore() > 0) {
 				T left = matching.getLeft();
