@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
@@ -49,18 +50,18 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
             t = new BalancedSequence<>(right, lookAhead);
         }
 
-        List<BalancedSequence<T>> leftSequences = getSequences(preOrder(s.getRoot()));
-        List<BalancedSequence<T>> rightSequences = getSequences(preOrder(t.getRoot()));
-        Set<NewMatching<T>> matchings = getMatchings(leftSequences, rightSequences);
+        List<BalancedSequence<T>> leftSeqs = preOrder(s.getRoot()).stream().map(BalancedSequence<T>::new).collect(Collectors.toList());
+        List<BalancedSequence<T>> rightSeqs = preOrder(t.getRoot()).stream().map(BalancedSequence<T>::new).collect(Collectors.toList());
+        Set<NewMatching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
         /*
          * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
          * already in the left tree.
          */
-        for (ListIterator<BalancedSequence<T>> it = rightSequences.listIterator(); it.hasNext(); ) {
+        for (ListIterator<BalancedSequence<T>> it = rightSeqs.listIterator(); it.hasNext(); ) {
             BalancedSequence<T> rightSeq = it.next();
 
-            for (BalancedSequence<T> leftSeq : leftSequences) {
+            for (BalancedSequence<T> leftSeq : leftSeqs) {
 
                 if (rightSeq.getRoot().matches(leftSeq.getRoot())) {
                     it.remove();
@@ -69,7 +70,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
             }
         }
 
-        matchings.addAll(getMatchings(rightSequences, leftSequences));
+        matchings.addAll(getMatchings(rightSeqs, leftSeqs));
 
         Matchings<T> result = new Matchings<>();
         result.addAll(matchings);
@@ -128,23 +129,5 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         }
 
         return nodes;
-    }
-
-    /**
-     * Transforms the <code>List of T</code> into a list containing the corresponding <code>BalancedSequence</code>s.
-     *
-     * @param nodes
-     *         the nodes to transform
-     *
-     * @return the <code>BalancedSequence</code>s of the nodes
-     */
-    private List<BalancedSequence<T>> getSequences(List<T> nodes) {
-        List<BalancedSequence<T>> sequences = new ArrayList<>(nodes.size());
-
-        for (T node : nodes) {
-            sequences.add(new BalancedSequence<>(node));
-        }
-
-        return sequences;
     }
 }
