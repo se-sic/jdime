@@ -169,7 +169,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @return an empty sequence
      */
     private BalancedSequence<T> emptySeq() {
-        return new BalancedSequence<>(new ArrayList<>());
+        return new BalancedSequence<T>(new ArrayList<>());
     }
 
     /**
