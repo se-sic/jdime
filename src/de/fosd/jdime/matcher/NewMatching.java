@@ -8,7 +8,7 @@ import de.fosd.jdime.common.UnorderedTuple;
  *
  * @param <T> the type of the <code>Artifact</code>
  */
-public class NewMatching<T extends Artifact<T>> implements Cloneable {
+public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable<NewMatching<T>> {
 
 	/**
 	 * The algorithm that found the matching.
@@ -196,5 +196,22 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable {
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public int compareTo(NewMatching<T> o) {
+		int dif = matchedArtifacts.getX().compareTo(o.getMatchedArtifacts().getX());
+
+		if (dif != 0) {
+			return dif;
+		}
+
+		dif = matchedArtifacts.getY().compareTo(o.getMatchedArtifacts().getY());
+
+		if (dif != 0) {
+			return dif;
+		}
+
+		return score - o.score;
 	}
 }

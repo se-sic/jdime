@@ -8,6 +8,10 @@ import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
  */
@@ -103,7 +107,10 @@ public class TestTrees {
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-		for (NewMatching<TestArtifact> matching : matchings) {
+		List<NewMatching<TestArtifact>> l = new ArrayList<>(matchings);
+		Collections.sort(l);
+
+		for (NewMatching<TestArtifact> matching : l) {
 			System.out.println(matching);
 		}
 	}
