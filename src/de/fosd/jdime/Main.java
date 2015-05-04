@@ -335,8 +335,7 @@ public final class Main {
 	private static void info(final MergeContext context, final Options options) {
 		version(context);
 		System.out.println();
-		System.out.println(
-				"Run the program with the argument '--help' in " + "order to retrieve information on its usage!");
+		System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
 	}
 
 	/**
