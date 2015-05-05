@@ -25,6 +25,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 import de.fosd.jdime.common.Artifact;
@@ -60,6 +61,9 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String leftCondition;
+	private String rightCondition;
+
 	/**
 	 * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
 	 * will be output into <code>target</code> if output is enabled. <code>inputArtifacts</code> may not be
@@ -73,6 +77,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * 		the input artifacts
 	 * @param target
 	 * 		the output artifact
+	 * @param leftCondition condition for left alternative
+	 * @param rightCondition condition for right alternative
 	 *
 	 * @throws IllegalArgumentException
 	 * 		if the size of <code>inputArtifacts</code> is invalid
@@ -82,7 +88,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @throws FileNotFoundException
 	 * 		if the dummy file used as BaseArtifact in a two-way-merge can not be created
 	 */
-	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
+	public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
+						  String rightCondition) throws FileNotFoundException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 
 		this.target = target;
@@ -115,6 +122,11 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		left.setRevision(new Revision(MergeType.THREEWAY.getRevision(0)));
 		base.setRevision(new Revision(MergeType.THREEWAY.getRevision(1)));
 		right.setRevision(new Revision(MergeType.THREEWAY.getRevision(2)));
+
+		if (leftCondition != null || rightCondition != null) {
+			this.leftCondition = leftCondition;
+			this.rightCondition = rightCondition;
+		}
 	}
 
 	/**
@@ -125,11 +137,13 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * 		the <code>Artifact</code>s to be merged
 	 * @param target
 	 * 		the output <code>Artifact</code>
+	 * @param leftCondition condition for left alternative
+	 * @param rightCondition condition for right alternative
 	 *
 	 * @throws IllegalArgumentException
 	 * 		if <code>mergeTriple</code> is invalid
 	 */
-	public MergeOperation(MergeTriple<T> mergeTriple, T target) {
+	public MergeOperation(MergeTriple<T> mergeTriple, T target, String leftCondition, String rightCondition) {
 		Objects.requireNonNull(mergeTriple, "mergeTriple must not be null!");
 
 		if (!mergeTriple.isValid()) {
@@ -138,6 +152,11 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		this.mergeTriple = mergeTriple;
 		this.target = target;
+
+		if (leftCondition != null || rightCondition != null) {
+			this.leftCondition = leftCondition;
+			this.rightCondition = rightCondition;
+		}
 	}
 
 	@Override

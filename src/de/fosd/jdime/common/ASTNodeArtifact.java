@@ -181,7 +181,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
 			throws IOException {
-		if (child.isConflict()) {
+		if (child.isConflict() || child.isChoice()) {
 			child.setParent(this);
 			children.add(child);
 			return child;
@@ -233,7 +233,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	public final void copyArtifact(final ASTNodeArtifact destination)
 			throws IOException {
 		ASTNodeArtifact copy = destination.addChild(this);
-		if (!isConflict() && hasChildren()) {
+		if (!isConflict() && !isChoice() && hasChildren()) {
 			for (ASTNodeArtifact child : getChildren()) {
 				child.copyArtifact(copy);
 			}
@@ -565,7 +565,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
 				
-				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent);
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent,
+						left.getRevision().getName(), right.getRevision().getName());
 				conflictOp.apply(context);
 			}
 		}
@@ -691,6 +692,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		conflict.setConflict(left, right);
 
 		return conflict;
+	}
+
+	@Override
+	public final ASTNodeArtifact createChoiceDummy(final ASTNodeArtifact type, final String condition, final ASTNodeArtifact artifact) {
+		ASTNodeArtifact choice;
+
+		choice = new ASTNodeArtifact(type.astnode.fullCopy());
+		return choice;
 	}
 
 	/**

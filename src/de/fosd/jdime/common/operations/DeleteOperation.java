@@ -23,6 +23,8 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -56,14 +58,26 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	private T artifact;
 
 	/**
-	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is deleted by the operation
+	 * Output Artifact.
 	 */
-	public DeleteOperation(final T artifact) {
+	private T target;
+
+	private String condition;
+
+	/**
+	 * Class constructor.
+	 * @param artifact that is added by the operation
+	 * @param target output artifact
+	 * @param condition condition under which the node is NOT deleted
+	 */
+	public DeleteOperation(final T artifact, final T target, String condition) {
 		super();
 		this.artifact = artifact;
+		this.target = target;
+
+		if (condition != null) {
+			this.condition = condition;
+		}
 	}
 
 	/*
@@ -80,7 +94,27 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
+		// This method does actually nothing!
+		//
+		// Why?
+		// While merging, the target node is created with no children.
+		// Therefore if a deletion of an element is applied during the merge,
+		// nothing has to be done.
+		//
+		// For ASTNodeArtifacts, the important method we rely on here is
+		// StructuredStrategy.merge(), which calls
+		// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+		// which then calls deleteChildren() on the created Program.
+
+		if (context.isConditionalMerge() && condition != null) {
+			// we need to insert a choice node
+			T choice = target.createChoiceDummy(artifact, condition, artifact);
+			assert (choice.isChoice());
+			choice.copyArtifact(target);
+		}
+
 		if (context.hasStats()) {
+			// but for the statistics, we have to look at the element
 			Stats stats = context.getStats();
 			stats.incrementOperation(this);
 			StatsElement element = stats.getElement(artifact

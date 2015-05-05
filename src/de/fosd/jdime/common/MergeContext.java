@@ -72,6 +72,11 @@ public class MergeContext implements Cloneable {
 	private boolean bugfixing = false;
 
 	/**
+	 * Whether merge inserts choice nodes instead of direct merging.
+	 */
+	private boolean conditionalMerge = false;
+
+	/**
 	 * Whether to run only the diff.
 	 */
 	private boolean diffOnly = false;
@@ -598,5 +603,16 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setConsecutive(final boolean consecutive) {
 		this.consecutive = consecutive;
+	}
+
+	/**
+	 * Whether merge inserts choice nodes instead of direct merging.
+	 */
+	public boolean isConditionalMerge() {
+		return conditionalMerge;
+	}
+
+	public void setConditionalMerge(boolean conditionalMerge) {
+		this.conditionalMerge = conditionalMerge;
 	}
 }

@@ -140,7 +140,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(triple.getMergeType(), left, base, right);
 
-				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
+				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode,
+						left.getRevision().getName(), right.getRevision().getName());
 
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("ASTMOperation.apply(context)");

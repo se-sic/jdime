@@ -23,6 +23,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -49,25 +50,32 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String leftCondition;
+	private String rightCondition;
+
 	/**
 	 * Class constructor.
 	 *
-	 * @param type
-	 *            type
-	 * @param left
-	 *            left alternatives
-	 * @param right
-	 *            right alternatives
-	 * @param target
-	 *            target node
+	 * @param type type
+	 * @param left left alternatives
+	 * @param right right alternatives
+	 * @param target target node
 	 */
-	public ConflictOperation(final T type, final T left, final T right,
-			final T target) {
+	public ConflictOperation(final T type, final T left, final T right, final T target, final String leftCondition,
+							 final String rightCondition) {
 		super();
 		this.type = type;
 		this.left = left;
 		this.right = right;
 		this.target = target;
+
+		if (leftCondition != null) {
+			this.leftCondition = leftCondition;
+		}
+
+		if (rightCondition != null) {
+			this.rightCondition = rightCondition;
+		}
 	}
 
 	/*
@@ -90,9 +98,17 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 			}
 
 			assert (target.exists());
-			T conflict = target.createConflictDummy(type, left, right);
-			assert (conflict.isConflict());
-			conflict.copyArtifact(target);
+
+			if (context.isConditionalMerge() && leftCondition != null && rightCondition != null) {
+				T choice = target.createChoiceDummy(type, leftCondition, left);
+				assert (choice.isChoice());
+				choice.addVariant(rightCondition, right);
+				choice.copyArtifact(target);
+			} else {
+				T conflict = target.createConflictDummy(type, left, right);
+				assert (conflict.isConflict());
+				conflict.copyArtifact(target);
+			}
 		}
 	}
 

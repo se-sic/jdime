@@ -24,6 +24,7 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -90,6 +91,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Whether this artifact represents a conflict.
 	 */
 	private boolean conflict = false;
+
+	/**
+	 * Whether this artifact represents a choice node.
+	 */
+	private boolean choice = false;
+
+	protected HashMap<String, T> variants;
 
 	/**
 	 * If true, this artifact is an empty dummy.
@@ -172,8 +180,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Copies an @code{Artifact}.
 	 *
-	 * @param destination
-	 *            destination artifact
+	 * @param destination destination artifact
 	 * @throws IOException
 	 *             If an input or output exception occurs.
 	 */
@@ -204,6 +211,17 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	public abstract T createConflictDummy(final T type, final T left,
 			final T right) throws FileNotFoundException;
+
+	/**
+	 * Returns a choice artifact.
+	 *
+	 * @param type of node
+	 * @param condition presence condition
+	 * @param artifact conditional artifact
+	 * @return choice artifact
+	 * @throws FileNotFoundException If a file is not found
+	 */
+	public abstract T createChoiceDummy(final T type, final String condition, final T artifact) throws FileNotFoundException;
 
 	/**
 	 * Returns a dummy @code{Artifact}.
@@ -504,6 +522,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
+	 * Returns true if the artifact is a choice node.
+	 *
+	 * @return true if the artifact represents a choice node
+	 */
+	public final boolean isChoice() {
+		return choice;
+	}
+
+	/**
 	 * Returns true if the artifact is empty.
 	 *
 	 * @return true if the artifact is empty
@@ -604,6 +631,25 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
+	}
+
+	/**
+	 * Marks this artifact as a choice.
+	 *
+	 * @param condition presence condition
+	 * @param artifact conditional artifact
+	 */
+	public final void setChoice(final String condition, final T artifact) {
+		this.choice = true;
+		addVariant(condition, artifact);
+	}
+
+	public void addVariant(final String condition, final T artifact) {
+		if (!choice) {
+			throw new RuntimeException("addVariant() can only be called on choice nodes!");
+		}
+
+		variants.put(condition, artifact);
 	}
 
 	/**

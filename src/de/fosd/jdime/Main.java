@@ -410,9 +410,7 @@ public final class Main {
 	public static void merge(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
-		Operation<FileArtifact> merge =
-				new MergeOperation<>(context.getInputFiles(),
-						context.getOutputFile());
+		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null);
 		merge.apply(context);
 	}
 

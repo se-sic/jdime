@@ -124,12 +124,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 									+ "has changes in subtree.");
 						}
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+								leftChild, leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								leftChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
 						delOp.apply(context);
 					}
 				} else {
@@ -143,8 +142,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						LOG.trace(prefix(leftChild) + "adding change");
 					}
 					// add the left change
-					AddOperation<T> addOp = new AddOperation<>(leftChild,
-							target);
+					AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
 					leftChild.setMerged(true);
 					addOp.apply(context);
 				}
@@ -175,12 +173,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						}
 						// insertion-deletion-conflict
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+								rightChild, null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								rightChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
 						delOp.apply(context);
 					}
 				} else {
@@ -194,8 +191,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						LOG.trace(prefix(rightChild) + "adding change");
 					}
 					// add the right change
-					AddOperation<T> addOp = new AddOperation<>(rightChild,
-							target);
+					AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
 					rightChild.setMerged(true);
 					addOp.apply(context);
 				}
@@ -234,8 +230,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeTriple<T> childTriple = new MergeTriple<>(childType,
 							leftChild, baseChild, rightMatch);
 
-					MergeOperation<T> mergeOp = new MergeOperation<>(
-							childTriple, targetChild);
+					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
 					leftChild.setMerged(true);
 					rightMatch.setMerged(true);
@@ -266,8 +261,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeTriple<T> childTriple = new MergeTriple<>(childType,
 							leftMatch, baseChild, rightChild);
 
-					MergeOperation<T> mergeOp = new MergeOperation<>(
-							childTriple, targetChild);
+					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
 					leftMatch.setMerged(true);
 					rightChild.setMerged(true);

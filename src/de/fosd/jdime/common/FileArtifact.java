@@ -170,6 +170,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			throws IOException {
 		assert (destination != null);
 
+		// files and directories are copied regardless of condition
+
 		if (destination.isFile()) {
 			if (isFile()) {
 				if (LOG.isDebugEnabled()) {
@@ -653,6 +655,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	@Override
 	public final FileArtifact createConflictDummy(final FileArtifact type,
 			final FileArtifact left, final FileArtifact right)
+			throws FileNotFoundException {
+		throw new NotYetImplementedException();
+	}
+
+	@Override
+	public final FileArtifact createChoiceDummy(final FileArtifact type, final String condition,
+												final FileArtifact artifact)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
 	}

@@ -23,6 +23,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -60,18 +61,22 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String condition;
+
 	/**
 	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is added by the operation.
-	 * @param target
-	 *            output artifact
+	 * @param artifact that is added by the operation
+	 * @param target output artifact
+	 * @param condition presence condition
 	 */
-	public AddOperation(final T artifact, final T target) {
+	public AddOperation(final T artifact, final T target, String condition) {
 		super();
 		this.artifact = artifact;
 		this.target = target;
+
+		if (condition != null) {
+			this.condition = condition;
+		}
 	}
 
 	/*
@@ -95,7 +100,13 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
 			assert (target.exists());
 
-			artifact.copyArtifact(target);
+			if (context.isConditionalMerge() && condition != null) {
+				T choice = target.createChoiceDummy(artifact, condition, artifact);
+				assert (choice.isChoice());
+				choice.copyArtifact(target);
+			} else {
+				artifact.copyArtifact(target);
+			}
 		}
 
 		if (context.hasStats()) {

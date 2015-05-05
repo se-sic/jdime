@@ -27,10 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.*;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -72,6 +69,10 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T base = triple.getBase();
 		T right = triple.getRight();
 		T target = operation.getTarget();
+
+		Revision l = left.getRevision();
+		Revision b = base.getRevision();
+		Revision r = right.getRevision();
 
 		if (!context.isDiffOnly() && !context.isPretend()) {
 			Objects.requireNonNull(target, "target must not be null!");
@@ -158,15 +159,14 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					for (T rightChild : right.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+								rightChild, null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;
 				} else {
 					for (T rightChild : rightChildren) {
 
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								rightChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, l.getName());
 						delOp.apply(context);
 					}
 					return;
@@ -182,14 +182,13 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					for (T leftChild : left.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+								leftChild, leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;
 				} else {
 					for (T leftChild : leftChildren) {
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								leftChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, r.getName());
 						delOp.apply(context);
 					}
 					return;
