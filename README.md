@@ -53,6 +53,14 @@ native libraries appropriate for your platform. `X_XX` refers to the version of 
 After running the command given above the directory `build/install/JDime/bin` will contain Unix and Windows scripts
 that you can use to start the application.
 
+Please note that, using gradle 2.3 or newer, you should use the task `installDist` instead of `installApp`.
+
+Instead of passing the library paths as command line arguments, you can also store them to a `gradle.properties` file, which looks like this:
+```
+glpkJava=PATH
+glpk=PATH
+```
+
 ## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows: 
 
