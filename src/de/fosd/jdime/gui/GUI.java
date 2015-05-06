@@ -66,7 +66,9 @@ public class GUI extends Application {
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
 
 		File leftArtifact = chooser.showOpenDialog(window);
-		left.setText(leftArtifact.getAbsolutePath());
+		if (leftArtifact != null) {
+			left.setText(leftArtifact.getAbsolutePath());
+		}
 	}
 
 	public void chooseBase(ActionEvent event) {
@@ -74,7 +76,9 @@ public class GUI extends Application {
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
 
 		File baseArtifact = chooser.showOpenDialog(window);
-		base.setText(baseArtifact.getAbsolutePath());
+		if (baseArtifact != null) {
+			base.setText(baseArtifact.getAbsolutePath());
+		}
 	}
 
 	public void chooseRight(ActionEvent event) {
@@ -82,7 +86,9 @@ public class GUI extends Application {
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
 
 		File rightArtifact = chooser.showOpenDialog(window);
-		right.setText(rightArtifact.getAbsolutePath());
+		if (rightArtifact != null) {
+			right.setText(rightArtifact.getAbsolutePath());
+		}
 	}
 
 	public void chooseJDime(ActionEvent event) {
@@ -90,7 +96,9 @@ public class GUI extends Application {
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
 
 		File jDimeBinary = chooser.showOpenDialog(window);
-		jDime.setText(jDimeBinary.getAbsolutePath());
+		if (jDimeBinary != null) {
+			jDime.setText(jDimeBinary.getAbsolutePath());
+		}
 	}
 
 	public void runClicked() {
