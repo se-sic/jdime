@@ -118,7 +118,7 @@ public class UnorderedTuple<X, Y> implements Cloneable {
 			return false;
 		}
 
-		Tuple<?, ?> tuple = (Tuple<?, ?>) o;
+		UnorderedTuple<?, ?> tuple = (UnorderedTuple<?, ?>) o;
 
 		EqualsBuilder eqBuilder = new EqualsBuilder();
 		eqBuilder.append(x, tuple.x);
