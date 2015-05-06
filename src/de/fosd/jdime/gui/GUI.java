@@ -38,6 +38,7 @@ public class GUI extends Application {
 	public Button runBtn;
 	public Button jDimeBtn;
 
+	private File lastChooseDir;
 	private List<TextField> textFields;
 	private List<Button> buttons;
 
@@ -61,42 +62,49 @@ public class GUI extends Application {
 		primaryStage.show();
 	}
 
-	public void chooseLeft(ActionEvent event) {
+	private File getChosenFile(ActionEvent event) {
 		FileChooser chooser = new FileChooser();
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
 
-		File leftArtifact = chooser.showOpenDialog(window);
+		if (lastChooseDir != null && lastChooseDir.isDirectory()) {
+			chooser.setInitialDirectory(lastChooseDir);
+		}
+
+		return chooser.showOpenDialog(window);
+	}
+
+	public void chooseLeft(ActionEvent event) {
+		File leftArtifact = getChosenFile(event);
+
 		if (leftArtifact != null) {
+			lastChooseDir = leftArtifact.getParentFile();
 			left.setText(leftArtifact.getAbsolutePath());
 		}
 	}
 
 	public void chooseBase(ActionEvent event) {
-		FileChooser chooser = new FileChooser();
-		Window window = ((Node) event.getTarget()).getScene().getWindow();
+		File baseArtifact = getChosenFile(event);
 
-		File baseArtifact = chooser.showOpenDialog(window);
 		if (baseArtifact != null) {
+			lastChooseDir = baseArtifact.getParentFile();
 			base.setText(baseArtifact.getAbsolutePath());
 		}
 	}
 
 	public void chooseRight(ActionEvent event) {
-		FileChooser chooser = new FileChooser();
-		Window window = ((Node) event.getTarget()).getScene().getWindow();
+		File rightArtifact = getChosenFile(event);
 
-		File rightArtifact = chooser.showOpenDialog(window);
 		if (rightArtifact != null) {
+			lastChooseDir = rightArtifact.getParentFile();
 			right.setText(rightArtifact.getAbsolutePath());
 		}
 	}
 
 	public void chooseJDime(ActionEvent event) {
-		FileChooser chooser = new FileChooser();
-		Window window = ((Node) event.getTarget()).getScene().getWindow();
+		File jDimeBinary = getChosenFile(event);
 
-		File jDimeBinary = chooser.showOpenDialog(window);
 		if (jDimeBinary != null) {
+			lastChooseDir = jDimeBinary.getParentFile();
 			jDime.setText(jDimeBinary.getAbsolutePath());
 		}
 	}
