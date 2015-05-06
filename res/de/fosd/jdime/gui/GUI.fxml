@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.fosd.jdime.gui.GUI">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" />
   </columnConstraints>
@@ -32,27 +32,27 @@
                   <TextField fx:id="left" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button mnemonicParsing="false" onAction="#chooseLeft" text="Choose" GridPane.columnIndex="1" />
+            <Button fx:id="leftBtn" mnemonicParsing="false" onAction="#chooseLeft" text="Choose" GridPane.columnIndex="1" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="1">
                <children>
                   <Label prefWidth="37.0" text="Base" GridPane.rowIndex="1" />
                   <TextField fx:id="base" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button mnemonicParsing="false" onAction="#chooseBase" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button fx:id="baseBtn" mnemonicParsing="false" onAction="#chooseBase" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="2">
                <children>
                   <Label prefWidth="37.0" text="Right" GridPane.rowIndex="2" />
                   <TextField fx:id="right" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button mnemonicParsing="false" onAction="#chooseRight" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#runClicked" text="Run" GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+            <Button fx:id="rightBtn" mnemonicParsing="false" onAction="#chooseRight" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Button fx:id="runBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#runClicked" text="Run" GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
             <HBox alignment="CENTER_LEFT" spacing="2.0" GridPane.rowIndex="4">
                <children>
                   <Label prefWidth="35.0" text="JDime" GridPane.rowIndex="3" />
-                  <TextField fx:id="jdime" HBox.hgrow="ALWAYS" />
-                  <Button mnemonicParsing="false" onAction="#chooseJDime" text="Choose" />
+                  <TextField fx:id="jDime" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="jDimeBtn" mnemonicParsing="false" onAction="#chooseJDime" text="Choose" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="3">
