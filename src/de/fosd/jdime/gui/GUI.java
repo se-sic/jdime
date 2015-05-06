@@ -110,8 +110,20 @@ public class GUI extends Application {
 	}
 
 	public void runClicked() {
+		boolean valid = textFields.stream().allMatch(tf -> {
 
-		if (textFields.stream().anyMatch(tf -> !new File(tf.getText()).exists())) {
+			if (tf == cmdArgs) {
+				return true;
+			}
+
+			if (tf == base) {
+				return tf.getText().trim().isEmpty() || new File(tf.getText()).exists();
+			}
+
+			return new File(tf.getText()).exists();
+		});
+
+		if (!valid) {
 			return;
 		}
 
