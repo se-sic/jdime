@@ -144,6 +144,11 @@ public class GUI extends Application {
 				command.add(right.getText());
 				builder.command(command);
 
+				File workingDir = new File(jDime.getText()).getParentFile();
+				if (workingDir != null && workingDir.exists()) {
+					builder.directory(workingDir);
+				}
+
 				Process process = builder.start();
 				process.waitFor();
 
