@@ -102,6 +102,11 @@ public class GUI extends Application {
 	}
 
 	public void runClicked() {
+
+		if (textFields.stream().anyMatch(tf -> !new File(tf.getText()).exists())) {
+			return;
+		}
+
 		textFields.forEach(textField -> textField.setDisable(true));
 		buttons.forEach(button -> button.setDisable(true));
 
