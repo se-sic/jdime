@@ -1,11 +1,17 @@
 package de.fosd.jdime.gui;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import javafx.application.Application;
 import javafx.concurrent.Task;
@@ -29,6 +35,8 @@ import org.apache.commons.io.IOUtils;
 public final class GUI extends Application {
 
 	private static final String TITLE = "JDime";
+	private static final String JDIME_ENV_VAR = "JDIME_EXEC";
+	private static final String JDIME_CONF_FILE = "JDime.properties";
 
 	@FXML
 	TextArea output;
@@ -52,6 +60,8 @@ public final class GUI extends Application {
 	private Button runBtn;
 	@FXML
 	private Button jDimeBtn;
+
+	private Properties config;
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
@@ -81,10 +91,49 @@ public final class GUI extends Application {
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
 		history = new ArrayList<>();
+		config = new Properties();
+
+		loadConfigFile();
+
+		String jDimeExec = getConfig(JDIME_ENV_VAR);
+		if (jDimeExec != null) {
+			jDime.setText(jDimeExec);
+		}
 
 		primaryStage.setTitle(TITLE);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+
+	/**
+	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so loads
+	 * the mappings contained in it into the <code>Properties</code> instance <code>config</code> which is used
+	 * by {@link #getConfig(String)}.
+	 */
+	private void loadConfigFile() {
+		File configFile = new File(JDIME_CONF_FILE);
+		if (configFile.exists()) {
+			Charset cs = StandardCharsets.UTF_8;
+
+			try {
+				config.load(new InputStreamReader(new BufferedInputStream(new FileInputStream(configFile)), cs));
+			} catch (IOException e) {
+				System.err.println("Could not load " + configFile);
+				System.err.println(e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * Checks whether the file {@value #JDIME_CONF_FILE} in the current directory contains a mapping for the given key
+	 * and if so returns the mapped value. If the file contains no mapping the system environment variables are checked.
+	 * If no environment variable named <code>key</code> exists <code>null</code> will be returned.
+	 *
+	 * @param key the configuration key
+	 * @return the mapped value or <code>null</code>
+	 */
+	private String getConfig(String key) {
+		return config.getProperty(key, System.getProperty(key));
 	}
 
 	/**
