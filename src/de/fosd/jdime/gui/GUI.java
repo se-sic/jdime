@@ -1,5 +1,12 @@
 package de.fosd.jdime.gui;
 
+import java.io.File;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -15,13 +22,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * A simple JavaFX GUI for JDime.
+ */
 public class GUI extends Application {
 
 	private static final String TITLE = "JDime";
@@ -42,6 +45,11 @@ public class GUI extends Application {
 	private List<TextField> textFields;
 	private List<Button> buttons;
 
+	/**
+	 * Launches the GUI with the given <code>args</code>.
+	 *
+	 * @param args the command line arguments
+	 */
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -62,6 +70,13 @@ public class GUI extends Application {
 		primaryStage.show();
 	}
 
+	/**
+	 * Shows a <code>FileChooser</code> and returns the chosen <code>File</code>. Sets <code>lastChooseDir</code>
+	 * to the parent file of the returned <code>File</code>.
+	 *
+	 * @param event the <code>ActionEvent</code> that occurred in the action listener
+	 * @return the chosen <code>File</code> or <code>null</code> if the dialog was closed
+	 */
 	private File getChosenFile(ActionEvent event) {
 		FileChooser chooser = new FileChooser();
 		Window window = ((Node) event.getTarget()).getScene().getWindow();
@@ -73,6 +88,11 @@ public class GUI extends Application {
 		return chooser.showOpenDialog(window);
 	}
 
+	/**
+	 * Called when the 'Choose' button for the left file is clicked.
+	 *
+	 * @param event the <code>ActionEvent</code> that occurred
+	 */
 	public void chooseLeft(ActionEvent event) {
 		File leftArtifact = getChosenFile(event);
 
@@ -82,6 +102,12 @@ public class GUI extends Application {
 		}
 	}
 
+	/**
+	 * Called when the 'Choose' button for the base file is clicked.
+	 *
+	 * @param event
+	 * 		the <code>ActionEvent</code> that occurred
+	 */
 	public void chooseBase(ActionEvent event) {
 		File baseArtifact = getChosenFile(event);
 
@@ -91,6 +117,12 @@ public class GUI extends Application {
 		}
 	}
 
+	/**
+	 * Called when the 'Choose' button for the right file is clicked.
+	 *
+	 * @param event
+	 * 		the <code>ActionEvent</code> that occurred
+	 */
 	public void chooseRight(ActionEvent event) {
 		File rightArtifact = getChosenFile(event);
 
@@ -100,6 +132,12 @@ public class GUI extends Application {
 		}
 	}
 
+	/**
+	 * Called when the 'Choose' button for the JDime executable is clicked.
+	 *
+	 * @param event
+	 * 		the <code>ActionEvent</code> that occurred
+	 */
 	public void chooseJDime(ActionEvent event) {
 		File jDimeBinary = getChosenFile(event);
 
@@ -109,6 +147,9 @@ public class GUI extends Application {
 		}
 	}
 
+	/**
+	 * Called when the 'Run' button is clicked.
+	 */
 	public void runClicked() {
 		boolean valid = textFields.stream().allMatch(tf -> {
 
