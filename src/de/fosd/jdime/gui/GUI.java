@@ -191,7 +191,7 @@ public class GUI extends Application {
 				List<String> command = new ArrayList<>();
 
 				command.add(jDime.getText());
-				command.addAll(Arrays.asList(cmdArgs.getText().split("\\s+")));
+				command.addAll(Arrays.asList(cmdArgs.getText().trim().split("\\s+")));
 				command.add(left.getText());
 				command.add(base.getText());
 				command.add(right.getText());
