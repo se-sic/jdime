@@ -74,7 +74,7 @@ public class MergeContext implements Cloneable {
 	/**
 	 * Whether merge inserts choice nodes instead of direct merging.
 	 */
-	private boolean conditionalMerge = false;
+	private boolean conditionalMerge = true;
 
 	/**
 	 * Whether to run only the diff.

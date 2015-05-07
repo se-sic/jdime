@@ -105,6 +105,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 				assert (choice.isChoice());
 				choice.copyArtifact(target);
 			} else {
+				LOG.debug("no conditions");
 				artifact.copyArtifact(target);
 			}
 		}
@@ -158,6 +159,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
 	}
 }

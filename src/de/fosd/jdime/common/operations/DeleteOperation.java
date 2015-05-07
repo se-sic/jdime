@@ -158,6 +158,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
 	}
 }

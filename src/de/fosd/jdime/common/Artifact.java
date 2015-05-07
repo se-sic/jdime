@@ -30,6 +30,8 @@ import java.util.Set;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -38,6 +40,8 @@ import de.fosd.jdime.matcher.Matching;
  *            type of artifact
  */
 public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
+
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeArtifact.class));
 
 	/**
 	 * Used to renumber artifacts.
@@ -641,6 +645,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	public final void setChoice(final String condition, final T artifact) {
 		this.choice = true;
+		if (condition == null) {
+			throw new RuntimeException("condition must not be null!");
+		}
 		addVariant(condition, artifact);
 	}
 
@@ -648,7 +655,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		if (!choice) {
 			throw new RuntimeException("addVariant() can only be called on choice nodes!");
 		}
+		if (condition == null) {
+			throw new RuntimeException("condition must not be null!");
+		}
 
+		LOG.debug("Add node " + artifact.getId() + " under condition " + condition);
+
+		if (variants == null) {
+			variants = new HashMap<>();
+		}
 		variants.put(condition, artifact);
 	}
 

@@ -62,8 +62,7 @@ import org.apache.log4j.Logger;
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ASTNodeArtifact.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeArtifact.class));
 
 	/**
 	 * Initializes parser.
@@ -369,6 +368,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			sb.append(Color.RED.toShell());
 			sb.append(">>>>>>> ");
 			sb.append(System.lineSeparator());
+		} else if (isChoice()) {
+			Set<String> conditions = variants.keySet();
+			sb.append(Color.RED.toShell());
+			sb.append(indent).append("(").append(getId()).append(") ");
+			sb.append(this);
+			sb.append(System.lineSeparator());
+
+			for (String condition : conditions) {
+				sb.append(Color.RED.toShell());
+				sb.append("#ifdef " + condition);
+				sb.append(System.lineSeparator());
+				// children
+				ASTNodeArtifact variant = variants.get(condition);
+				if (variant != null) {
+					sb.append(variant.dumpTree(indent));
+				}
+				sb.append(Color.RED.toShell());
+				sb.append("#endif");
+				sb.append(System.lineSeparator());
+
+			}
 		} else {
 			sb.append(indent).append("(").append(getId()).append(") ");
 			sb.append(this);
@@ -696,9 +716,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final ASTNodeArtifact createChoiceDummy(final ASTNodeArtifact type, final String condition, final ASTNodeArtifact artifact) {
+		LOG.debug("Creating choice node");
 		ASTNodeArtifact choice;
 
 		choice = new ASTNodeArtifact(type.astnode.fullCopy());
+		choice.setChoice(condition, artifact);
 		return choice;
 	}
 
