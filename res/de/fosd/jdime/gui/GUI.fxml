@@ -12,7 +12,7 @@
     <RowConstraints vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <TextArea fx:id="output" disable="true" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" />
+      <TextArea fx:id="output" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" />
       <GridPane hgap="5.0" vgap="2.0" GridPane.rowIndex="1">
         <columnConstraints>
           <ColumnConstraints hgrow="ALWAYS" />
