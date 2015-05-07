@@ -1,6 +1,10 @@
 package de.fosd.jdime.gui;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ObservableIntegerValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -75,7 +79,8 @@ public final class GUI extends Application {
 	private List<TextField> textFields;
 	private List<Button> buttons;
 
-	private List<State> history;
+	private ObservableIntegerValue historyIndex;
+	private ObservableList<State> history;
 	private State inProgress;
 
 	/**
@@ -98,7 +103,8 @@ public final class GUI extends Application {
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
-		history = new ArrayList<>();
+		historyIndex = new SimpleIntegerProperty(-1);
+		history = FXCollections.observableArrayList();
 		config = new Properties();
 
 		loadConfigFile();
@@ -227,6 +233,14 @@ public final class GUI extends Application {
 			lastChooseDir = jDimeBinary.getParentFile();
 			jDime.setText(jDimeBinary.getAbsolutePath());
 		}
+	}
+
+	public void historyNext() {
+
+	}
+
+	public void historyPrevious() {
+
 	}
 
 	/**

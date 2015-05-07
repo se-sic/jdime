@@ -62,9 +62,14 @@
                   <TextField fx:id="cmdArgs" GridPane.rowIndex="3" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" GridPane.columnSpan="2">
+            <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" spacing="5.0" GridPane.columnSpan="2">
                <children>
                   <CheckBox fx:id="debugMode" mnemonicParsing="false" text="JVM Debug Mode" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button disable="true" mnemonicParsing="false" onAction="#historyNext" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&gt;" />
+                  <Label text="History" />
+                  <Button disable="true" mnemonicParsing="false" onAction="#historyPrevious" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&lt;" />
+                  <Region prefWidth="40.0" />
                </children>
                <GridPane.margin>
                   <Insets bottom="5.0" top="5.0" />
