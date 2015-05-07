@@ -94,23 +94,24 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
-		// This method does actually nothing!
-		//
-		// Why?
-		// While merging, the target node is created with no children.
-		// Therefore if a deletion of an element is applied during the merge,
-		// nothing has to be done.
-		//
-		// For ASTNodeArtifacts, the important method we rely on here is
-		// StructuredStrategy.merge(), which calls
-		// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-		// which then calls deleteChildren() on the created Program.
 
 		if (context.isConditionalMerge() && condition != null) {
 			// we need to insert a choice node
 			T choice = target.createChoiceDummy(artifact, condition, artifact);
 			assert (choice.isChoice());
 			choice.copyArtifact(target);
+		} else {
+			// Nothing to do :-)
+			//
+			// Why?
+			// While merging, the target node is created with no children.
+			// Therefore if a deletion of an element is applied during the merge,
+			// nothing has to be done.
+			//
+			// For ASTNodeArtifacts, the important method we rely on here is
+			// StructuredStrategy.merge(), which calls
+			// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+			// which then calls deleteChildren() on the created Program.
 		}
 
 		if (context.hasStats()) {
