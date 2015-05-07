@@ -71,6 +71,10 @@ public final class GUI extends Application {
 	@FXML
 	private Button jDimeBtn;
 	@FXML
+	private Button historyPrevious;
+	@FXML
+	private Button historyNext;
+	@FXML
 	private CheckBox debugMode;
 
 	private Properties config;

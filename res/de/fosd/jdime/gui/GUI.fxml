@@ -66,9 +66,9 @@
                <children>
                   <CheckBox fx:id="debugMode" mnemonicParsing="false" text="JVM Debug Mode" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Button disable="true" mnemonicParsing="false" onAction="#historyNext" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&gt;" />
+                  <Button fx:id="historyNext" disable="true" mnemonicParsing="false" onAction="#historyNext" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&gt;" />
                   <Label text="History" />
-                  <Button disable="true" mnemonicParsing="false" onAction="#historyPrevious" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&lt;" />
+                  <Button fx:id="historyPrevious" disable="true" mnemonicParsing="false" onAction="#historyPrevious" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&lt;" />
                   <Region prefWidth="40.0" />
                </children>
                <GridPane.margin>
