@@ -18,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -67,15 +68,7 @@ public final class GUI extends Application {
 	@FXML
 	CheckBox debugMode;
 	@FXML
-	private Button leftBtn;
-	@FXML
-	private Button baseBtn;
-	@FXML
-	private Button rightBtn;
-	@FXML
-	private Button runBtn;
-	@FXML
-	private Button jDimeBtn;
+	private GridPane controlsPane;
 	@FXML
 	private Button historyPrevious;
 	@FXML
@@ -85,7 +78,6 @@ public final class GUI extends Application {
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
-	private List<Button> buttons;
 
 	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
@@ -111,7 +103,6 @@ public final class GUI extends Application {
 		Scene scene = new Scene(root);
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
-		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
 		historyIndex = new SimpleIntegerProperty(0);
 		history = FXCollections.observableArrayList();
 		historyListProp = new SimpleListProperty<>(history);
@@ -318,8 +309,7 @@ public final class GUI extends Application {
 			return;
 		}
 
-		textFields.forEach(textField -> textField.setDisable(true));
-		buttons.forEach(button -> button.setDisable(true));
+		controlsPane.setDisable(true);
 
 		Task<Void> jDimeExec = new Task<Void>() {
 
@@ -372,8 +362,7 @@ public final class GUI extends Application {
 				historyIndex.setValue(history.size());
 			}
 
-			textFields.forEach(textField -> textField.setDisable(false));
-			buttons.forEach(button -> button.setDisable(false));
+			controlsPane.setDisable(false);
 		});
 
 		new Thread(jDimeExec).start();

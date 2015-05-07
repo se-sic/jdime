@@ -13,7 +13,7 @@
   </rowConstraints>
    <children>
       <TextArea fx:id="output" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" />
-      <GridPane hgap="5.0" vgap="2.0" GridPane.rowIndex="1">
+      <GridPane fx:id="controlsPane" hgap="5.0" vgap="2.0" GridPane.rowIndex="1">
         <columnConstraints>
           <ColumnConstraints hgrow="ALWAYS" />
           <ColumnConstraints hgrow="SOMETIMES" />
@@ -33,27 +33,27 @@
                   <TextField fx:id="left" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button fx:id="leftBtn" mnemonicParsing="false" onAction="#chooseLeft" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button mnemonicParsing="false" onAction="#chooseLeft" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="2">
                <children>
                   <Label prefWidth="45.0" text="Base" GridPane.rowIndex="1" />
                   <TextField fx:id="base" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button fx:id="baseBtn" mnemonicParsing="false" onAction="#chooseBase" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Button mnemonicParsing="false" onAction="#chooseBase" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="3">
                <children>
                   <Label prefWidth="45.0" text="Right" GridPane.rowIndex="2" />
                   <TextField fx:id="right" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <Button fx:id="rightBtn" mnemonicParsing="false" onAction="#chooseRight" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Button fx:id="runBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#runClicked" text="Run" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS" />
+            <Button  mnemonicParsing="false" onAction="#chooseRight" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Button  maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#runClicked" text="Run" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS" />
             <HBox alignment="CENTER_LEFT" spacing="2.0" GridPane.rowIndex="5">
                <children>
                   <Label prefWidth="45.0" text="JDime" GridPane.rowIndex="3" />
                   <TextField fx:id="jDime" HBox.hgrow="ALWAYS" />
-                  <Button fx:id="jDimeBtn" mnemonicParsing="false" onAction="#chooseJDime" text="Choose" />
+                  <Button  mnemonicParsing="false" onAction="#chooseJDime" text="Choose" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="4">
