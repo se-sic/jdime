@@ -26,22 +26,22 @@ import org.apache.commons.io.IOUtils;
 /**
  * A simple JavaFX GUI for JDime.
  */
-public class GUI extends Application {
+public final class GUI extends Application {
 
 	private static final String TITLE = "JDime";
 
 	@FXML
-	private TextArea output;
+	TextArea output;
 	@FXML
-	private TextField left;
+	TextField left;
 	@FXML
-	private TextField base;
+	TextField base;
 	@FXML
-	private TextField right;
+	TextField right;
 	@FXML
-	private TextField jDime;
+	TextField jDime;
 	@FXML
-	private TextField cmdArgs;
+	TextField cmdArgs;
 	@FXML
 	private Button leftBtn;
 	@FXML
