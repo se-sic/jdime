@@ -3,7 +3,7 @@ package de.fosd.jdime.gui;
 /**
  * A Bean encapsulating the state of the gui at one point.
  */
-class State {
+final class State {
 
 	private String output;
 	private String left;
@@ -11,6 +11,8 @@ class State {
 	private String right;
 	private String jDime;
 	private String cmdArgs;
+
+	private State() {}
 
 	public static State of(GUI gui) {
 		State state = new State();
@@ -23,6 +25,15 @@ class State {
 		state.cmdArgs = gui.cmdArgs.getText();
 
 		return state;
+	}
+
+	public void applyTo(GUI gui) {
+		gui.output.setText(output);
+		gui.left.setText(left);
+		gui.base.setText(base);
+		gui.right.setText(right);
+		gui.jDime.setText(jDime);
+		gui.cmdArgs.setText(cmdArgs);
 	}
 
 	public String getOutput() {
