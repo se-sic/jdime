@@ -113,19 +113,15 @@ public final class GUI extends Application {
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
-		historyIndex = new SimpleIntegerProperty(1);
+		historyIndex = new SimpleIntegerProperty(0);
 		history = FXCollections.observableArrayList();
 		historyListProp = new SimpleListProperty<>(history);
 		config = new Properties();
 
-		historyListProp.sizeProperty().addListener((observable, oldValue, newValue) -> historyIndex.setValue(newValue.intValue()));
-
-		BooleanBinding noPrev = historyListProp.sizeProperty().greaterThan(0).and(historyIndex.greaterThan(0)).not();
-		BooleanBinding noNext = historyListProp.sizeProperty().greaterThan(0).and(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty())).not();
+		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
+		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
 		historyNext.disableProperty().bind(noNext);
 		historyPrevious.disableProperty().bind(noPrev);
-
-		historyIndex.addListener((observable, oldValue, newValue) -> System.out.println(newValue));
 
 		loadConfigFile();
 		loadDefaults();
@@ -353,6 +349,7 @@ public final class GUI extends Application {
 			State currentState = State.of(GUI.this);
 			if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
 				history.add(currentState);
+				historyIndex.setValue(history.size());
 			}
 
 			textFields.forEach(textField -> textField.setDisable(false));
