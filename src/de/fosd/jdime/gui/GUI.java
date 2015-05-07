@@ -1,8 +1,10 @@
 package de.fosd.jdime.gui;
 
 import javafx.application.Application;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ObservableIntegerValue;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -43,6 +45,9 @@ public final class GUI extends Application {
 
 	private static final String JDIME_CONF_FILE = "JDime.properties";
 	private static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
+	private static final String JDIME_DEFAULT_LEFT_KEY = "DEFAULT_LEFT";
+	private static final String JDIME_DEFAULT_BASE_KEY = "DEFAULT_BASE";
+	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
@@ -83,8 +88,9 @@ public final class GUI extends Application {
 	private List<TextField> textFields;
 	private List<Button> buttons;
 
-	private ObservableIntegerValue historyIndex;
+	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
+	private SimpleListProperty<State> historyListProp;
 	private State inProgress;
 
 	/**
@@ -107,9 +113,19 @@ public final class GUI extends Application {
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
-		historyIndex = new SimpleIntegerProperty(-1);
+		historyIndex = new SimpleIntegerProperty(1);
 		history = FXCollections.observableArrayList();
+		historyListProp = new SimpleListProperty<>(history);
 		config = new Properties();
+
+		historyListProp.sizeProperty().addListener((observable, oldValue, newValue) -> historyIndex.setValue(newValue.intValue()));
+
+		BooleanBinding noPrev = historyListProp.sizeProperty().greaterThan(0).and(historyIndex.greaterThan(0)).not();
+		BooleanBinding noNext = historyListProp.sizeProperty().greaterThan(0).and(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty())).not();
+		historyNext.disableProperty().bind(noNext);
+		historyPrevious.disableProperty().bind(noPrev);
+
+		historyIndex.addListener((observable, oldValue, newValue) -> System.out.println(newValue));
 
 		loadConfigFile();
 
@@ -121,6 +137,21 @@ public final class GUI extends Application {
 		String defaultArgs = getConfig(JDIME_DEFAULT_ARGS_KEY);
 		if (defaultArgs != null) {
 			cmdArgs.setText(defaultArgs.trim());
+		}
+
+		String left = getConfig(JDIME_DEFAULT_LEFT_KEY);
+		if (left != null) {
+			this.left.setText(left);
+		}
+
+		String base = getConfig(JDIME_DEFAULT_BASE_KEY);
+		if (base != null) {
+			this.base.setText(left);
+		}
+
+		String right = getConfig(JDIME_DEFAULT_RIGHT_KEY);
+		if (right != null) {
+			this.right.setText(left);
 		}
 
 		primaryStage.setTitle(TITLE);
@@ -239,12 +270,18 @@ public final class GUI extends Application {
 		}
 	}
 
+	/**
+	 * Called when the '>' button for the history is clicked.
+	 */
 	public void historyNext() {
-
+		historyIndex.setValue(historyIndex.get() + 1);
 	}
 
+	/**
+	 * Called when the '<' button for the history is clicked.
+	 */
 	public void historyPrevious() {
-
+		historyIndex.setValue(historyIndex.get() - 1);
 	}
 
 	/**
