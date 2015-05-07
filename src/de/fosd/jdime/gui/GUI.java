@@ -35,8 +35,10 @@ import org.apache.commons.io.IOUtils;
 public final class GUI extends Application {
 
 	private static final String TITLE = "JDime";
-	private static final String JDIME_ENV_VAR = "JDIME_EXEC";
+
 	private static final String JDIME_CONF_FILE = "JDime.properties";
+	private static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
+	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 
 	@FXML
 	TextArea output;
@@ -95,9 +97,14 @@ public final class GUI extends Application {
 
 		loadConfigFile();
 
-		String jDimeExec = getConfig(JDIME_ENV_VAR);
+		String jDimeExec = getConfig(JDIME_EXEC_KEY);
 		if (jDimeExec != null) {
-			jDime.setText(jDimeExec);
+			jDime.setText(jDimeExec.trim());
+		}
+
+		String defaultArgs = getConfig(JDIME_DEFAULT_ARGS_KEY);
+		if (defaultArgs != null) {
+			jDime.setText(defaultArgs.trim());
 		}
 
 		primaryStage.setTitle(TITLE);
