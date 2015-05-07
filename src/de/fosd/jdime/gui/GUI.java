@@ -277,13 +277,25 @@ public final class GUI extends Application {
 	 */
 	public void historyNext() {
 		historyIndex.setValue(historyIndex.get() + 1);
+
+		if (historyIndex.get() == history.size()) {
+			inProgress.applyTo(this);
+		} else {
+			history.get(historyIndex.get()).applyTo(this);
+		}
 	}
 
 	/**
 	 * Called when the '<' button for the history is clicked.
 	 */
 	public void historyPrevious() {
+
+		if (historyIndex.get() == history.size()) {
+			inProgress = State.of(this);
+		}
+
 		historyIndex.setValue(historyIndex.get() - 1);
+		history.get(historyIndex.get()).applyTo(this);
 	}
 
 	/**
