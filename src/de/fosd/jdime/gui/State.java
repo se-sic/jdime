@@ -13,6 +13,7 @@ final class State {
 	private String right;
 	private String jDime;
 	private String cmdArgs;
+	private boolean debugMode;
 
 	private State() {
 
@@ -35,6 +36,7 @@ final class State {
 		state.right = gui.right.getText();
 		state.jDime = gui.jDime.getText();
 		state.cmdArgs = gui.cmdArgs.getText();
+		state.debugMode = gui.debugMode.isSelected();
 
 		return state;
 	}
@@ -53,30 +55,7 @@ final class State {
 		gui.right.setText(right);
 		gui.jDime.setText(jDime);
 		gui.cmdArgs.setText(cmdArgs);
-	}
-
-	public String getOutput() {
-		return output;
-	}
-
-	public String getLeft() {
-		return left;
-	}
-
-	public String getBase() {
-		return base;
-	}
-
-	public String getRight() {
-		return right;
-	}
-
-	public String getjDime() {
-		return jDime;
-	}
-
-	public String getCmdArgs() {
-		return cmdArgs;
+		gui.debugMode.setSelected(debugMode);
 	}
 
 	@Override
@@ -91,7 +70,8 @@ final class State {
 
 		State state = (State) o;
 
-		return Objects.equals(output, state.output) &&
+		return Objects.equals(debugMode, state.debugMode) &&
+				Objects.equals(output, state.output) &&
 				Objects.equals(left, state.left) &&
 				Objects.equals(base, state.base) &&
 				Objects.equals(right, state.right) &&
@@ -101,6 +81,6 @@ final class State {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(output, left, base, right, jDime, cmdArgs);
+		return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
 	}
 }

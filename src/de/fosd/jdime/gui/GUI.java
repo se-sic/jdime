@@ -65,6 +65,8 @@ public final class GUI extends Application {
 	@FXML
 	TextField cmdArgs;
 	@FXML
+	CheckBox debugMode;
+	@FXML
 	private Button leftBtn;
 	@FXML
 	private Button baseBtn;
@@ -78,8 +80,6 @@ public final class GUI extends Application {
 	private Button historyPrevious;
 	@FXML
 	private Button historyNext;
-	@FXML
-	private CheckBox debugMode;
 
 	private Properties config;
 
