@@ -56,6 +56,7 @@ public final class GUI extends Application {
 	private File lastChooseDir;
 	private List<TextField> textFields;
 	private List<Button> buttons;
+	private List<State> history;
 
 	/**
 	 * Launches the GUI with the given <code>args</code>.
@@ -77,6 +78,7 @@ public final class GUI extends Application {
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		buttons = Arrays.asList(leftBtn, baseBtn, rightBtn, runBtn, jDimeBtn);
+		history = new ArrayList<>();
 
 		primaryStage.setTitle(TITLE);
 		primaryStage.setScene(scene);
