@@ -1,5 +1,22 @@
 package de.fosd.jdime.gui;
 
+import javafx.application.Application;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,22 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import javafx.application.Application;
-import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import org.apache.commons.io.IOUtils;
-
 /**
  * A simple JavaFX GUI for JDime.
  */
@@ -39,6 +40,9 @@ public final class GUI extends Application {
 	private static final String JDIME_CONF_FILE = "JDime.properties";
 	private static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
+
+	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
+	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
 
 	@FXML
 	TextArea output;
@@ -62,6 +66,8 @@ public final class GUI extends Application {
 	private Button runBtn;
 	@FXML
 	private Button jDimeBtn;
+	@FXML
+	private CheckBox debugMode;
 
 	private Properties config;
 
@@ -104,7 +110,7 @@ public final class GUI extends Application {
 
 		String defaultArgs = getConfig(JDIME_DEFAULT_ARGS_KEY);
 		if (defaultArgs != null) {
-			jDime.setText(defaultArgs.trim());
+			cmdArgs.setText(defaultArgs.trim());
 		}
 
 		primaryStage.setTitle(TITLE);
@@ -264,6 +270,10 @@ public final class GUI extends Application {
 				File workingDir = new File(jDime.getText()).getParentFile();
 				if (workingDir != null && workingDir.exists()) {
 					builder.directory(workingDir);
+				}
+
+				if (debugMode.isSelected()) {
+					builder.environment().put(STARTSCRIPT_JVM_ENV_VAR, JVM_DEBUG_PARAMS);
 				}
 
 				Process process = builder.start();
