@@ -56,7 +56,9 @@ public final class GUI extends Application {
 	private File lastChooseDir;
 	private List<TextField> textFields;
 	private List<Button> buttons;
+
 	private List<State> history;
+	private State inProgress;
 
 	/**
 	 * Launches the GUI with the given <code>args</code>.
@@ -220,6 +222,12 @@ public final class GUI extends Application {
 
 		jDimeExec.setOnSucceeded(event -> {
 			output.setText(jDimeExec.getValue());
+
+			State currentState = State.of(GUI.this);
+			if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
+				history.add(currentState);
+			}
+
 			textFields.forEach(textField -> textField.setDisable(false));
 			buttons.forEach(button -> button.setDisable(false));
 		});

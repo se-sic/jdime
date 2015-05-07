@@ -1,5 +1,7 @@
 package de.fosd.jdime.gui;
 
+import java.util.Objects;
+
 /**
  * A Bean encapsulating the state of the gui at one point.
  */
@@ -58,5 +60,30 @@ final class State {
 
 	public String getCmdArgs() {
 		return cmdArgs;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		State state = (State) o;
+
+		return Objects.equals(output, state.output) &&
+				Objects.equals(left, state.left) &&
+				Objects.equals(base, state.base) &&
+				Objects.equals(right, state.right) &&
+				Objects.equals(jDime, state.jDime) &&
+				Objects.equals(cmdArgs, state.cmdArgs);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(output, left, base, right, jDime, cmdArgs);
 	}
 }
