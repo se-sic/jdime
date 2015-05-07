@@ -10,6 +10,7 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -29,17 +30,28 @@ public class GUI extends Application {
 
 	private static final String TITLE = "JDime";
 
-	public TextArea output;
-	public TextField left;
-	public TextField base;
-	public TextField right;
-	public TextField jDime;
-	public TextField cmdArgs;
-	public Button leftBtn;
-	public Button baseBtn;
-	public Button rightBtn;
-	public Button runBtn;
-	public Button jDimeBtn;
+	@FXML
+	private TextArea output;
+	@FXML
+	private TextField left;
+	@FXML
+	private TextField base;
+	@FXML
+	private TextField right;
+	@FXML
+	private TextField jDime;
+	@FXML
+	private TextField cmdArgs;
+	@FXML
+	private Button leftBtn;
+	@FXML
+	private Button baseBtn;
+	@FXML
+	private Button rightBtn;
+	@FXML
+	private Button runBtn;
+	@FXML
+	private Button jDimeBtn;
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
