@@ -21,14 +21,13 @@ import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -322,10 +321,10 @@ public final class GUI extends Application {
 		textFields.forEach(textField -> textField.setDisable(true));
 		buttons.forEach(button -> button.setDisable(true));
 
-		Task<String> jDimeExec = new Task<String>() {
+		Task<Void> jDimeExec = new Task<Void>() {
 
 			@Override
-			protected String call() throws Exception {
+			protected Void call() throws Exception {
 				ProcessBuilder builder = new ProcessBuilder();
 				List<String> command = new ArrayList<>();
 
@@ -346,17 +345,26 @@ public final class GUI extends Application {
 				}
 
 				Process process = builder.start();
+				StringBuilder text = new StringBuilder();
+
+				Charset cs = StandardCharsets.UTF_8;
+				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
+					r.lines().forEach(line -> {
+						text.append(line).append(System.lineSeparator());
+						updateMessage(text.toString());
+					});
+				}
+
 				process.waitFor();
-
-				StringWriter writer = new StringWriter();
-				IOUtils.copy(process.getInputStream(), writer, Charset.defaultCharset());
-
-				return writer.toString();
+				return null;
 			}
 		};
 
+		jDimeExec.messageProperty().addListener((observable, oldValue, newValue) -> {
+			output.setText(newValue);
+		});
+
 		jDimeExec.setOnSucceeded(event -> {
-			output.setText(jDimeExec.getValue());
 
 			State currentState = State.of(GUI.this);
 			if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
