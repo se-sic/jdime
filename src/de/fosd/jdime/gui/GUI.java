@@ -60,7 +60,8 @@ public class GUI extends Application {
 	/**
 	 * Launches the GUI with the given <code>args</code>.
 	 *
-	 * @param args the command line arguments
+	 * @param args
+	 * 		the command line arguments
 	 */
 	public static void main(String[] args) {
 		launch(args);
@@ -86,7 +87,9 @@ public class GUI extends Application {
 	 * Shows a <code>FileChooser</code> and returns the chosen <code>File</code>. Sets <code>lastChooseDir</code>
 	 * to the parent file of the returned <code>File</code>.
 	 *
-	 * @param event the <code>ActionEvent</code> that occurred in the action listener
+	 * @param event
+	 * 		the <code>ActionEvent</code> that occurred in the action listener
+	 *
 	 * @return the chosen <code>File</code> or <code>null</code> if the dialog was closed
 	 */
 	private File getChosenFile(ActionEvent event) {
@@ -103,7 +106,8 @@ public class GUI extends Application {
 	/**
 	 * Called when the 'Choose' button for the left file is clicked.
 	 *
-	 * @param event the <code>ActionEvent</code> that occurred
+	 * @param event
+	 * 		the <code>ActionEvent</code> that occurred
 	 */
 	public void chooseLeft(ActionEvent event) {
 		File leftArtifact = getChosenFile(event);
