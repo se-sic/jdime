@@ -14,8 +14,18 @@ final class State {
 	private String jDime;
 	private String cmdArgs;
 
-	private State() {}
+	private State() {
 
+	}
+
+	/**
+	 * Returns a <code>State</code> instance containing the current state of the given <code>GUI</code>.
+	 *
+	 * @param gui
+	 * 		the <code>GUI</code> whose state is to be copied
+	 *
+	 * @return the resulting <code>State</code>
+	 */
 	public static State of(GUI gui) {
 		State state = new State();
 
@@ -29,6 +39,13 @@ final class State {
 		return state;
 	}
 
+	/**
+	 * Applies the state stored in this <code>State</code> to the given <code>GUI</code>. Must be called in the
+	 * JavaFX Application thread.
+	 *
+	 * @param gui
+	 * 		the <code>GUI</code> to apply the stored state to
+	 */
 	public void applyTo(GUI gui) {
 		gui.output.setText(output);
 		gui.left.setText(left);
