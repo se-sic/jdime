@@ -128,7 +128,17 @@ public final class GUI extends Application {
 		historyIndex.addListener((observable, oldValue, newValue) -> System.out.println(newValue));
 
 		loadConfigFile();
+		loadDefaults();
 
+		primaryStage.setTitle(TITLE);
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
+
+	/**
+	 * Loads default values for the <code>TextField</code>s from the config file.
+	 */
+	private void loadDefaults() {
 		String jDimeExec = getConfig(JDIME_EXEC_KEY);
 		if (jDimeExec != null) {
 			jDime.setText(jDimeExec.trim());
@@ -153,10 +163,6 @@ public final class GUI extends Application {
 		if (right != null) {
 			this.right.setText(left);
 		}
-
-		primaryStage.setTitle(TITLE);
-		primaryStage.setScene(scene);
-		primaryStage.show();
 	}
 
 	/**
