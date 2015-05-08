@@ -114,13 +114,13 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public final void dumpTree(final FileArtifact artifact,
+	public final String dumpTree(final FileArtifact artifact,
 			final boolean graphical) throws IOException {
 		throw new NotYetImplementedException("TODO: print directory tree");
 	}
 
 	@Override
-	public void dumpFile(final FileArtifact artifact, final boolean graphical)
+	public final String dumpFile(final FileArtifact artifact, final boolean graphical)
 			throws IOException {
 		throw new NotYetImplementedException("TODO: print content of all files");
 	}

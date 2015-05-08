@@ -388,12 +388,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	}
 
 	@Override
-	public final void dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
-		new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
+	public final String dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
+		return new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
 	}
 
 	@Override
-	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-		new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
+	public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
+		return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
 	}
 }
