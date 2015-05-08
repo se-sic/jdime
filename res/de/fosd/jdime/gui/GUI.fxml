@@ -21,12 +21,7 @@
 </Tab>
             <Tab closable="false" text="TreeView">
                <content>
-                  <TreeTableView fx:id="treeView">
-                    <columns>
-                      <TreeTableColumn prefWidth="75.0" text="C1" />
-                      <TreeTableColumn prefWidth="75.0" text="C2" />
-                    </columns>
-                  </TreeTableView>
+                  <TreeTableView fx:id="treeView" />
                </content>
             </Tab>
 </tabs>
@@ -47,21 +42,21 @@
          <children>
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="1">
                <children>
-                  <Label prefWidth="37.0" text="Left" />
+                  <Label prefWidth="47.0" text="Left" />
                   <TextField fx:id="left" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
             <Button mnemonicParsing="false" onAction="#chooseLeft" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="2">
                <children>
-                  <Label prefWidth="37.0" text="Base" GridPane.rowIndex="1" />
+                  <Label prefWidth="47.0" text="Base" GridPane.rowIndex="1" />
                   <TextField fx:id="base" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
             <Button mnemonicParsing="false" onAction="#chooseBase" text="Choose" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <HBox alignment="CENTER_LEFT" GridPane.rowIndex="3">
                <children>
-                  <Label prefWidth="37.0" text="Right" GridPane.rowIndex="2" />
+                  <Label prefWidth="47.0" text="Right" GridPane.rowIndex="2" />
                   <TextField fx:id="right" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
@@ -76,7 +71,7 @@
             </HBox>
             <HBox alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="4">
                <children>
-                  <Label prefWidth="37.0" text="Args" />
+                  <Label prefWidth="47.0" text="Args" />
                   <TextField fx:id="cmdArgs" GridPane.rowIndex="3" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
@@ -87,7 +82,7 @@
                   <Button fx:id="historyNext" disable="true" mnemonicParsing="false" onAction="#historyNext" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&gt;" />
                   <Label text="History" />
                   <Button fx:id="historyPrevious" disable="true" mnemonicParsing="false" onAction="#historyPrevious" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&lt;" />
-                  <Region prefWidth="40.0" />
+                  <Region prefWidth="42.0" />
                </children>
                <GridPane.margin>
                   <Insets bottom="5.0" top="5.0" />

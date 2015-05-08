@@ -38,7 +38,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -111,6 +113,14 @@ public final class GUI extends Application {
 
 		Parent root = loader.load();
 		Scene scene = new Scene(root);
+
+		TreeTableColumn<TreeDumpNode, Integer> id = new TreeTableColumn<>("ID");
+		TreeTableColumn<TreeDumpNode, String> astType = new TreeTableColumn<>("AST Type");
+
+		id.setCellValueFactory(new TreeItemPropertyValueFactory<>("id"));
+		astType.setCellValueFactory(new TreeItemPropertyValueFactory<>("astType"));
+
+		treeView.getColumns().setAll(Arrays.asList(astType, id));
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		historyIndex = new SimpleIntegerProperty(0);
