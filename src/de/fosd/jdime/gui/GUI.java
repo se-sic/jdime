@@ -32,6 +32,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -70,6 +71,8 @@ public final class GUI extends Application {
 	CheckBox debugMode;
 	@FXML
 	private GridPane controlsPane;
+	@FXML
+	private TreeTableView<TreeDumpNode> treeView;
 	@FXML
 	private Button historyPrevious;
 	@FXML
