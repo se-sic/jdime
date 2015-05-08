@@ -296,7 +296,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			// insert virtual node
 			String conflictId = "\"c" + virtualcount + "\"";
 			sb.append(conflictId);
-			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]");
+			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
 
 			// left alternative
 			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
