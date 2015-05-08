@@ -1,5 +1,19 @@
 package de.fosd.jdime.gui;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+
 import javafx.application.Application;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
@@ -22,19 +36,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -125,30 +126,11 @@ public final class GUI extends Application {
 	 * Loads default values for the <code>TextField</code>s from the config file.
 	 */
 	private void loadDefaults() {
-		String jDimeExec = getConfig(JDIME_EXEC_KEY);
-		if (jDimeExec != null) {
-			jDime.setText(jDimeExec.trim());
-		}
-
-		String defaultArgs = getConfig(JDIME_DEFAULT_ARGS_KEY);
-		if (defaultArgs != null) {
-			cmdArgs.setText(defaultArgs.trim());
-		}
-
-		String left = getConfig(JDIME_DEFAULT_LEFT_KEY);
-		if (left != null) {
-			this.left.setText(left);
-		}
-
-		String base = getConfig(JDIME_DEFAULT_BASE_KEY);
-		if (base != null) {
-			this.base.setText(left);
-		}
-
-		String right = getConfig(JDIME_DEFAULT_RIGHT_KEY);
-		if (right != null) {
-			this.right.setText(left);
-		}
+		getConfig(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
+		getConfig(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
+		getConfig(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
+		getConfig(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
+		getConfig(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
 	}
 
 	/**
@@ -173,13 +155,19 @@ public final class GUI extends Application {
 	/**
 	 * Checks whether the file {@value #JDIME_CONF_FILE} in the current directory contains a mapping for the given key
 	 * and if so returns the mapped value. If the file contains no mapping the system environment variables are checked.
-	 * If no environment variable named <code>key</code> exists <code>null</code> will be returned.
+	 * If no environment variable named <code>key</code> exists an empty <code>Optional</code> will be returned.
 	 *
 	 * @param key the configuration key
-	 * @return the mapped value or <code>null</code>
+	 * @return optionally the mapped value
 	 */
-	private String getConfig(String key) {
-		return config.getProperty(key, System.getProperty(key));
+	private Optional<String> getConfig(String key) {
+		String value = config.getProperty(key, System.getProperty(key));
+
+		if (value != null) {
+			return Optional.of(value);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	/**
