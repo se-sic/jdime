@@ -10,11 +10,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -32,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
@@ -328,11 +334,40 @@ public final class GUI extends Application {
 				Process process = builder.start();
 				StringBuilder text = new StringBuilder();
 
+				int modeIndex = command.indexOf("-mode");
+				boolean dumpGraph = modeIndex != -1 && command.indexOf("dumpgraph") == modeIndex + 1;
+				Map<Integer, TreeItem<TreeDumpNode>> treeItems = new HashMap<>();
+				Pattern node = Pattern.compile("([1-9]+)\\[label=\"\\([1-9]+\\) (.+)\"\\];");
+				Pattern connection = Pattern.compile("([1-9]+)->([1-9]+);");
+
 				Charset cs = StandardCharsets.UTF_8;
 				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
 					r.lines().forEach(line -> {
+
 						text.append(line).append(System.lineSeparator());
 						updateMessage(text.toString());
+
+						if (dumpGraph) {
+							Matcher nodeMatcher = node.matcher(line);
+							Matcher connectionMatcher = connection.matcher(line);
+
+							if (nodeMatcher.matches()) {
+								int id = Integer.parseInt(nodeMatcher.group(1));
+								String label = nodeMatcher.group(2);
+								TreeItem<TreeDumpNode> item = new TreeItem<>(new TreeDumpNode(id, label));
+
+								if (id == 1) {
+									Platform.runLater(() -> treeView.setRoot(item));
+								}
+
+								treeItems.put(id, item);
+							} else if (connectionMatcher.matches()) {
+								int from = Integer.parseInt(connectionMatcher.group(1));
+								int to = Integer.parseInt(connectionMatcher.group(2));
+
+								treeItems.get(from).getChildren().add(treeItems.get(to));
+							}
+						}
 					});
 				}
 
