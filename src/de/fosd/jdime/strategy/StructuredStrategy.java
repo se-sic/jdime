@@ -24,6 +24,7 @@
 package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -252,6 +253,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				long runtime = System.currentTimeMillis() - cmdStart;
 				runtimes.add(runtime);
+
+				if (LOG.isDebugEnabled()) {
+					FileWriter file = new FileWriter(leftFile + ".dot");
+					file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
+					file.close();
+				}
 
 				// collect stats
 				leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
