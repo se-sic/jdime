@@ -23,8 +23,6 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -115,7 +113,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (context.hasStats()) {
-			// but for the statistics, we have to look at the element
 			Stats stats = context.getStats();
 			stats.incrementOperation(this);
 			StatsElement element = stats.getElement(artifact
@@ -159,6 +156,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
+		return getId() + ": " + getName() + " " + artifact;
 	}
 }

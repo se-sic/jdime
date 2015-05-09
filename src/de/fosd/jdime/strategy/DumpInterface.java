@@ -43,7 +43,7 @@ public interface DumpInterface<T extends Artifact<T>> {
 	 * @throws IOException
 	 *             IOException
 	 */
-	void dumpTree(final T artifact, final boolean graphical) throws IOException;
+	String dumpTree(final T artifact, final boolean graphical) throws IOException;
 	
 	/**
 	 * TODO: documentation
@@ -55,5 +55,5 @@ public interface DumpInterface<T extends Artifact<T>> {
 	 * @throws IOException
 	 *             IOException
 	 */
-	void dumpFile(final T artifact, final boolean graphical) throws IOException;
+	String dumpFile(final T artifact, final boolean graphical) throws IOException;
 }

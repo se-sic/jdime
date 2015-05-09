@@ -276,6 +276,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
+	private static String getGraphvizId(ASTNodeArtifact artifact) {
+		return "\"" + artifact.getId() + "\"";
+	}
+
 	/**
 	 * Returns the AST in dot-format.
 	 *
@@ -283,34 +287,57 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 *            include node number in label if true
 	 * @return AST in dot-format.
 	 */
-	public final String dumpGraphvizTree(final boolean includeNumbers) {
+	public final String dumpGraphvizTree(final boolean includeNumbers, int virtualcount) {
 		assert (astnode != null);
 		StringBuilder sb = new StringBuilder();
-		sb.append(getNumber()).append("[label=\"");
 
-		// node label
-		if (includeNumbers) {
-			sb.append("(").append(getNumber()).append(") ");
-		}
+		if (isConflict()) {
+			// insert virtual node
+			String conflictId = "\"c" + virtualcount + "\"";
+			sb.append(conflictId);
+			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
 
-		sb.append(astnode.dumpString());
+			// left alternative
+			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
+			sb.append(conflictId).append("->").append(getGraphvizId(left)).
+					append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
 
-		sb.append("\"");
+			// right alternative
+			sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
+			sb.append(conflictId).append("->").append(getGraphvizId(right)).
+					append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+		} else {
+			sb.append(getGraphvizId(this)).append("[label=\"");
 
-		if (hasMatches()) {
-			sb.append(", fillcolor = green, style = filled");
-		}
+			// node label
+			if (includeNumbers) {
+				sb.append("(").append(getNumber()).append(") ");
+			}
 
-		sb.append("];");
-		sb.append(System.lineSeparator());
+			sb.append(astnode.dumpString());
 
-		// children
-		for (ASTNodeArtifact child : getChildren()) {
-			sb.append(child.dumpGraphvizTree(includeNumbers));
+			sb.append("\"");
 
-			// edge
-			sb.append(getNumber()).append("->").append(child.getNumber())
-					.append(";").append(System.lineSeparator());
+			if (hasMatches()) {
+				sb.append(", fillcolor = green, style = filled");
+			}
+
+			sb.append("];");
+			sb.append(System.lineSeparator());
+
+			// children
+			for (ASTNodeArtifact child : getChildren()) {
+				String childId = getGraphvizId(child);
+				if (child.isConflict()) {
+					virtualcount++;
+					childId = "\"c" + virtualcount + "\"";
+				}
+
+				sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
+
+				// edge
+				sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
+			}
 		}
 
 		return sb.toString();
@@ -428,7 +455,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	@Override
 	public final String getId() {
-		return getRevision() + ":" + getNumber();
+		return getRevision() + "-" + getNumber();
 	}
 
 	@Override

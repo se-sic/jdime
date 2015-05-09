@@ -427,7 +427,7 @@ public final class Main {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
-			strategy.dumpTree(artifact, context.isGuiDump());
+			System.out.println(strategy.dumpTree(artifact, context.isGuiDump()));
 		}
 	}
 
@@ -444,7 +444,7 @@ public final class Main {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
-			strategy.dumpFile(artifact, context.isGuiDump());
+			System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
 		}
 	}
 
