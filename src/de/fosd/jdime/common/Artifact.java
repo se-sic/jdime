@@ -101,6 +101,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	private boolean choice = false;
 
+	/**
+	 * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+	 */
 	protected HashMap<String, T> variants;
 
 	/**
@@ -484,7 +487,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if node has a matching with revision
 	 */
 	public final boolean hasMatching(final Revision rev) {
-		return matches != null && matches.containsKey(rev);
+		boolean hasMatching = matches != null && matches.containsKey(rev);
+
+		if (!hasMatching && isChoice()) {
+			// choice nodes have to be treated specially ...
+			for (T variant: variants.values()) {
+				if (variant.hasMatching(rev)) {
+					hasMatching = true;
+					break;
+				}
+			}
+		}
+		return hasMatching;
 	}
 
 	/**
@@ -661,10 +675,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 		LOG.debug("Add node " + artifact.getId() + " under condition " + condition);
 
-		if (variants == null) {
+		if (getVariants() == null) {
 			variants = new HashMap<>();
 		}
-		variants.put(condition, artifact);
+		getVariants().put(condition, artifact);
 	}
 
 	/**
@@ -730,4 +744,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *             If an input output exception occurs
 	 */
 	public abstract void write(String str) throws IOException;
+
+	/**
+	 * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+	 */
+	public HashMap<String, T> getVariants() {
+		return variants;
+	}
 }

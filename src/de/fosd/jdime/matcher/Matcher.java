@@ -32,6 +32,8 @@ import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
+import java.util.*;
+
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
  * compute and store <code>Matching</code>s.
@@ -75,6 +77,33 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * {@inheritDoc}
 	 */
 	public final Matching<T> match(final T left, final T right) {
+
+		if (left.isChoice()) {
+			// We have to spliy the choice node into its variants and create a matching for each one.
+			// The highest matching is returned.
+
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(this.getClass().getSimpleName() + " encountered a choice node (" + left.getId() + ")");
+			}
+
+			Map<Integer, Matching> variantMatches = new HashMap<>();
+
+			for (T variant: left.getVariants().values()) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(this.getClass().getSimpleName() + ".match(" + variant.getId() + ", " + right.getId() + ")");
+				}
+				Matching cur = match(variant, right);
+				variantMatches.put(cur.getScore(), cur);
+			}
+
+			Matching maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
+
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(this.getClass().getSimpleName() + ": highest match: " + maxMatching);
+			}
+			return maxMatching;
+		}
+
 		boolean isOrdered = false;
 		boolean uniqueLabels = true;
 

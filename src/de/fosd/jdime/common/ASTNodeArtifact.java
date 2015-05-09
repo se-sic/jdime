@@ -74,7 +74,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		p.initJavaParser(new JavaParser() {
 			@Override
 			public CompilationUnit parse(final java.io.InputStream is,
-					final String fileName) throws java.io.IOException,
+										 final String fileName) throws java.io.IOException,
 					beaver.Parser.Exception {
 				return new parser.JavaParser().parse(is, fileName);
 			}
@@ -313,8 +313,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 						append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
 			} else {
 				// choice node
-				for (String condition : variants.keySet()) {
-					ASTNodeArtifact variant = variants.get(condition);
+				for (String condition : getVariants().keySet()) {
+					ASTNodeArtifact variant = getVariants().get(condition);
 					sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
 					sb.append(virtualId).append("->").append(getGraphvizId(variant)).
 							append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
@@ -410,7 +410,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			sb.append(">>>>>>> ");
 			sb.append(System.lineSeparator());
 		} else if (isChoice()) {
-			Set<String> conditions = variants.keySet();
+			Set<String> conditions = getVariants().keySet();
 			sb.append(Color.RED.toShell());
 			sb.append(indent).append("(").append(getId()).append(") ");
 			sb.append(this);
@@ -421,7 +421,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				sb.append("#ifdef " + condition);
 				sb.append(System.lineSeparator());
 				// children
-				ASTNodeArtifact variant = variants.get(condition);
+				ASTNodeArtifact variant = getVariants().get(condition);
 				if (variant != null) {
 					sb.append(variant.dumpTree(indent));
 				}
