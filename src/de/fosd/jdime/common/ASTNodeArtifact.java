@@ -291,21 +291,35 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		StringBuilder sb = new StringBuilder();
 
-		if (isConflict()) {
+		if (isConflict() || isChoice()) {
 			// insert virtual node
-			String conflictId = "\"c" + virtualcount + "\"";
-			sb.append(conflictId);
-			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
+			String virtualId = "\"c" + virtualcount + "\"";
+			String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
+			String virtualColor = isConflict() ? "red" : "blue";
+			sb.append(virtualId);
+			sb.append("[label=").append(virtualLabel);
+			sb.append(", fillcolor = ").append(virtualColor);
+			sb.append(", style = filled]").append(System.lineSeparator());
 
-			// left alternative
-			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(left)).
-					append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+			if (isConflict()) {
+				// left alternative
+				sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(left)).
+						append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
 
-			// right alternative
-			sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(right)).
-					append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+				// right alternative
+				sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(right)).
+						append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+			} else {
+				// choice node
+				for (String condition : variants.keySet()) {
+					ASTNodeArtifact variant = variants.get(condition);
+					sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
+					sb.append(virtualId).append("->").append(getGraphvizId(variant)).
+							append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
+				}
+			}
 		} else {
 			sb.append(getGraphvizId(this)).append("[label=\"");
 
@@ -328,7 +342,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			// children
 			for (ASTNodeArtifact child : getChildren()) {
 				String childId = getGraphvizId(child);
-				if (child.isConflict()) {
+				if (child.isConflict() || child.isChoice()) {
 					virtualcount++;
 					childId = "\"c" + virtualcount + "\"";
 				}
