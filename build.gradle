@@ -118,12 +118,31 @@ task natives {
     outputs.files(glpkFile, glpkJavaFile)
 }
 
-applicationName = rootProject.name
-mainClassName = "de.fosd.jdime.Main"
-applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+startScripts {
+    applicationName = rootProject.name
+    mainClassName = "de.fosd.jdime.Main"
+    applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+}
 
-applicationDistribution.from(natives) {
-    into("bin")
+task guiScripts(type: CreateStartScripts) {
+    applicationName = "${rootProject.name} GUI"
+    mainClassName = 'de.fosd.jdime.gui.GUI'
+    outputDir = startScripts.outputDir
+    classpath = startScripts.classpath
+}
+
+distributions {
+    main {
+        contents.with {
+            into('bin') {
+                from(guiScripts)
+                fileMode = 0755
+            }
+            into('bin') {
+                from(natives)
+            }
+        }
+    }
 }
 
 run {
