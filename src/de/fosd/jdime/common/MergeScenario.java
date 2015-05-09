@@ -23,8 +23,10 @@
  */
 package de.fosd.jdime.common;
 
-import java.util.HashMap;
-import java.util.Map;
+import de.fosd.jdime.common.operations.MergeOperation;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
 
 /**
  * This class represents a merge scenario.
@@ -39,7 +41,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	private MergeType mergeType;
 
-	private Map<Revision, T> artifacts;
+	private LinkedHashMap<Revision, T> artifacts;
 
 	private Revision leftRev = new Revision("left");
 	private Revision baseRev = new Revision("base");
@@ -54,7 +56,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param right     artifact
 	 */
 	public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
-		this.artifacts = new HashMap<>();
+		this.artifacts = new LinkedHashMap<>();
 		this.mergeType = mergeType;
 		this.artifacts.put(this.leftRev, left);
 		this.artifacts.put(this.baseRev, base);
@@ -68,7 +70,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param inputArtifacts artifacts to merge
 	 */
 	public MergeScenario(final MergeType mergeType, ArtifactList<T> inputArtifacts) {
-		this.artifacts = new HashMap<>();
+		this.artifacts = new LinkedHashMap<>();
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
@@ -90,9 +92,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 *
 	 * @return the leftRev
 	 */
-	public final T getLeft() {
-		return artifacts.get(leftRev);
-	}
+	public final T getLeft() { return artifacts.get(leftRev); }
 
 	/**
 	 * Returns the type of merge.
@@ -125,6 +125,20 @@ public class MergeScenario<T extends Artifact<T>> {
 				&& left.getClass().equals(right.getClass())
 				&& (base.isEmptyDummy() || base.getClass().equals(
 				left.getClass()));
+	}
+
+	/**
+	 * Run the merge scenario.
+	 *
+	 * @param mergeOperation merge operation
+	 * @param context merge context
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
+		// FIXME: I think this could be done easier. It's just too fucking ugly.
+		//        We need the first element that was inserted and run the merge on it.
+		artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
 	}
 
 	/**

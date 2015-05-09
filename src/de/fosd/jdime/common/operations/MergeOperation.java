@@ -165,10 +165,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public void apply(MergeContext context) throws IOException, InterruptedException {
-		assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
-		assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
-		assert (mergeScenario.getBase().isEmptyDummy() || mergeScenario.getBase().exists()) :
-				"Base artifact does not exist: " + mergeScenario.getBase();
+		if (!context.isConditionalMerge()) {
+			assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
+			assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
+			assert (mergeScenario.getBase().isEmptyDummy() || mergeScenario.getBase().exists()) :
+					"Base artifact does not exist: " + mergeScenario.getBase();
+		}
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Applying: " + this);
@@ -178,7 +180,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			target.createArtifact(mergeScenario.getLeft().isLeaf());
 		}
 
-		mergeScenario.getLeft().merge(this, context);
+		mergeScenario.run(this, context);
 
 		if (context.hasStats()) {
 			Stats stats = context.getStats();
