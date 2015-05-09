@@ -64,7 +64,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			final MergeContext context) throws IOException,
 			InterruptedException {
 		logprefix = operation.getId() + " - ";
-		MergeTriple<T> triple = operation.getMergeTriple();
+		MergeScenario<T> triple = operation.getMergeScenario();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();

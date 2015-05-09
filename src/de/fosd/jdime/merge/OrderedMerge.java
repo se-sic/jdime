@@ -25,14 +25,11 @@ package de.fosd.jdime.merge;
 import java.io.IOException;
 import java.util.Iterator;
 
+import de.fosd.jdime.common.*;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
@@ -65,7 +62,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 			final MergeContext context) throws IOException,
 			InterruptedException {
 
-		MergeTriple<T> triple = operation.getMergeTriple();
+		MergeScenario<T> triple = operation.getMergeScenario();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
@@ -346,7 +343,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					T targetChild = target == null ? null : target
 							.addChild(leftChild);
 
-					MergeTriple<T> childTriple = new MergeTriple<>(childType,
+					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftChild, baseChild, rightChild);
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());

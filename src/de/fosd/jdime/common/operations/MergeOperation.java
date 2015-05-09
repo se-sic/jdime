@@ -25,15 +25,10 @@ package de.fosd.jdime.common.operations;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
@@ -52,15 +47,16 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
 
 	/**
-	 * The <code>MergeTriple</code> containing the <code>Artifact</code>s to be merged.
+	 * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
 	 */
-	private MergeTriple<T> mergeTriple;
+	private MergeScenario<T> mergeScenario;
 
 	/**
 	 * The <code>Artifact</code> to output the result of the merge to.
 	 */
 	private T target;
 
+	private boolean nway = false;
 	private String leftCondition;
 	private String rightCondition;
 
@@ -80,16 +76,17 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @param leftCondition condition for left alternative
 	 * @param rightCondition condition for right alternative
 	 *
+	 * @param nway
 	 * @throws IllegalArgumentException
 	 * 		if the size of <code>inputArtifacts</code> is invalid
 	 * @throws IllegalArgumentException
-	 * 		if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeTriple</code> according to
-	 * 		{@link MergeTriple#isValid()}
+	 * 		if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
+	 * 		{@link MergeScenario#isValid()}
 	 * @throws FileNotFoundException
 	 * 		if the dummy file used as BaseArtifact in a two-way-merge can not be created
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
-						  String rightCondition) throws FileNotFoundException {
+						  String rightCondition, boolean nway) throws FileNotFoundException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 
 		this.target = target;
@@ -113,10 +110,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			throw new IllegalArgumentException(msg);
 		}
 
-		this.mergeTriple = new MergeTriple<>(mergeType, left, base, right);
+		this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
 
-		if (!mergeTriple.isValid()) {
-			throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeTriple.");
+		if (!mergeScenario.isValid()) {
+			throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
 		}
 
 		left.setRevision(new Revision(MergeType.THREEWAY.getRevision(0)));
@@ -130,10 +127,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	}
 
 	/**
-	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeTriple</code> and <code>target</code>.
-	 * <code>mergeTriple</code> may be <code>null</code>.
+	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeScenario</code> and <code>target</code>.
+	 * <code>mergeScenario</code> may be <code>null</code>.
 	 *
-	 * @param mergeTriple
+	 * @param mergeScenario
 	 * 		the <code>Artifact</code>s to be merged
 	 * @param target
 	 * 		the output <code>Artifact</code>
@@ -141,16 +138,16 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @param rightCondition condition for right alternative
 	 *
 	 * @throws IllegalArgumentException
-	 * 		if <code>mergeTriple</code> is invalid
+	 * 		if <code>mergeScenario</code> is invalid
 	 */
-	public MergeOperation(MergeTriple<T> mergeTriple, T target, String leftCondition, String rightCondition) {
-		Objects.requireNonNull(mergeTriple, "mergeTriple must not be null!");
+	public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
+		Objects.requireNonNull(mergeScenario, "mergeScenario must not be null!");
 
-		if (!mergeTriple.isValid()) {
-			throw new IllegalArgumentException("mergeTriple is invalid.");
+		if (!mergeScenario.isValid()) {
+			throw new IllegalArgumentException("mergeScenario is invalid.");
 		}
 
-		this.mergeTriple = mergeTriple;
+		this.mergeScenario = mergeScenario;
 		this.target = target;
 
 		if (leftCondition != null || rightCondition != null) {
@@ -161,39 +158,39 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public void apply(MergeContext context) throws IOException, InterruptedException {
-		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: " + mergeTriple.getLeft();
-		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: " + mergeTriple.getRight();
-		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase().exists()) :
-				"Base artifact does not exist: " + mergeTriple.getBase();
+		assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
+		assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
+		assert (mergeScenario.getBase().isEmptyDummy() || mergeScenario.getBase().exists()) :
+				"Base artifact does not exist: " + mergeScenario.getBase();
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Applying: " + this);
 		}
 
 		if (target != null && !target.exists()) {
-			target.createArtifact(mergeTriple.getLeft().isLeaf());
+			target.createArtifact(mergeScenario.getLeft().isLeaf());
 		}
 
-		mergeTriple.getLeft().merge(this, context);
+		mergeScenario.getLeft().merge(this, context);
 
 		if (context.hasStats()) {
 			Stats stats = context.getStats();
 			if (stats != null) {
 				stats.incrementOperation(this);
-				StatsElement element = stats.getElement(mergeTriple.getLeft().getStatsKey(context));
+				StatsElement element = stats.getElement(mergeScenario.getLeft().getStatsKey(context));
 				element.incrementMerged();
 			}
 		}
 	}
 
 	/**
-	 * Returns the <code>MergeTriple</code> containing the <code>Artifact</code>s this <code>MergeOperation</code>
+	 * Returns the <code>MergeScenario</code> containing the <code>Artifact</code>s this <code>MergeOperation</code>
 	 * is merging.
 	 *
-	 * @return the <code>MergeTriple</code>
+	 * @return the <code>MergeScenario</code>
 	 */
-	public MergeTriple<T> getMergeTriple() {
-		return mergeTriple;
+	public MergeScenario<T> getMergeScenario() {
+		return mergeScenario;
 	}
 
 	@Override
@@ -212,9 +209,9 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public String toString() {
-		assert (mergeTriple != null);
+		assert (mergeScenario != null);
 		String dst = target == null ? "" : target.getId();
-		return getId() + ": " + getName() + " " + mergeTriple.getMergeType() + " " + mergeTriple.toString(true)
+		return getId() + ": " + getName() + " " + mergeScenario.getMergeType() + " " + mergeScenario.toString(true)
 				+ " INTO " + dst;
 	}
 }

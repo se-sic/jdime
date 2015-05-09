@@ -166,7 +166,7 @@ public final class Main {
 		options.addOption("keepgoing", false, "Keep running after exceptions.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
-						+ ", dumpgraph, dumpfile, prettyprint)");
+						+ ", dumpgraph, dumpfile, prettyprint, nway)");
 		options.addOption("output", true, "output directory/file");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
@@ -410,7 +410,7 @@ public final class Main {
 	public static void merge(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
-		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null);
+		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
 		merge.apply(context);
 	}
 
