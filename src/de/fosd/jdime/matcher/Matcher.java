@@ -96,7 +96,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 				variantMatches.put(cur.getScore(), cur);
 			}
 
-			Matching maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
+			Matching<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
 
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(this.getClass().getSimpleName() + ": highest match: " + maxMatching);
