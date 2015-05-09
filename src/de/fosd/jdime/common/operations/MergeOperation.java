@@ -95,30 +95,37 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		T left, base, right;
 		int numArtifacts = inputArtifacts.size();
 
-		if (numArtifacts == MergeType.TWOWAY.getNumFiles()) {
-			left = inputArtifacts.get(0);
-			base = left.createEmptyDummy();
-			right = inputArtifacts.get(1);
-			mergeType = MergeType.TWOWAY;
-		} else if (numArtifacts == MergeType.THREEWAY.getNumFiles()) {
-			left = inputArtifacts.get(0);
-			base = inputArtifacts.get(1);
-			right = inputArtifacts.get(2);
-			mergeType = MergeType.THREEWAY;
-		} else {
+		if (numArtifacts < MergeType.MINFILES) {
 			String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
 			throw new IllegalArgumentException(msg);
 		}
 
-		this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
+		if (nway) {
+			mergeType = MergeType.NWAY;
+			this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
+		} else {
 
-		if (!mergeScenario.isValid()) {
-			throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
+			if (numArtifacts == MergeType.TWOWAY_FILES) {
+				left = inputArtifacts.get(0);
+				base = left.createEmptyDummy();
+				right = inputArtifacts.get(1);
+				mergeType = MergeType.TWOWAY;
+			} else if (numArtifacts == MergeType.THREEWAY_FILES) {
+				left = inputArtifacts.get(0);
+				base = inputArtifacts.get(1);
+				right = inputArtifacts.get(2);
+				mergeType = MergeType.THREEWAY;
+			} else {
+				String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
+				throw new IllegalArgumentException(msg);
+			}
+
+			this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
+
+			if (!mergeScenario.isValid()) {
+				throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
+			}
 		}
-
-		left.setRevision(new Revision(MergeType.THREEWAY.getRevision(0)));
-		base.setRevision(new Revision(MergeType.THREEWAY.getRevision(1)));
-		right.setRevision(new Revision(MergeType.THREEWAY.getRevision(2)));
 
 		if (leftCondition != null || rightCondition != null) {
 			this.leftCondition = leftCondition;

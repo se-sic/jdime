@@ -296,8 +296,7 @@ public final class Main {
 			int numInputFiles = cmd.getArgList().size();
 
 			if (!((context.isDumpTree() || context.isDumpFile() || context
-					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
-					&& numInputFiles <= MergeType.MAXFILES)) {
+					.isBugfixing()) || numInputFiles >= MergeType.MINFILES)) {
 				help(context, options);
 				return false;
 			}

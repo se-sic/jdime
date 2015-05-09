@@ -41,7 +41,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 public interface MergeInterface<T extends Artifact<T>> {
 
 	int MINFILES = MergeType.MINFILES;
-	int MAXFILES = MergeType.MAXFILES;
 
 	/**
 	 * Executes a merge based on a <code>MergeOperation</code>.
