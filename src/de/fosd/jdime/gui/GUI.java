@@ -372,11 +372,26 @@ public final class GUI extends Application {
 		new Thread(jDimeExec).start();
 	}
 
+	/**
+	 * Adds <code>Tab</code>s containing <code>TreeTableView</code>s for every <code>TreeDumpNode</code> root in the
+	 * given <code>List</code>.
+	 *
+	 * @param roots
+	 * 		the roots of the trees to display
+	 */
 	private void addTabs(List<TreeItem<TreeDumpNode>> roots) {
 		tabPane.getTabs().retainAll(FXCollections.singletonObservableList(outputTab));
 		roots.forEach(root -> tabPane.getTabs().add(getTreeTableViewTab(root)));
 	}
 
+	/**
+	 * Returns a <code>Tab</code> containing a <code>TreeTableView</code> displaying the with the given
+	 * <code>root</code>.
+	 *
+	 * @param root
+	 * 		the root of the tree to display
+	 * @return a <code>Tab</code> containing the tree
+	 */
 	private Tab getTreeTableViewTab(TreeItem<TreeDumpNode> root) {
 		TreeTableView<TreeDumpNode> tableView = new TreeTableView<>(root);
 		TreeTableColumn<TreeDumpNode, String> id = new TreeTableColumn<>("ID");
