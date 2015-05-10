@@ -11,18 +11,16 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.scene.control.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -76,9 +74,11 @@ public final class GUI extends Application {
 	@FXML
 	CheckBox debugMode;
 	@FXML
-	private GridPane controlsPane;
+	private TabPane tabPane;
 	@FXML
-	private TreeTableView<TreeDumpNode> treeView;
+	private Tab outputTab;
+	@FXML
+	private GridPane controlsPane;
 	@FXML
 	private Button historyPrevious;
 	@FXML
@@ -111,14 +111,6 @@ public final class GUI extends Application {
 
 		Parent root = loader.load();
 		Scene scene = new Scene(root);
-
-		TreeTableColumn<TreeDumpNode, Integer> id = new TreeTableColumn<>("ID");
-		TreeTableColumn<TreeDumpNode, String> astType = new TreeTableColumn<>("AST Type");
-
-		id.setCellValueFactory(new TreeItemPropertyValueFactory<>("id"));
-		astType.setCellValueFactory(new TreeItemPropertyValueFactory<>("astType"));
-
-		treeView.getColumns().setAll(Arrays.asList(astType, id));
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		historyIndex = new SimpleIntegerProperty(0);
@@ -381,6 +373,37 @@ public final class GUI extends Application {
 	}
 
 	private void addTabs(List<TreeItem<TreeDumpNode>> roots) {
+		tabPane.getTabs().retainAll(FXCollections.singletonObservableList(outputTab));
+		roots.forEach(root -> tabPane.getTabs().add(getTreeTableViewTab(root)));
+	}
 
+	private Tab getTreeTableViewTab(TreeItem<TreeDumpNode> root) {
+		TreeTableView<TreeDumpNode> tableView = new TreeTableView<>(root);
+		TreeTableColumn<TreeDumpNode, String> id = new TreeTableColumn<>("ID");
+		TreeTableColumn<TreeDumpNode, String> label = new TreeTableColumn<>("AST Type");
+
+		tableView.setRowFactory(param -> {
+			TreeTableRow<TreeDumpNode> row = new TreeTableRow<>();
+			TreeDumpNode node = row.getItem();
+
+			if (node == null) {
+				return row;
+			}
+
+			String color = node.getFillColor();
+
+			if (color != null) {
+				BackgroundFill fill = new BackgroundFill(Color.valueOf(color), CornerRadii.EMPTY, Insets.EMPTY);
+				row.setBackground(new Background(fill));
+			}
+
+			return row;
+		});
+
+		id.setCellValueFactory(param -> param.getValue().getValue().idProperty());
+		label.setCellValueFactory(param -> param.getValue().getValue().labelProperty());
+
+		tableView.getColumns().setAll(Arrays.asList(label, id));
+		return new Tab("Tree View", tableView);
 	}
 }
