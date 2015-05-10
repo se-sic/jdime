@@ -1,12 +1,17 @@
 package de.fosd.jdime.gui;
 
+import javafx.scene.control.Tab;
+
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A Bean encapsulating the state of the gui at one point.
  */
 final class State {
 
+	private List<Tab> treeViewTabs;
 	private String output;
 	private String left;
 	private String base;
@@ -30,6 +35,7 @@ final class State {
 	public static State of(GUI gui) {
 		State state = new State();
 
+		state.treeViewTabs = gui.tabPane.getTabs().stream().filter(tab -> tab != gui.outputTab).collect(Collectors.toList());
 		state.output = gui.output.getText();
 		state.left = gui.left.getText();
 		state.base = gui.base.getText();
@@ -49,6 +55,8 @@ final class State {
 	 * 		the <code>GUI</code> to apply the stored state to
 	 */
 	public void applyTo(GUI gui) {
+		gui.tabPane.getTabs().retainAll(gui.outputTab);
+		gui.tabPane.getTabs().addAll(treeViewTabs);
 		gui.output.setText(output);
 		gui.left.setText(left);
 		gui.base.setText(base);

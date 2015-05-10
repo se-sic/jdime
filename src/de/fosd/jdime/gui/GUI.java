@@ -74,9 +74,9 @@ public final class GUI extends Application {
 	@FXML
 	CheckBox debugMode;
 	@FXML
-	private TabPane tabPane;
+	TabPane tabPane;
 	@FXML
-	private Tab outputTab;
+	Tab outputTab;
 	@FXML
 	private GridPane controlsPane;
 	@FXML
@@ -353,23 +353,35 @@ public final class GUI extends Application {
 
 		jDimeExec.setOnSucceeded(event -> {
 			boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
+			tabPane.getTabs().retainAll(outputTab);
 
 			if (dumpGraph) {
 				GraphvizParser parser = new GraphvizParser(jDimeExec.getValue());
-				parser.setOnSucceeded(roots -> addTabs(parser.getValue()));
+				parser.setOnSucceeded(roots -> {
+					addTabs(parser.getValue());
+					reactivate();
+				});
 				new Thread(parser).start();
+			} else {
+				reactivate();
 			}
-
-			State currentState = State.of(GUI.this);
-			if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
-				history.add(currentState);
-				historyIndex.setValue(history.size());
-			}
-
-			controlsPane.setDisable(false);
 		});
 
 		new Thread(jDimeExec).start();
+	}
+
+	/**
+	 * Saves the current state of the GUI to the history and then reactivates the user controls.
+	 */
+	private void reactivate() {
+		State currentState = State.of(GUI.this);
+
+		if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
+			history.add(currentState);
+			historyIndex.setValue(history.size());
+		}
+
+		controlsPane.setDisable(false);
 	}
 
 	/**
@@ -380,7 +392,6 @@ public final class GUI extends Application {
 	 * 		the roots of the trees to display
 	 */
 	private void addTabs(List<TreeItem<TreeDumpNode>> roots) {
-		tabPane.getTabs().retainAll(FXCollections.singletonObservableList(outputTab));
 		roots.forEach(root -> tabPane.getTabs().add(getTreeTableViewTab(root)));
 	}
 
