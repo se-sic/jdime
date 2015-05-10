@@ -12,18 +12,13 @@
     <RowConstraints vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-<TabPane>
+<TabPane fx:id="tabPane">
 <tabs>
-<Tab closable="false" text="JDime Output">
+<Tab fx:id="outputTab" closable="false" text="JDime Output">
 <content>
       <TextArea fx:id="output" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" />
 </content>
 </Tab>
-            <Tab closable="false" text="TreeView">
-               <content>
-                  <TreeTableView fx:id="treeView" />
-               </content>
-            </Tab>
 </tabs>
 </TabPane>
       <GridPane fx:id="controlsPane" hgap="5.0" vgap="2.0" GridPane.rowIndex="1">

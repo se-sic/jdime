@@ -81,8 +81,6 @@ class GraphvizParser extends Task<List<TreeItem<TreeDumpNode>>> {
 
 					left.getChildren().add(right);
 					noParent.remove(right);
-				} else {
-					System.err.println("Could not parse " + line);
 				}
 			}
 		}
