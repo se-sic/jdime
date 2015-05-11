@@ -209,6 +209,16 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				}
 
+				// leftChild is a choice node
+				if (leftChild.isChoice()) {
+					T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
+					leftChild.addVariant(r.getName(), matchedVariant);
+					AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+					leftChild.setMerged(true);
+					rightChild.setMerged(true);
+					addOp.apply(context);
+				}
+
 				// merge left
 				if (!leftChild.isMerged()) {
 					Matching<T> mRight = leftChild.getMatching(r);

@@ -94,6 +94,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (artifact.isChoice()) {
+			artifact.copyArtifact(target);
 			return;
 		}
 

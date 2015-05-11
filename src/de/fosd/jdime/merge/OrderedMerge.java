@@ -329,8 +329,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					LOG.trace(prefix(leftChild) + "is in both revisions ["
 							+ rightChild.getId() + "]");
 				}
-				assert (leftChild.hasMatching(rightChild) && rightChild
-						.hasMatching(leftChild));
+
+				// leftChild is a choice node
+				if (leftChild.isChoice()) {
+					T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
+					leftChild.addVariant(r.getName(), matchedVariant);
+					AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+					leftChild.setMerged(true);
+					rightChild.setMerged(true);
+					addOp.apply(context);
+				} else {
+					assert (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild));
+				}
 
 				if (!leftChild.isMerged() && !rightChild.isMerged()) {
 					// determine whether the child is 2 or 3-way merged
