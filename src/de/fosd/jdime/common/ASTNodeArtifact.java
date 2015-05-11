@@ -26,10 +26,7 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import AST.ASTNode;
 import AST.BytecodeParser;
@@ -701,7 +698,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				right.rebuildAST();
 				astnode.right = right.astnode;
 			}
+		}
 
+		if (isChoice()) {
+			astnode.isChoice = true;
+			astnode.jdimeId = getId();
+			astnode.variants = new LinkedHashMap<String, ASTNode<?>>();
+
+			for (String condition : variants.keySet()) {
+				ASTNodeArtifact variant = variants.get(condition);
+				variant.rebuildAST();
+				astnode.variants.put(condition, variant.astnode);
+			}
 		}
 
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
