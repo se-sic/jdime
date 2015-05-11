@@ -40,6 +40,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -67,12 +68,12 @@ public final class Main {
 	 *
 	 * @param args command line arguments
 	 */
-	public static void main(final String[] args) {
+	public static void main(final String[] args) throws IOException, ParseException, InterruptedException {
 		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
 		setLogLevel("INFO");
 
-		try {
+		//try {
 			if (!parseCommandLineArgs(context, args)) {
 				System.exit(0);
 			}
@@ -123,12 +124,12 @@ public final class Main {
 			if (context.hasStats()) {
 				StatsPrinter.print(context);
 			}
-		} catch (Throwable t) {
+		/*} catch (Throwable t) {
 			LOG.debug("stopping program");
 			LOG.debug("runtime: " + (System.currentTimeMillis() - context.getProgramStart())
 					+ " ms");
 			System.exit(-1);
-		}
+		}*/
 
 		System.exit(0);
 	}
@@ -247,6 +248,11 @@ public final class Main {
 						// User wants to merge
 						context.setMergeStrategy(MergeStrategy.parse(cmd
 								.getOptionValue("mode")));
+
+						if (context.getMergeStrategy() instanceof NWayStrategy) {
+							LOG.trace("n-way merge");
+							context.setConditionalMerge(true);
+						}
 						break;
 					}
 				} catch (StrategyNotFoundException e) {
@@ -304,10 +310,17 @@ public final class Main {
 			// prepare the list of input files
 			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
+			char cond = 'A';
+
 			for (Object filename : cmd.getArgList()) {
 				try {
-					inputArtifacts.add(new FileArtifact(new File(
-							(String) filename)));
+					FileArtifact newArtifact = new FileArtifact(new File((String) filename));
+
+					if (context.isConditionalMerge()) {
+						newArtifact.setRevision(new Revision(String.valueOf(cond++)));
+					}
+
+					inputArtifacts.add(newArtifact);
 				} catch (FileNotFoundException e) {
 					System.err.println("Input file not found: "
 							+ (String) filename);

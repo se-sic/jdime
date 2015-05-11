@@ -93,6 +93,10 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
+		if (artifact.isChoice()) {
+			return;
+		}
+
 		if (target != null) {
 			if (!target.exists()) {
 				target.createArtifact(false);

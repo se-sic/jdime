@@ -761,6 +761,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ASTNodeArtifact choice;
 
 		choice = new ASTNodeArtifact(type.astnode.fullCopy());
+		choice.setRevision(new Revision("choice"));
+		choice.setNumber(virtualcount++);
 		choice.setChoice(condition, artifact);
 		return choice;
 	}

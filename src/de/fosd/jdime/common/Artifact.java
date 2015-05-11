@@ -24,9 +24,7 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
@@ -125,6 +123,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Number used to identify the artifact.
 	 */
 	private int number = -1;
+
+	protected static int virtualcount = 1;
 
 	/**
 	 * Parent artifact.
@@ -510,12 +510,19 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public final boolean hasMatching(final T other) {
-		if (matches == null) {
-			return false;
-		}
+		Revision otherRev = other.getRevision();
+		boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact((T) this) == other;
 
-		Matching<T> m = matches.get(other.getRevision());
-		return m != null && m.getMatchingArtifact((T) this) == other;
+		if (!hasMatching && isChoice()) {
+			// choice nodes have to be treated specially ...
+			for (T variant: variants.values()) {
+				if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact((T) variant) == other) {
+					hasMatching = true;
+					break;
+				}
+			}
+		}
+		return hasMatching;
 	}
 
 	/**
@@ -608,8 +615,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *
 	 * @return true if matches were already computed
 	 */
-	public final boolean matchingComputed() {
-		return matches != null;
+	public final boolean matchingComputed(Revision rev) {
+		return matches != null && hasMatching(rev);
 	}
 
 	/**

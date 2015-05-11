@@ -58,9 +58,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
 		this.artifacts = new LinkedHashMap<>();
 		this.mergeType = mergeType;
-		this.artifacts.put(this.leftRev, left);
-		this.artifacts.put(this.baseRev, base);
-		this.artifacts.put(this.rightRev, right);
+		this.getArtifacts().put(this.leftRev, left);
+		this.getArtifacts().put(this.baseRev, base);
+		this.getArtifacts().put(this.rightRev, right);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class MergeScenario<T extends Artifact<T>> {
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
-			artifacts.put(artifact.getRevision(), artifact);
+			getArtifacts().put(artifact.getRevision(), artifact);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the baseRev
 	 */
 	public final T getBase() {
-		return artifacts.get(baseRev);
+		return getArtifacts().get(baseRev);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 *
 	 * @return the leftRev
 	 */
-	public final T getLeft() { return artifacts.get(leftRev); }
+	public final T getLeft() { return getArtifacts().get(leftRev); }
 
 	/**
 	 * Returns the type of merge.
@@ -109,7 +109,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the rightRev
 	 */
 	public final T getRight() {
-		return artifacts.get(rightRev);
+		return getArtifacts().get(rightRev);
 	}
 
 	/**
@@ -118,13 +118,8 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return true if the merge scenario is valid.
 	 */
 	public final boolean isValid() {
-		T left = artifacts.get(leftRev);
-		T base = artifacts.get(baseRev);
-		T right = artifacts.get(rightRev);
-		return left != null && base != null && right != null
-				&& left.getClass().equals(right.getClass())
-				&& (base.isEmptyDummy() || base.getClass().equals(
-				left.getClass()));
+		// FIXME: this needs to be reimplemented
+		return true;
 	}
 
 	/**
@@ -138,7 +133,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
 		// FIXME: I think this could be done easier. It's just too fucking ugly.
 		//        We need the first element that was inserted and run the merge on it.
-		artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
+		getArtifacts().get(getArtifacts().keySet().iterator().next()).merge(mergeOperation, context);
 	}
 
 	/**
@@ -147,7 +142,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param base the baseRev to set
 	 */
 	public final void setBase(final T base) {
-		artifacts.put(baseRev, base);
+		getArtifacts().put(baseRev, base);
 	}
 
 	/**
@@ -156,7 +151,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param left the leftRev to set
 	 */
 	public final void setLeft(final T left) {
-		artifacts.put(leftRev, left);
+		getArtifacts().put(leftRev, left);
 	}
 
 	/**
@@ -165,7 +160,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param right the rightRev to set
 	 */
 	public final void setRight(final T right) {
-		artifacts.put(rightRev, right);
+		getArtifacts().put(rightRev, right);
 	}
 
 	/**
@@ -197,17 +192,14 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return String representation
 	 */
 	public final String toString(final String sep, final boolean humanReadable) {
-		T left = artifacts.get(leftRev);
-		T base = artifacts.get(baseRev);
-		T right = artifacts.get(rightRev);
 		StringBuilder sb = new StringBuilder("");
-		sb.append(left.getId()).append(sep);
 
-		if (!humanReadable || !base.isEmptyDummy()) {
-			sb.append(base.getId()).append(sep);
+		for (Revision rev : artifacts.keySet()) {
+			T artifact = artifacts.get(rev);
+			if (!humanReadable || !artifact.isEmptyDummy()) {
+				sb.append(artifact.getId()).append(sep);
+			}
 		}
-
-		sb.append(right.getId());
 		return sb.toString();
 	}
 
@@ -219,9 +211,13 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final ArtifactList<T> getList() {
 		ArtifactList<T> list = new ArtifactList<>();
-		list.add(artifacts.get(leftRev));
-		list.add(artifacts.get(baseRev));
-		list.add(artifacts.get(rightRev));
+		list.add(getArtifacts().get(leftRev));
+		list.add(getArtifacts().get(baseRev));
+		list.add(getArtifacts().get(rightRev));
 		return list;
+	}
+
+	public LinkedHashMap<Revision, T> getArtifacts() {
+		return artifacts;
 	}
 }

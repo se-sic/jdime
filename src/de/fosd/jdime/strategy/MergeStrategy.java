@@ -53,13 +53,16 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 		LinebasedStrategy lineBased = new LinebasedStrategy();
 		StructuredStrategy structured = new StructuredStrategy();
 		CombinedStrategy combined = new CombinedStrategy();
+		NWayStrategy nway = new NWayStrategy();
 
 		entries.put("linebased", lineBased);
 		entries.put("unstructured", lineBased);
 		entries.put("structured", structured);
 		entries.put("combined", combined);
 		entries.put("autotuning", combined);
-		
+		entries.put("nway", nway);
+		entries.put("variants", nway);
+
 		strategyMap = Collections.unmodifiableMap(entries);
 	}
 

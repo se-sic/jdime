@@ -81,7 +81,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		Diff<T> diff = new Diff<>();
 
 		Matching<T> m;
-		if (!left.matchingComputed() && !right.matchingComputed()) {
+		if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge
 
@@ -123,7 +123,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 		}
 
-		assert (left.hasMatching(right) && right.hasMatching(left));
+		assert ((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left)) : left.getId() + " and " + right.getId()
+							+ " have no matches.";
 
 		if (target != null && target.isRoot() && !target.hasMatches()) {
 			// hack to fix the matches for the merged root node

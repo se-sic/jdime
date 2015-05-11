@@ -100,7 +100,13 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 			assert (target.exists());
 
 			if (context.isConditionalMerge() && leftCondition != null && rightCondition != null) {
-				T choice = target.createChoiceDummy(type, leftCondition, left);
+				T choice;
+				if (left.isChoice()) {
+					choice = left;
+				} else {
+					choice = target.createChoiceDummy(type, leftCondition, left);
+				}
+
 				assert (choice.isChoice());
 				choice.addVariant(rightCondition, right);
 				choice.copyArtifact(target);
