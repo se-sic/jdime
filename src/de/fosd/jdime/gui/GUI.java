@@ -419,8 +419,13 @@ public final class GUI extends Application {
 			String color = node.getFillColor();
 
 			if (color != null) {
-				BackgroundFill fill = new BackgroundFill(Color.valueOf(color), CornerRadii.EMPTY, Insets.EMPTY);
-				row.setBackground(new Background(fill));
+
+				try {
+					BackgroundFill fill = new BackgroundFill(Color.valueOf(color), CornerRadii.EMPTY, Insets.EMPTY);
+					row.setBackground(new Background(fill));
+				} catch (IllegalArgumentException e) {
+					System.err.println("Could not convert \'" + color + "\' to a JavaFX Color.");
+				}
 			}
 
 			return row;
