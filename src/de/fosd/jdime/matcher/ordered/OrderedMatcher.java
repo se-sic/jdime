@@ -23,9 +23,10 @@
 package de.fosd.jdime.matcher.ordered;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.Matchings;
 
 /**
  * @author Olaf Lessenich
@@ -55,12 +56,18 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements
 	/**
 	 * Compares two nodes while considering the order of the elements important.
 	 *
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
+	 * @param context <code>MergeContext</code>
+	 * @param left left node
+	 * @param right right node
+	 * @param lookAhead How many levels to keep searching for matches in the
+	 * subtree if the currently compared nodes are not equal. If there are no
+	 * matches within the specified number of levels, do not look for matches
+	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
+	 * stop looking for subtree matches if two nodes do not match. If this is
+	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
+	 * default ist to do no look-ahead matching.
+	 * @return matching tree of matches
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right);
+	public abstract Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead);
 }

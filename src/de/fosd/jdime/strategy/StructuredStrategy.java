@@ -130,6 +130,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				base = new ASTNodeArtifact(baseFile);
 				right = new ASTNodeArtifact(rightFile);
 
+				context.addElements(left);
+				if (!baseFile.isEmptyDummy()) {
+					context.addElements(base);
+				}
+				context.addElements(right);
+
 				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
 				targetNode.forceRenumbering();

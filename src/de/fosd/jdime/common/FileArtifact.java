@@ -23,6 +23,16 @@
  */
 package de.fosd.jdime.common;
 
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
+import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
+
+import javax.activation.MimetypesFileTypeMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,16 +44,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.activation.MimetypesFileTypeMap;
-
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.DirectoryStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
@@ -271,7 +271,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	protected final String dumpTree(final String indent) {
 		StringBuilder sb = new StringBuilder();
 
-		Matching<FileArtifact> m = null;
+		NewMatching<FileArtifact> m = null;
 		if (hasMatches()) {
 			Set<Revision> matchingRevisions = matches.keySet();
 
@@ -280,7 +280,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 			for (Revision rev : matchingRevisions) {
 				m = getMatching(rev);
-				color = m.getColor().toShell();
+				color = m.getHighlightColor().toShell();
 			}
 
 			sb.append(color);
