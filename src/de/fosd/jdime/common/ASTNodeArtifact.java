@@ -431,11 +431,21 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return "nodes";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		ASTNodeArtifact that = (ASTNodeArtifact) o;
+
+		return astnode.dumpString().equals(that.astnode.dumpString());
+	}
+
 	@Override
 	public final int hashCode() {
 		return astnode.dumpString().hashCode();

@@ -437,11 +437,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		return getNumChildren() > 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
+	public abstract boolean equals(Object obj);
+
 	@Override
 	public abstract int hashCode();
 

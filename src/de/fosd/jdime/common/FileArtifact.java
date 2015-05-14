@@ -307,13 +307,21 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final boolean equals(final Object obj) {
-		assert (obj != null);
-		assert (obj instanceof FileArtifact);
-		if (this == obj) {
+	public boolean equals(Object o) {
+		if (this == o) {
 			return true;
 		}
-		return this.toString().equals(((FileArtifact) obj).toString());
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		return toString().equals(o.toString());
+	}
+
+	@Override
+	public final int hashCode() {
+		return toString().hashCode();
 	}
 
 	@Override
@@ -464,16 +472,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		//
 		// return strategy.getStatsKey(this);
 		return isDirectory() ? "directories" : "files";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
-	@Override
-	public final int hashCode() {
-		return toString().hashCode();
 	}
 
 	@Override
