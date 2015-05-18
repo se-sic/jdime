@@ -1,5 +1,9 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
@@ -7,10 +11,6 @@ import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
@@ -79,18 +79,18 @@ public class TestTrees {
 	 * @return the trees
 	 */
 	private static Tuple<TestArtifact, TestArtifact> simpleTree() {
-		TestArtifact t0 = new TestArtifact();
-		TestArtifact t1 = new TestArtifact();
-		TestArtifact t2 = new TestArtifact();
-		TestArtifact t3 = new TestArtifact();
-		TestArtifact t4 = new TestArtifact();
+		TestArtifact t1 = new TestArtifact(1);
+		TestArtifact t2 = new TestArtifact(2);
+		TestArtifact t3 = new TestArtifact(3);
+		TestArtifact t4 = new TestArtifact(4);
+		TestArtifact t5 = new TestArtifact(5);
 
-		t0.addChild(t1);
-		t0.addChild(t2);
-		t2.addChild(t3);
-		t2.addChild(t4);
+		t1.addChild(t2);
+		t1.addChild(t3);
+		t3.addChild(t4);
+		t3.addChild(t5);
 
-		return new Tuple<>(t0, t2);
+		return new Tuple<>(t1, t3);
 	}
 
 	public static void main(String[] args) {

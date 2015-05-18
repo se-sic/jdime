@@ -24,10 +24,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	public TestArtifact(int id) {
-		if (!(id >= 0 && id < nextID)) {
-			throw new AssertionError("Invalid ID");
-		}
-
 		this.id = id;
 		this.children = new ArtifactList<>();
 	}
