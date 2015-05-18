@@ -1,9 +1,5 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
@@ -11,6 +7,10 @@ import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
@@ -107,7 +107,7 @@ public class TestTrees {
 		System.out.println("Right tree as BalancedSequence:");
 		System.out.println(t.toString() + '\n');
 
-		List<NewMatching<TestArtifact>> l = new ArrayList<>(matchings);
+		List<NewMatching<TestArtifact>> l = new ArrayList<>(matchings.optimized());
 		Collections.sort(l);
 
 		for (NewMatching<TestArtifact> matching : l) {
