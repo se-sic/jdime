@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
@@ -38,27 +39,26 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-        BalancedSequence<T> s;
-        BalancedSequence<T> t;
+        Stream<T> leftPreOrder = preOrder(left).stream();
+        Stream<T> rightPreOrder = preOrder(right).stream();
+        List<BalancedSequence<T>> leftSeqs;
+		List<BalancedSequence<T>> rightSeqs;
 
         if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-            s = new BalancedSequence<>(left);
-            t = new BalancedSequence<>(right);
+			leftSeqs = leftPreOrder.map(BalancedSequence<T>::new).collect(Collectors.toList());
+			rightSeqs = rightPreOrder.map(BalancedSequence<T>::new).collect(Collectors.toList());
         } else {
-            s = new BalancedSequence<>(left, lookAhead);
-            t = new BalancedSequence<>(right, lookAhead);
+			leftSeqs =  leftPreOrder.map(t -> new BalancedSequence<>(t, lookAhead)).collect(Collectors.toList());
+			rightSeqs = rightPreOrder.map(t -> new BalancedSequence<>(t, lookAhead)).collect(Collectors.toList());
         }
 
-        List<BalancedSequence<T>> leftSeqs = preOrder(s.getRoot()).stream().map(BalancedSequence<T>::new).collect(Collectors.toList());
-        List<BalancedSequence<T>> rightSeqs = preOrder(t.getRoot()).stream().map(BalancedSequence<T>::new).collect(Collectors.toList());
         Set<NewMatching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
         /*
          * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
          * already in the left tree.
          */
-        rightSeqs.removeIf(rightSeq -> leftSeqs.stream().anyMatch(leftSeq -> rightSeq.getRoot().matches(leftSeq.getRoot())));
-
+		rightSeqs.removeIf(rightSeq -> leftSeqs.stream().anyMatch(leftSeq -> rightSeq.getRoot().matches(leftSeq.getRoot())));
         matchings.addAll(getMatchings(rightSeqs, leftSeqs));
 
         Matchings<T> result = new Matchings<>();
@@ -84,10 +84,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         for (BalancedSequence<T> leftSequence : left) {
             for (BalancedSequence<T> rightSequence : right) {
                 Integer res = BalancedSequence.lcs(leftSequence, rightSequence);
-                Integer score = leftSequence.getRoot().matches(rightSequence.getRoot()) ? res : res + 1;
 
-                if (matching == null || matching.getScore() < score) {
-                    matching = new NewMatching<>(leftSequence.getRoot(), rightSequence.getRoot(), score);
+                if (matching == null || matching.getScore() < res) {
+                    matching = new NewMatching<>(leftSequence.getRoot(), rightSequence.getRoot(), res);
                 }
             }
 
