@@ -15,7 +15,9 @@ import java.util.Set;
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
  * {0, 1}. The balanced sequence of a leaf node is the empty sequence. The balanced sequence of a non leaf node is the
  * concatenation of the balanced sequences of its children, every one preceded by a 0 and followed by a 1. The balanced
- * sequence of a tree is the balanced sequence of its root node.
+ * sequence of a tree is the balanced sequence of its root node. This implementation adds the root node to the
+ * balanced sequence (as if by adding a virtual root node with a single child (the root node) and constructing the
+ * normal balanced sequence of the tree).
  *
  * @param <T>
  *         the type of the <code>Artifact</code> whose balanced sequence is to be constructed
@@ -111,7 +113,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @param currentDepth
      *         the current depth in the tree
      * @param maxDepth
-     *         the maximum Depth of nodes to add
+     *         the maximum depth of nodes to add
      *
      * @return the index after the last index written to;
      */
