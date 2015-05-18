@@ -53,7 +53,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>boolean[]</code>.
+	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>seq</code>.
 	 *
 	 * @param seq
 	 * 		the sequence to wrap
