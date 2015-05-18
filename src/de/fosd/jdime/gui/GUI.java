@@ -1,5 +1,20 @@
 package de.fosd.jdime.gui;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.regex.Pattern;
+
 import javafx.application.Application;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
@@ -24,21 +39,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -361,10 +361,19 @@ public final class GUI extends Application {
 					addTabs(parser.getValue());
 					reactivate();
 				});
+				parser.setOnFailed(event1 ->  {
+					System.err.println(event1.getSource().getException().getMessage());
+					reactivate();
+				});
 				new Thread(parser).start();
 			} else {
 				reactivate();
 			}
+		});
+
+		jDimeExec.setOnFailed(event -> {
+			System.err.println(event.getSource().getException().getMessage());
+			reactivate();
 		});
 
 		new Thread(jDimeExec).start();

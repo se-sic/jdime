@@ -89,7 +89,7 @@ task natives {
 
     def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
     def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
-    
+
     if (glpkJavaFile.exists()) {
         if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
             println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name."
@@ -125,7 +125,7 @@ startScripts {
 }
 
 task guiScripts(type: CreateStartScripts) {
-    applicationName = "${rootProject.name} GUI"
+    applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
