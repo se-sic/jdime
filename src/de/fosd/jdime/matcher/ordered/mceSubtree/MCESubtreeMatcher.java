@@ -67,34 +67,31 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         return result;
     }
 
-    /**
-     * Returns for every element of <code>left</code> a <code>NewMatching</code> with the element of
-     * <code>right</code> for which the <code>results</code> array contains the highest score.
-     *
-     * @param left
-     *         the <code>BalancedSequence</code>s of the nodes of the left tree
-     * @param right
-     *         the <code>BalancedSequence</code>s of the nodes of the right tree   @return a <code>Set</code> of
-     *         <code>NewMatching</code>s of the described format
-     */
-    private Set<NewMatching<T>> getMatchings(List<BalancedSequence<T>> left, List<BalancedSequence<T>> right) {
-        Set<NewMatching<T>> matchings = new HashSet<>();
-        NewMatching<T> matching = null;
+	/**
+	 * Returns for every element of <code>left</code> a <code>NewMatching</code> with every element of
+	 * <code>right</code>.
+	 *
+	 * @param left
+	 * 		the <code>BalancedSequence</code>s of the nodes of the left tree
+	 * @param right
+	 * 		the <code>BalancedSequence</code>s of the nodes of the right tree
+	 * @return a <code>Set</code> of <code>NewMatching</code>s
+	 */
+	private Set<NewMatching<T>> getMatchings(List<BalancedSequence<T>> left, List<BalancedSequence<T>> right) {
+		Set<NewMatching<T>> matchings = new HashSet<>();
 
-        for (BalancedSequence<T> leftSequence : left) {
-            for (BalancedSequence<T> rightSequence : right) {
-                Integer res = BalancedSequence.lcs(leftSequence, rightSequence);
+		for (BalancedSequence<T> leftSequence : left) {
+			for (BalancedSequence<T> rightSequence : right) {
+				NewMatching<T> matching = new NewMatching<T>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
 
-                if (matching == null || matching.getScore() < res) {
-                    matching = new NewMatching<>(leftSequence.getRoot(), rightSequence.getRoot(), res);
-                }
-            }
+				if (!matchings.contains(matching)) {
+					matching.setScore(BalancedSequence.lcs(leftSequence, rightSequence));
+					matchings.add(matching);
+				}
+			}
+		}
 
-            matchings.add(matching);
-            matching = null;
-        }
-
-        return matchings;
+		return matchings;
     }
 
     /**

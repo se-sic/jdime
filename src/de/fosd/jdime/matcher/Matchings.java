@@ -3,9 +3,17 @@ package de.fosd.jdime.matcher;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 /**
  * A <code>Set</code> of <code>NewMatching</code>s. Adds methods to retrieve specific elements of the <code>Set</code>
@@ -105,5 +113,40 @@ public class Matchings<T extends Artifact<T>> extends HashSet<NewMatching<T>> {
 		for (Matchings<T> matching : matchings) {
 			addAll(matching);
 		}
+	}
+
+	/**
+	 * Returns a <code>Matchings</code> instance containing for every matched Artifact in this <code>Matchings</code>
+	 * the <code>NewMatching</code> containing it that has the highest score.
+	 *
+	 * @return a new <code>Matchings</code> instance
+	 */
+	public Matchings<T> optimized() {
+		Map<Artifact<T>, List<NewMatching<T>>> matchings = new HashMap<>();
+
+		forEach(matching -> {
+			UnorderedTuple<T, T> artifacts = matching.getMatchedArtifacts();
+			BiFunction<Artifact<T>, List<NewMatching<T>>, List<NewMatching<T>>> adder = (artifact, list) -> {
+				if (list == null) {
+					list = new ArrayList<>();
+				}
+				list.add(matching);
+
+				return list;
+			};
+
+			matchings.compute(artifacts.getX(), adder);
+			matchings.compute(artifacts.getY(), adder);
+		});
+
+		Set<NewMatching<T>> filtered = matchings.entrySet()
+												.stream()
+												.map(entry -> Collections.max(entry.getValue(), (o1, o2) -> o1.getScore() - o2.getScore()))
+												.collect(Collectors.toSet());
+
+		Matchings<T> res = new Matchings<>();
+		res.addAll(filtered);
+
+		return res;
 	}
 }
