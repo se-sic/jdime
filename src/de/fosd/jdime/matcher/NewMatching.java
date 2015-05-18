@@ -124,6 +124,15 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 	}
 
 	/**
+	 * Sets score to the given value.
+	 *
+	 * @param score the new score
+	 */
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	/**
 	 * Returns a <code>String</code> describing the algorithm that found the matching.
 	 *
 	 * @return the algorithm description
