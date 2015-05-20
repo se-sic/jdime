@@ -35,13 +35,7 @@ import de.fosd.jdime.common.Artifact;
  */
 public class Entry<T extends Artifact<T>> {
 
-	/**
-	 * Direction.
-	 */
 	private Direction direction;
-	/**
-	 * Matching.
-	 */
 	private Matchings<T> matching;
 
 	/**

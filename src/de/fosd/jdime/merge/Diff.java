@@ -53,7 +53,7 @@ public class Diff<T extends Artifact<T>> {
 	 *            right node
 	 * @param color
 	 *            color of the matching (for debug output only)
-	 * @return Matching of the two nodes
+	 * @return <code>Matchings</code> of the two nodes
 	 */
 	public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
 		Matcher<T> matcher = new Matcher<>();

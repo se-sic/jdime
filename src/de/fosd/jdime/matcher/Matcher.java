@@ -46,7 +46,7 @@ import java.util.Queue;
  * is important (e.g., statements within a method in a Java AST) or not (e.g.,
  * method declarations in a Java AST) for syntactic correctness. Then either an
  * implementation of <code>OrderedMatcher</code> or
- * <code>UnorderedMatcher</code> is called to compute the actual Matching.
+ * <code>UnorderedMatcher</code> is called to compute the actual <code>Matching</code>.
  * Usually, those subclass implementations use this <code>Matcher</code>
  * superclass for the recursive call of the match() method.
  * <p>
