@@ -26,8 +26,8 @@ package de.fosd.jdime.matcher.unordered;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -105,7 +105,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				Matchings<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
-				NewMatching<T> matching = childMatching.get(leftChild, rightChild).get();
+				Matching<T> matching = childMatching.get(leftChild, rightChild).get();
 
 				childrenMatchings.add(childMatching);
 				sum += matching.getScore();

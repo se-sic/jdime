@@ -27,8 +27,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -150,7 +150,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
 				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
-				NewMatching<T> matching = w.get(childT1, childT2).get();
+				Matching<T> matching = w.get(childT1, childT2).get();
 				matchtings[i][j] = new Tuple<>(matching.getScore(), w);
 			}
 		}
@@ -293,7 +293,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		}
 		GLPK.glp_delete_prob(lp);
 
-		NewMatching<T> matching = new NewMatching<>(left, right, objective + rootMatching);
+		Matching<T> matching = new Matching<>(left, right, objective + rootMatching);
 		matching.setAlgorithm(id);
 
 		Matchings<T> result = new Matchings<>();

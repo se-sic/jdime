@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -342,7 +342,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
 				if (!leftChild.isMerged() && !rightChild.isMerged()) {
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = leftChild.getMatching(b);
+					Matching<T> mBase = leftChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;

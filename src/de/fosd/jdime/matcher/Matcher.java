@@ -162,7 +162,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Stores the <code>NewMatching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
+	 * Stores the <code>Matching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
 	 * match.
 	 *
 	 * @param context
@@ -174,7 +174,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 */
 	public final void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
-		for (NewMatching<T> matching : matchings) {
+		for (Matching<T> matching : matchings) {
 
 			if (matching.getScore() > 0) {
 				T left = matching.getLeft();

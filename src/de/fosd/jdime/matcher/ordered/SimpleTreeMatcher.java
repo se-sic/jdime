@@ -28,8 +28,8 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -122,7 +122,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 				T leftChild = left.getChild(i - 1);
 				T rightChild = right.getChild(j - 1);
 				Matchings<T> w = matcher.match(context, leftChild, rightChild, lookAhead);
-				NewMatching<T> matching = w.get(leftChild, rightChild).get();
+				Matching<T> matching = w.get(leftChild, rightChild).get();
 
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
 					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
@@ -175,7 +175,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		}
 
 		// total matching score for these trees is the score of the matched children + the matching of the root nodes
-		NewMatching<T> matching = new NewMatching<>(left, right, matrixM[m][n] + rootMatching);
+		Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
 		matching.setAlgorithm(id);
 
 		Matchings<T> matchings = new Matchings<>();

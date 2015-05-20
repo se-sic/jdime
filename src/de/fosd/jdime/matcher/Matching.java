@@ -8,7 +8,7 @@ import de.fosd.jdime.common.UnorderedTuple;
  *
  * @param <T> the type of the <code>Artifact</code>
  */
-public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable<NewMatching<T>> {
+public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Matching<T>> {
 
 	/**
 	 * The algorithm that found the matching.
@@ -24,30 +24,30 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 	private int score;
 
 	/**
-	 * Constructs a new empty <code>NewMatching</code> with score 0.
+	 * Constructs a new empty <code>Matching</code> with score 0.
 	 */
-	public NewMatching() {
+	public Matching() {
 		this(null, null, 0);
 	}
 
 	/**
-	 * Constructs a new <code>NewMatching</code> between the two given <code>T</code>s.
+	 * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
 	 *
 	 * @param left the left <code>Artifact</code>
 	 * @param right the right <code>Artifact</code>
 	 * @param score the score of the matching
 	 */
-	public NewMatching(T left, T right, int score) {
+	public Matching(T left, T right, int score) {
 		this(UnorderedTuple.of(left, right), score);
 	}
 
 	/**
-	 * Constructs a new <code>NewMatching</code> between the two given <code>T</code>s.
+	 * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
 	 *
 	 * @param matchedArtifacts the two matched <code>Artifact</code>s
 	 * @param score the score of the matching
 	 */
-	public NewMatching(UnorderedTuple<T, T> matchedArtifacts, int score) {
+	public Matching(UnorderedTuple<T, T> matchedArtifacts, int score) {
 		this.matchedArtifacts = matchedArtifacts;
 		this.score = score;
 	}
@@ -80,8 +80,8 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 	}
 
 	/**
-	 * If one of the <code>Artifact</code>s contained in this <code>NewMatching</code> is referentially equal to
-	 * <code>artifact</code> this method returns the other <code>Artifact</code> in this <code>NewMatching</code>.
+	 * If one of the <code>Artifact</code>s contained in this <code>Matching</code> is referentially equal to
+	 * <code>artifact</code> this method returns the other <code>Artifact</code> in this <code>Matching</code>.
 	 * Otherwise <code>null</code> is returned.
 	 *
 	 * @param artifact
@@ -96,12 +96,12 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 	}
 
 	/**
-	 * Replaces one of the <code>Artifact</code>s contained in this <code>NewMatching</code> if it has the same id (as
+	 * Replaces one of the <code>Artifact</code>s contained in this <code>Matching</code> if it has the same id (as
 	 * per {@link Artifact#getId()}) with <code>artifact</code>. Do not use if you do not exactly know what you are
 	 * doing.
 	 *
 	 * @param artifact
-	 * 		the artifact to possibly insert into this <code>NewMatching</code>
+	 * 		the artifact to possibly insert into this <code>Matching</code>
 	 */
 	public void updateMatching(T artifact) {
 		T left = getLeft();
@@ -183,7 +183,7 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 			return false;
 		}
 
-		NewMatching<?> that = (NewMatching<?>) o;
+		Matching<?> that = (Matching<?>) o;
 
 		return matchedArtifacts.equals(that.matchedArtifacts);
 	}
@@ -195,10 +195,10 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 
 	@Override
 	@SuppressWarnings("unchecked") // the warning is inevitable but harmless
-	public NewMatching<T> clone() {
+	public Matching<T> clone() {
 
 		try {
-			NewMatching<T> clone = (NewMatching<T>) super.clone();
+			Matching<T> clone = (Matching<T>) super.clone();
 			clone.matchedArtifacts = matchedArtifacts.clone();
 
 			return clone;
@@ -208,7 +208,7 @@ public class NewMatching<T extends Artifact<T>> implements Cloneable, Comparable
 	}
 
 	@Override
-	public int compareTo(NewMatching<T> o) {
+	public int compareTo(Matching<T> o) {
 		int dif = matchedArtifacts.getX().compareTo(o.getMatchedArtifacts().getX());
 
 		if (dif != 0) {

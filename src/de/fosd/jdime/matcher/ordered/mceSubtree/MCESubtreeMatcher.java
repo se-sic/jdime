@@ -3,8 +3,8 @@ package de.fosd.jdime.matcher.ordered.mceSubtree;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 			rightSeqs = rightPreOrder.map(t -> new BalancedSequence<>(t, lookAhead)).collect(Collectors.toList());
         }
 
-        Set<NewMatching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
+        Set<Matching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
         /*
          * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
@@ -68,21 +68,21 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
     }
 
 	/**
-	 * Returns for every element of <code>left</code> a <code>NewMatching</code> with every element of
+	 * Returns for every element of <code>left</code> a <code>Matching</code> with every element of
 	 * <code>right</code>.
 	 *
 	 * @param left
 	 * 		the <code>BalancedSequence</code>s of the nodes of the left tree
 	 * @param right
 	 * 		the <code>BalancedSequence</code>s of the nodes of the right tree
-	 * @return a <code>Set</code> of <code>NewMatching</code>s
+	 * @return a <code>Set</code> of <code>Matching</code>s
 	 */
-	private Set<NewMatching<T>> getMatchings(List<BalancedSequence<T>> left, List<BalancedSequence<T>> right) {
-		Set<NewMatching<T>> matchings = new HashSet<>();
+	private Set<Matching<T>> getMatchings(List<BalancedSequence<T>> left, List<BalancedSequence<T>> right) {
+		Set<Matching<T>> matchings = new HashSet<>();
 
 		for (BalancedSequence<T> leftSequence : left) {
 			for (BalancedSequence<T> rightSequence : right) {
-				NewMatching<T> matching = new NewMatching<T>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
+				Matching<T> matching = new Matching<T>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
 
 				if (!matchings.contains(matching)) {
 					matching.setScore(BalancedSequence.lcs(leftSequence, rightSequence));

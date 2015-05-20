@@ -25,7 +25,7 @@ package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
@@ -271,7 +271,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	protected final String dumpTree(final String indent) {
 		StringBuilder sb = new StringBuilder();
 
-		NewMatching<FileArtifact> m = null;
+		Matching<FileArtifact> m = null;
 		if (hasMatches()) {
 			Set<Revision> matchingRevisions = matches.keySet();
 
