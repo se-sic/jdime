@@ -133,9 +133,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         
 		if (isOrdered) {
 			orderedCalls++;
+
 			if (LOG.isTraceEnabled()) {
-				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
-						+ left.getId() + ", " + right.getId() + ")");
+				String matcherName = orderedMatcher.getClass().getSimpleName();
+				LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 			}
 
 			return orderedMatcher.match(context, left, right, lookAhead);
@@ -144,17 +145,15 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 			if (uniqueLabels) {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedLabelMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
+					String matcherName = unorderedLabelMatcher.getClass().getSimpleName();
+					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 				}
 
 				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
+					String matcherName = unorderedMatcher.getClass().getSimpleName();
+					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 				}
 
 				return unorderedMatcher.match(context, left, right, lookAhead);
@@ -173,7 +172,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @param color
 	 * 		the <code>Color</code> used to highlight the matchings in the debug output
 	 */
-	public final void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+	public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
 		for (Matching<T> matching : matchings.optimized()) {
 
