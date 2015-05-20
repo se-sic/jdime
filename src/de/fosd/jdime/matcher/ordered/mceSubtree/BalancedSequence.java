@@ -65,8 +65,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	}
 
     /**
-     * Returns one less (the root node) than the number of nodes in the tree that have at most the given
-     * <code>depth</code>.
+     * Returns the number of nodes in the tree that have at most the given <code>depth</code>.
      *
      * @param tree
      *         the tree whose nodes are to be counted
@@ -78,7 +77,7 @@ public class BalancedSequence<T extends Artifact<T>> {
     private int getSize(T tree, int depth) {
 
         if (depth == 0) {
-            return 0;
+            return 1;
         }
 
         int num = tree.getNumChildren();
