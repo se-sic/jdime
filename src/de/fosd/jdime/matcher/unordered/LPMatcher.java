@@ -41,12 +41,11 @@ import java.util.List;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
- * TODO: this needs more explanation, I'll fix that soon
- *
- * @author Olaf Lessenich
+ * TODO: this needs more explanation, I'll fix that soon.
  *
  * @param <T>
- *            type of artifact
+ * 		type of artifact
+ * @author Olaf Lessenich
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
@@ -61,14 +60,14 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 * Computes indices in the constraint matrix.
 	 *
 	 * @param i
-	 *            row in node matrix
+	 * 		row in node matrix
 	 * @param j
-	 *            column in node matrix
+	 * 		column in node matrix
 	 * @param width
-	 *            columns per row in node matrix
+	 * 		columns per row in node matrix
 	 * @return index in constraint matrix
 	 */
-	private static int getGlpkIndex(final int i, final int j, final int width) {
+	private static int getGlpkIndex(int i, int j, int width) {
 		return i * width + j;
 	}
 
@@ -76,36 +75,29 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 * Computes indices in the node matrix.
 	 *
 	 * @param x
-	 *            index in constraint matrix
+	 * 		index in constraint matrix
 	 * @param width
-	 *            columns per row in node matrix
+	 * 		columns per row in node matrix
 	 * @return index in node matrix
 	 */
-	private static int[] getMyIndices(final int x, final int width) {
+	private static int[] getMyIndices(int x, int width) {
 		return new int[] { x / width, x % width };
 	}
 
 	/**
+	 * Constructs a new <code>LPMatcher</code> using the given <code>Matcher</code> for recursive calls.
+	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
 	public LPMatcher(final Matcher<T> matcher) {
 		super(matcher);
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * TODO: this really needs documentation. I'll soon take care of that.
-	 * @param context <code>MergeContext</code>
-	 * @param left
-	 * @param right
-	 * @param lookAhead How many levels to keep searching for matches in the
-	 * subtree if the currently compared nodes are not equal. If there are no
-	 * matches within the specified number of levels, do not look for matches
-	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
-	 * stop looking for subtree matches if two nodes do not match. If this is
-	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
-	 * default ist to do no look-ahead matching.
-	 * @return
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
@@ -282,11 +274,12 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				int[] indices = getMyIndices(c - 1, width);
 				int i = indices[0];
 				int j = indices[1];
+
 				if (i < m && j < n) { // TODO: verify that this is correct
 					Tuple<Integer, Matchings<T>> curMatching = childrenMatching[i][j];
+
 					if (curMatching.x > 0) {
 						children.add(curMatching.y);
-						// curMatching.setAlgorithm(id); TODO This matching was produced by a different Matcher, why set the algorithm to a new ID?
 					}
 				}
 			}
