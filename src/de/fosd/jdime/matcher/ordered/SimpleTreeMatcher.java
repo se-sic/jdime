@@ -40,38 +40,28 @@ import java.util.List;
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
  * TODO: This needs more explanation, I'll fix that soon.
  *
- * @author Olaf Lessenich
- *
  * @param <T>
- *            type of artifacts
+ * 		type of artifacts
+ * @author Olaf Lessenich
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
 
 	/**
+	 * Constructs a new <code>SimpleTreeMatcher</code> using the given <code>Matcher</code> for recursive calls.
+	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
-	public SimpleTreeMatcher(final Matcher<T> matcher) {
+	public SimpleTreeMatcher(Matcher<T> matcher) {
 		super(matcher);
 	}
 
 	/**
-	 * TODO: this really needs documentation. I'll soon take care of that.
+	 * {@inheritDoc}
 	 *
-	 * @param context <code>MergeContext</code>
-	 * @param left
-	 * @param right
-	 * @param lookAhead How many levels to keep searching for matches in the
-	 * subtree if the currently compared nodes are not equal. If there are no
-	 * matches within the specified number of levels, do not look for matches
-	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
-	 * stop looking for subtree matches if two nodes do not match. If this is
-	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
-	 * default ist to do no look-ahead matching.
-	 * @return
+	 * TODO: this really needs documentation. I'll soon take care of that.
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
@@ -152,25 +142,21 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 		while (i >= 1 && j >= 1) {
 			switch (matrixT[i][j].getDirection()) {
-			case TOP:
-				i--;
-				break;
-			case LEFT:
-				j--;
-				break;
-			case DIAG:
-				if (matrixM[i][j] > matrixM[i - 1][j - 1]) {
-					// markMatching("stm",
-					// matrixM[i][j]-matrixM[i - 1][j - 1],
-					// t1.getChild(i - 1), t2.getChild(j - 1));
-					children.add(matrixT[i][j].getMatching());
-					// matrixT[i][j].getMatching().setAlgorithm(id); TODO This matching was produced by a different Matcher, why set the algorithm to a new ID?
-				}
-				i--;
-				j--;
-				break;
-			default:
-				break;
+				case TOP:
+					i--;
+					break;
+				case LEFT:
+					j--;
+					break;
+				case DIAG:
+					if (matrixM[i][j] > matrixM[i - 1][j - 1]) {
+						children.add(matrixT[i][j].getMatching());
+					}
+					i--;
+					j--;
+					break;
+				default:
+					break;
 			}
 		}
 
