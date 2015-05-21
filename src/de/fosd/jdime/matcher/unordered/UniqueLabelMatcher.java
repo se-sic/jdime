@@ -35,23 +35,27 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * @author Olaf Lessenich
+ * TODO: This needs more explanation.
  *
  * @param <T>
- *            type of artifact
+ * 		type of artifact
+ * @author Olaf Lessenich
  */
-public class UniqueLabelMatcher<T extends Artifact<T>> extends
-		UnorderedMatcher<T> {
+public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 	/**
+	 * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>Matcher</code> for recursive calls.
+	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
-	public UniqueLabelMatcher(final Matcher<T> matcher) {
+	public UniqueLabelMatcher(Matcher<T> matcher) {
 		super(matcher);
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
