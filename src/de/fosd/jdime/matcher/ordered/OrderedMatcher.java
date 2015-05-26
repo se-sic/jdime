@@ -29,45 +29,35 @@ import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.Matchings;
 
 /**
- * @author Olaf Lessenich
+ * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing
+ * <code>Artifact</code>s.
  *
  * @param <T>
- *            type of artifact
+ * 		the type of the <code>Artifact</code>s
+ * @author Olaf Lessenich
  */
-public abstract class OrderedMatcher<T extends Artifact<T>> implements
-		MatchingInterface<T> {
+public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	/**
-	 * The matcher is used for recursive matching calls. It can determine
-	 * whether the order of artifacts is essential.
+	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
 	 */
 	protected Matcher<T> matcher;
 
 	/**
-	 * Creates a new instance of OrderedMatcher.
+	 * Constructs a new <code>OrderedMatcher</code> using the given <code>matcher</code> for recursive calls.
 	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
-	public OrderedMatcher(final Matcher<T> matcher) {
+	public OrderedMatcher(Matcher<T> matcher) {
 		this.matcher = matcher;
 	}
 
 	/**
-	 * Compares two nodes while considering the order of the elements important.
-	 *
-	 * @param context <code>MergeContext</code>
-	 * @param left left node
-	 * @param right right node
-	 * @param lookAhead How many levels to keep searching for matches in the
-	 * subtree if the currently compared nodes are not equal. If there are no
-	 * matches within the specified number of levels, do not look for matches
-	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
-	 * stop looking for subtree matches if two nodes do not match. If this is
-	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
-	 * default ist to do no look-ahead matching.
-	 * @return matching tree of matches
+	 * {@inheritDoc}
+	 * <p>
+	 * Compares <code>left</code> and <code>right</code> while considering the order of the elements important.
 	 */
 	@Override
-	public abstract Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead);
+	public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
 }
