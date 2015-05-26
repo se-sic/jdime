@@ -53,6 +53,7 @@ public final class GUI extends Application {
 	private static final String JDIME_DEFAULT_BASE_KEY = "DEFAULT_BASE";
 	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
+	private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
@@ -180,6 +181,18 @@ public final class GUI extends Application {
 	}
 
 	/**
+	 * Returns the result of {@link Boolean#parseBoolean(String)} for the value the given <code>key</code> is mapped to
+	 * according to {@link #getConfig(String)} or <code>false</code> if it is not mapped to a value.
+	 *
+	 * @param key the configuration key
+	 * @return the value parsed as a boolean or <code>false</code>
+	 */
+	private boolean getConfigBoolean(String key) {
+		Optional<String> value = getConfig(key);
+		return value.isPresent() && Boolean.parseBoolean(value.get());
+	}
+
+	/**
 	 * Shows a <code>FileChooser</code> and returns the chosen <code>File</code>. Sets <code>lastChooseDir</code>
 	 * to the parent file of the returned <code>File</code>.
 	 *
@@ -302,7 +315,7 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid) {
+		if (!valid && !getConfigBoolean(JDIME_ALLOW_INVALID_KEY)) {
 			return;
 		}
 
@@ -314,12 +327,33 @@ public final class GUI extends Application {
 			protected String call() throws Exception {
 				ProcessBuilder builder = new ProcessBuilder();
 				List<String> command = new ArrayList<>();
+				String input;
 
-				command.add(jDime.getText());
-				command.addAll(Arrays.asList(cmdArgs.getText().trim().split("\\s+")));
-				command.add(left.getText());
-				command.add(base.getText());
-				command.add(right.getText());
+				input = jDime.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				List<String> args = Arrays.asList(cmdArgs.getText().trim().split("\\s+"));
+				if (!args.isEmpty()) {
+					command.addAll(args);
+				}
+
+				input = left.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				input = base.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				input = right.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
 				builder.command(command);
 
 				File workingDir = new File(jDime.getText()).getParentFile();
