@@ -29,6 +29,7 @@ import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -49,7 +50,7 @@ import java.util.List;
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	private static String id = "unordered";
+	private String id = ClassUtils.getSimpleName(getClass());
 
 	/**
 	 * Threshold for rounding errors.
@@ -105,9 +106,20 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
-				// roots contain distinct symbols and we cannot use the look-ahead feature
-				// therefore, we ignore the rest of the subtrees and return early to save time
-				return Matchings.of(left, right, rootMatching);
+				/*
+				 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+				 * subtrees and return early to save time.
+				 */
+
+				if (LOG.isTraceEnabled()) {
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
+				}
+
+				Matchings<T> m = Matchings.of(left, right, rootMatching);
+				m.get(left, right).get().setAlgorithm(id);
+
+				return m;
 			} else {
 				lookAhead = lookAhead - 1;
 			}
@@ -122,7 +134,10 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return Matchings.of(left, right, rootMatching);
+			Matchings<T> matchings = Matchings.of(left, right, rootMatching);
+			matchings.get(left, right).get().setAlgorithm(id);
+
+			return matchings;
 		}
 
 		@SuppressWarnings("unchecked")

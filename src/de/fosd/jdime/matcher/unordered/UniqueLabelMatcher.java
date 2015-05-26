@@ -28,6 +28,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,14 +61,25 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+		String id = ClassUtils.getSimpleName(getClass());
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
-				// roots contain distinct symbols and we cannot use the look-ahead feature
-				// therefore, we ignore the rest of the subtrees and return early to save time
-				// therefore, we ignore the rest of the subtrees and return early to save time
-				return Matchings.of(left, right, rootMatching);
+				/*
+				 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+				 * subtrees and return early to save time.
+				 */
+
+				if (LOG.isTraceEnabled()) {
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
+				}
+
+				Matchings<T> m = Matchings.of(left, right, rootMatching);
+				m.get(left, right).get().setAlgorithm(id);
+
+				return m;
 			} else {
 				lookAhead = lookAhead - 1;
 			}
@@ -76,7 +88,10 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 		}
 
 		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
-			return Matchings.of(left, right, rootMatching);
+			Matchings<T> m = Matchings.of(left, right, rootMatching);
+			m.get(left, right).get().setAlgorithm(id);
+
+			return m;
 		}
 
         List<Matchings<T>> childrenMatchings = new ArrayList<>();

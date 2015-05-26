@@ -46,8 +46,6 @@ import java.util.List;
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
-
 	/**
 	 * Constructs a new <code>SimpleTreeMatcher</code> using the given <code>Matcher</code> for recursive calls.
 	 *
@@ -60,24 +58,30 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 	/**
 	 * {@inheritDoc}
-	 *
+	 * <p>
 	 * TODO: this really needs documentation. I'll soon take care of that.
 	 */
 	@Override
-	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-		String id = "stm";
-
+	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+		String id = ClassUtils.getSimpleName(getClass());
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
-				// roots contain distinct symbols and we cannot use the look-ahead feature
-				// therefore, we ignore the rest of the subtrees and return early to save time
+				/*
+				 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+				 * subtrees and return early to save time.
+				 */
+
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(id + " - " + "early return while matching " + left.getId()
-							+ " and " + right.getId() + " (LookAhead = " + context.getLookAhead() + ")");
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
 				}
-				return Matchings.of(left, right, rootMatching);
+
+				Matchings<T> m = Matchings.of(left, right, rootMatching);
+				m.get(left, right).get().setAlgorithm(id);
+
+				return m;
 			} else {
 				lookAhead = lookAhead - 1;
 			}
@@ -108,15 +112,14 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
 		for (int i = 1; i <= m; i++) {
 			for (int j = 1; j <= n; j++) {
-
 				T leftChild = left.getChild(i - 1);
 				T rightChild = right.getChild(j - 1);
+
 				Matchings<T> w = matcher.match(context, leftChild, rightChild, lookAhead);
 				Matching<T> matching = w.get(leftChild, rightChild).get();
 
 				if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
-					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1]
-							+ matching.getScore()) {
+					if (matrixM[i][j - 1] > matrixM[i - 1][j - 1] + matching.getScore()) {
 						matrixM[i][j] = matrixM[i][j - 1];
 						matrixT[i][j] = new Entry<>(Direction.LEFT, w);
 					} else {
@@ -124,8 +127,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 						matrixT[i][j] = new Entry<>(Direction.DIAG, w);
 					}
 				} else {
-					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1]
-							+ matching.getScore()) {
+					if (matrixM[i - 1][j] > matrixM[i - 1][j - 1] + matching.getScore()) {
 						matrixM[i][j] = matrixM[i - 1][j];
 						matrixT[i][j] = new Entry<>(Direction.TOP, w);
 					} else {

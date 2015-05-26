@@ -27,6 +27,8 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing
@@ -37,6 +39,8 @@ import de.fosd.jdime.matcher.Matchings;
  * @author Olaf Lessenich
  */
 public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
+
+	protected static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
 
 	/**
 	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
