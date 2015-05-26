@@ -327,12 +327,33 @@ public final class GUI extends Application {
 			protected String call() throws Exception {
 				ProcessBuilder builder = new ProcessBuilder();
 				List<String> command = new ArrayList<>();
+				String input;
 
-				command.add(jDime.getText());
-				command.addAll(Arrays.asList(cmdArgs.getText().trim().split("\\s+")));
-				command.add(left.getText());
-				command.add(base.getText());
-				command.add(right.getText());
+				input = jDime.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				List<String> args = Arrays.asList(cmdArgs.getText().trim().split("\\s+"));
+				if (!args.isEmpty()) {
+					command.addAll(args);
+				}
+
+				input = left.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				input = base.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
+				input = right.getText().trim();
+				if (!input.isEmpty()) {
+					command.add(input);
+				}
+
 				builder.command(command);
 
 				File workingDir = new File(jDime.getText()).getParentFile();
