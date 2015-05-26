@@ -672,7 +672,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		addVariant(condition, artifact);
 	}
 
-	public void addVariant(final String condition, final T artifact) {
+	public void addVariant(String condition, final T artifact) {
 		if (!choice) {
 			throw new RuntimeException("addVariant() can only be called on choice nodes!");
 		}
@@ -682,10 +682,23 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 		LOG.debug("Add node " + artifact.getId() + " under condition " + condition);
 
-		if (getVariants() == null) {
+		if (variants == null) {
 			variants = new HashMap<>();
 		}
-		getVariants().put(condition, artifact);
+
+		// merge conditions for same artifact
+		List<String> mergedConditions = new ArrayList<>();
+		for (String existingCondition : variants.keySet()) {
+			if (variants.get(existingCondition).equals(artifact)) {
+				mergedConditions.add(existingCondition);
+				condition = existingCondition + " || " + condition;
+			}
+		}
+		for (String mergedCondition : mergedConditions) {
+			variants.remove(mergedCondition);
+		}
+
+		variants.put(condition, artifact);
 	}
 
 	/**
