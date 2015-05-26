@@ -120,7 +120,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				m.get(left, right).get().setAlgorithm(id);
 
 				return m;
-			} else {
+			} else if (lookAhead > 0) {
 				lookAhead = lookAhead - 1;
 			}
 		} else if (context.isLookAhead()) {
