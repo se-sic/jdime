@@ -50,7 +50,9 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(T tree, int maxDepth) {
-		this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
+        int size = getSize(tree, maxDepth);
+        System.out.println(size);
+        this.seq = new ArrayList<>(Collections.nCopies(size * 2, null));
 		initSeq(tree, maxDepth);
 	}
 
@@ -80,8 +82,7 @@ public class BalancedSequence<T extends Artifact<T>> {
             return 1;
         }
 
-        int num = tree.getNumChildren();
-
+        int num = 0;
         for (T t : tree.getChildren()) {
             num += getSize(t, depth - 1);
         }
