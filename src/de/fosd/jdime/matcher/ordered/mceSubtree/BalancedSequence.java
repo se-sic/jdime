@@ -1,5 +1,8 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
+import de.fosd.jdime.common.Artifact;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,9 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import de.fosd.jdime.common.Artifact;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
@@ -26,6 +26,9 @@ import org.apache.commons.lang3.tuple.Pair;
  * @see <a href="http://www.cs.upc.edu/~antoni/subtree.pdf">This Paper</a>
  */
 public class BalancedSequence<T extends Artifact<T>> {
+
+	@SuppressWarnings("unchecked")
+    private static final BalancedSequence EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
 
 	private List<T> seq;
 
@@ -50,7 +53,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(T tree, int maxDepth) {
-        this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
+		this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
 		initSeq(tree, maxDepth);
 	}
 
@@ -172,13 +175,16 @@ public class BalancedSequence<T extends Artifact<T>> {
 		return Pair.of(head, tail);
 	}
 
-    /**
-     * Returns a new empty sequence.
-     *
-     * @return an empty sequence
-     */
-    private BalancedSequence<T> emptySeq() {
-        return new BalancedSequence<T>(new ArrayList<>());
+	/**
+	 * Returns an empty sequence.
+	 *
+	 * @param <T>
+	 * 		the type of the <code>Artifact</code>
+	 * @return an empty <code>BalancedSequence</code>
+	 */
+	@SuppressWarnings("unchecked")
+	private static <T extends Artifact<T>> BalancedSequence<T> emptySeq() {
+        return (BalancedSequence<T>) EMPTY_SEQ;
     }
 
     /**
@@ -221,6 +227,10 @@ public class BalancedSequence<T extends Artifact<T>> {
      */
     private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
 		int length = left.seq.size() + right.seq.size();
+
+		if (length == 0) {
+			return emptySeq();
+		}
 
         List<T> result = new ArrayList<>(length);
         result.addAll(left.seq);
