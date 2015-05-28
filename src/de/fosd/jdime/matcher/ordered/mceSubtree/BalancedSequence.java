@@ -1,8 +1,5 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import de.fosd.jdime.common.Artifact;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import de.fosd.jdime.common.Artifact;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
@@ -50,9 +50,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(T tree, int maxDepth) {
-        int size = getSize(tree, maxDepth);
-        System.out.println(size);
-        this.seq = new ArrayList<>(Collections.nCopies(size * 2, null));
+        this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
 		initSeq(tree, maxDepth);
 	}
 
