@@ -32,7 +32,7 @@ import de.fosd.jdime.matcher.ordered.OrderedMatcher;
  */
 public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-    private ExecutorService ex = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static ExecutorService ex = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     /**
      * Constructs a new <code>OrderedMatcher</code>
