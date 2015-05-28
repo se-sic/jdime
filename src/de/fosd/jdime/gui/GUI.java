@@ -54,6 +54,7 @@ public final class GUI extends Application {
 	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 	private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
+	private static final String JDIME_UPDATE_DELAY = "UPDATE_DELAY";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
@@ -86,6 +87,7 @@ public final class GUI extends Application {
 	private Button historyNext;
 
 	private Properties config;
+	private int updateDelay;
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
@@ -141,6 +143,7 @@ public final class GUI extends Application {
 		getConfig(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
 		getConfig(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
 		getConfig(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		updateDelay = getConfigInt(JDIME_UPDATE_DELAY).orElse(1000);
 	}
 
 	/**
@@ -181,15 +184,34 @@ public final class GUI extends Application {
 	}
 
 	/**
-	 * Returns the result of {@link Boolean#parseBoolean(String)} for the value the given <code>key</code> is mapped to
-	 * according to {@link #getConfig(String)} or <code>false</code> if it is not mapped to a value.
+	 * Optionally returns the result of {@link Boolean#parseBoolean(String)} for the value the given <code>key</code>
+	 * is mapped to according to {@link #getConfig(String)}.
 	 *
 	 * @param key the configuration key
-	 * @return the value parsed as a boolean or <code>false</code>
+	 * @return optionally the value parsed as a boolean
 	 */
-	private boolean getConfigBoolean(String key) {
-		Optional<String> value = getConfig(key);
-		return value.isPresent() && Boolean.parseBoolean(value.get());
+	private Optional<Boolean> getConfigBoolean(String key) {
+		return getConfig(key).flatMap(s -> Optional.of(Boolean.parseBoolean(s)));
+	}
+
+	/**
+	 * Optionally returns the result of {@link Integer#parseInt(String)} for the value the given <code>key</code>
+	 * is mapped to according to {@link #getConfig(String)}.
+	 *
+	 * @param key the configuration key
+	 * @return optionally the value parsed as an int
+	 */
+	private Optional<Integer> getConfigInt(String key) {
+		Optional<Integer> res = getConfig(key).flatMap(s -> {
+
+			try {
+				return Optional.of(Integer.parseInt(s));
+			} catch (NumberFormatException e) {
+				return Optional.empty();
+			}
+		});
+
+		return res;
 	}
 
 	/**
@@ -315,7 +337,7 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid && !getConfigBoolean(JDIME_ALLOW_INVALID_KEY)) {
+		if (!valid && !getConfigBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false)) {
 			return;
 		}
 
@@ -366,14 +388,24 @@ public final class GUI extends Application {
 				}
 
 				Process process = builder.start();
-				StringBuilder text = new StringBuilder();
+				StringBuilder text = new StringBuilder(1024);
+
+				int numRead;
+				char[] buf = new char[1024];
+				long lastUpdate = 0;
 
 				Charset cs = StandardCharsets.UTF_8;
-				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
-					r.lines().forEach(line -> {
-						text.append(line).append(System.lineSeparator());
-						updateMessage(text.toString());
-					});
+				try (InputStreamReader r = new InputStreamReader(process.getInputStream(), cs)) {
+
+					while ((numRead = r.read(buf)) != -1) {
+						text.append(buf, 0, numRead);
+						long now = System.currentTimeMillis();
+
+						if (now - lastUpdate > updateDelay) {
+							updateValue(text.toString());
+							lastUpdate = now;
+						}
+					}
 				}
 
 				process.waitFor();
@@ -381,7 +413,7 @@ public final class GUI extends Application {
 			}
 		};
 
-		jDimeExec.messageProperty().addListener((observable, oldValue, newValue) -> {
+		jDimeExec.valueProperty().addListener((observable, oldValue, newValue) -> {
 			output.setText(newValue);
 		});
 
@@ -410,7 +442,9 @@ public final class GUI extends Application {
 			reactivate();
 		});
 
-		new Thread(jDimeExec).start();
+		Thread jDimeT = new Thread(jDimeExec);
+		jDimeT.setName("JDime Task Thread");
+		jDimeT.start();
 	}
 
 	/**
