@@ -25,7 +25,7 @@ package de.fosd.jdime.strategy;
 import java.io.IOException;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -41,8 +41,8 @@ import de.fosd.jdime.stats.Stats;
  */
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ASTNodeStrategy.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeStrategy.class));
+
 	/**
      *
      */
@@ -84,10 +84,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 			merge = new Merge<>();
 		}
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("merge(operation, context)");
-		}
-
+		LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
 		merge.merge(operation, context);
 	}
 
