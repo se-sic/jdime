@@ -49,7 +49,6 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
-    compile 'log4j:log4j:1.2.17'
     compile files('lib/JJ7.jar')
 }
 
