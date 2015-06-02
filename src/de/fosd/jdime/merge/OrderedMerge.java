@@ -33,7 +33,9 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -46,8 +48,7 @@ import java.util.Iterator;
  */
 public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(OrderedMerge.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(OrderedMerge.class));
 	private String logprefix;
 
 	/**
@@ -63,6 +64,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 	public final void merge(final MergeOperation<T> operation,
 			final MergeContext context) throws IOException,
 			InterruptedException {
+		boolean logFinest = LOG.isLoggable(Level.FINEST);
 
 		MergeTriple<T> triple = operation.getMergeTriple();
 		T left = triple.getLeft();
@@ -74,11 +76,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		assert (left.matches(right));
 		assert (left.hasMatching(right)) && right.hasMatching(left);
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(prefix() + this.getClass().getSimpleName() + ".merge("
-					+ left.getId() + ", " + base.getId() + ", " + right.getId()
-					+ ")");
-		}
+		LOG.finest(() -> {
+			String name = getClass().getSimpleName();
+			return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
+		});
 
 		Revision l = left.getRevision();
 		Revision b = base.getRevision();
@@ -105,20 +106,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 		while (!leftdone || !rightdone) {
 			if (!leftdone && !r.contains(leftChild)) {
 				assert (leftChild != null);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(leftChild) + "is not in right");
-				}
+				if (logFinest) LOG.finest(String.format("%s is not in right", prefix(leftChild)));
+
 				if (b != null && b.contains(leftChild)) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(leftChild) + "was deleted by right");
-					}
+					if (logFinest) LOG.finest(String.format("%s was deleted by right", prefix(leftChild)));
+
 					// was deleted in right
 					if (leftChild.hasChanges()) {
 						// insertion-deletion-conflict
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(leftChild)
-									+ "has changes in subtree.");
-						}
+						if (logFinest) LOG.finest(String.format("%s has changes in subtree", prefix(leftChild)));
+
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
 								leftChild, leftChild, rightChild, target);
 						conflictOp.apply(context);
@@ -139,26 +136,20 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						delOp.apply(context);
 					}
 				} else {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(leftChild) + "is a change");
-					}
+					if (logFinest) LOG.finest(String.format("%s is a change", prefix(leftChild)));
+
 					// leftChild is a change
 					if (!rightdone && !l.contains(rightChild)) {
 						assert (rightChild != null);
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(rightChild) + "is not in left");
-						}
+						if (logFinest) LOG.finest(String.format("%s is not in left", prefix(rightChild)));
+
 						if (b != null && b.contains(rightChild)) {
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(prefix(rightChild)
-										+ "was deleted by left");
-							}
+							if (logFinest) LOG.finest(String.format("%s was deleted by left", prefix(rightChild)));
+
 							// rightChild was deleted in left
 							if (rightChild.hasChanges()) {
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(prefix(rightChild)
-											+ "has changes in subtree.");
-								}
+								if (logFinest) LOG.finest(String.format("%s has changes in subtree.", prefix(rightChild)));
+
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp = new ConflictOperation<>(
 										rightChild, leftChild, rightChild, target);
@@ -181,9 +172,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								addOp.apply(context);
 							}
 						} else {
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(prefix(rightChild) + "is a change");
-							}
+							if (logFinest) LOG.finest(String.format("%s is a change", prefix(rightChild)));
+
 							// rightChild is a change
 							ConflictOperation<T> conflictOp = new ConflictOperation<>(
 									leftChild, leftChild, rightChild, target);
@@ -196,9 +186,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 						}
 					} else {
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(leftChild) + "adding change");
-						}
+						if (logFinest) LOG.finest(String.format("%s adding change", prefix(leftChild)));
+
 						// add the left change
 						AddOperation<T> addOp = new AddOperation<>(leftChild,
 								target);
@@ -216,20 +205,15 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
 			if (!rightdone && !l.contains(rightChild)) {
 				assert (rightChild != null);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(rightChild) + "is not in left");
-				}
+				if (logFinest) LOG.finest(String.format("%s is not in left", prefix(rightChild)));
+
 				if (b != null && b.contains(rightChild)) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(rightChild) + "was deleted by left");
-					}
+					if (logFinest) LOG.finest(String.format("%s was deleted by left", prefix(rightChild)));
 
 					// was deleted in left
 					if (rightChild.hasChanges()) {
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(rightChild)
-									+ "has changes in subtree.");
-						}
+						if (logFinest) LOG.finest(String.format("%s has changes in subtree.", prefix(rightChild)));
+
 						// insertion-deletion-conflict
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
 								rightChild, leftChild, rightChild, target);
@@ -251,25 +235,19 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						delOp.apply(context);
 					}
 				} else {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(rightChild) + "is a change");
-					}
+					if (logFinest) LOG.finest(String.format("%s is a change", prefix(rightChild)));
+
 					// rightChild is a change
 					if (!leftdone && !r.contains(leftChild)) {
 						assert (leftChild != null);
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(leftChild) + "is not in right");
-						}
+						if (logFinest) LOG.finest(String.format("%s is not in right", prefix(leftChild)));
+
 						if (b != null && b.contains(leftChild)) {
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(prefix(leftChild)
-										+ "was deleted by right");
-							}
+							if (logFinest) LOG.finest(String.format("%s was deleted by right", prefix(leftChild)));
+
 							if (leftChild.hasChanges()) {
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(prefix(leftChild)
-											+ "has changes in subtree.");
-								}
+								if (logFinest) LOG.finest(String.format("%s has changes in subtree", prefix(leftChild)));
+
 								// deletion-insertion conflict
 								ConflictOperation<T> conflictOp = new ConflictOperation<>(
 										leftChild, leftChild, rightChild, target);
@@ -285,10 +263,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 									leftdone = true;
 								}
 							} else {
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(prefix(rightChild)
-											+ "adding change");
-								}
+								if (logFinest) LOG.finest(String.format("%s adding change", prefix(rightChild)));
+
 								// add the right change
 								AddOperation<T> addOp = new AddOperation<>(
 										rightChild, target);
@@ -296,9 +272,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								addOp.apply(context);
 							}
 						} else {
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(prefix(leftChild) + "is a change");
-							}
+							if (logFinest) LOG.finest(String.format("%s is a change", prefix(leftChild)));
+
 							// leftChild is a change
 							ConflictOperation<T> conflictOp = new ConflictOperation<>(
 									leftChild, leftChild, rightChild, target);
@@ -311,9 +286,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							}
 						}
 					} else {
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(prefix(rightChild) + "adding change");
-						}
+						if (logFinest) LOG.finest(String.format("%s adding change", prefix(rightChild)));
+
 						// add the right change
 						AddOperation<T> addOp = new AddOperation<>(rightChild,
 								target);
@@ -333,10 +307,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 				assert (rightChild != null);
 
 				// left and right have the artifact. merge it.
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(leftChild) + "is in both revisions ["
-							+ rightChild.getId() + "]");
-				}
+				if (logFinest)
+					LOG.finest(String.format("%s is in both revisions [%s]", prefix(leftChild), rightChild.getId()));
+
 				assert (leftChild.hasMatching(rightChild) && rightChild
 						.hasMatching(leftChild));
 
@@ -374,13 +347,11 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					rightdone = true;
 				}
 			}
-			if (LOG.isTraceEnabled() && target != null) {
-				LOG.trace(prefix()
-						+ "target.dumpTree() after processing child:");
+			if (logFinest && target != null) {
+				LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
 				System.out.println(target.dumpRootTree());
 			}
 		}
-		return;
 	}
 
 	/**
@@ -400,7 +371,6 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return logging prefix
 	 */
 	private String prefix(final T artifact) {
-		return logprefix + "[" + (artifact == null ? "null" : artifact.getId())
-				+ "] ";
+		return String.format("%s[%s] ", logprefix, artifact == null ? "null" : artifact.getId());
 	}
 }
