@@ -240,6 +240,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	 * @return logging prefix
 	 */
 	private String prefix(final T artifact) {
-		return logprefix + "[" + artifact.getId() + "] ";
+		return String.format("%s[%s] ", logprefix, artifact.getId());
 	}
 }
