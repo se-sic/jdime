@@ -54,9 +54,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -74,7 +74,6 @@ public final class Main {
 	 * @param args command line arguments
 	 */
 	public static void main(final String[] args) {
-		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
 		setLogLevel("INFO");
 
@@ -91,10 +90,8 @@ public final class Main {
 			for (FileArtifact inputFile : inputFiles) {
 				assert (inputFile != null);
 				if (inputFile.isDirectory() && !context.isRecursive()) {
-					String msg = "To merge directories, the argument '-r' "
-						+ "has to be supplied. "
-						+ "See '-help' for more information!";
-					LOG.fatal(msg);
+					String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
+					LOG.severe(msg);
 					throw new RuntimeException(msg);
 				}
 			}
@@ -107,10 +104,10 @@ public final class Main {
 
 				if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
 					String msg = "File exists and will not be overwritten.";
-					LOG.warn(msg);
+					LOG.warning(msg);
 					throw new RuntimeException(msg);
 				} else {
-					LOG.warn("File exists and will be overwritten.");
+					LOG.warning("File exists and will be overwritten.");
 					output.remove();
 				}
 
@@ -130,9 +127,8 @@ public final class Main {
 				StatsPrinter.print(context);
 			}
 		} catch (Throwable t) {
-			LOG.debug("stopping program");
-			LOG.debug("runtime: " + (System.currentTimeMillis() - context.getProgramStart())
-					+ " ms");
+			LOG.fine("Stopping program");
+			LOG.fine(() -> "Runtime: " + (System.currentTimeMillis() - context.getProgramStart()) + " ms");
 			System.exit(-1);
 		}
 
@@ -155,7 +151,7 @@ public final class Main {
 	private static boolean parseCommandLineArgs(final MergeContext context,
 			final String[] args) throws IOException, ParseException {
 		assert (context != null);
-		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
+		LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
 		boolean continueRun = true;
 
 		Options options = new Options();
@@ -274,7 +270,7 @@ public final class Main {
 						break;
 					}
 				} catch (StrategyNotFoundException e) {
-					LOG.fatal(e.getMessage());
+					LOG.severe(e.getMessage());
 					throw e;
 				}
 
@@ -319,9 +315,7 @@ public final class Main {
 				}
 
 				context.setLookAhead(lookAhead);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("lookahead = " + lookAhead);
-				}
+				LOG.finest(() -> "Lookahead = " + context.getLookAhead());
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")
@@ -366,7 +360,7 @@ public final class Main {
 
 			context.setInputFiles(inputArtifacts);
 		} catch (ParseException e) {
-			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
+			LOG.severe(() -> "Arguments could not be parsed: " + Arrays.toString(args));
 			throw e;
 		}
 
@@ -411,13 +405,23 @@ public final class Main {
 	}
 
 	/**
-	 * Set the logging level. Default is DEBUG.
+	 * Set the logging level. The levels in descending order are:<br>
 	 *
-	 * @param loglevel
-	 *            May be OFF, FATAL, ERROR, WARN, INFO, DEBUG or ALL
+	 * <ul>
+	 *  <li>SEVERE (highest value)</li>
+	 *  <li>WARNING</li>
+	 *  <li>INFO</li>
+	 *  <li>CONFIG</li>
+	 *  <li>FINE</li>
+	 *  <li>FINER</li>
+	 *  <li>FINEST (lowest value)</li>
+	 * </ul>
+	 *
+	 * @param logLevel
+	 * 			one of the valid log levels according to {@link Level#parse(String)}
 	 */
-	private static void setLogLevel(final String loglevel) {
-		Logger.getRootLogger().setLevel(Level.toLevel(loglevel));
+	private static void setLogLevel(final String logLevel) {
+		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.parse(logLevel));
 	}
 
 	/**
