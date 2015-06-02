@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -37,8 +39,7 @@ import de.fosd.jdime.strategy.LinebasedStrategy;
  */
 public final class StatsPrinter {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(StatsPrinter.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StatsPrinter.class));
 	private static String delimiter = "=================================================";
 
 	/**
@@ -53,7 +54,7 @@ public final class StatsPrinter {
 		Stats stats = context.getStats();
 		assert (stats != null);
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Keys:");
 
@@ -61,7 +62,7 @@ public final class StatsPrinter {
 				sb.append(" ").append(key);
 			}
 
-			LOG.debug(sb.toString());
+			LOG.fine(sb.toString());
 
 			System.out.println(delimiter);
 			System.out.println("Number of conflicts: " + stats.getConflicts());
@@ -109,7 +110,7 @@ public final class StatsPrinter {
 			System.out.println(astStats);
 		}
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			System.out.println(delimiter);
 			System.out.println("Runtime: " + stats.getRuntime() + " ms");
 			System.out.println(delimiter);
@@ -126,7 +127,7 @@ public final class StatsPrinter {
 			assert (stats.getElement("files").getMerged()
 					+ stats.getElement("directories").getMerged() == stats
 						.getOperation("MERGE"));
-			LOG.debug("Sanity checks for linebased merge passed!");
+			LOG.fine("Sanity checks for linebased merge passed!");
 		}
 
 	}

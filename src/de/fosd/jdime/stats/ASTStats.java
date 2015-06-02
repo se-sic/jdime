@@ -28,7 +28,9 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.LangElem;
 
@@ -39,8 +41,8 @@ import de.fosd.jdime.common.LangElem;
  * 
  */
 public class ASTStats {
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ASTStats.class));
+
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTStats.class));
 
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
 		ASTStats sum = null;
@@ -316,7 +318,7 @@ public class ASTStats {
 
 		StringBuilder sb = new StringBuilder();
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			sb.append("Total nodes: " + nodes + System.lineSeparator());
 			sb.append("Treedepth: " + treedepth + System.lineSeparator());
 			sb.append("Maximum children: " + maxchildren
