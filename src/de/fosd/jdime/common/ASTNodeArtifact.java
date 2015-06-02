@@ -35,6 +35,8 @@ import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.lang3.ClassUtils;
+
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import java.io.FileNotFoundException;
@@ -621,7 +623,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		rebuildAST();
 		astnode.flushCaches();
 
-		LOG.finest(this::dumpTree);
+		if (LOG.isLoggable(Level.FINEST)) {
+			System.out.println(dumpTree());
+		}
 
 		return astnode.prettyPrint();
 	}
