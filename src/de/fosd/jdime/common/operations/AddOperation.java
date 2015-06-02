@@ -25,7 +25,7 @@ package de.fosd.jdime.common.operations;
 import java.io.IOException;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
@@ -47,8 +47,7 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(AddOperation.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(AddOperation.class));
 
 	/**
 	 * The <code>Artifact</code> that is added by the operation.
@@ -84,9 +83,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null) {
 			if (!target.exists()) {
@@ -113,9 +110,8 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
 					ASTStats childStats = childAST.getStats(null,
 							LangElem.TOPLEVELNODE, false);
-					if (LOG.isDebugEnabled()) {
-						LOG.debug(childStats.toString());
-					}
+
+					LOG.fine(childStats::toString);
 
 					if (context.isConsecutive()) {
 						context.getStats().addRightStats(childStats);

@@ -36,7 +36,7 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -147,9 +147,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase().exists()) :
 				"Base artifact does not exist: " + mergeTriple.getBase();
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null && !target.exists()) {
 			target.createArtifact(mergeTriple.getLeft().isLeaf());
