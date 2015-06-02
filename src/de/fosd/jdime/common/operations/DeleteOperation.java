@@ -80,7 +80,20 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
+		// This method does actually nothing!
+		//
+		// Why?
+		// While merging, the target node is created with no children.
+		// Therefore if a deletion of an element is applied during the merge,
+		// nothing has to be done.
+		//
+		// For ASTNodeArtifacts, the important method we rely on here is
+		// StructuredStrategy.merge(), which calls
+		// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+		// which then calls deleteChildren() on the created Program.
+
 		if (context.hasStats()) {
+			// but for the statistics, we have to look at the element
 			Stats stats = context.getStats();
 			stats.incrementOperation(this);
 			StatsElement element = stats.getElement(artifact

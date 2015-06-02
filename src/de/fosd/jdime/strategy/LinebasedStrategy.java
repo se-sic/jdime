@@ -303,16 +303,19 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 *            output option
 	 */
 	@Override
-	public final void dumpTree(FileArtifact artifact, boolean graphical) {
+	public final String dumpTree(FileArtifact artifact, boolean graphical) {
 		throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
 	}
 
 	@Override
-	public void dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
+	public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
 		List<String> lines = Files.readAllLines(artifact.getFile().toPath(), StandardCharsets.UTF_8);
+		StringBuilder sb = new StringBuilder();
 
 		for (String line : lines) {
-			System.out.println(line);
+			sb.append(line + System.lineSeparator());
 		}
+
+		return sb.toString();
 	}
 }

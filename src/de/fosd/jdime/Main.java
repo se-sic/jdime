@@ -60,7 +60,7 @@ public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.9";
+	private static final String VERSION = "0.3.10";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -335,8 +335,7 @@ public final class Main {
 	private static void info(final MergeContext context, final Options options) {
 		version(context);
 		System.out.println();
-		System.out.println(
-				"Run the program with the argument '--help' in " + "order to retrieve information on its usage!");
+		System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
 	}
 
 	/**
@@ -430,7 +429,7 @@ public final class Main {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
-			strategy.dumpTree(artifact, context.isGuiDump());
+			System.out.println(strategy.dumpTree(artifact, context.isGuiDump()));
 		}
 	}
 
@@ -447,7 +446,7 @@ public final class Main {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
-			strategy.dumpFile(artifact, context.isGuiDump());
+			System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
 		}
 	}
 

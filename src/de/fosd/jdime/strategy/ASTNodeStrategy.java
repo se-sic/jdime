@@ -113,12 +113,12 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final void dumpTree(final ASTNodeArtifact artifact,
+	public final String dumpTree(final ASTNodeArtifact artifact,
 			final boolean graphical) throws IOException {
 		if (graphical) {
-			dumpGraphVizTree(artifact);
+			return dumpGraphVizTree(artifact);
 		} else {
-			System.out.println(artifact.dumpTree());
+			return artifact.dumpTree();
 		}
 	}
 
@@ -126,24 +126,24 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	 * @param artifact
 	 *            artifact that should be printed
 	 */
-	private void dumpGraphVizTree(final ASTNodeArtifact artifact) {
+	private String dumpGraphVizTree(final ASTNodeArtifact artifact) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("digraph ast {").append(System.lineSeparator());
 		sb.append("node [shape=ellipse];").append(System.lineSeparator());
 		sb.append("nodesep=0.8;").append(System.lineSeparator());
 
 		// nodes
-		sb.append(artifact.dumpGraphvizTree(true));
+		sb.append(artifact.dumpGraphvizTree(true, 0));
 
 		// footer
 		sb.append("}");
 
-		System.out.println(sb.toString());
+		return sb.toString();
 	}
 
 	@Override
-	public void dumpFile(final ASTNodeArtifact artifact, final boolean graphical)
+	public String dumpFile(final ASTNodeArtifact artifact, final boolean graphical)
 			throws IOException {
-		System.out.println(artifact.prettyPrint());
+		return artifact.prettyPrint();
 	}
 }
