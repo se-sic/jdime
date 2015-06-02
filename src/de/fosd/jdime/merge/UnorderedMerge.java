@@ -283,7 +283,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 	 *            artifact that is subject of the logging
 	 * @return logging prefix
 	 */
-	private String prefix(final T artifact) {
-		return String.format("%s[%s] ", logprefix, artifact.getId());
+	private String prefix(T artifact) {
+		return String.format("%s[%s]", logprefix, (artifact == null) ? "null" : artifact.getId());
 	}
 }
