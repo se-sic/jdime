@@ -31,7 +31,7 @@ import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -121,44 +121,42 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
         if (fullyOrdered) {
             orderedCalls++;
-            
-            if (LOG.isTraceEnabled()) {
-                String matcherName = mceSubtreeMatcher.getClass().getSimpleName();
-                LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
-            }
-            
+
+			logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             return mceSubtreeMatcher.match(context, left, right, lookAhead);
         }
         
 		if (isOrdered) {
 			orderedCalls++;
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
-						+ left.getId() + ", " + right.getId() + ")");
-			}
 
+			logMatcherUse(orderedMatcher.getClass(), left, right);
 			return orderedMatcher.match(context, left, right, lookAhead);
 		} else {
 			unorderedCalls++;
 
 			if (uniqueLabels) {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedLabelMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
-				}
-
+				logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
 				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
-				}
-
+				logMatcherUse(unorderedMatcher.getClass(), left, right);
 				return unorderedMatcher.match(context, left, right, lookAhead);
 			}
 		}
+	}
+
+	/**
+	 * Logs the use of a <code>MatchingInterface</code> implementation to match <code>left</code> and
+	 * <code>right</code>.
+	 *
+	 * @param c the <code>MatchingInterface</code> that is used
+	 * @param left the left <code>Artifact</code> that is matched
+	 * @param right the right <code>Artifact</code> that is matched
+	 */
+	private void logMatcherUse(Class<? extends MatchingInterface> c, T left, T right) {
+		LOG.finest(() -> {
+			String matcherName = c.getClass().getSimpleName();
+			return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
+		});
 	}
 
 	/**
