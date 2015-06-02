@@ -115,6 +115,10 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			if (lookAhead == 0) {
 				// roots contain distinct symbols and we cannot use the look-ahead feature
 				// therefore, we ignore the rest of the subtrees and return early to save time
+				LOG.finest(() -> {
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
+				});
 				return Matchings.of(left, right, rootMatching);
 			} else {
 				lookAhead = lookAhead - 1;

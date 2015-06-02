@@ -31,7 +31,7 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +46,6 @@ import java.util.List;
  *            type of artifacts
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
-
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Matcher.class));
 
 	/**
 	 * @param matcher
@@ -83,10 +80,10 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 			if (lookAhead == 0) {
 				// roots contain distinct symbols and we cannot use the look-ahead feature
 				// therefore, we ignore the rest of the subtrees and return early to save time
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(id + " - " + "early return while matching " + left.getId()
-							+ " and " + right.getId() + " (LookAhead = " + context.getLookAhead() + ")");
-				}
+				LOG.finest(() -> {
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
+				});
 				return Matchings.of(left, right, rootMatching);
 			} else {
 				lookAhead = lookAhead - 1;

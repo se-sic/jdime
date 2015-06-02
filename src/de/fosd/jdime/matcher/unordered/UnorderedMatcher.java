@@ -27,6 +27,9 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
+
+import java.util.logging.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -37,6 +40,8 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public abstract class UnorderedMatcher<T extends Artifact<T>> implements
 		MatchingInterface<T> {
+
+	protected static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
 
 	/**
 	 * The matcher is used for recursive matching calls. It can determine
