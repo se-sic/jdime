@@ -41,7 +41,9 @@ import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -110,10 +112,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		ASTStats leftStats = null;
 		ASTStats rightStats = null;
 		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-		}
-		
+		LOG.fine(() -> String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
+
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
@@ -140,39 +140,33 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				targetNode.setRevision(left.getRevision());
 				targetNode.forceRenumbering();
 
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("target.dumpTree(:");
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest("target.dumpTree():");
 					System.out.println(targetNode.dumpTree());
 				}
 
 				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(triple.getMergeType(), left, base, right);
-
 				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("ASTMOperation.apply(context)");
-				}
-
+				LOG.finest("MergeOperation<ASTNodeArtifact>.apply(context)");
 				astMergeOp.apply(mergeContext);
 
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("Structured merge finished.");
+					LOG.finest("Structured merge finished.");
 
-						if (!context.isDiffOnly()) {
-							LOG.trace("target.dumpTree():");
-							System.out.println(targetNode.dumpTree());
-						}
+					if (!context.isDiffOnly()) {
+						LOG.finest("target.dumpTree():");
+						System.out.println(targetNode.dumpTree());
+					}
 
-						LOG.trace("Pretty-printing left:");
-						System.out.println(left.prettyPrint());
-						LOG.trace("Pretty-printing right:");
-						System.out.println(right.prettyPrint());
+					LOG.finest("Pretty-printing left:");
+					System.out.println(left.prettyPrint());
+					LOG.finest("Pretty-printing right:");
+					System.out.println(right.prettyPrint());
 
-						if (!context.isDiffOnly()) {
-							LOG.trace("Pretty-printing merge:");
-							System.out.print(targetNode.prettyPrint());
-						}
+					if (!context.isDiffOnly()) {
+						LOG.finest("Pretty-printing merge:");
+						System.out.print(targetNode.prettyPrint());
 					}
 
 					if (!context.isDiffOnly()) {
@@ -260,10 +254,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				long runtime = System.currentTimeMillis() - cmdStart;
 				runtimes.add(runtime);
 
-				if (LOG.isDebugEnabled()) {
-					FileWriter file = new FileWriter(leftFile + ".dot");
-					file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
-					file.close();
+				if (LOG.isLoggable(Level.FINE)) {
+					try (FileWriter file = new FileWriter(leftFile + ".dot")) {
+						file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
+					}
 				}
 
 				// collect stats
@@ -278,7 +272,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				astStats = ASTStats.add(leftStats, rightStats);
 				astStats.setConflicts(targetStats);
 
-				if (LOG.isDebugEnabled() && context.hasStats()) {
+				if (LOG.isLoggable(Level.FINE) && context.hasStats()) {
 					System.out.println("---------- left ----------");
 					System.out.println(leftStats);
 					System.out.println("---------- right ----------");
@@ -287,22 +281,21 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetStats);
 				}
 
-				if (LOG.isDebugEnabled()) {
+				if (LOG.isLoggable(Level.FINE)) {
 					String sep = " / ";
 					int nodes = astStats.getDiffStats(LangElem.NODE.toString()).getElements();
 					int matches = astStats.getDiffStats(LangElem.NODE.toString()).getMatches();
 					int changes = astStats.getDiffStats(LangElem.NODE.toString()).getAdded();
 					int removals = astStats.getDiffStats(LangElem.NODE.toString()).getDeleted();
 					int conflictnodes = astStats.getDiffStats(LangElem.NODE.toString()).getConflicting();
-					LOG.info("Absolute (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
-							+ "conflicts): ");
-					LOG.info(nodes + sep + matches + sep + changes + sep + removals + sep + conflictnodes);
+
+					LOG.fine(String.format("Absolute (nodes%smatches%schanges%sremovals%sconflicts): ", sep, sep, sep, sep));
+					LOG.fine(String.format("%d%s%d%s%d%s%d%s%d", nodes, sep, matches, sep, changes, sep, removals, sep, conflictnodes));
 
 					if (nodes > 0) {
-						LOG.info("Relative (nodes" + sep + "matches" + sep + "changes" + sep + "removals" + sep
-								+ "conflicts): ");
-						LOG.info(100.0 + sep + 100.0 * matches / nodes + sep + 100.0 * changes / nodes + sep
-								+ 100.0 * removals / nodes + sep + 100.0 * conflictnodes / nodes);
+						LOG.fine(String.format("Relative (nodes%smatches%schanges%sremovals%sconflicts): ", sep, sep, sep, sep));
+						LOG.fine(String.format("%s%s%s%s%s%s%s%s%s", 100.0, sep, 100.0 * matches / nodes, sep,
+								100.0 * changes / nodes, sep, 100.0 * removals / nodes, sep, 100.0 * conflictnodes / nodes));
 					}
 				}
 
@@ -313,11 +306,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					stats.addRightStats(rightStats);
 				}
 
-				if (LOG.isInfoEnabled() && context.isBenchmark() && context.hasStats()) {
+				if (context.isBenchmark() && context.hasStats()) {
 					if (i == 0) {
-						LOG.info("Initial run: " + runtime + " ms");
+						LOG.fine(() -> "Initial run: " + runtime + " ms");
 					} else {
-						LOG.info("Run " + i + " of " + context.getBenchmarkRuns() + ": " + runtime + " ms");
+						LOG.fine((String.format("Run %d of %d: %d ms", i, context.getBenchmarkRuns(), runtime)));
 					}
 				}
 			}
@@ -328,7 +321,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 			}
 
 			Long runtime = MergeContext.median(runtimes);
-			LOG.debug("Structured merge time was " + runtime + " ms.");
+			LOG.fine(() -> "Structured merge time was " + runtime + " ms.");
 
 			if (context.hasErrors()) {
 				System.err.println(context.getStdErr());
@@ -371,7 +364,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				stats.addScenarioStats(scenariostats);
 			}
 		} catch (Throwable t) {
-			LOG.fatal(String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath), t);
+			LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 			
 			if (!context.isKeepGoing()) {
 				throw new Error(t);

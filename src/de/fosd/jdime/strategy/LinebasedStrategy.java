@@ -41,7 +41,7 @@ import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 /**
  * Performs an unstructured, line based merge.
@@ -130,9 +130,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		int loc = 0;
 		int cloc = 0;
 
-		// launch the merge process by invoking GNU merge (rcs has to be
-		// installed)
-		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+		LOG.fine(() -> "Running external command: " + StringUtils.join(cmd, " "));
 
 		for (int i = 0; i < context.getBenchmarkRuns() + 1
 				&& (i == 0 || context.isBenchmark()); i++) {
@@ -171,9 +169,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 							continue;
 						}
 						if (line.matches("^\\s*<<<<<<<.*")) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug("CONFLICT in " + triple);
-							}
+							LOG.fine(() -> "CONFLICT in " + triple);
+
 							conflict = true;
 							comment = false;
 							tmp = cloc;
@@ -219,13 +216,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			long runtime = System.currentTimeMillis() - cmdStart;
 			runtimes.add(runtime);
 
-			if (LOG.isInfoEnabled() && context.isBenchmark()
-					&& context.hasStats()) {
+			if (context.isBenchmark() && context.hasStats()) {
 				if (i == 0) {
-					LOG.info("Initial run: " + runtime + " ms");
+					LOG.fine(() -> String.format("Initial run: %d ms", runtime));
 				} else {
-					LOG.info("Run " + i + " of " + context.getBenchmarkRuns()
-							+ ": " + runtime + " ms");
+					LOG.fine(String.format("Run %d of %d: %d ms", i, context.getBenchmarkRuns(), runtime));
 				}
 			}
 		}
@@ -236,10 +231,10 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		Long runtime = MergeContext.median(runtimes);
-		LOG.debug("Linebased merge time was " + runtime + " ms.");
+		LOG.fine(() -> String.format("Linebased merge time was %d ms.", runtime));
 
 		if (context.hasErrors()) {
-			LOG.fatal("Errors occured while calling '" + cmd + "')");
+			LOG.severe(() -> "Errors occurred while calling '" + cmd + "')");
 			System.err.println(context.getStdErr());
 		}
 
