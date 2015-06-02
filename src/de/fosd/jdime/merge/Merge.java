@@ -33,7 +33,9 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,8 +49,8 @@ import java.util.Objects;
  */
 public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Merge.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Merge.class));
+
 	private UnorderedMerge<T> unorderedMerge = null;
 	private OrderedMerge<T> orderedMerge = null;
 	private String logprefix;
@@ -86,20 +88,16 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 				// diff base left
 				m = diff.compare(context, base, left, Color.GREEN).get(base, left).get();
-				if (LOG.isDebugEnabled()) {
-					if (m.getScore() == 0) {
-						LOG.debug(base.getId() + " and " + left.getId()
-								+ " have no matches.");
-					}
+
+				if (m.getScore() == 0) {
+					LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), left.getId()));
 				}
 
 				// diff base right
 				m = diff.compare(context, base, right, Color.GREEN).get(base, right).get();
-				if (LOG.isDebugEnabled()) {
-					if (m.getScore() == 0) {
-						LOG.debug(base.getId() + " and " + right.getId()
-								+ " have no matches.");
-					}
+
+				if (m.getScore() == 0) {
+					LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), right.getId()));
 				}
 			}
 
@@ -114,10 +112,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 
 			if (m.getScore() == 0) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug(left.getId() + " and " + right.getId()
-							+ " have no matches.");
-				}
+				LOG.fine(() -> String.format("%s and %s have no matches.", left.getId(), right.getId()));
 				return;
 			}
 		}
@@ -138,29 +133,22 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		List<T> leftChildren = left.getChildren();
 		List<T> rightChildren = right.getChildren();
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(prefix() + "Children that need to be merged:");
-			LOG.trace(prefix(left) + "-> (" + leftChildren + ")");
-			LOG.trace(prefix(right) + "-> (" + rightChildren + ")");
-		}
+		LOG.finest(() -> String.format("%s Children that need to be merged:", prefix()));
+		LOG.finest(() -> String.format("%s -> (%s)", prefix(left), leftChildren));
+		LOG.finest(() -> String.format("%s -> (%s)", prefix(right), rightChildren));
 
-		if ((base.isEmptyDummy() || base.hasChildren())
-				&& (leftChildren.isEmpty() || rightChildren.isEmpty())) {
+		if ((base.isEmptyDummy() || base.hasChildren())	&& (leftChildren.isEmpty() || rightChildren.isEmpty())) {
+
 			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(left) + "and [" + right.getId()
-							+ "] have no children.");
-				}
+				LOG.finest(() -> String.format("%s and [%s] have no children", prefix(left), right.getId()));
 				return;
 			} else if (leftChildren.isEmpty()) {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(left) + "has no children.");
-					LOG.trace(prefix(right) + "was deleted by left");
-				}
+				LOG.finest(() -> String.format("%s has no children", prefix(left)));
+				LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
+
 				if (right.hasChanges()) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(right) + "has changes in subtree");
-					}
+					LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
+
 					for (T rightChild : right.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
 								rightChild, null, rightChild, target);
@@ -168,6 +156,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					return;
 				} else {
+
 					for (T rightChild : rightChildren) {
 
 						DeleteOperation<T> delOp = new DeleteOperation<>(
@@ -177,14 +166,12 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					return;
 				}
 			} else if (rightChildren.isEmpty()) {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(prefix(right) + "has no children.");
-					LOG.trace(prefix(left) + " was deleted by right");
-				}
+				LOG.finest(() -> String.format("%s has no children", prefix(right)));
+				LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
+
 				if (left.hasChanges()) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(prefix(left) + " has changes in subtree");
-					}
+					LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
+
 					for (T leftChild : left.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
 								leftChild, leftChild, null, target);
@@ -192,6 +179,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					return;
 				} else {
+
 					for (T leftChild : leftChildren) {
 						DeleteOperation<T> delOp = new DeleteOperation<>(
 								leftChild);
@@ -217,10 +205,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 		}
 
-		if (LOG.isTraceEnabled() && target != null) {
-			LOG.trace(logprefix + "target.dumpTree() before merge:");
+		if (LOG.isLoggable(Level.FINEST) && target != null) {
+			LOG.finest(String.format("%s target.dumpTree() before merge:", logprefix));
 			System.out.println(target.dumpRootTree());
 		}
+
 		if (isOrdered) {
 			if (orderedMerge == null) {
 				orderedMerge = new OrderedMerge<>();
@@ -232,7 +221,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 			unorderedMerge.merge(operation, context);
 		}
-		return;
 	}
 
 	/**
