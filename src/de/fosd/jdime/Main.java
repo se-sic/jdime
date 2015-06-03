@@ -55,7 +55,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ClassUtils;
 
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -67,6 +69,7 @@ public final class Main {
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
 	private static final String TOOLNAME = "jdime";
 	private static final String VERSION = "0.3.9";
+	private static final String DEFAULT_LEVEL = "WARNING";
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -75,7 +78,7 @@ public final class Main {
 	 */
 	public static void main(final String[] args) {
 		MergeContext context = new MergeContext();
-		setLogLevel("INFO");
+		setLogLevel(DEFAULT_LEVEL);
 
 		try {
 			if (!parseCommandLineArgs(context, args)) {
@@ -207,7 +210,7 @@ public final class Main {
 
 			if (cmd.hasOption("runLookAheadTests")) {
 				if (!cmd.hasOption("debug")) {
-					setLogLevel("WARN");
+					setLogLevel("WARNING");
 				}
 				
 				String wd = null;
@@ -360,7 +363,7 @@ public final class Main {
 
 			context.setInputFiles(inputArtifacts);
 		} catch (ParseException e) {
-			LOG.severe(() -> "Arguments could not be parsed: " + Arrays.toString(args));
+			LOG.severe(() -> "Arguments could not be parsed: " + e.getMessage());
 			throw e;
 		}
 
@@ -408,6 +411,7 @@ public final class Main {
 	 * Set the logging level. The levels in descending order are:<br>
 	 *
 	 * <ul>
+	 *  <li>ALL</li>
 	 *  <li>SEVERE (highest value)</li>
 	 *  <li>WARNING</li>
 	 *  <li>INFO</li>
@@ -415,13 +419,28 @@ public final class Main {
 	 *  <li>FINE</li>
 	 *  <li>FINER</li>
 	 *  <li>FINEST (lowest value)</li>
+	 *  <li>OFF</li>
 	 * </ul>
 	 *
 	 * @param logLevel
 	 * 			one of the valid log levels according to {@link Level#parse(String)}
 	 */
-	private static void setLogLevel(final String logLevel) {
-		Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(Level.parse(logLevel));
+	private static void setLogLevel(String logLevel) {
+		Level level;
+
+		try {
+			level = Level.parse(logLevel);
+		} catch (IllegalArgumentException e) {
+			LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
+			return;
+		}
+
+		Logger root = LogManager.getLogManager().getLogger("");
+		root.setLevel(level);
+
+		for (Handler handler : root.getHandlers()) {
+			handler.setLevel(level);
+		}
 	}
 
 	/**
@@ -513,7 +532,7 @@ public final class Main {
 	private static void bugfixing(final MergeContext context) {
 		context.setPretend(true);
 		context.setQuiet(false);
-		setLogLevel("trace");
+		setLogLevel("FINEST");
 
 		for (FileArtifact artifact : context.getInputFiles()) {
 			ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
