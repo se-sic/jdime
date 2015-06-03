@@ -66,7 +66,6 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
-		boolean logFinest = LOG.isLoggable(Level.FINEST);
 
 		MergeTriple<T> triple = operation.getMergeTriple();
 		T left = triple.getLeft();
@@ -266,7 +265,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 				}
 			}
 
-			if (logFinest && target != null) {
+			if (LOG.isLoggable(Level.FINEST) && target != null) {
 				LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
 				System.out.println(target.dumpRootTree());
 			}
