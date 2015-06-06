@@ -46,19 +46,8 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-        Stream<T> leftPreOrder = preOrder(left).stream();
-        Stream<T> rightPreOrder = preOrder(right).stream();
-        List<BalancedSequence<T>> leftSeqs;
-		List<BalancedSequence<T>> rightSeqs;
-
-        if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-			leftSeqs = leftPreOrder.map(BalancedSequence<T>::new).collect(Collectors.toList());
-			rightSeqs = rightPreOrder.map(BalancedSequence<T>::new).collect(Collectors.toList());
-        } else {
-			leftSeqs =  leftPreOrder.map(t -> new BalancedSequence<>(t, lookAhead)).collect(Collectors.toList());
-			rightSeqs = rightPreOrder.map(t -> new BalancedSequence<>(t, lookAhead)).collect(Collectors.toList());
-        }
-
+        List<BalancedSequence<T>> leftSeqs = getSequences(left, lookAhead, new ArrayList<>());
+		List<BalancedSequence<T>> rightSeqs = getSequences(right, lookAhead, new ArrayList<>());
         Set<Matching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
         /*
@@ -115,25 +104,30 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 		return matchings;
     }
 
-    /**
-     * Returns the tree with root <code>root</code> in pre-order.
-     *
-     * @param root
-     *         the root of the tree
-     *
-     * @return the tree in pre-order
-     */
-    private List<T> preOrder(T root) {
-        List<T> nodes = new ArrayList<>();
-        Queue<T> waitQ = new LinkedList<>(Collections.singleton(root));
-        T node;
+	/**
+	 * Transforms the given tree <code>root</code> into a list of <code>BalancedSequence</code>s. The given
+	 * <code>lookAhead</code> is decremented for every level the method descends into the tree.
+	 *
+	 * @param root
+	 * 		the root of the tree to transform
+	 * @param lookAhead
+	 * 		the number of levels to look ahead from the root node of the tree
+	 * @param list
+	 * 		the <code>List</code> to fill with <code>BalancedSequence</code>s
+	 * @return the given <code>list</code> filled with the <code>BalancedSequence</code>s resulting from the tree
+	 */
+	private List<BalancedSequence<T>> getSequences(T root, int lookAhead, List<BalancedSequence<T>> list) {
 
-        while (!waitQ.isEmpty()) {
-            node = waitQ.poll();
-            nodes.add(node);
-            waitQ.addAll(node.getChildren());
-        }
+		if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+			list.add(new BalancedSequence<>(root));
+		} else if (lookAhead >= 0) {
+			list.add(new BalancedSequence<>(root, lookAhead));
+		}
 
-        return nodes;
+		if (lookAhead == MergeContext.LOOKAHEAD_FULL || lookAhead > 0) {
+			root.getChildren().forEach(c -> getSequences(root, lookAhead - 1, list));
+		}
+
+		return list;
     }
 }
