@@ -15,6 +15,9 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import javafx.application.Application;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
@@ -86,8 +89,9 @@ public final class GUI extends Application {
 	@FXML
 	private Button historyNext;
 
-	private Properties config;
+	private Config config;
 	private int updateDelay;
+	private boolean allowInvalid;
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
@@ -119,15 +123,16 @@ public final class GUI extends Application {
 		historyIndex = new SimpleIntegerProperty(0);
 		history = FXCollections.observableArrayList();
 		historyListProp = new SimpleListProperty<>(history);
-		config = new Properties();
+
+		config = new Config();
+		config.addSource(new SysEnvConfigSource());
+		loadConfigFile();
+		loadDefaults();
 
 		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
 		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
 		historyNext.disableProperty().bind(noNext);
 		historyPrevious.disableProperty().bind(noPrev);
-
-		loadConfigFile();
-		loadDefaults();
 
 		primaryStage.setTitle(TITLE);
 		primaryStage.setScene(scene);
@@ -138,80 +143,31 @@ public final class GUI extends Application {
 	 * Loads default values for the <code>TextField</code>s from the config file.
 	 */
 	private void loadDefaults() {
-		getConfig(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
-		getConfig(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
-		getConfig(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
-		getConfig(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
-		getConfig(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-		updateDelay = getConfigInt(JDIME_UPDATE_DELAY).orElse(1000);
+		config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
+		config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
+		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
+		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
+		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		updateDelay = config.getInteger(JDIME_UPDATE_DELAY).orElse(1000);
+		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}
 
 	/**
-	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so loads
-	 * the mappings contained in it into the <code>Properties</code> instance <code>config</code> which is used
-	 * by {@link #getConfig(String)}.
+	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so adds
+	 * a <code>PropFileConfigSource</code> to <code>config</code>.
 	 */
 	private void loadConfigFile() {
 		File configFile = new File(JDIME_CONF_FILE);
+
 		if (configFile.exists()) {
-			Charset cs = StandardCharsets.UTF_8;
 
 			try {
-				config.load(new InputStreamReader(new BufferedInputStream(new FileInputStream(configFile)), cs));
+				config.addSource(new PropFileConfigSource(configFile));
 			} catch (IOException e) {
 				System.err.println("Could not load " + configFile);
 				System.err.println(e.getMessage());
 			}
 		}
-	}
-
-	/**
-	 * Checks whether the file {@value #JDIME_CONF_FILE} in the current directory contains a mapping for the given key
-	 * and if so returns the mapped value. If the file contains no mapping the system environment variables are checked.
-	 * If no environment variable named <code>key</code> exists an empty <code>Optional</code> will be returned.
-	 *
-	 * @param key the configuration key
-	 * @return optionally the mapped value
-	 */
-	private Optional<String> getConfig(String key) {
-		String value = config.getProperty(key, System.getProperty(key));
-
-		if (value != null) {
-			return Optional.of(value);
-		} else {
-			return Optional.empty();
-		}
-	}
-
-	/**
-	 * Optionally returns the result of {@link Boolean#parseBoolean(String)} for the value the given <code>key</code>
-	 * is mapped to according to {@link #getConfig(String)}.
-	 *
-	 * @param key the configuration key
-	 * @return optionally the value parsed as a boolean
-	 */
-	private Optional<Boolean> getConfigBoolean(String key) {
-		return getConfig(key).flatMap(s -> Optional.of(Boolean.parseBoolean(s)));
-	}
-
-	/**
-	 * Optionally returns the result of {@link Integer#parseInt(String)} for the value the given <code>key</code>
-	 * is mapped to according to {@link #getConfig(String)}.
-	 *
-	 * @param key the configuration key
-	 * @return optionally the value parsed as an int
-	 */
-	private Optional<Integer> getConfigInt(String key) {
-		Optional<Integer> res = getConfig(key).flatMap(s -> {
-
-			try {
-				return Optional.of(Integer.parseInt(s));
-			} catch (NumberFormatException e) {
-				return Optional.empty();
-			}
-		});
-
-		return res;
 	}
 
 	/**
@@ -337,7 +293,7 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid && !getConfigBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false)) {
+		if (!valid && !allowInvalid) {
 			return;
 		}
 
@@ -427,7 +383,7 @@ public final class GUI extends Application {
 					addTabs(parser.getValue());
 					reactivate();
 				});
-				parser.setOnFailed(event1 ->  {
+				parser.setOnFailed(event1 -> {
 					System.err.println(event1.getSource().getException().getMessage());
 					reactivate();
 				});
