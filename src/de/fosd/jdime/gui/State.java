@@ -79,6 +79,7 @@ final class State {
 		State state = (State) o;
 
 		return Objects.equals(debugMode, state.debugMode) &&
+				Objects.equals(treeViewTabs, state.treeViewTabs) &&
 				Objects.equals(output, state.output) &&
 				Objects.equals(left, state.left) &&
 				Objects.equals(base, state.base) &&
@@ -89,6 +90,6 @@ final class State {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
+		return Objects.hash(treeViewTabs, output, left, base, right, jDime, cmdArgs, debugMode);
 	}
 }
