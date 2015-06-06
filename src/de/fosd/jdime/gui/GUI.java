@@ -59,7 +59,7 @@ public final class GUI extends Application {
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
 
-	public static final Pattern DUMP_GRAPH = Pattern.compile(".*-mode\\s+dumpgraph.*");
+	private static final Pattern DUMP_GRAPH = Pattern.compile(".*-mode\\s+dumpgraph.*");
 
 	@FXML
 	TextArea output;
