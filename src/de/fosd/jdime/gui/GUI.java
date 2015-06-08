@@ -46,6 +46,7 @@ import javafx.stage.Window;
 /**
  * A simple JavaFX GUI for JDime.
  */
+@SuppressWarnings("unused")
 public final class GUI extends Application {
 
 	private static final String TITLE = "JDime";
@@ -98,7 +99,6 @@ public final class GUI extends Application {
 
 	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
-	private SimpleListProperty<State> historyListProp;
 	private State inProgress;
 
 	/**
@@ -122,13 +122,13 @@ public final class GUI extends Application {
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		historyIndex = new SimpleIntegerProperty(0);
 		history = FXCollections.observableArrayList();
-		historyListProp = new SimpleListProperty<>(history);
 
 		config = new Config();
 		config.addSource(new SysEnvConfigSource());
 		loadConfigFile();
 		loadDefaults();
 
+		SimpleListProperty<State> historyListProp = new SimpleListProperty<>(history);
 		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
 		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
 		historyNext.disableProperty().bind(noNext);
