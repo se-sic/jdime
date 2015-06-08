@@ -363,16 +363,16 @@ public final class GUI extends Application {
 			tabPane.getTabs().retainAll(outputTab);
 
 			if (dumpGraph) {
-//				GraphvizParser parser = new GraphvizParser(jDimeExec.getValue());
-//				parser.setOnSucceeded(roots -> {
-//					addTabs(parser.getValue());
-//					reactivate();
-//				});
-//				parser.setOnFailed(event1 -> {
-//					System.err.println(event1.getSource().getException().getMessage());
-//					reactivate();
-//				});
-//				new Thread(parser).start();
+				GraphvizParser parser = new GraphvizParser(output.getItems());
+				parser.setOnSucceeded(roots -> {
+					addTabs(parser.getValue());
+					reactivate();
+				});
+				parser.setOnFailed(event1 -> {
+					System.err.println(event1.getSource().getException().getMessage());
+					reactivate();
+				});
+				new Thread(parser).start();
 			} else {
 				reactivate();
 			}

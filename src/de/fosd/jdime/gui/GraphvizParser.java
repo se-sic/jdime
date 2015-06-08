@@ -22,16 +22,16 @@ class GraphvizParser extends Task<List<TreeItem<TreeDumpNode>>> {
 	private static final Pattern node = Pattern.compile("\"?([^\"]+)\"?\\[label=\"\\([0-9]+\\) (.+)\"(, fillcolor = (.+),)?.*\\];");
 	private static final Pattern connection = Pattern.compile("\"?([^\"]+)\"?->\"?([^\"]+)\"?;");
 
-	private String text;
+	private List<String> text;
 
 	/**
-	 * Constructs a new <code>GraphvizParser</code> parsing the given <code>String</code> when {@link #call()} is
+	 * Constructs a new <code>GraphvizParser</code> parsing the given lines when {@link #call()} is
 	 * called.
 	 *
 	 * @param text
-	 * 		the <code>String</code> to parse
+	 * 		the lines to parse
 	 */
-	public GraphvizParser(String text) {
+	public GraphvizParser(List<String> text) {
 		this.text = text;
 	}
 
@@ -41,11 +41,7 @@ class GraphvizParser extends Task<List<TreeItem<TreeDumpNode>>> {
 		Map<String, TreeItem<TreeDumpNode>> nodes = new HashMap<>();
 		List<TreeItem<TreeDumpNode>> noParent = new ArrayList<>();
 
-		Scanner scanner = new Scanner(text);
-		scanner.useDelimiter(digraphEnd);
-
-		while (scanner.hasNextLine()) {
-			String line = scanner.nextLine();
+		for (String line : text) {
 
 			if (digraphStart.matcher(line).matches()) {
 				nodes.clear();
