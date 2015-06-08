@@ -19,6 +19,7 @@ import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -66,7 +67,7 @@ public final class GUI extends Application {
 	private static final Pattern DUMP_GRAPH = Pattern.compile(".*-mode\\s+dumpgraph.*");
 
 	@FXML
-	TextArea output;
+	ListView<String> output;
 	@FXML
 	TextField left;
 	@FXML
@@ -299,10 +300,10 @@ public final class GUI extends Application {
 
 		controlsPane.setDisable(true);
 
-		Task<String> jDimeExec = new Task<String>() {
+		Task<Void> jDimeExec = new Task<Void>() {
 
 			@Override
-			protected String call() throws Exception {
+			protected Void call() throws Exception {
 				ProcessBuilder builder = new ProcessBuilder();
 				List<String> command = new ArrayList<>();
 				String input;
@@ -344,50 +345,34 @@ public final class GUI extends Application {
 				}
 
 				Process process = builder.start();
-				StringBuilder text = new StringBuilder(1024);
-
-				int numRead;
-				char[] buf = new char[1024];
-				long lastUpdate = 0;
 
 				Charset cs = StandardCharsets.UTF_8;
-				try (InputStreamReader r = new InputStreamReader(process.getInputStream(), cs)) {
-
-					while ((numRead = r.read(buf)) != -1) {
-						text.append(buf, 0, numRead);
-						long now = System.currentTimeMillis();
-
-						if (now - lastUpdate > updateDelay) {
-							updateValue(text.toString());
-							lastUpdate = now;
-						}
-					}
+				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
+					r.lines().forEach(s -> Platform.runLater(() -> {
+						output.getItems().add(s);
+					}));
 				}
 
 				process.waitFor();
-				return text.toString();
+				return null;
 			}
 		};
-
-		jDimeExec.valueProperty().addListener((observable, oldValue, newValue) -> {
-			output.setText(newValue);
-		});
 
 		jDimeExec.setOnSucceeded(event -> {
 			boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
 			tabPane.getTabs().retainAll(outputTab);
 
 			if (dumpGraph) {
-				GraphvizParser parser = new GraphvizParser(jDimeExec.getValue());
-				parser.setOnSucceeded(roots -> {
-					addTabs(parser.getValue());
-					reactivate();
-				});
-				parser.setOnFailed(event1 -> {
-					System.err.println(event1.getSource().getException().getMessage());
-					reactivate();
-				});
-				new Thread(parser).start();
+//				GraphvizParser parser = new GraphvizParser(jDimeExec.getValue());
+//				parser.setOnSucceeded(roots -> {
+//					addTabs(parser.getValue());
+//					reactivate();
+//				});
+//				parser.setOnFailed(event1 -> {
+//					System.err.println(event1.getSource().getException().getMessage());
+//					reactivate();
+//				});
+//				new Thread(parser).start();
 			} else {
 				reactivate();
 			}
@@ -397,6 +382,8 @@ public final class GUI extends Application {
 			System.err.println(event.getSource().getException().getMessage());
 			reactivate();
 		});
+
+		output.setItems(FXCollections.observableArrayList());
 
 		Thread jDimeT = new Thread(jDimeExec);
 		jDimeT.setName("JDime Task Thread");
