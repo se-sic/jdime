@@ -23,7 +23,7 @@
  */
 package de.fosd.jdime.common;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
+import java.util.Objects;
 
 /**
  * A <code>Tuple</code> whose {@link #equals(Object)} and {@link #hashCode()} methods are implemented for unordered
@@ -120,19 +120,11 @@ public class UnorderedTuple<X, Y> implements Cloneable {
 
 		UnorderedTuple<?, ?> tuple = (UnorderedTuple<?, ?>) o;
 
-		EqualsBuilder eqBuilder = new EqualsBuilder();
-		eqBuilder.append(x, tuple.x);
-		eqBuilder.append(y, tuple.y);
-
-		if (eqBuilder.isEquals()) {
+		if (Objects.equals(x, tuple.x) && Objects.equals(y, tuple.y)) {
 			return true;
 		}
 
-		eqBuilder.reset();
-		eqBuilder.append(x, tuple.y);
-		eqBuilder.append(y, tuple.x);
-
-		return eqBuilder.isEquals();
+		return Objects.equals(x, tuple.y) && Objects.equals(y, tuple.x);
 	}
 
 	@Override
