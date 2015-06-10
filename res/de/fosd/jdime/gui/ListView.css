@@ -1,0 +1,3 @@
+.list-cell:odd {
+    -fx-background-color: -fx-control-inner-background;
+}

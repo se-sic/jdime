@@ -193,9 +193,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public String toString() {
-		assert (mergeTriple != null);
 		String dst = target == null ? "" : target.getId();
-		return getId() + ": " + getName() + " " + mergeTriple.getMergeType() + " " + mergeTriple.toString(true)
-				+ " INTO " + dst;
+		String mTripleString = mergeTriple.toString(true);
+		MergeType mergeType = mergeTriple.getMergeType();
+
+		return String.format("%s: %s %s %s INTO %s", getId(), getName(), mergeType, mTripleString, dst);
 	}
 }

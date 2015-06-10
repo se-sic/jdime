@@ -24,26 +24,7 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
-
-import AST.ASTNode;
-import AST.BytecodeParser;
-import AST.ClassDecl;
-import AST.CompilationUnit;
-import AST.ConstructorDecl;
-import AST.FieldDecl;
-import AST.FieldDeclaration;
-import AST.ImportDecl;
-import AST.InterfaceDecl;
-import AST.JavaParser;
-import AST.Literal;
-import AST.MethodDecl;
-import AST.Program;
+import AST.*;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
@@ -55,6 +36,13 @@ import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Olaf Lessenich
@@ -367,7 +355,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			for (Revision rev : matchingRevisions) {
 				m = getMatching(rev);
-				color = m.getColor().toShell();
+				color = m.getHighlightColor().toShell();
 			}
 
 			sb.append(color);
@@ -443,11 +431,21 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return "nodes";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		ASTNodeArtifact that = (ASTNodeArtifact) o;
+
+		return astnode.dumpString().equals(that.astnode.dumpString());
+	}
+
 	@Override
 	public final int hashCode() {
 		return astnode.dumpString().hashCode();
@@ -863,5 +861,24 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		return stats;
+	}
+
+	public HashMap<String, Integer> getLanguageElementStatistics() {
+		HashMap<String, Integer> elements = new HashMap<>();
+
+		String key = this.toString().split(" ")[0];
+		key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
+		elements.put(key, new Integer(1));
+
+		for (int i = 0; i < getNumChildren(); i++) {
+			HashMap<String, Integer> childElements = getChild(i).getLanguageElementStatistics();
+			for (String childKey : childElements.keySet()) {
+				Integer value = elements.get(childKey);
+				value = value == null ? childElements.get(childKey) : value + childElements.get(childKey);
+				elements.put(childKey, value);
+			}
+		}
+		
+		return elements;
 	}
 }

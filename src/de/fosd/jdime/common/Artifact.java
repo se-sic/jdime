@@ -22,13 +22,13 @@
  */
 package de.fosd.jdime.common;
 
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Matching;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.Set;
-
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import java.util.Map;
 
 /**
  * @author Olaf Lessenich
@@ -136,17 +136,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Adds a matching.
 	 *
 	 * @param matching
-	 *            matching to be added
+	 * 		matching to be added
 	 */
-	@SuppressWarnings("unchecked")
-	public final void addMatching(final Matching<T> matching) {
+	public void addMatching(Matching<T> matching) {
 		if (matches == null) {
 			matches = new LinkedHashMap<>();
 		}
 
-		assert (matching != null);
-		matches.put(matching.getMatchingArtifact((T) this).getRevision(),
-				matching);
+		matches.put(matching.getMatchingArtifact(this).getRevision(), matching);
 	}
 
 	/**
@@ -157,15 +154,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public final void cloneMatches(final T other) {
-		if (other.matches != null) {
-			matches = new LinkedHashMap<>();
-			Set<Revision> matchingRevisions = other.matches.keySet();
 
-			for (Revision rev : matchingRevisions) {
-				Matching<T> m = (Matching<T>) other.matches.get(rev).clone();
-				m.updateMatching((T) this);
-				matches.put(rev, m);
-			}
+		if (other.matches == null) {
+			return;
+		}
+
+		matches = new LinkedHashMap<>();
+
+		for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
+			Matching<T> m = entry.getValue().clone();
+			m.updateMatching((T) this);
+
+			matches.put(entry.getKey(), m);
 		}
 	}
 
@@ -437,11 +437,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		return getNumChildren() > 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
+	public abstract boolean equals(Object obj);
+
 	@Override
 	public abstract int hashCode();
 
@@ -472,14 +470,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            other node to search for in matches
 	 * @return whether a matching exists
 	 */
-	@SuppressWarnings("unchecked")
 	public final boolean hasMatching(final T other) {
+
 		if (matches == null) {
 			return false;
 		}
 
 		Matching<T> m = matches.get(other.getRevision());
-		return m != null && m.getMatchingArtifact((T) this) == other;
+		return m != null && m.getMatchingArtifact(this) == other;
 	}
 
 	/**
