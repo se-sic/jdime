@@ -294,7 +294,7 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid && !!getConfigBoolean(JDIME_ALLOW_INVALID_KEY)) {
+		if (!valid && !config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false)) {
 			return;
 		}
 

@@ -22,6 +22,7 @@
  */
 package de.fosd.jdime.matcher;
 
+import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
@@ -62,6 +63,7 @@ import java.util.Queue;
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+	private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
 	private int calls = 0;
 	private int orderedCalls = 0;
@@ -84,7 +86,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	@Override
 	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-		boolean fullyOrdered = true;
+		boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
         boolean isOrdered = false;
 		boolean uniqueLabels = true;
 
