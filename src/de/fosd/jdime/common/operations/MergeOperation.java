@@ -48,7 +48,7 @@ import org.apache.log4j.Logger;
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
+	private static final Logger LOG = Logger.getLogger(MergeOperation.class.getSimpleName());
 
 	/**
 	 * The <code>MergeTriple</code> containing the <code>Artifact</code>s to be merged.

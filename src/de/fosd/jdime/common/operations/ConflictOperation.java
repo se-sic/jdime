@@ -38,8 +38,7 @@ import de.fosd.jdime.common.MergeContext;
  */
 public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ConflictOperation.class));
+	private static final Logger LOG = Logger.getLogger(ConflictOperation.class.getSimpleName());
 	private T type;
 	private T left;
 	private T right;

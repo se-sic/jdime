@@ -64,7 +64,7 @@ import org.apache.log4j.Logger;
  */
 public final class Main {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
+	private static final Logger LOG = Logger.getLogger(Main.class.getSimpleName());
 	private static final String TOOLNAME = "jdime";
 	private static final String VERSION = "0.3.9";
 

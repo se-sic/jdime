@@ -41,8 +41,7 @@ import de.fosd.jdime.stats.Stats;
  */
 public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(DirectoryStrategy.class));
+	private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class.getSimpleName());
 	private static Merge<FileArtifact> merge = null;
 
 	/**

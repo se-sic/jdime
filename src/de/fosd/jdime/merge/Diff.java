@@ -40,8 +40,7 @@ import org.apache.log4j.Logger;
  *            type of artifact
  */
 public class Diff<T extends Artifact<T>> {
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Diff.class));
+	private static final Logger LOG = Logger.getLogger(Diff.class.getSimpleName());
 
 	/**
 	 * Compares two nodes and returns matchings between them and possibly their sub-nodes.

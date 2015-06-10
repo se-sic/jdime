@@ -47,8 +47,7 @@ import java.util.List;
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(Matcher.class.getSimpleName());
 
 	/**
 	 * @param matcher

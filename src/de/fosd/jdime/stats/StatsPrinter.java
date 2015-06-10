@@ -37,8 +37,7 @@ import de.fosd.jdime.strategy.LinebasedStrategy;
  */
 public final class StatsPrinter {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(StatsPrinter.class));
+	private static final Logger LOG = Logger.getLogger(StatsPrinter.class.getSimpleName());
 	private static String delimiter = "=================================================";
 
 	/**

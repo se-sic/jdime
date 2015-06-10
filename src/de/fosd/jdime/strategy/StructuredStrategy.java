@@ -50,7 +50,7 @@ import org.apache.log4j.Logger;
  */
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
+	private static final Logger LOG = Logger.getLogger(StructuredStrategy.class.getSimpleName());
 
 	/**
 	 * The source <code>FileArtifacts</code> are extracted from the

@@ -46,8 +46,7 @@ import java.util.Iterator;
  */
 public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(UnorderedMerge.class));
+	private static final Logger LOG = Logger.getLogger(UnorderedMerge.class.getSimpleName());
 	private String logprefix;
 
 	/**

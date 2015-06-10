@@ -61,8 +61,7 @@ import java.util.Queue;
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(Matcher.class.getSimpleName());
 	private int calls = 0;
 	private int orderedCalls = 0;
 	private int unorderedCalls = 0;
