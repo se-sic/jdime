@@ -590,9 +590,7 @@ public final class Main {
 					}
 
 					for (Tuple<String, Double> t : curSkippedElements) {
-						skippedElements.add(
-								new Tuple<String, Tuple<Integer, Double>>(
-									t.x, new Tuple<>(lookAhead, t.y)));
+						skippedElements.add(Tuple.of(t.x, Tuple.of(lookAhead, t.y)));
 					}
 
 					for (String elem : curMatchedElements.keySet()) {

@@ -90,7 +90,7 @@ public class TestTrees {
 		t2.addChild(t3);
 		t2.addChild(t4);
 
-		return new Tuple<>(t0, t2);
+		return Tuple.of(t0, t2);
 	}
 
 	public static void main(String[] args) {

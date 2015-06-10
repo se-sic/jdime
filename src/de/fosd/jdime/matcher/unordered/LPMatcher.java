@@ -138,7 +138,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matchtings[i][j] = new Tuple<>(0, new Matchings<T>());
+				matchtings[i][j] = Tuple.of(0, new Matchings<T>());
 			}
 		}
 
@@ -151,7 +151,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				childT2 = right.getChild(j);
 				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
 				NewMatching<T> matching = w.get(childT1, childT2).get();
-				matchtings[i][j] = new Tuple<>(matching.getScore(), w);
+				matchtings[i][j] = Tuple.of(matching.getScore(), w);
 			}
 		}
 
