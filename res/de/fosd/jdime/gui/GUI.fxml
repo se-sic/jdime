@@ -19,7 +19,7 @@
 <tabs>
 <Tab fx:id="outputTab" closable="false" text="JDime Output">
                <content>
-                  <ListView fx:id="output" />
+                  <ListView fx:id="output" stylesheets="@ListView.css" />
                </content>
 </Tab>
 </tabs>
