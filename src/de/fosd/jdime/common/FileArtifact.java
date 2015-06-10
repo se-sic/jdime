@@ -25,7 +25,7 @@ package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
@@ -271,7 +271,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	protected final String dumpTree(final String indent) {
 		StringBuilder sb = new StringBuilder();
 
-		NewMatching<FileArtifact> m = null;
+		Matching<FileArtifact> m = null;
 		if (hasMatches()) {
 			Set<Revision> matchingRevisions = matches.keySet();
 
@@ -307,13 +307,21 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final boolean equals(final Object obj) {
-		assert (obj != null);
-		assert (obj instanceof FileArtifact);
-		if (this == obj) {
+	public boolean equals(Object o) {
+		if (this == o) {
 			return true;
 		}
-		return this.toString().equals(((FileArtifact) obj).toString());
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		return toString().equals(o.toString());
+	}
+
+	@Override
+	public final int hashCode() {
+		return toString().hashCode();
 	}
 
 	@Override
@@ -464,16 +472,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		//
 		// return strategy.getStatsKey(this);
 		return isDirectory() ? "directories" : "files";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
-	@Override
-	public final int hashCode() {
-		return toString().hashCode();
 	}
 
 	@Override

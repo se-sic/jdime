@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -79,7 +79,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 		Diff<T> diff = new Diff<>();
 
-		NewMatching<T> m;
+		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge

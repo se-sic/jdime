@@ -252,7 +252,7 @@ public final class GUI extends Application {
 	}
 
 	/**
-	 * Called when the '>' button for the history is clicked.
+	 * Called when the '{@literal >}' button for the history is clicked.
 	 */
 	public void historyNext() {
 		historyIndex.setValue(historyIndex.get() + 1);
@@ -265,7 +265,7 @@ public final class GUI extends Application {
 	}
 
 	/**
-	 * Called when the '<' button for the history is clicked.
+	 * Called when the '{@literal <}' button for the history is clicked.
 	 */
 	public void historyPrevious() {
 
@@ -294,7 +294,7 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid && !allowInvalid) {
+		if (!valid && !!getConfigBoolean(JDIME_ALLOW_INVALID_KEY)) {
 			return;
 		}
 

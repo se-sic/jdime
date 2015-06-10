@@ -27,8 +27,9 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
+import org.apache.commons.lang3.ClassUtils;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -41,16 +42,15 @@ import java.util.List;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
- * TODO: this needs more explanation, I'll fix that soon
- *
- * @author Olaf Lessenich
+ * TODO: this needs more explanation, I'll fix that soon.
  *
  * @param <T>
- *            type of artifact
+ * 		type of artifact
+ * @author Olaf Lessenich
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	private static String id = "unordered";
+	private String id = ClassUtils.getSimpleName(getClass());
 
 	/**
 	 * Threshold for rounding errors.
@@ -61,14 +61,14 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 * Computes indices in the constraint matrix.
 	 *
 	 * @param i
-	 *            row in node matrix
+	 * 		row in node matrix
 	 * @param j
-	 *            column in node matrix
+	 * 		column in node matrix
 	 * @param width
-	 *            columns per row in node matrix
+	 * 		columns per row in node matrix
 	 * @return index in constraint matrix
 	 */
-	private static int getGlpkIndex(final int i, final int j, final int width) {
+	private static int getGlpkIndex(int i, int j, int width) {
 		return i * width + j;
 	}
 
@@ -76,36 +76,29 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 	 * Computes indices in the node matrix.
 	 *
 	 * @param x
-	 *            index in constraint matrix
+	 * 		index in constraint matrix
 	 * @param width
-	 *            columns per row in node matrix
+	 * 		columns per row in node matrix
 	 * @return index in node matrix
 	 */
-	private static int[] getMyIndices(final int x, final int width) {
+	private static int[] getMyIndices(int x, int width) {
 		return new int[] { x / width, x % width };
 	}
 
 	/**
+	 * Constructs a new <code>LPMatcher</code> using the given <code>Matcher</code> for recursive calls.
+	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
 	public LPMatcher(final Matcher<T> matcher) {
 		super(matcher);
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
 	 * TODO: this really needs documentation. I'll soon take care of that.
-	 * @param context <code>MergeContext</code>
-	 * @param left
-	 * @param right
-	 * @param lookAhead How many levels to keep searching for matches in the
-	 * subtree if the currently compared nodes are not equal. If there are no
-	 * matches within the specified number of levels, do not look for matches
-	 * deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will
-	 * stop looking for subtree matches if two nodes do not match. If this is
-	 * set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.  The
-	 * default ist to do no look-ahead matching.
-	 * @return
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
@@ -113,10 +106,21 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
-				// roots contain distinct symbols and we cannot use the look-ahead feature
-				// therefore, we ignore the rest of the subtrees and return early to save time
-				return Matchings.of(left, right, rootMatching);
-			} else {
+				/*
+				 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+				 * subtrees and return early to save time.
+				 */
+
+				if (LOG.isTraceEnabled()) {
+					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
+				}
+
+				Matchings<T> m = Matchings.of(left, right, rootMatching);
+				m.get(left, right).get().setAlgorithm(id);
+
+				return m;
+			} else if (lookAhead > 0) {
 				lookAhead = lookAhead - 1;
 			}
 		} else if (context.isLookAhead()) {
@@ -130,7 +134,10 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 		int n = right.getNumChildren();
 
 		if (m == 0 || n == 0) {
-			return Matchings.of(left, right, rootMatching);
+			Matchings<T> matchings = Matchings.of(left, right, rootMatching);
+			matchings.get(left, right).get().setAlgorithm(id);
+
+			return matchings;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -150,7 +157,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 			for (int j = 0; j < n; j++) {
 				childT2 = right.getChild(j);
 				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
-				NewMatching<T> matching = w.get(childT1, childT2).get();
+				Matching<T> matching = w.get(childT1, childT2).get();
 				matchtings[i][j] = new Tuple<>(matching.getScore(), w);
 			}
 		}
@@ -282,18 +289,19 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				int[] indices = getMyIndices(c - 1, width);
 				int i = indices[0];
 				int j = indices[1];
+
 				if (i < m && j < n) { // TODO: verify that this is correct
 					Tuple<Integer, Matchings<T>> curMatching = childrenMatching[i][j];
+
 					if (curMatching.x > 0) {
 						children.add(curMatching.y);
-						// curMatching.setAlgorithm(id); TODO This matching was produced by a different Matcher, why set the algorithm to a new ID?
 					}
 				}
 			}
 		}
 		GLPK.glp_delete_prob(lp);
 
-		NewMatching<T> matching = new NewMatching<>(left, right, objective + rootMatching);
+		Matching<T> matching = new Matching<>(left, right, objective + rootMatching);
 		matching.setAlgorithm(id);
 
 		Matchings<T> result = new Matchings<>();

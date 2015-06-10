@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -217,11 +217,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge left
 				if (!leftChild.isMerged()) {
-					NewMatching<T> mRight = leftChild.getMatching(r);
+					Matching<T> mRight = leftChild.getMatching(r);
 					T rightMatch = mRight.getMatchingArtifact(leftChild);
 
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = leftChild.getMatching(b);
+					Matching<T> mBase = leftChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
@@ -249,11 +249,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge right
 				if (!rightChild.isMerged()) {
-					NewMatching<T> mLeft = rightChild.getMatching(l);
+					Matching<T> mLeft = rightChild.getMatching(l);
 					T leftMatch = mLeft.getMatchingArtifact(rightChild);
 
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = rightChild.getMatching(b);
+					Matching<T> mBase = rightChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;

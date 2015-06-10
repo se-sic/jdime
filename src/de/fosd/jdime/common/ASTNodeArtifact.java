@@ -29,7 +29,7 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
@@ -343,7 +343,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		StringBuilder sb = new StringBuilder();
 
 		// node itself
-		NewMatching<ASTNodeArtifact> m = null;
+		Matching<ASTNodeArtifact> m = null;
 
 		// color
 		if (!isConflict() && hasMatches()) {
@@ -431,11 +431,21 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return "nodes";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		ASTNodeArtifact that = (ASTNodeArtifact) o;
+
+		return astnode.dumpString().equals(that.astnode.dumpString());
+	}
+
 	@Override
 	public final int hashCode() {
 		return astnode.dumpString().hashCode();

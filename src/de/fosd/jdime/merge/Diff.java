@@ -26,8 +26,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
@@ -53,12 +53,12 @@ public class Diff<T extends Artifact<T>> {
 	 *            right node
 	 * @param color
 	 *            color of the matching (for debug output only)
-	 * @return Matching of the two nodes
+	 * @return <code>Matchings</code> of the two nodes
 	 */
 	public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
 		Matcher<T> matcher = new Matcher<>();
 		Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
-		NewMatching<T> matching = matchings.get(left, right).get();
+		Matching<T> matching = matchings.get(left, right).get();
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "

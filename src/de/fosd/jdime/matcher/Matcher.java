@@ -46,7 +46,7 @@ import java.util.Queue;
  * is important (e.g., statements within a method in a Java AST) or not (e.g.,
  * method declarations in a Java AST) for syntactic correctness. Then either an
  * implementation of <code>OrderedMatcher</code> or
- * <code>UnorderedMatcher</code> is called to compute the actual Matching.
+ * <code>UnorderedMatcher</code> is called to compute the actual <code>Matching</code>.
  * Usually, those subclass implementations use this <code>Matcher</code>
  * superclass for the recursive call of the match() method.
  * <p>
@@ -61,16 +61,20 @@ import java.util.Queue;
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+
 	private int calls = 0;
 	private int orderedCalls = 0;
 	private int unorderedCalls = 0;
+
 	private UnorderedMatcher<T> unorderedMatcher;
 	private UnorderedMatcher<T> unorderedLabelMatcher;
 	private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
 
+	/**
+	 * Constructs a new <code>Matcher</code>.
+	 */
 	public Matcher() {
 		unorderedMatcher = new LPMatcher<>(this);
 		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
@@ -78,11 +82,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 		boolean fullyOrdered = true;
         boolean isOrdered = false;
 		boolean uniqueLabels = true;
@@ -132,9 +133,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         
 		if (isOrdered) {
 			orderedCalls++;
+
 			if (LOG.isTraceEnabled()) {
-				LOG.trace(orderedMatcher.getClass().getSimpleName() + ".match("
-						+ left.getId() + ", " + right.getId() + ")");
+				String matcherName = orderedMatcher.getClass().getSimpleName();
+				LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 			}
 
 			return orderedMatcher.match(context, left, right, lookAhead);
@@ -143,17 +145,15 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 			if (uniqueLabels) {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedLabelMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
+					String matcherName = unorderedLabelMatcher.getClass().getSimpleName();
+					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 				}
 
 				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
 				if (LOG.isTraceEnabled()) {
-					LOG.trace(unorderedMatcher.getClass().getSimpleName()
-							+ ".match(" + left.getId() + ", " + right.getId()
-							+ ")");
+					String matcherName = unorderedMatcher.getClass().getSimpleName();
+					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
 				}
 
 				return unorderedMatcher.match(context, left, right, lookAhead);
@@ -162,7 +162,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Stores the <code>NewMatching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
+	 * Stores the <code>Matching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
 	 * match.
 	 *
 	 * @param context
@@ -172,9 +172,9 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	 * @param color
 	 * 		the <code>Color</code> used to highlight the matchings in the debug output
 	 */
-	public final void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+	public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
-		for (NewMatching<T> matching : matchings) {
+		for (Matching<T> matching : matchings.optimized()) {
 
 			if (matching.getScore() > 0) {
 				T left = matching.getLeft();
@@ -206,26 +206,21 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	}
 
 	/**
-	 * Resets the call counter.
+	 * Resets the call counters.
 	 */
-	public final void reset() {
+	public void reset() {
 		calls = 0;
 		unorderedCalls = 0;
 		orderedCalls = 0;
 	}
 
 	/**
-	 * Returns the logged call counts.
+	 * Returns a formatted string describing the logged call counts.
 	 *
-	 * @return logged call counts
+	 * @return a log of the call counts
 	 */
-	public final String getLog() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("matcher calls (all/ordered/unordered): ");
-		sb.append(calls).append("/");
-		sb.append(orderedCalls).append("/");
-		sb.append(unorderedCalls);
+	public String getLog() {
 		assert (calls == unorderedCalls + orderedCalls) : "Wrong sum for matcher calls";
-		return sb.toString();
+		return "Matcher calls (all/ordered/unordered): " + calls + "/" + orderedCalls + "/" + unorderedCalls;
 	}
 }

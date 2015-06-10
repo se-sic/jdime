@@ -23,7 +23,7 @@
 package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -99,7 +99,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Map to store matches.
 	 */
-	protected LinkedHashMap<Revision, NewMatching<T>> matches = null;
+	protected LinkedHashMap<Revision, Matching<T>> matches = null;
 
 	/**
 	 * Whether the artifact has been already merged.
@@ -138,7 +138,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param matching
 	 * 		matching to be added
 	 */
-	public void addMatching(NewMatching<T> matching) {
+	public void addMatching(Matching<T> matching) {
 		if (matches == null) {
 			matches = new LinkedHashMap<>();
 		}
@@ -161,8 +161,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 		matches = new LinkedHashMap<>();
 
-		for (Map.Entry<Revision, NewMatching<T>> entry : other.matches.entrySet()) {
-			NewMatching<T> m = entry.getValue().clone();
+		for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
+			Matching<T> m = entry.getValue().clone();
 			m.updateMatching((T) this);
 
 			matches.put(entry.getKey(), m);
@@ -304,7 +304,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            revision
 	 * @return matching with revision
 	 */
-	public final NewMatching<T> getMatching(final Revision rev) {
+	public final Matching<T> getMatching(final Revision rev) {
 		return matches == null ? null : matches.get(rev);
 	}
 
@@ -437,11 +437,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		return getNumChildren() > 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
+	public abstract boolean equals(Object obj);
+
 	@Override
 	public abstract int hashCode();
 
@@ -478,7 +476,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			return false;
 		}
 
-		NewMatching<T> m = matches.get(other.getRevision());
+		Matching<T> m = matches.get(other.getRevision());
 		return m != null && m.getMatchingArtifact(this) == other;
 	}
 
