@@ -23,10 +23,10 @@
  */
 package de.fosd.jdime.matcher;
 
+import de.fosd.jdime.common.Artifact;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import de.fosd.jdime.common.Artifact;
 
 /**
  * TODO: This needs more explanation.

@@ -1,12 +1,12 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * A simple <code>Artifact</code> to test the functionality of <code>MCESubtreeMatcher</code>. Not all all methods

@@ -29,7 +29,6 @@ import de.fosd.jdime.matcher.NewMatching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import javax.activation.MimetypesFileTypeMap;

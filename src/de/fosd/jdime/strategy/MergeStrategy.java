@@ -23,14 +23,14 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.merge.MergeInterface;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.merge.MergeInterface;
 
 /**
  * A <code>MergeStrategy</code> implements an algorithm to merge a certain type of <code>Artifacts</code>.

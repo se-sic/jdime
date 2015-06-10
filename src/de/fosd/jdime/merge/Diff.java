@@ -28,7 +28,6 @@ import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.NewMatching;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 /**

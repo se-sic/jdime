@@ -22,12 +22,12 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
+
+import java.io.IOException;
 
 /**
  * Interface for merge algorithms.

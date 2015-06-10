@@ -30,7 +30,6 @@ import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
