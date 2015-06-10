@@ -73,7 +73,7 @@ public class UnorderedTuple<X, Y> implements Cloneable {
 	/**
 	 * Returns the first object contained in the <code>UnorderedTuple</code>.
 	 *
-	 * @return the first obejct
+	 * @return the first object
 	 */
 	public X getX() {
 		return x;
