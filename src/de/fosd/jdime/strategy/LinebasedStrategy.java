@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.Util;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeTriple;
@@ -30,7 +31,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -131,7 +131,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
-		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+		LOG.debug("Running external command: " + Util.joinToString(cmd, ' '));
 
 		for (int i = 0; i < context.getBenchmarkRuns() + 1
 				&& (i == 0 || context.isBenchmark()); i++) {

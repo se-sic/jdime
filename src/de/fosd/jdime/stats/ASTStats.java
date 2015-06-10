@@ -22,8 +22,8 @@
  */
 package de.fosd.jdime.stats;
 
+import de.fosd.jdime.Util;
 import de.fosd.jdime.common.LangElem;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.text.DecimalFormat;
@@ -399,9 +399,9 @@ public class ASTStats {
 		}
 
 		// CSV
-		sb.append(StringUtils.join(csvHead, ';'));
+		sb.append(Util.joinToString(csvHead, ';'));
 		sb.append(System.lineSeparator());
-		sb.append(StringUtils.join(csv, ';'));
+		sb.append(Util.joinToString(csv, ';'));
 
 		return sb.toString();
 	}
