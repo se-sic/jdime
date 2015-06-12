@@ -590,7 +590,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
 				
-				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent);
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent);
 				conflictOp.apply(context);
 			}
 		}
@@ -707,12 +707,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final ASTNodeArtifact createConflictDummy(
-			final ASTNodeArtifact type, final ASTNodeArtifact left,
-			final ASTNodeArtifact right) throws FileNotFoundException {
-		ASTNodeArtifact conflict;
+	public final ASTNodeArtifact createConflictDummy(final ASTNodeArtifact left, final ASTNodeArtifact right)
+			throws FileNotFoundException {
+		ASTNodeArtifact conflict = left != null
+				? new ASTNodeArtifact(left.astnode.fullCopy())
+				: new ASTNodeArtifact(right.astnode.fullCopy());
 
-		conflict = new ASTNodeArtifact(type.astnode.fullCopy());
 		conflict.setConflict(left, right);
 
 		return conflict;

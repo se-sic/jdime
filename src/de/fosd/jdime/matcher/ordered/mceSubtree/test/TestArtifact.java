@@ -45,7 +45,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
-	public TestArtifact createConflictDummy(TestArtifact type, TestArtifact left, TestArtifact right) throws FileNotFoundException {
+	public TestArtifact createConflictDummy(TestArtifact left, TestArtifact right) throws FileNotFoundException {
 		return null;
 	}
 

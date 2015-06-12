@@ -122,8 +122,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 							LOG.trace(prefix(leftChild)
 									+ "has changes in subtree.");
 						}
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -173,8 +172,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 									+ "has changes in subtree.");
 						}
 						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted

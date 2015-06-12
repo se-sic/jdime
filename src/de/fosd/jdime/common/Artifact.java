@@ -202,8 +202,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @throws FileNotFoundException
 	 *             If a file is not found
 	 */
-	public abstract T createConflictDummy(final T type, final T left,
-			final T right) throws FileNotFoundException;
+	public abstract T createConflictDummy(final T left, final T right) throws FileNotFoundException;
 
 	/**
 	 * Returns a dummy @code{Artifact}.

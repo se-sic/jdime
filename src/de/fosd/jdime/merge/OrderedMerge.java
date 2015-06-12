@@ -119,8 +119,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							LOG.trace(prefix(leftChild)
 									+ "has changes in subtree.");
 						}
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 						conflictOp.apply(context);
 						if (rightIt.hasNext()) {
 							rightChild = rightIt.next();
@@ -160,8 +159,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 											+ "has changes in subtree.");
 								}
 								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										rightChild, leftChild, rightChild, target);
+								ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 								conflictOp.apply(context);
 								if (rightIt.hasNext()) {
 									rightChild = rightIt.next();
@@ -185,8 +183,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.trace(prefix(rightChild) + "is a change");
 							}
 							// rightChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, leftChild, rightChild, target);
+							ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 							conflictOp.apply(context);
 
 							if (rightIt.hasNext()) {
@@ -231,8 +228,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 									+ "has changes in subtree.");
 						}
 						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, leftChild, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 						conflictOp.apply(context);
 						if (rightIt.hasNext()) {
 							rightChild = rightIt.next();
@@ -271,8 +267,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 											+ "has changes in subtree.");
 								}
 								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										leftChild, leftChild, rightChild, target);
+								ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 								conflictOp.apply(context);
 								if (rightIt.hasNext()) {
 									rightChild = rightIt.next();
@@ -300,8 +295,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.trace(prefix(leftChild) + "is a change");
 							}
 							// leftChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, leftChild, rightChild, target);
+							ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 							conflictOp.apply(context);
 
 							if (leftIt.hasNext()) {
