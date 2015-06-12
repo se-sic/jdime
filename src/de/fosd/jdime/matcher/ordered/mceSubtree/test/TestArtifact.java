@@ -50,6 +50,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
+	public TestArtifact createChoiceDummy(TestArtifact type, String condition, TestArtifact artifact) throws FileNotFoundException {
+		return null;
+	}
+
+	@Override
 	public TestArtifact createEmptyDummy() throws FileNotFoundException {
 		return null;
 	}
