@@ -22,19 +22,20 @@
  */
 package de.fosd.jdime.merge;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
  *
  * @author Olaf Lessenich
- * 
+ *
  * @param <T>
  *            type of artifact
  */
@@ -43,33 +44,35 @@ public class Diff<T extends Artifact<T>> {
 			.getShortClassName(Diff.class));
 
 	/**
-	 * Compares two nodes and returns a respective matching.
-	 * 
+	 * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+	 *
+	 * @param context <code>MergeContext</code>
 	 * @param left
 	 *            left node
 	 * @param right
 	 *            right node
 	 * @param color
 	 *            color of the matching (for debug output only)
-	 * @return Matching of the two nodes
+	 * @return <code>Matchings</code> of the two nodes
 	 */
-	public final Matching<T> compare(final T left, final T right,
-			final Color color) {
+	public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
 		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(left, right);
+		Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
+		Matching<T> matching = matchings.get(left, right).get();
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("match(" + left.getRevision() + ", "
-					+ right.getRevision() + ") = " + m.getScore());
+					+ right.getRevision() + ") = " + matching.getScore());
 			LOG.debug(matcher.getLog());
 			LOG.trace("Store matching information within nodes.");
 		}
 
-		matcher.storeMatching(m, color);
+		matcher.storeMatchings(context, matchings, color);
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Dumping matching of " + left.getRevision() + " and "
 					+ right.getRevision());
-			System.out.println(m.dumpTree());
+			System.out.println(matchings);
 		}
 
 		if (LOG.isDebugEnabled()) {
@@ -80,6 +83,6 @@ public class Diff<T extends Artifact<T>> {
 			System.out.println(right.dumpTree());
 		}
 
-		return m;
+		return matchings;
 	}
 }

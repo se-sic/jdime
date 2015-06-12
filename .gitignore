@@ -15,3 +15,5 @@
 /.classpath
 gradle.properties
 *.swp
+/lib/glpk-4.55/
+JDime.properties

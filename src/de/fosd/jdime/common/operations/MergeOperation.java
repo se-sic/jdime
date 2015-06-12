@@ -27,8 +27,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
-import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
@@ -218,9 +222,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public String toString() {
-		assert (mergeScenario != null);
 		String dst = target == null ? "" : target.getId();
-		return getId() + ": " + getName() + " " + mergeScenario.getMergeType() + " " + mergeScenario.toString(true)
-				+ " INTO " + dst;
+		String mScenarioString = mergeScenario.toString(true);
+		MergeType mergeType = mergeScenario.getMergeType();
+
+		return String.format("%s: %s %s %s INTO %s", getId(), getName(), mergeType, mScenarioString, dst);
 	}
 }

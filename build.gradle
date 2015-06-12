@@ -51,6 +51,7 @@ dependencies {
     compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile 'log4j:log4j:1.2.17'
     compile files('lib/JJ7.jar')
+    compile project(':KVConfig')
 }
 
 task natives {
@@ -89,7 +90,7 @@ task natives {
 
     def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
     def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
-    
+
     if (glpkJavaFile.exists()) {
         if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
             println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name."
@@ -118,12 +119,31 @@ task natives {
     outputs.files(glpkFile, glpkJavaFile)
 }
 
-applicationName = rootProject.name
-mainClassName = "de.fosd.jdime.Main"
-applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+startScripts {
+    applicationName = rootProject.name
+    mainClassName = "de.fosd.jdime.Main"
+    applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+}
 
-applicationDistribution.from(natives) {
-    into("bin")
+task guiScripts(type: CreateStartScripts) {
+    applicationName = "${rootProject.name}_GUI"
+    mainClassName = 'de.fosd.jdime.gui.GUI'
+    outputDir = startScripts.outputDir
+    classpath = startScripts.classpath
+}
+
+distributions {
+    main {
+        contents.with {
+            into('bin') {
+                from(guiScripts)
+                fileMode = 0755
+            }
+            into('bin') {
+                from(natives)
+            }
+        }
+    }
 }
 
 run {

@@ -23,45 +23,44 @@
 package de.fosd.jdime.matcher.unordered;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.Matchings;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
- * @author Olaf Lessenich
+ * <code>UnorderedMatcher</code>s ignore the order of the elements they match when comparing <code>Artifact</code>s.
  *
  * @param <T>
- *            type of artifact
- *
+ * 		the type of the <code>Artifact</code>s
+ * @author Olaf Lessenich
  */
-public abstract class UnorderedMatcher<T extends Artifact<T>> implements
-		MatchingInterface<T> {
+public abstract class UnorderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
+
+	protected static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
 
 	/**
-	 * The matcher is used for recursive matching calls. It can determine
-	 * whether the order of artifacts is essential.
+	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
 	 */
 	protected Matcher<T> matcher;
 
 	/**
-	 * Creates a new instance of UnorderedMatcher.
+	 * Constructs a new <code>UnorderedMatcher</code> using the given <code>matcher</code> for recursive calls.
 	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
 	public UnorderedMatcher(final Matcher<T> matcher) {
 		this.matcher = matcher;
 	}
 
 	/**
-	 * Compares two nodes while ignoring the order of the elements.
-	 *
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree of left and right tree
+	 * {@inheritDoc}
+	 * <p>
+	 * Compares <code>left</code> and <code>right</code> while ignoring the order of the elements.
 	 */
 	@Override
-	public abstract Matching<T> match(final T left, final T right);
+	public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
 }

@@ -35,14 +35,8 @@ import de.fosd.jdime.common.Artifact;
  */
 public class Entry<T extends Artifact<T>> {
 
-	/**
-	 * Direction.
-	 */
 	private Direction direction;
-	/**
-	 * Matching.
-	 */
-	private Matching<T> matching;
+	private Matchings<T> matching;
 
 	/**
 	 * Creates a new entry.
@@ -52,7 +46,7 @@ public class Entry<T extends Artifact<T>> {
 	 * @param matching
 	 *            matching
 	 */
-	public Entry(final Direction direction, final Matching<T> matching) {
+	public Entry(final Direction direction, final Matchings<T> matching) {
 		this.direction = direction;
 		this.matching = matching;
 	}
@@ -75,7 +69,7 @@ public class Entry<T extends Artifact<T>> {
 	/**
 	 * @return the matching
 	 */
-	public final Matching<T> getMatching() {
+	public final Matchings<T> getMatching() {
 		return matching;
 	}
 
@@ -83,7 +77,7 @@ public class Entry<T extends Artifact<T>> {
 	 * @param matching
 	 *            the matching to set
 	 */
-	public final void setMatching(final Matching<T> matching) {
+	public final void setMatching(final Matchings<T> matching) {
 		this.matching = matching;
 	}
 }
