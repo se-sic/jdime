@@ -41,7 +41,6 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils
 			.getShortClassName(ConflictOperation.class));
-	private T type;
 	private T left;
 	private T right;
 
@@ -56,15 +55,13 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	/**
 	 * Class constructor.
 	 *
-	 * @param type type
 	 * @param left left alternatives
 	 * @param right right alternatives
 	 * @param target target node
 	 */
-	public ConflictOperation(final T type, final T left, final T right, final T target, final String leftCondition,
+	public ConflictOperation(final T left, final T right, final T target, final String leftCondition,
 							 final String rightCondition) {
 		super();
-		this.type = type;
 		this.left = left;
 		this.right = right;
 		this.target = target;
@@ -104,14 +101,14 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 				if (left.isChoice()) {
 					choice = left;
 				} else {
-					choice = target.createChoiceDummy(type, leftCondition, left);
+					choice = target.createChoiceDummy(leftCondition, left);
 				}
 
 				assert (choice.isChoice());
 				choice.addVariant(rightCondition, right);
 				choice.copyArtifact(target);
 			} else {
-				T conflict = target.createConflictDummy(type, left, right);
+				T conflict = target.createConflictArtifact(left, right);
 				assert (conflict.isConflict());
 				conflict.copyArtifact(target);
 			}

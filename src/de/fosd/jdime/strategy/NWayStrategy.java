@@ -122,7 +122,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetNode.dumpTree());
 				}
 
-				MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyDummy(), next);
+				MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(), next);
 
 				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
 						merged.getRevision().getName(), next.getRevision().getName());

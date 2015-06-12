@@ -33,6 +33,8 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 /**
+ * A generic <code>Artifact</code> that has a tree structure.
+ *
  * @author Olaf Lessenich
  *
  * @param <T>
@@ -54,7 +56,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param artifact
 	 *            root of the tree to renumber
 	 */
-	protected static void renumber(final Artifact<?> artifact) {
+	private static void renumber(final Artifact<?> artifact) {
 		artifact.number = count;
 		count++;
 		for (int i = 0; i < artifact.getNumChildren(); i++) {
@@ -186,7 +188,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Copies an @code{Artifact}.
+	 * Copies the <code>Artifact</code> into an existing <code>Artifact</code>.
 	 *
 	 * @param destination destination artifact
 	 * @throws IOException
@@ -195,7 +197,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract void copyArtifact(final T destination) throws IOException;
 
 	/**
-	 * Creates an @code{Artifact}.
+	 * Creates a new <code>Artifact</code>,
 	 *
 	 * @param isLeaf
 	 *            if true, a leaf type artifact will be created
@@ -205,43 +207,44 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract void createArtifact(boolean isLeaf) throws IOException;
 
 	/**
-	 * Returns a conflict artifact.
+	 * Returns an <code>Artifact</code> that represents a merge conflict.
+	 * A conflict contains two alternative <code>Artifact</code> (left and right) and is handled in a special way
+	 * while pretty-printed.
 	 *
-	 * @param type
-	 *            of node
 	 * @param left
-	 *            left alternatives
+	 *            left alternative <code>Artifact</code>
 	 * @param right
-	 *            right alternatives
-	 * @return conflict artifact
+	 *            right alternative <code>Artifact</code>
+	 * @return conflict <code>Artifact</code>
 	 * @throws FileNotFoundException
 	 *             If a file is not found
 	 */
-	public abstract T createConflictDummy(final T type, final T left,
-			final T right) throws FileNotFoundException;
+	public abstract T createConflictArtifact(final T left, final T right) throws FileNotFoundException;
 
 	/**
 	 * Returns a choice artifact.
 	 *
-	 * @param type of node
 	 * @param condition presence condition
 	 * @param artifact conditional artifact
 	 * @return choice artifact
 	 * @throws FileNotFoundException If a file is not found
 	 */
-	public abstract T createChoiceDummy(final T type, final String condition, final T artifact) throws FileNotFoundException;
+	public abstract T createChoiceDummy(final String condition, final T artifact) throws FileNotFoundException;
 
 	/**
-	 * Returns a dummy @code{Artifact}.
+	 * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
+	 * base <code>Artifact</code> is empty.
 	 *
-	 * @return dummy artifact
+	 * @return empty <code>Artifact</code>
 	 * @throws FileNotFoundException
 	 *             If a file is not found
 	 */
-	public abstract T createEmptyDummy() throws FileNotFoundException;
+	public abstract T createEmptyArtifact() throws FileNotFoundException;
 
 	/**
 	 * Finds the root artifact and calls <code>dumpTree()</code> on it.
+	 *
+	 * This method is used for debugging JDime.
 	 *
 	 * @return <code>dumpTree()</code> of root artifact
 	 */
@@ -256,6 +259,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Returns the structure of the artifact as indented plain text.
 	 *
+	 * This method is used for debugging JDime.
+	 *
 	 * @return artifact structure as indented plain text
 	 */
 	public final String dumpTree() {
@@ -264,6 +269,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	/**
 	 * Returns the structure of the artifact as indented plain text.
+	 *
+	 * This method is used for debugging JDime.
 	 *
 	 * @param indent
 	 *            String used to indent the current artifact
@@ -287,11 +294,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Return child at position i.
+	 * Return child <code>Artifact</code> at position i.
 	 *
 	 * @param i
-	 *            position of child
-	 * @return child at position i
+	 * 			position of child <code>Artifact</code>
+	 * @return child <code>Artifact</code> at position i
 	 */
 	public final T getChild(final int i) {
 		assert (children != null);
@@ -299,9 +306,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns the children of the artifact.
+	 * Returns all children of the <code>Artifact</code>.
 	 *
-	 * @return the children of the artifact
+	 * @return the children of the <code>Artifact</code>
 	 */
 	public final ArtifactList<T> getChildren() {
 		if (isLeaf()) {
@@ -316,33 +323,38 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns identifier in the form of revision:number.
+	 * Returns the identifier of the <code>Artifact</code>,
+	 * which contains the <code>Revision</code> name and a number.
 	 *
-	 * @return identifier in the form revision:number
+	 * This method is basically useful for debugging JDime.
+	 *
+	 * @return identifier of the <code>Artifact</code>
 	 */
 	public abstract String getId();
 
 	/**
-	 * Returns the matching for a specific revision or null if there is no such
-	 * matching.
+	 * Returns the <code>Matching</code> for a specific <code>Revision</code> or <code>null</code> if there is no such
+	 * <code>Matching</code>.
 	 *
 	 * @param rev
-	 *            revision
-	 * @return matching with revision
+	 *            <code>Revision</code>
+	 * @return <code>Matching</code> with <code>Revision</code>
 	 */
 	public final Matching<T> getMatching(final Revision rev) {
 		return matches == null ? null : matches.get(rev);
 	}
 
 	/**
-	 * @return the number
+	 * Returns the number of the <code>Artifact</code>.
+	 *
+	 * @return number of the <code>Artifact</code>
 	 */
 	public final int getNumber() {
 		return number;
 	}
 
 	/**
-	 * Returns the number of children the artifact has.
+	 * Returns the number of children the <code>Artifact</code> has.
 	 *
 	 * @return number of children
 	 */
@@ -359,27 +371,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns the number of matches.
+	 * Returns the parent <code>Artifact</code>.
 	 *
-	 * @return number of matches
-	 */
-	public final int getNumMatches() {
-		return matches == null ? 0 : matches.size();
-	}
-
-	/**
-	 * Returns the parent artifact.
-	 *
-	 * @return the parent artifact
+	 * @return the parent <code>Artifact></code>
 	 */
 	public final T getParent() {
 		return parent;
 	}
 
 	/**
-	 * Returns the revision the artifact belongs to.
+	 * Returns the <code>Revision</code> the <code>Artifact</code> belongs to.
 	 *
-	 * @return the revision the artifact belongs to.
+	 * @return the <code>Revision</code> the <code>Artifact</code> belongs to.
 	 */
 	public final Revision getRevision() {
 		return revision;
@@ -395,7 +398,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract String getStatsKey(final MergeContext context);
 
 	/**
-	 * Returns the size of the subtree. The node itself is not included.
+	 * Returns the size of the subtree. The <code>Artifact</code> itself is not included.
 	 *
 	 * @return size of subtree
 	 */
@@ -410,7 +413,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns the size of the tree. The node itself is also included.
+	 * Returns the size of the tree. The <code>Artifact</code> itself is also included.
 	 *
 	 * @return size of tree
 	 */
@@ -419,9 +422,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns whether the subtree has changes.
+	 * Returns whether the <code>Artifact</code> or its subtree has changes.
 	 *
-	 * @return whether subtree has changes
+	 * @return whether the <code>Artifact</code> or its subtree has changes
 	 */
 	public final boolean hasChanges() {
 		boolean hasChanges = !hasMatches();
@@ -437,8 +440,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Returns whether the artifact has changes.
 	 *
 	 * @param recursive
-	 *            If true, the whole subtree is checked
-	 * @return whether artifact has changes
+	 *            If true, the whole subtree is checked.
+	 *            If false, only the <code>Artifact</code> itself and its direct children are checked.
+	 * @return whether the <code>Artifact</code> has changes
 	 */
 	public final boolean hasChanges(final boolean recursive) {
 		if (recursive) {
@@ -455,9 +459,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns true if the artifact has children.
+	 * Returns true if the <code>Artifact</code> has children.
 	 *
-	 * @return true if the artifact has children
+	 * @return true if the <code>Artifact</code> has children
 	 */
 	public final boolean hasChildren() {
 		return getNumChildren() > 0;
@@ -470,20 +474,20 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract int hashCode();
 
 	/**
-	 * Returns whether this node has any matches.
+	 * Returns whether this <code>Artifact</code> has any matches.
 	 *
-	 * @return true if the node has matches
+	 * @return true if the <code>Artifact</code> has matches
 	 */
 	public final boolean hasMatches() {
 		return matches != null && !matches.isEmpty();
 	}
 
 	/**
-	 * Returns whether this node has a matching for a specific revision.
+	 * Returns whether this <code>Artifact</code> has a <code>Matching</code> for a specific <code>Revision</code>.
 	 *
 	 * @param rev
-	 *            revision
-	 * @return true if node has a matching with revision
+	 *            <code>Revision</code>
+	 * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
 	 */
 	public final boolean hasMatching(final Revision rev) {
 		boolean hasMatching = matches != null && matches.containsKey(rev);
@@ -501,11 +505,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns whether a matching exists for a specific node.
+	 * Returns whether a <code>Matching</code> exists for a specific <code>Artifact</code>.
 	 *
 	 * @param other
-	 *            other node to search for in matches
-	 * @return whether a matching exists
+	 *            other <code>Artifact</code> to search <code>Matching</code>s for
+	 * @return whether a <code>Matching</code> exists
 	 */
 	public final boolean hasMatching(final T other) {
 		Revision otherRev = other.getRevision();
@@ -524,21 +528,24 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns whether this artifact has unique labels.
+	 * Returns whether this <code>Artifact</code> has unique labels.
+	 * If this is the case, a more efficient <code>UnorderedMatcher</code> can be used.
 	 *
-	 * @return whether the artifact has unique labels
+	 * @return whether the <code>Artifact</code> has unique labels
 	 */
 	public abstract boolean hasUniqueLabels();
 
 	/**
 	 * Initializes the children of the artifact.
+	 *
+	 * FIXME: can this somehow be done in the constructors so we can get rid of this method?
 	 */
 	public abstract void initializeChildren();
 
 	/**
-	 * Returns true if the artifact is a conflict node.
+	 * Returns true if the <code>Artifact</code> is a conflict node.
 	 *
-	 * @return true if the artifact represents a conflict
+	 * @return true if the <code>Artifact</code> represents a conflict
 	 */
 	public final boolean isConflict() {
 		return conflict;
@@ -554,57 +561,58 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns true if the artifact is empty.
+	 * Returns true if the <code>Artifact</code> is empty.
 	 *
-	 * @return true if the artifact is empty
+	 * @return true if the <code>Artifact</code> is empty
 	 */
 	public abstract boolean isEmpty();
 
 	/**
-	 * Returns whether the artifact is an empty dummy.
+	 * Returns whether the <code>Artifact</code> is an empty dummy.
 	 *
-	 * @return true, if the artifact is an empty dummy.
+	 * @return true if the <code>Artifact</code> is an empty dummy.
 	 */
 	public final boolean isEmptyDummy() {
 		return emptyDummy;
 	}
 
 	/**
-	 * Returns true, if the artifact is a leaf.
+	 * Returns true if the <code>Artifact</code> is a leaf.
 	 *
-	 * @return true, if the artifact is a leaf
+	 * @return true if the <code>Artifact</code> is a leaf
 	 */
 	public abstract boolean isLeaf();
 
 	/**
-	 * @return the merged
+	 * Returns true if the <code>Artifact</code> has already been merged.
+	 * @return true if the <code>Artifact</code> has already been merged
 	 */
 	public final boolean isMerged() {
 		return merged;
 	}
 
 	/**
-	 * Returns true if the declaration order of the artifact is essential.
+	 * Returns true if the declaration order of the <code>Artifact</code> is essential.
 	 *
-	 * @return true if the declaration order of the artifact is essential
+	 * @return true if the declaration order of the <code>Artifact</code> is essential
 	 */
 	public abstract boolean isOrdered();
 
 	/**
-	 * Returns true if the artifact is the root node.
+	 * Returns true if the <code>Artifact</code> is the root node.
 	 *
-	 * @return true if the artifact is the root node
+	 * @return true if the <code>Artifact</code> is the root node
 	 */
 	public final boolean isRoot() {
 		return getParent() == null;
 	}
 
 	/**
-	 * Returns true, if the artifact matches another artifact.
+	 * Returns true, if this <code>Artifact</code> matches another <code>Artifact</code>.
 	 *
 	 * @param other
-	 *            other artifact
-	 * @return true, if the artifacts match
+	 *            other <code>Artifact</code>
+	 * @return true, if the <code>Artifact</code>s match
 	 */
 	public abstract boolean matches(final T other);
 
@@ -619,6 +627,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	/**
 	 * Performs a merge on the provided merge triple.
+	 * This method selects the <code>MergeStrategy</code> and triggers the merge.
 	 *
 	 * @param operation
 	 *            merge operation
@@ -633,7 +642,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			throws IOException, InterruptedException;
 
 	/**
-	 * Sets the children of the artifact.
+	 * Sets the children of the <code>Artifact</code>.
 	 *
 	 * @param children
 	 *            the new children to set
@@ -643,14 +652,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Marks this artifact as a conflict.
+	 * Marks this <code>Artifact</code> as a conflict.
 	 *
 	 * @param left
 	 *            left alternative
 	 * @param right
 	 *            right alternative
 	 */
-	public final void setConflict(final T left, final T right) {
+	protected final void setConflict(final T left, final T right) {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
@@ -700,24 +709,26 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Set whether the artifact is an empty dummy.
+	 * Set whether the <code>Artifact</code> is an empty <code>Artifact</code>.
 	 *
 	 * @param emptyDummy
-	 *            true, if the artifact is an emptyDummy
+	 *            true, if the <code>Artifact</code> is an empty <code>Artifact</code>
 	 */
-	public final void setEmptyDummy(final boolean emptyDummy) {
+	protected final void setEmpty(final boolean emptyDummy) {
 		this.emptyDummy = emptyDummy;
 	}
 
 	/**
+	 * Set whether the <code>Artifact</code> has already been merged.
 	 * @param merged
-	 *            the merged to set
+	 *            whether the <code>Artifact</code> has already been merged
 	 */
 	public final void setMerged(final boolean merged) {
 		this.merged = merged;
 	}
 
 	/**
+	 * Sets the number of the <code>Artifact</code>
 	 * @param number
 	 *            the number to set
 	 */
@@ -726,7 +737,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Sets the parent artifact.
+	 * Sets the parent <code>Artifact</code>.
 	 *
 	 * @param parent
 	 *            the parent to set
@@ -736,10 +747,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Sets the revision.
+	 * Sets the <code>Revision</code>.
 	 *
 	 * @param revision
-	 *            the revision to set
+	 *            the <code>Revision</code> to set
 	 */
 	public final void setRevision(final Revision revision) {
 		this.revision = revision;
@@ -752,16 +763,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	@Override
 	public abstract String toString();
-
-	/**
-	 * Read from a BufferedReader and writes to the artifact.
-	 *
-	 * @param str
-	 *            String to write x
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public abstract void write(String str) throws IOException;
 
 	/**
 	 * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)

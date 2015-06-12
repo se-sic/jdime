@@ -45,17 +45,15 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
-	public TestArtifact createConflictDummy(TestArtifact type, TestArtifact left, TestArtifact right) throws FileNotFoundException {
+	public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) throws FileNotFoundException {
 		return null;
 	}
 
 	@Override
-	public TestArtifact createChoiceDummy(TestArtifact type, String condition, TestArtifact artifact) throws FileNotFoundException {
+	public TestArtifact createChoiceDummy(String condition, TestArtifact artifact) throws FileNotFoundException {
 		return null;
 	}
-
-	@Override
-	public TestArtifact createEmptyDummy() throws FileNotFoundException {
+	public TestArtifact createEmptyArtifact() throws FileNotFoundException {
 		return null;
 	}
 
@@ -132,11 +130,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ": " + String.valueOf(id);
-	}
-
-	@Override
-	public void write(String str) throws IOException {
-
 	}
 
 	@Override

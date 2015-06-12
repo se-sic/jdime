@@ -137,7 +137,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ASTNode<?> astnode;
 		if (artifact.isEmptyDummy()) {
 			astnode = new ASTNode<>();
-			setEmptyDummy(true);
+			setEmpty(true);
 		} else {
 			Program p = initProgram();
 			p.addSourceFile(artifact.getPath());
@@ -239,14 +239,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
+	 * @see de.fosd.jdime.common.Artifact#createEmptyArtifact()
 	 */
 	@Override
-	public final ASTNodeArtifact createEmptyDummy()
+	public final ASTNodeArtifact createEmptyArtifact()
 			throws FileNotFoundException {
 		ASTNodeArtifact dummy = new ASTNodeArtifact();
 		dummy.astnode = new ASTNode<>();
-		dummy.setEmptyDummy(true);
+		dummy.setEmpty(true);
 		dummy.setRevision(getRevision());
 		return dummy;
 	}
@@ -475,12 +475,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		ASTNodeArtifact that = (ASTNodeArtifact) o;
 
-		return astnode.dumpString().equals(that.astnode.dumpString());
+		return getId().equals(that.getId());
 	}
 
 	@Override
 	public final int hashCode() {
-		return astnode.dumpString().hashCode();
+		return getId().hashCode();
 	}
 
 	@Override
@@ -622,7 +622,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
 				
-				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent,
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
 						left.getRevision().getName(), right.getRevision().getName());
 				conflictOp.apply(context);
 			}
@@ -740,34 +740,24 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode.dumpString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#write(java.lang.String)
-	 */
 	@Override
-	public final void write(final String str) throws IOException {
-		// TODO Auto-generated method stub
-	}
+	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right)
+			throws FileNotFoundException {
+		ASTNodeArtifact conflict = left != null
+				? new ASTNodeArtifact(left.astnode.fullCopy())
+				: new ASTNodeArtifact(right.astnode.fullCopy());
 
-	@Override
-	public final ASTNodeArtifact createConflictDummy(
-			final ASTNodeArtifact type, final ASTNodeArtifact left,
-			final ASTNodeArtifact right) throws FileNotFoundException {
-		ASTNodeArtifact conflict;
-
-		conflict = new ASTNodeArtifact(type.astnode.fullCopy());
 		conflict.setConflict(left, right);
 
 		return conflict;
 	}
 
 	@Override
-	public final ASTNodeArtifact createChoiceDummy(final ASTNodeArtifact type, final String condition, final ASTNodeArtifact artifact) {
+	public final ASTNodeArtifact createChoiceDummy(final String condition, final ASTNodeArtifact artifact) {
 		LOG.debug("Creating choice node");
 		ASTNodeArtifact choice;
 
-		choice = new ASTNodeArtifact(type.astnode.fullCopy());
+		choice = new ASTNodeArtifact(artifact.astnode.fullCopy());
 		choice.setRevision(new Revision("choice"));
 		choice.setNumber(virtualcount++);
 		choice.setChoice(condition, artifact);

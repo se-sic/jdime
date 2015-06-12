@@ -123,7 +123,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 									+ "has changes in subtree.");
 						}
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target, l.getName(), r.getName());
+								leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -172,7 +172,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						}
 						// insertion-deletion-conflict
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target, l.getName(), r.getName());
+								null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -231,7 +231,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? leftChild.createEmptyDummy()
+					T baseChild = mBase == null ? leftChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(leftChild);
 					T targetChild = target == null ? null : target
 							.addChild(leftChild);
@@ -262,7 +262,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? rightChild.createEmptyDummy()
+					T baseChild = mBase == null ? rightChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(rightChild);
 					T targetChild = target == null ? null : target
 							.addChild(rightChild);

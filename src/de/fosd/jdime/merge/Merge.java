@@ -165,7 +165,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					for (T rightChild : right.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target, l.getName(), r.getName());
+								null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;
@@ -188,7 +188,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					}
 					for (T leftChild : left.getChildren()) {
 						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target, l.getName(), r.getName());
+								leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;

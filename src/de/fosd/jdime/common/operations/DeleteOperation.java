@@ -94,7 +94,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
 		if (context.isConditionalMerge() && condition != null) {
 			// we need to insert a choice node
-			T choice = target.createChoiceDummy(artifact, condition, artifact);
+			T choice = target.createChoiceDummy(condition, artifact);
 			assert (choice.isChoice());
 			choice.copyArtifact(target);
 		} else {

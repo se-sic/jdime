@@ -251,7 +251,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
+	public final FileArtifact createEmptyArtifact() throws FileNotFoundException {
 		File dummyFile;
 
 		try {
@@ -262,7 +262,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 
 		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
-		dummyArtifact.setEmptyDummy(true);
+		dummyArtifact.setEmpty(true);
 
 		LOG.trace("Artifact is a dummy artifact. Using temporary file " + dummyFile.getAbsolutePath());
 
@@ -641,7 +641,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * @throws IOException
 	 *             If an input output exception occurs.
 	 */
-	@Override
 	public final void write(final String str) throws IOException {
 		assert (file != null);
 		assert (str != null);
@@ -651,15 +650,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createConflictDummy(final FileArtifact type,
-			final FileArtifact left, final FileArtifact right)
+	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
 	}
 
 	@Override
-	public final FileArtifact createChoiceDummy(final FileArtifact type, final String condition,
-												final FileArtifact artifact)
+	public final FileArtifact createChoiceDummy(final String condition, final FileArtifact artifact)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
 	}
