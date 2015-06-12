@@ -443,12 +443,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		ASTNodeArtifact that = (ASTNodeArtifact) o;
 
-		return astnode.dumpString().equals(that.astnode.dumpString());
+		return getId().equals(that.getId());
 	}
 
 	@Override
 	public final int hashCode() {
-		return astnode.dumpString().hashCode();
+		return getId().hashCode();
 	}
 
 	@Override
