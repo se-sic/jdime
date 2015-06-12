@@ -86,7 +86,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 			}
 
 			assert (target.exists());
-			T conflict = target.createConflictDummy(left, right);
+			T conflict = target.createConflictArtifact(left, right);
 			assert (conflict.isConflict());
 			conflict.copyArtifact(target);
 		}
