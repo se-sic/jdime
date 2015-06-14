@@ -25,7 +25,7 @@ package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
@@ -229,7 +229,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createEmptyDummy() throws FileNotFoundException {
+	public final FileArtifact createEmptyArtifact() throws FileNotFoundException {
 		File dummyFile;
 
 		try {
@@ -240,7 +240,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		}
 
 		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
-		dummyArtifact.setEmptyDummy(true);
+		dummyArtifact.setEmpty(true);
 
 		LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + dummyFile.getAbsolutePath());
 
@@ -251,7 +251,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	protected final String dumpTree(final String indent) {
 		StringBuilder sb = new StringBuilder();
 
-		NewMatching<FileArtifact> m = null;
+		Matching<FileArtifact> m = null;
 		if (hasMatches()) {
 			Set<Revision> matchingRevisions = matches.keySet();
 
@@ -287,13 +287,21 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final boolean equals(final Object obj) {
-		assert (obj != null);
-		assert (obj instanceof FileArtifact);
-		if (this == obj) {
+	public boolean equals(Object o) {
+		if (this == o) {
 			return true;
 		}
-		return this.toString().equals(((FileArtifact) obj).toString());
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		return toString().equals(o.toString());
+	}
+
+	@Override
+	public final int hashCode() {
+		return toString().hashCode();
 	}
 
 	@Override
@@ -449,16 +457,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return isDirectory() ? "directories" : "files";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
-	@Override
-	public final int hashCode() {
-		return toString().hashCode();
-	}
-
 	@Override
 	public final boolean hasUniqueLabels() {
 		return true;
@@ -611,7 +609,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * @throws IOException
 	 *             If an input output exception occurs.
 	 */
-	@Override
 	public final void write(final String str) throws IOException {
 		assert (file != null);
 		assert (str != null);
@@ -621,8 +618,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createConflictDummy(final FileArtifact type,
-			final FileArtifact left, final FileArtifact right)
+	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right)
 			throws FileNotFoundException {
 		throw new NotYetImplementedException();
 	}

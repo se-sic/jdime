@@ -15,7 +15,9 @@ import java.util.Set;
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
  * {0, 1}. The balanced sequence of a leaf node is the empty sequence. The balanced sequence of a non leaf node is the
  * concatenation of the balanced sequences of its children, every one preceded by a 0 and followed by a 1. The balanced
- * sequence of a tree is the balanced sequence of its root node.
+ * sequence of a tree is the balanced sequence of its root node. This implementation adds the root node to the
+ * balanced sequence (as if by adding a virtual root node with a single child (the root node) and constructing the
+ * normal balanced sequence of the tree).
  *
  * @param <T>
  *         the type of the <code>Artifact</code> whose balanced sequence is to be constructed
@@ -25,7 +27,9 @@ import java.util.Set;
  */
 public class BalancedSequence<T extends Artifact<T>> {
 
-    private T root;
+	@SuppressWarnings("unchecked")
+    private static final BalancedSequence EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
+
 	private List<T> seq;
 
     /**
@@ -35,9 +39,8 @@ public class BalancedSequence<T extends Artifact<T>> {
      * 		the tree of <code>Artifact</code>s
      */
     public BalancedSequence(T tree) {
-        this.root = tree;
-        this.seq = new ArrayList<>(Collections.nCopies(tree.getSubtreeSize() * 2, null));
-        initSeq(tree, 0, 0, Integer.MAX_VALUE);
+        this.seq = new ArrayList<>(Collections.nCopies(tree.getTreeSize() * 2, null));
+        initSeq(tree, Integer.MAX_VALUE);
     }
 
     /**
@@ -50,13 +53,12 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(T tree, int maxDepth) {
-        this.root = tree;
 		this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
-		initSeq(tree, 0, 0, maxDepth);
+		initSeq(tree, maxDepth);
 	}
 
 	/**
-	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>boolean[]</code>.
+	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>seq</code>.
 	 *
 	 * @param seq
 	 * 		the sequence to wrap
@@ -66,8 +68,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	}
 
     /**
-     * Returns one less (the root node) than the number of nodes in the tree that have at most the given
-     * <code>depth</code>.
+     * Returns the number of nodes in the tree that have at most the given <code>depth</code>.
      *
      * @param tree
      *         the tree whose nodes are to be counted
@@ -79,17 +80,29 @@ public class BalancedSequence<T extends Artifact<T>> {
     private int getSize(T tree, int depth) {
 
         if (depth == 0) {
-            return 0;
+            return 1;
         }
 
-        int num = tree.getNumChildren();
-
+        int num = 0;
         for (T t : tree.getChildren()) {
             num += getSize(t, depth - 1);
         }
 
-        return num;
+        return num + 1;
     }
+
+    /**
+     * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
+     *
+     * @param tree
+     *         the tree whose balanced sequence is to be inserted in the <code>seq</code> array
+     * @param maxDepth
+     *         the maximum depth of nodes to add
+     */
+    private void initSeq(T tree, int maxDepth) {
+		seq.set(0, tree);
+		initSeqRec(tree, 1, 0, maxDepth);
+	}
 
     /**
      * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
@@ -101,17 +114,16 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @param currentDepth
      *         the current depth in the tree
      * @param maxDepth
-     *         the maximum Depth of nodes to add
+     *         the maximum depth of nodes to add
      *
-     * @return the index after the last index written to; this return value is only relevant for the recursive calls
-     * of this method as the following 1 will be placed there
+     * @return the index after the last index written to;
      */
-    private int initSeq(T tree, int index, int currentDepth, int maxDepth) {
+    private int initSeqRec(T tree, int index, int currentDepth, int maxDepth) {
 
         if (currentDepth < maxDepth) {
             for (T t : tree.getChildren()) {
                 seq.set(index++, t);
-                index = initSeq(t, index, currentDepth + 1, maxDepth);
+                index = initSeqRec(t, index, currentDepth + 1, maxDepth);
                 index++;
             }
         }
@@ -163,13 +175,16 @@ public class BalancedSequence<T extends Artifact<T>> {
 		return Pair.of(head, tail);
 	}
 
-    /**
-     * Returns a new empty sequence.
-     *
-     * @return an empty sequence
-     */
-    private BalancedSequence<T> emptySeq() {
-        return new BalancedSequence<T>(new ArrayList<>());
+	/**
+	 * Returns an empty sequence.
+	 *
+	 * @param <T>
+	 * 		the type of the <code>Artifact</code>
+	 * @return an empty <code>BalancedSequence</code>
+	 */
+	@SuppressWarnings("unchecked")
+	private static <T extends Artifact<T>> BalancedSequence<T> emptySeq() {
+        return (BalancedSequence<T>) EMPTY_SEQ;
     }
 
     /**
@@ -213,6 +228,10 @@ public class BalancedSequence<T extends Artifact<T>> {
     private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
 		int length = left.seq.size() + right.seq.size();
 
+		if (length == 0) {
+			return emptySeq();
+		}
+
         List<T> result = new ArrayList<>(length);
         result.addAll(left.seq);
         result.addAll(right.seq);
@@ -221,7 +240,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 	}
 
     /**
-     * Returns the length (being the number of edges of the tree it represents) of the longest common balanced sequence
+     * Returns the length (being the number of nodes of the tree it represents) of the longest common balanced sequence
      * between the balanced sequences <code>s</code> and <code>t</code>.
      *
      * @param s
@@ -388,7 +407,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @return the root of the tree
      */
     public T getRoot() {
-        return root;
+        return seq.get(0);
     }
 
     @Override

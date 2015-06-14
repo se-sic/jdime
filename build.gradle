@@ -50,6 +50,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile files('lib/JJ7.jar')
+    compile project(':KVConfig')
 }
 
 task natives {

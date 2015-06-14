@@ -17,7 +17,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -46,6 +50,7 @@ import org.apache.commons.lang3.ClassUtils;
 /**
  * A simple JavaFX GUI for JDime.
  */
+@SuppressWarnings("unused")
 public final class GUI extends Application {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(GUI.class));
@@ -58,14 +63,15 @@ public final class GUI extends Application {
 	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 	private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
+	private static final String JDIME_UPDATE_DELAY = "UPDATE_DELAY";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
 
-	public static final Pattern DUMP_GRAPH = Pattern.compile(".*-mode\\s+dumpgraph.*");
+	private static final Pattern DUMP_GRAPH = Pattern.compile(".*-mode\\s+dumpgraph.*");
 
 	@FXML
-	TextArea output;
+	ListView<String> output;
 	@FXML
 	TextField left;
 	@FXML
@@ -89,14 +95,15 @@ public final class GUI extends Application {
 	@FXML
 	private Button historyNext;
 
-	private Properties config;
+	private Config config;
+	private int updateDelay;
+	private boolean allowInvalid;
 
 	private File lastChooseDir;
 	private List<TextField> textFields;
 
 	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
-	private SimpleListProperty<State> historyListProp;
 	private State inProgress;
 
 	/**
@@ -120,16 +127,17 @@ public final class GUI extends Application {
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 		historyIndex = new SimpleIntegerProperty(0);
 		history = FXCollections.observableArrayList();
-		historyListProp = new SimpleListProperty<>(history);
-		config = new Properties();
 
+		config = new Config();
+		config.addSource(new SysEnvConfigSource());
+		loadConfigFile();
+		loadDefaults();
+
+		SimpleListProperty<State> historyListProp = new SimpleListProperty<>(history);
 		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
 		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
 		historyNext.disableProperty().bind(noNext);
 		historyPrevious.disableProperty().bind(noPrev);
-
-		loadConfigFile();
-		loadDefaults();
 
 		primaryStage.setTitle(TITLE);
 		primaryStage.setScene(scene);
@@ -140,59 +148,30 @@ public final class GUI extends Application {
 	 * Loads default values for the <code>TextField</code>s from the config file.
 	 */
 	private void loadDefaults() {
-		getConfig(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
-		getConfig(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
-		getConfig(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
-		getConfig(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
-		getConfig(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
+		config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
+		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
+		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
+		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		updateDelay = config.getInteger(JDIME_UPDATE_DELAY).orElse(1000);
+		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}
 
 	/**
-	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so loads
-	 * the mappings contained in it into the <code>Properties</code> instance <code>config</code> which is used
-	 * by {@link #getConfig(String)}.
+	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so adds
+	 * a <code>PropFileConfigSource</code> to <code>config</code>.
 	 */
 	private void loadConfigFile() {
 		File configFile = new File(JDIME_CONF_FILE);
+
 		if (configFile.exists()) {
-			Charset cs = StandardCharsets.UTF_8;
 
 			try {
-				config.load(new InputStreamReader(new BufferedInputStream(new FileInputStream(configFile)), cs));
+				config.addSource(new PropFileConfigSource(configFile));
 			} catch (IOException e) {
 				LOG.log(Level.WARNING, e, () -> "Could not load " + configFile);
 			}
 		}
-	}
-
-	/**
-	 * Checks whether the file {@value #JDIME_CONF_FILE} in the current directory contains a mapping for the given key
-	 * and if so returns the mapped value. If the file contains no mapping the system environment variables are checked.
-	 * If no environment variable named <code>key</code> exists an empty <code>Optional</code> will be returned.
-	 *
-	 * @param key the configuration key
-	 * @return optionally the mapped value
-	 */
-	private Optional<String> getConfig(String key) {
-		String value = config.getProperty(key, System.getProperty(key));
-
-		if (value != null) {
-			return Optional.of(value);
-		} else {
-			return Optional.empty();
-		}
-	}
-
-	/**
-	 * Returns the result of {@link Boolean#parseBoolean(String)} for the value the given <code>key</code> is mapped to
-	 * according to {@link #getConfig(String)} or <code>false</code> if it is not mapped to a value.
-	 *
-	 * @param key the configuration key
-	 * @return the value parsed as a boolean or <code>false</code>
-	 */
-	private boolean getConfigBoolean(String key) {
-		Optional<String> value = getConfig(key);
-		return value.isPresent() && Boolean.parseBoolean(value.get());
 	}
 
 	/**
@@ -276,7 +255,7 @@ public final class GUI extends Application {
 	}
 
 	/**
-	 * Called when the '>' button for the history is clicked.
+	 * Called when the '{@literal >}' button for the history is clicked.
 	 */
 	public void historyNext() {
 		historyIndex.setValue(historyIndex.get() + 1);
@@ -289,7 +268,7 @@ public final class GUI extends Application {
 	}
 
 	/**
-	 * Called when the '<' button for the history is clicked.
+	 * Called when the '{@literal <}' button for the history is clicked.
 	 */
 	public void historyPrevious() {
 
@@ -318,16 +297,16 @@ public final class GUI extends Application {
 			return new File(tf.getText()).exists();
 		});
 
-		if (!valid && !getConfigBoolean(JDIME_ALLOW_INVALID_KEY)) {
+		if (!valid && !config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false)) {
 			return;
 		}
 
 		controlsPane.setDisable(true);
 
-		Task<String> jDimeExec = new Task<String>() {
+		Task<Void> jDimeExec = new Task<Void>() {
 
 			@Override
-			protected String call() throws Exception {
+			protected Void call() throws Exception {
 				ProcessBuilder builder = new ProcessBuilder();
 				List<String> command = new ArrayList<>();
 				String input;
@@ -369,37 +348,29 @@ public final class GUI extends Application {
 				}
 
 				Process process = builder.start();
-				StringBuilder text = new StringBuilder();
 
 				Charset cs = StandardCharsets.UTF_8;
 				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
-					r.lines().forEach(line -> {
-						text.append(line).append(System.lineSeparator());
-						updateMessage(text.toString());
-					});
+					r.lines().forEach(s -> Platform.runLater(() -> {
+						output.getItems().add(s);
+					}));
 				}
 
 				process.waitFor();
-				return text.toString();
+				return null;
 			}
 		};
-
-		jDimeExec.messageProperty().addListener((observable, oldValue, newValue) -> {
-			output.setText(newValue);
-		});
 
 		jDimeExec.setOnSucceeded(event -> {
 			boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
 			tabPane.getTabs().retainAll(outputTab);
 
 			if (dumpGraph) {
-				GraphvizParser parser = new GraphvizParser(jDimeExec.getValue());
-
+				GraphvizParser parser = new GraphvizParser(output.getItems());
 				parser.setOnSucceeded(roots -> {
 					addTabs(parser.getValue());
 					reactivate();
 				});
-
 				parser.setOnFailed(event1 -> {
 					LOG.log(Level.WARNING, event1.getSource().getException(), () -> "Graphviz parsing failed.");
 					reactivate();
@@ -415,7 +386,11 @@ public final class GUI extends Application {
 			reactivate();
 		});
 
-		new Thread(jDimeExec).start();
+		output.setItems(FXCollections.observableArrayList());
+
+		Thread jDimeT = new Thread(jDimeExec);
+		jDimeT.setName("JDime Task Thread");
+		jDimeT.start();
 	}
 
 	/**

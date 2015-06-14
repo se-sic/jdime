@@ -1,0 +1,3 @@
+[submodule "KVConfig"]
+	path = KVConfig
+	url = https://GSeibt@bitbucket.org/GSeibt/kvconfig.git

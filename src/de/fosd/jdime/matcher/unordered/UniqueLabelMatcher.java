@@ -26,8 +26,8 @@ package de.fosd.jdime.matcher.unordered;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.NewMatching;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.ArrayList;
@@ -36,40 +36,51 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * @author Olaf Lessenich
+ * TODO: This needs more explanation.
  *
  * @param <T>
- *            type of artifact
+ * 		type of artifact
+ * @author Olaf Lessenich
  */
-public class UniqueLabelMatcher<T extends Artifact<T>> extends
-		UnorderedMatcher<T> {
+public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 	/**
+	 * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>Matcher</code> for recursive calls.
+	 *
 	 * @param matcher
-	 *            matcher
+	 * 		the parent <code>Matcher</code>
 	 */
-	public UniqueLabelMatcher(final Matcher<T> matcher) {
+	public UniqueLabelMatcher(Matcher<T> matcher) {
 		super(matcher);
 	}
 
 	/**
+	 * {@inheritDoc}
+	 * <p>
 	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-		int rootMatching = left.matches(right) ? 1 : 0;
 		String id = ClassUtils.getSimpleName(getClass());
+		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
 			if (lookAhead == 0) {
-				// roots contain distinct symbols and we cannot use the look-ahead feature
-				// therefore, we ignore the rest of the subtrees and return early to save time
+				/*
+				 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+				 * subtrees and return early to save time.
+				 */
+
 				LOG.finest(() -> {
 					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
 					return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
 				});
-				return Matchings.of(left, right, rootMatching);
-			} else {
+
+				Matchings<T> m = Matchings.of(left, right, rootMatching);
+				m.get(left, right).get().setAlgorithm(id);
+
+				return m;
+			} else if (lookAhead > 0) {
 				lookAhead = lookAhead - 1;
 			}
 		} else if (context.isLookAhead()) {
@@ -77,7 +88,10 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 		}
 
 		if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
-			return Matchings.of(left, right, rootMatching);
+			Matchings<T> m = Matchings.of(left, right, rootMatching);
+			m.get(left, right).get().setAlgorithm(id);
+
+			return m;
 		}
 
         List<Matchings<T>> childrenMatchings = new ArrayList<>();
@@ -110,7 +124,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends
 				}
 			} else if (c == 0) {
 				Matchings<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
-				NewMatching<T> matching = childMatching.get(leftChild, rightChild).get();
+				Matching<T> matching = childMatching.get(leftChild, rightChild).get();
 
 				childrenMatchings.add(childMatching);
 				sum += matching.getScore();

@@ -93,7 +93,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		if (numArtifacts == MergeType.TWOWAY.getNumFiles()) {
 			left = inputArtifacts.get(0);
-			base = left.createEmptyDummy();
+			base = left.createEmptyArtifact();
 			right = inputArtifacts.get(1);
 			mergeType = MergeType.TWOWAY;
 		} else if (numArtifacts == MergeType.THREEWAY.getNumFiles()) {

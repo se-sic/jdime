@@ -1,5 +1,6 @@
 package de.fosd.jdime.gui;
 
+import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 final class State {
 
 	private List<Tab> treeViewTabs;
-	private String output;
+	private ObservableList<String> output;
 	private String left;
 	private String base;
 	private String right;
@@ -36,7 +37,7 @@ final class State {
 		State state = new State();
 
 		state.treeViewTabs = gui.tabPane.getTabs().stream().filter(tab -> tab != gui.outputTab).collect(Collectors.toList());
-		state.output = gui.output.getText();
+		state.output = gui.output.getItems();
 		state.left = gui.left.getText();
 		state.base = gui.base.getText();
 		state.right = gui.right.getText();
@@ -57,7 +58,7 @@ final class State {
 	public void applyTo(GUI gui) {
 		gui.tabPane.getTabs().retainAll(gui.outputTab);
 		gui.tabPane.getTabs().addAll(treeViewTabs);
-		gui.output.setText(output);
+		gui.output.setItems(output);
 		gui.left.setText(left);
 		gui.base.setText(base);
 		gui.right.setText(right);
@@ -79,6 +80,7 @@ final class State {
 		State state = (State) o;
 
 		return Objects.equals(debugMode, state.debugMode) &&
+				Objects.equals(treeViewTabs, state.treeViewTabs) &&
 				Objects.equals(output, state.output) &&
 				Objects.equals(left, state.left) &&
 				Objects.equals(base, state.base) &&
@@ -89,6 +91,6 @@ final class State {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
+		return Objects.hash(treeViewTabs, output, left, base, right, jDime, cmdArgs, debugMode);
 	}
 }

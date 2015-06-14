@@ -29,7 +29,7 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
@@ -141,7 +141,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		ASTNode<?> astnode;
 		if (artifact.isEmptyDummy()) {
 			astnode = new ASTNode<>();
-			setEmptyDummy(true);
+			setEmpty(true);
 		} else {
 			Program p = initProgram();
 			p.addSourceFile(artifact.getPath());
@@ -240,14 +240,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.common.Artifact#createEmptyDummy()
+	 * @see de.fosd.jdime.common.Artifact#createEmptyArtifact()
 	 */
 	@Override
-	public final ASTNodeArtifact createEmptyDummy()
+	public final ASTNodeArtifact createEmptyArtifact()
 			throws FileNotFoundException {
 		ASTNodeArtifact dummy = new ASTNodeArtifact();
 		dummy.astnode = new ASTNode<>();
-		dummy.setEmptyDummy(true);
+		dummy.setEmpty(true);
 		dummy.setRevision(getRevision());
 		return dummy;
 	}
@@ -341,7 +341,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		StringBuilder sb = new StringBuilder();
 
 		// node itself
-		NewMatching<ASTNodeArtifact> m = null;
+		Matching<ASTNodeArtifact> m = null;
 
 		// color
 		if (!isConflict() && hasMatches()) {
@@ -429,14 +429,24 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return "nodes";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#hashCode()
-	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		ASTNodeArtifact that = (ASTNodeArtifact) o;
+
+		return getId().equals(that.getId());
+	}
+
 	@Override
 	public final int hashCode() {
-		return astnode.dumpString().hashCode();
+		return getId().hashCode();
 	}
 
 	@Override
@@ -577,7 +587,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
 				
-				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, left, right, targetParent);
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent);
 				conflictOp.apply(context);
 			}
 		}
@@ -681,23 +691,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode.dumpString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#write(java.lang.String)
-	 */
 	@Override
-	public final void write(final String str) throws IOException {
-		// TODO Auto-generated method stub
-	}
+	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right)
+			throws FileNotFoundException {
+		ASTNodeArtifact conflict = left != null
+				? new ASTNodeArtifact(left.astnode.fullCopy())
+				: new ASTNodeArtifact(right.astnode.fullCopy());
 
-	@Override
-	public final ASTNodeArtifact createConflictDummy(
-			final ASTNodeArtifact type, final ASTNodeArtifact left,
-			final ASTNodeArtifact right) throws FileNotFoundException {
-		ASTNodeArtifact conflict;
-
-		conflict = new ASTNodeArtifact(type.astnode.fullCopy());
 		conflict.setConflict(left, right);
 
 		return conflict;

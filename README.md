@@ -32,7 +32,7 @@ and patches/LICENSE for the license text.
 * glpk-java (http://glpk-java.sourceforge.net/) __=4.55__
 
 __Debian/Ubuntu:__  
-`apt-get install git glpk libglpk-java`
+`apt-get install git libglpk-dev libglpk-java`
 
 __Redhat/Fedora:__  
 `yum install git glpk`  

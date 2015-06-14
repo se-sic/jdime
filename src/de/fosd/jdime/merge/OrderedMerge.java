@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.logging.Level;
@@ -117,9 +117,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					if (leftChild.hasChanges()) {
 						// insertion-deletion-conflict
 						LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
-
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
+						
 						conflictOp.apply(context);
 						if (rightIt.hasNext()) {
 							rightChild = rightIt.next();
@@ -153,8 +152,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
 								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										rightChild, leftChild, rightChild, target);
+								ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 								conflictOp.apply(context);
 								if (rightIt.hasNext()) {
 									rightChild = rightIt.next();
@@ -177,8 +175,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
 
 							// rightChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, leftChild, rightChild, target);
+							ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 							conflictOp.apply(context);
 
 							if (rightIt.hasNext()) {
@@ -220,8 +217,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
 						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, leftChild, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 						conflictOp.apply(context);
 						if (rightIt.hasNext()) {
 							rightChild = rightIt.next();
@@ -254,8 +250,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
 
 								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										leftChild, leftChild, rightChild, target);
+								ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 								conflictOp.apply(context);
 								if (rightIt.hasNext()) {
 									rightChild = rightIt.next();
@@ -280,8 +275,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 							LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
 
 							// leftChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, leftChild, rightChild, target);
+							ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
 							conflictOp.apply(context);
 
 							if (leftIt.hasNext()) {
@@ -321,11 +315,11 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
 				if (!leftChild.isMerged() && !rightChild.isMerged()) {
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = leftChild.getMatching(b);
+					Matching<T> mBase = leftChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? leftChild.createEmptyDummy()
+					T baseChild = mBase == null ? leftChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(leftChild);
 					T targetChild = target == null ? null : target
 							.addChild(leftChild);

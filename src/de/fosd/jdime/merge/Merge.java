@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.util.logging.Level;
@@ -81,7 +81,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 		Diff<T> diff = new Diff<>();
 
-		NewMatching<T> m;
+		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
 			if (!base.isEmptyDummy()) {
 				// 3-way merge
@@ -150,8 +150,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
 					for (T rightChild : right.getChildren()) {
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
 						conflictOp.apply(context);
 					}
 					return;
@@ -173,8 +172,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
 					for (T leftChild : left.getChildren()) {
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
 						conflictOp.apply(context);
 					}
 					return;

@@ -47,6 +47,9 @@ import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strategy.StructuredStrategy;
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -67,9 +70,25 @@ import java.util.logging.Logger;
 public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
-	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.9";
 	private static final String DEFAULT_LEVEL = "WARNING";
+	
+	private static final String TOOLNAME = "jdime";
+	private static final String VERSION = "0.3.10";
+
+	private static final String PROP_FILE_NAME = "JDime.properties";
+	private static final File PROP_FILE = new File(PROP_FILE_NAME);
+	public static final Config config;
+
+	static {
+		config = new Config();
+		config.addSource(new SysEnvConfigSource(1));
+
+		try {
+			config.addSource(new PropFileConfigSource(2, PROP_FILE));
+		} catch (IOException e) {
+			System.err.println("Could not load " + PROP_FILE_NAME);
+		}
+	}
 
 	/**
 	 * Perform a merge operation on the input files or directories.
