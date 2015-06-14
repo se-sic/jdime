@@ -53,6 +53,15 @@ dependencies {
     compile project(':KVConfig')
 }
 
+task property {
+    def file = file('JDime.properties')
+
+    if (file.exists()) {
+        inputs.files(file)
+        outputs.files(file)
+    }
+}
+
 task natives {
     def fail = false;
     def glpk_version = "4_55"
@@ -134,12 +143,15 @@ task guiScripts(type: CreateStartScripts) {
 distributions {
     main {
         contents.with {
-            into('bin') {
+            def binDir = 'bin'
+
+            into(binDir) {
                 from(guiScripts)
                 fileMode = 0755
             }
-            into('bin') {
+            into(binDir) {
                 from(natives)
+                from(property)
             }
         }
     }
