@@ -68,10 +68,12 @@ import org.apache.log4j.Logger;
 public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
-	private static final String PROP_FILE_NAME = "JDime.properties";
+
 	private static final String TOOLNAME = "jdime";
 	private static final String VERSION = "0.3.10";
 
+	private static final String PROP_FILE_NAME = "JDime.properties";
+	private static final File PROP_FILE = new File(PROP_FILE_NAME);
 	public static final Config config;
 
 	static {
@@ -79,7 +81,7 @@ public final class Main {
 		config.addSource(new SysEnvConfigSource(1));
 
 		try {
-			config.addSource(new PropFileConfigSource(2, new File(PROP_FILE_NAME)));
+			config.addSource(new PropFileConfigSource(2, PROP_FILE));
 		} catch (IOException e) {
 			System.err.println("Could not load " + PROP_FILE_NAME);
 		}
