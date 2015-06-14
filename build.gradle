@@ -53,12 +53,18 @@ dependencies {
     compile project(':KVConfig')
 }
 
-task property {
-    def file = file('JDime.properties')
+task config {
+    def config = file('JDime.properties')
+    def logging = file('JDimeLogging.properties')
 
-    if (file.exists()) {
-        inputs.files(file)
-        outputs.files(file)
+    if (config.exists()) {
+        inputs.files(config)
+        outputs.files(config)
+    }
+
+    if (logging.exists()) {
+        inputs.files(logging)
+        outputs.files(logging)
     }
 }
 
@@ -151,7 +157,7 @@ distributions {
             }
             into(binDir) {
                 from(natives)
-                from(property)
+                from(config)
             }
         }
     }

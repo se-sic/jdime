@@ -25,8 +25,10 @@ package de.fosd.jdime;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,23 +72,37 @@ import java.util.logging.Logger;
 public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
-	private static final String DEFAULT_LEVEL = "WARNING";
-	
+
 	private static final String TOOLNAME = "jdime";
 	private static final String VERSION = "0.3.10";
 
-	private static final String PROP_FILE_NAME = "JDime.properties";
-	private static final File PROP_FILE = new File(PROP_FILE_NAME);
+	private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
+	private static final String CONFIG_FILE_NAME = "JDime.properties";
+	private static final File LOGGING_CONFIG_FILE = new File(LOGGING_CONFIG_FILE_NAME);
+	private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
 	public static final Config config;
 
 	static {
+		if (LOGGING_CONFIG_FILE.exists()) {
+
+			try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
+				LogManager.getLogManager().readConfiguration(is);
+			} catch (IOException e) {
+				System.err.println("Could not read logging configuration.");
+				System.err.println(e);
+			}
+		}
+
 		config = new Config();
 		config.addSource(new SysEnvConfigSource(1));
 
-		try {
-			config.addSource(new PropFileConfigSource(2, PROP_FILE));
-		} catch (IOException e) {
-			System.err.println("Could not load " + PROP_FILE_NAME);
+		if (CONFIG_FILE.exists()) {
+
+			try {
+				config.addSource(new PropFileConfigSource(2, CONFIG_FILE));
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + CONFIG_FILE.getAbsolutePath());
+			}
 		}
 	}
 
@@ -97,7 +113,6 @@ public final class Main {
 	 */
 	public static void main(final String[] args) {
 		MergeContext context = new MergeContext();
-		setLogLevel(DEFAULT_LEVEL);
 
 		try {
 			if (!parseCommandLineArgs(context, args)) {
