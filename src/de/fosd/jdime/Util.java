@@ -8,7 +8,9 @@ import java.util.List;
 /**
  * Contains static utility methods.
  */
-public class Util {
+public final class Util {
+
+	private Util() {}
 
 	/**
 	 * Joins the results of the {@link Object#toString()} method of all <code>objects</code> into one
