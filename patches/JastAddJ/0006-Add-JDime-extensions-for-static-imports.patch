@@ -1,0 +1,54 @@
+From 85fe2f94b2f6dfb14c7262171ca4e178216c783e Mon Sep 17 00:00:00 2001
+From: Olaf Lessenich <lessenic@fim.uni-passau.de>
+Date: Mon, 15 Jun 2015 14:30:39 +0200
+Subject: [PATCH 06/12] Add JDime extensions for static imports.
+
+Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
+---
+ java5/frontend/StaticImportsJDime.jadd | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 java5/frontend/StaticImportsJDime.jadd
+
+diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
+new file mode 100644
+index 0000000..99ad42b
+--- /dev/null
++++ b/java5/frontend/StaticImportsJDime.jadd
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect StaticImportsJDime {
++	refine StaticImports public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
++		if (printConflict(sb)) { return; }
++		refined(sb);
++	}
++
++	refine StaticImports public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++		if (printConflict(sb)) { return; }
++		refined(sb);
++	}
++}
+-- 
+2.1.4
+
