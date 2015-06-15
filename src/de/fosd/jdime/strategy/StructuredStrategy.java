@@ -29,12 +29,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.*;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeTripleStats;
@@ -116,7 +111,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 		}
-		
+
+		SecurityManager systemSecurityManager = System.getSecurityManager();
+		NoExitSecurityManager securityManager = new NoExitSecurityManager();
+		System.setSecurityManager(securityManager);
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
@@ -371,6 +369,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						new MergeTripleStats(triple, conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
 				stats.addScenarioStats(scenariostats);
 			}
+		} catch (SecurityException e) {
+			LOG.fatal("Caught SecurityException: " + e);
+			e.printStackTrace();
 		} catch (Throwable t) {
 			LOG.fatal(String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath), t);
 			
@@ -383,6 +384,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 			}
 		}
+
+		System.setSecurityManager(systemSecurityManager);
 	}
 
 	private static void printConflict(MergeContext mergeContext, String lPath, String rPath, StringBuffer leftlines,
