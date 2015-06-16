@@ -192,10 +192,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param right
 	 *            right alternative <code>Artifact</code>
 	 * @return conflict <code>Artifact</code>
-	 * @throws FileNotFoundException
-	 *             If a file is not found
 	 */
-	public abstract T createConflictArtifact(final T left, final T right) throws FileNotFoundException;
+	public abstract T createConflictArtifact(final T left, final T right);
 
 	/**
 	 * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the

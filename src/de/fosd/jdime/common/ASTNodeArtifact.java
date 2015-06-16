@@ -703,8 +703,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right)
-			throws FileNotFoundException {
+	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
 		ASTNodeArtifact conflict = left != null
 				? new ASTNodeArtifact(left.astnode.fullCopy())
 				: new ASTNodeArtifact(right.astnode.fullCopy());

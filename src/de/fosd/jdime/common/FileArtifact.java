@@ -644,8 +644,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right)
-			throws FileNotFoundException {
+	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right) {
 		throw new NotYetImplementedException();
 	}
 
