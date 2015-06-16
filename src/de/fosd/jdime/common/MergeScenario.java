@@ -25,6 +25,7 @@ package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 
@@ -74,8 +75,21 @@ public class MergeScenario<T extends Artifact<T>> {
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
-			getArtifacts().put(artifact.getRevision(), artifact);
+			artifacts.put(artifact.getRevision(), artifact);
 		}
+	}
+
+	private final T get(int position) {
+		int i = 0;
+
+		for (Revision rev : artifacts.keySet()) {
+			i++;
+			if (i == position) {
+				return artifacts.get(rev);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -84,7 +98,12 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the baseRev
 	 */
 	public final T getBase() {
-		return getArtifacts().get(baseRev);
+		try {
+			return artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -92,7 +111,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 *
 	 * @return the leftRev
 	 */
-	public final T getLeft() { return getArtifacts().get(leftRev); }
+	public final T getLeft() {
+		return get(1);
+	}
 
 	/**
 	 * Returns the type of merge.
@@ -109,7 +130,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the rightRev
 	 */
 	public final T getRight() {
-		return getArtifacts().get(rightRev);
+		return artifacts.size() == 3 ? get(3) : get(2);
 	}
 
 	/**
@@ -133,7 +154,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
 		// FIXME: I think this could be done easier. It's just too fucking ugly.
 		//        We need the first element that was inserted and run the merge on it.
-		getArtifacts().get(getArtifacts().keySet().iterator().next()).merge(mergeOperation, context);
+		artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
 	}
 
 	/**
@@ -142,7 +163,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param base the baseRev to set
 	 */
 	public final void setBase(final T base) {
-		getArtifacts().put(baseRev, base);
+		artifacts.put(baseRev, base);
 	}
 
 	/**
@@ -151,7 +172,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param left the leftRev to set
 	 */
 	public final void setLeft(final T left) {
-		getArtifacts().put(leftRev, left);
+		artifacts.put(leftRev, left);
 	}
 
 	/**
@@ -160,7 +181,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @param right the rightRev to set
 	 */
 	public final void setRight(final T right) {
-		getArtifacts().put(rightRev, right);
+		artifacts.put(rightRev, right);
 	}
 
 	/**
@@ -211,9 +232,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final ArtifactList<T> getList() {
 		ArtifactList<T> list = new ArtifactList<>();
-		list.add(getArtifacts().get(leftRev));
-		list.add(getArtifacts().get(baseRev));
-		list.add(getArtifacts().get(rightRev));
+		list.add(getLeft());
+		list.add(getBase());
+		list.add(getRight());
 		return list;
 	}
 
