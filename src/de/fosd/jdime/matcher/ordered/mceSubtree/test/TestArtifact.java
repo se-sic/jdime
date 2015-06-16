@@ -24,10 +24,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	public TestArtifact(int id) {
-		if (!(id >= 0 && id < nextID)) {
-			throw new AssertionError("Invalid ID");
-		}
-
 		this.id = id;
 		this.children = new ArtifactList<>();
 	}
@@ -49,12 +45,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
-	public TestArtifact createConflictDummy(TestArtifact type, TestArtifact left, TestArtifact right) throws FileNotFoundException {
+	public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
 		return null;
 	}
 
 	@Override
-	public TestArtifact createEmptyDummy() throws FileNotFoundException {
+	public TestArtifact createEmptyArtifact() throws FileNotFoundException {
 		return null;
 	}
 
@@ -131,11 +127,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ": " + String.valueOf(id);
-	}
-
-	@Override
-	public void write(String str) throws IOException {
-
 	}
 
 	@Override

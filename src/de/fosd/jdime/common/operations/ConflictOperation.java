@@ -49,8 +49,6 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	/**
 	 * Class constructor.
 	 *
-	 * @param type
-	 *            type
 	 * @param left
 	 *            left alternatives
 	 * @param right
@@ -58,10 +56,9 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @param target
 	 *            target node
 	 */
-	public ConflictOperation(final T type, final T left, final T right,
+	public ConflictOperation(final T left, final T right,
 			final T target) {
 		super();
-		this.type = type;
 		this.left = left;
 		this.right = right;
 		this.target = target;
@@ -87,7 +84,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 			}
 
 			assert (target.exists());
-			T conflict = target.createConflictDummy(type, left, right);
+			T conflict = target.createConflictArtifact(left, right);
 			assert (conflict.isConflict());
 			conflict.copyArtifact(target);
 		}

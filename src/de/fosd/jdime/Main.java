@@ -36,6 +36,9 @@ import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strategy.StructuredStrategy;
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -64,8 +67,24 @@ import java.util.List;
 public final class Main {
 
 	private static final Logger LOG = Logger.getLogger(Main.class.getSimpleName());
+	
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.9";
+	private static final String VERSION = "0.3.11";
+
+	private static final String PROP_FILE_NAME = "JDime.properties";
+	private static final File PROP_FILE = new File(PROP_FILE_NAME);
+	public static final Config config;
+
+	static {
+		config = new Config();
+		config.addSource(new SysEnvConfigSource(1));
+
+		try {
+			config.addSource(new PropFileConfigSource(2, PROP_FILE));
+		} catch (IOException e) {
+			System.err.println("Could not load " + PROP_FILE_NAME);
+		}
+	}
 
 	/**
 	 * Perform a merge operation on the input files or directories.
@@ -190,17 +209,17 @@ public final class Main {
 			CommandLine cmd = parser.parse(options, args);
 
 			if (cmd.hasOption("help")) {
-				help(context, options);
+				help(options);
 				return false;
 			}
 
 			if (cmd.hasOption("info")) {
-				info(context, options);
+				info(context);
 				return false;
 			}
 
 			if (cmd.hasOption("version")) {
-				version(context);
+				version();
 				return false;
 			}
 
@@ -227,7 +246,7 @@ public final class Main {
 				try {
 					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
-						printStrategies(context);
+						printStrategies();
 						return false;
 					case "bugfixing":
 						context.setMergeStrategy(MergeStrategy
@@ -278,7 +297,7 @@ public final class Main {
 				}
 
 				if (context.getMergeStrategy() == null) {
-					help(context, options);
+					help(options);
 					return false;
 				}
 			}
@@ -346,7 +365,7 @@ public final class Main {
 			if (!((context.isDumpTree() || context.isDumpFile() || context
 					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
 					&& numInputFiles <= MergeType.MAXFILES)) {
-				help(context, options);
+				help(options);
 				return false;
 			}
 
@@ -374,14 +393,12 @@ public final class Main {
 
 	/**
 	 * Print short information.
-	 *
-	 * @param context
+	 *  @param context
 	 *            merge context
-	 * @param options
-	 *            Available command line options
+	 *
 	 */
-	private static void info(final MergeContext context, final Options options) {
-		version(context);
+	private static void info(final MergeContext context) {
+		version();
 		System.out.println();
 		System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
 	}
@@ -389,12 +406,10 @@ public final class Main {
 	/**
 	 * Print help on usage.
 	 *
-	 * @param context
-	 *            merge context
 	 * @param options
 	 *            Available command line options
 	 */
-	private static void help(final MergeContext context, final Options options) {
+	private static void help(final Options options) {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp(TOOLNAME, options, true);
 	}
@@ -402,10 +417,8 @@ public final class Main {
 	/**
 	 * Print version information.
 	 *
-	 * @param context
-	 *            merge context
 	 */
-	private static void version(final MergeContext context) {
+	private static void version() {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
 	}
 
@@ -434,10 +447,8 @@ public final class Main {
 	/**
 	 * Prints the available strategies.
 	 *
-	 * @param context
-	 *            merge context
 	 */
-	private static void printStrategies(final MergeContext context) {
+	private static void printStrategies() {
 		System.out.println("Available merge strategies:");
 
 		for (String s : MergeStrategy.listStrategies()) {
@@ -473,7 +484,7 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	@SuppressWarnings("unchecked")
-	public static void dumpTrees(final MergeContext context) throws IOException {
+	private static void dumpTrees(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
@@ -490,7 +501,7 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	@SuppressWarnings("unchecked")
-	public static void dumpFiles(final MergeContext context) throws IOException {
+	private static void dumpFiles(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
@@ -529,7 +540,7 @@ public final class Main {
 	 * This is only for debugging and messing around with the look-ahead feature.
 	 * TODO: remove this method when the feature is merged into develop.
 	 */
-	private static final void runLookAheadTests(String wd, String path) {
+	private static void runLookAheadTests(String wd, String path) {
 		if (path == null) {
 			path = "lookahead";
 		}

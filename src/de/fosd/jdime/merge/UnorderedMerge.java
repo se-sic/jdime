@@ -31,7 +31,7 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.NewMatching;
+import de.fosd.jdime.matcher.Matching;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -51,8 +51,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 	/**
 	 * TODO: this needs high-level documentation. Probably also detailed documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -120,8 +120,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 							LOG.trace(prefix(leftChild)
 									+ "has changes in subtree.");
 						}
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, leftChild, null, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -142,7 +141,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					// add the left change
 					AddOperation<T> addOp = new AddOperation<>(leftChild,
 							target);
-					leftChild.setMerged(true);
+					leftChild.setMerged();
 					addOp.apply(context);
 				}
 
@@ -171,8 +170,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 									+ "has changes in subtree.");
 						}
 						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								rightChild, null, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
@@ -193,7 +191,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					// add the right change
 					AddOperation<T> addOp = new AddOperation<>(rightChild,
 							target);
-					rightChild.setMerged(true);
+					rightChild.setMerged();
 					addOp.apply(context);
 				}
 
@@ -215,15 +213,15 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge left
 				if (!leftChild.isMerged()) {
-					NewMatching<T> mRight = leftChild.getMatching(r);
+					Matching<T> mRight = leftChild.getMatching(r);
 					T rightMatch = mRight.getMatchingArtifact(leftChild);
 
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = leftChild.getMatching(b);
+					Matching<T> mBase = leftChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? leftChild.createEmptyDummy()
+					T baseChild = mBase == null ? leftChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(leftChild);
 					T targetChild = target == null ? null : target
 							.addChild(leftChild);
@@ -234,8 +232,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeOperation<T> mergeOp = new MergeOperation<>(
 							childTriple, targetChild);
 
-					leftChild.setMerged(true);
-					rightMatch.setMerged(true);
+					leftChild.setMerged();
+					rightMatch.setMerged();
 					mergeOp.apply(context);
 				}
 
@@ -247,15 +245,15 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// merge right
 				if (!rightChild.isMerged()) {
-					NewMatching<T> mLeft = rightChild.getMatching(l);
+					Matching<T> mLeft = rightChild.getMatching(l);
 					T leftMatch = mLeft.getMatchingArtifact(rightChild);
 
 					// determine whether the child is 2 or 3-way merged
-					NewMatching<T> mBase = rightChild.getMatching(b);
+					Matching<T> mBase = rightChild.getMatching(b);
 
 					MergeType childType = mBase == null ? MergeType.TWOWAY
 							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? rightChild.createEmptyDummy()
+					T baseChild = mBase == null ? rightChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(rightChild);
 					T targetChild = target == null ? null : target
 							.addChild(rightChild);
@@ -266,8 +264,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeOperation<T> mergeOp = new MergeOperation<>(
 							childTriple, targetChild);
 
-					leftMatch.setMerged(true);
-					rightChild.setMerged(true);
+					leftMatch.setMerged();
+					rightChild.setMerged();
 					mergeOp.apply(context);
 				}
 

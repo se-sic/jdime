@@ -92,7 +92,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		if (numArtifacts == MergeType.TWOWAY.getNumFiles()) {
 			left = inputArtifacts.get(0);
-			base = left.createEmptyDummy();
+			base = left.createEmptyArtifact();
 			right = inputArtifacts.get(1);
 			mergeType = MergeType.TWOWAY;
 		} else if (numArtifacts == MergeType.THREEWAY.getNumFiles()) {
@@ -143,7 +143,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	public void apply(MergeContext context) throws IOException, InterruptedException {
 		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: " + mergeTriple.getLeft();
 		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: " + mergeTriple.getRight();
-		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase().exists()) :
+		assert (mergeTriple.getBase().isEmpty() || mergeTriple.getBase().exists()) :
 				"Base artifact does not exist: " + mergeTriple.getBase();
 
 		if (LOG.isDebugEnabled()) {

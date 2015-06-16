@@ -50,6 +50,9 @@ import java.util.ArrayList;
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 	private static final Logger LOG = Logger.getLogger(StructuredStrategy.class.getSimpleName());
+	private static final String CONFLICT_START = "<<<<<<<";
+	private static final String CONFLICT_DELIM = "=======";
+	private static final String CONFLICT_END = ">>>>>>>";
 
 	/**
 	 * The source <code>FileArtifacts</code> are extracted from the
@@ -62,8 +65,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 *
 	 * TODO: more high-level documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 */
 	@Override
 	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
@@ -84,7 +87,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		String rPath = rightFile.getPath();
 		
 		assert (leftFile.exists() && !leftFile.isDirectory());
-		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
+		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmpty());
 		assert (rightFile.exists() && !rightFile.isDirectory());
 
 		context.resetStreams();
@@ -112,6 +115,25 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 		}
+
+		SecurityManager systemSecurityManager = System.getSecurityManager();
+		System.setSecurityManager(new SecurityManager() {
+			@Override
+			public void checkPermission(Permission perm) {
+				// allow anything.
+			}
+
+			@Override
+			public void checkPermission(Permission perm, Object context) {
+				// allow anything.
+			}
+
+			@Override
+			public void checkExit(int status) {
+				super.checkExit(status);
+				throw new SecurityException("Captured attempt to exit JVM.");
+			}
+		});
 		
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
@@ -130,14 +152,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				right = new ASTNodeArtifact(rightFile);
 
 				context.addElements(left);
-				if (!baseFile.isEmptyDummy()) {
+				if (!baseFile.isEmpty()) {
 					context.addElements(base);
 				}
 				context.addElements(right);
 
 				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
-				targetNode.forceRenumbering();
+				targetNode.renumberTree();
 
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("target.dumpTree(:");
@@ -197,7 +219,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 									continue;
 								}
 
-								if (line.matches("^\\s*<<<<<<<.*")) {
+								if (line.matches("^\\s*" + CONFLICT_START + ".*")) {
 									conflict = true;
 									tmp = cloc;
 									conflicts++;
@@ -213,10 +235,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 										// lets merge them
 										conflicts--;
 									}
-								} else if (line.matches("^\\s*=======.*")) {
+								} else if (line.matches("^\\s*" + CONFLICT_DELIM + ".*")) {
 									inleft = false;
 									inright = true;
-								} else if (line.matches("^\\s*>>>>>>>.*")) {
+								} else if (line.matches("^\\s*" + CONFLICT_END + ".*")) {
 									conflict = false;
 									afterconflict = true;
 									if (tmp == cloc) {
@@ -237,21 +259,19 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 										}
 									} else {
 										if (afterconflict) {
-											assert (leftlines != null);
-											assert (rightlines != null);
-											// need to print the previous
-											// conflict(s)
-											mergeContext.appendLine("<<<<<<< " + lPath);
-											mergeContext.append(leftlines.toString());
-											mergeContext.appendLine("=======");
-											mergeContext.append(rightlines.toString());
-											mergeContext.appendLine(">>>>>>> " + rPath);
+											printConflict(mergeContext, lPath, rPath, leftlines, rightlines);
 										}
 										afterconflict = false;
 										mergeContext.appendLine(line);
 									}
 								}
 							}
+
+							if (afterconflict) {
+								// last line of the buffer was a closing conflict
+								printConflict(mergeContext, lPath, rPath, leftlines, rightlines);
+							}
+							afterconflict = false;
 						}
 					}
 				}
@@ -369,6 +389,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 						new MergeTripleStats(triple, conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
 				stats.addScenarioStats(scenariostats);
 			}
+		} catch (SecurityException e) {
+			LOG.fatal("Caught SecurityException: " + e);
+			e.printStackTrace();
 		} catch (Throwable t) {
 			LOG.fatal(String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath), t);
 			
@@ -381,6 +404,19 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 			}
 		}
+
+		System.setSecurityManager(systemSecurityManager);
+	}
+
+	private static void printConflict(MergeContext mergeContext, String lPath, String rPath, StringBuffer leftlines,
+	                                  StringBuffer rightlines) {
+		assert (leftlines != null);
+		assert (rightlines != null);
+		mergeContext.appendLine(CONFLICT_START + " " + lPath);
+		mergeContext.append(leftlines.toString());
+		mergeContext.appendLine(CONFLICT_DELIM);
+		mergeContext.append(rightlines.toString());
+		mergeContext.appendLine(CONFLICT_END + " " + rPath);
 	}
 
 	@Override
