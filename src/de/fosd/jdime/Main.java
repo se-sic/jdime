@@ -210,17 +210,17 @@ public final class Main {
 			CommandLine cmd = parser.parse(options, args);
 
 			if (cmd.hasOption("help")) {
-				help(context, options);
+				help(options);
 				return false;
 			}
 
 			if (cmd.hasOption("info")) {
-				info(context, options);
+				info(context);
 				return false;
 			}
 
 			if (cmd.hasOption("version")) {
-				version(context);
+				version();
 				return false;
 			}
 
@@ -247,7 +247,7 @@ public final class Main {
 				try {
 					switch (cmd.getOptionValue("mode").toLowerCase()) {
 					case "list":
-						printStrategies(context);
+						printStrategies();
 						return false;
 					case "bugfixing":
 						context.setMergeStrategy(MergeStrategy
@@ -298,7 +298,7 @@ public final class Main {
 				}
 
 				if (context.getMergeStrategy() == null) {
-					help(context, options);
+					help(options);
 					return false;
 				}
 			}
@@ -366,7 +366,7 @@ public final class Main {
 			if (!((context.isDumpTree() || context.isDumpFile() || context
 					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
 					&& numInputFiles <= MergeType.MAXFILES)) {
-				help(context, options);
+				help(options);
 				return false;
 			}
 
@@ -394,14 +394,12 @@ public final class Main {
 
 	/**
 	 * Print short information.
-	 *
-	 * @param context
+	 *  @param context
 	 *            merge context
-	 * @param options
-	 *            Available command line options
+	 *
 	 */
-	private static void info(final MergeContext context, final Options options) {
-		version(context);
+	private static void info(final MergeContext context) {
+		version();
 		System.out.println();
 		System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
 	}
@@ -409,12 +407,10 @@ public final class Main {
 	/**
 	 * Print help on usage.
 	 *
-	 * @param context
-	 *            merge context
 	 * @param options
 	 *            Available command line options
 	 */
-	private static void help(final MergeContext context, final Options options) {
+	private static void help(final Options options) {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp(TOOLNAME, options, true);
 	}
@@ -422,10 +418,8 @@ public final class Main {
 	/**
 	 * Print version information.
 	 *
-	 * @param context
-	 *            merge context
 	 */
-	private static void version(final MergeContext context) {
+	private static void version() {
 		System.out.println(TOOLNAME + " VERSION " + VERSION);
 	}
 
@@ -454,10 +448,8 @@ public final class Main {
 	/**
 	 * Prints the available strategies.
 	 *
-	 * @param context
-	 *            merge context
 	 */
-	private static void printStrategies(final MergeContext context) {
+	private static void printStrategies() {
 		System.out.println("Available merge strategies:");
 
 		for (String s : MergeStrategy.listStrategies()) {
