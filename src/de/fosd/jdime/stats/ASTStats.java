@@ -329,7 +329,7 @@ public class ASTStats {
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
 		String[] csvHead = new String[36];
-		String[] csv = new String[36];;
+		String[] csv = new String[36];
 		int[] sum = new int[5];
 		int i = 0;
 		int j = 0;
