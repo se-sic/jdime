@@ -669,16 +669,4 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	@Override
 	public abstract String toString();
-
-	/**
-	 * Reads from a BufferedReader and writes to the <code>Artifact</code>.
-	 *
-	 * This is only relevant for certain types of <code>Artifact</code>s.
-	 *
-	 * @param str
-	 *            String to write
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	// public abstract void write(String str) throws IOException;
 }
