@@ -396,25 +396,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns whether the artifact has changes.
+	 * Returns true if the <code>Artifact</code> is a change.
 	 *
-	 * @param recursive
-	 *            If true, the whole subtree is checked.
-	 *            If false, only the <code>Artifact</code> itself and its direct children are checked.
-	 * @return whether the <code>Artifact</code> has changes
+	 * @return true if the <code>Artifact</code> is a change
 	 */
-	public final boolean hasChanges(final boolean recursive) {
-		if (recursive) {
-			return hasChanges();
-		} else {
-			boolean hasChanges = !hasMatches();
-
-			for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-				hasChanges = !getChild(i).hasMatches();
-			}
-
-			return hasChanges;
-		}
+	public final boolean isChange() {
+		return !hasMatches();
 	}
 
 	/**
