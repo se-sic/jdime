@@ -84,7 +84,7 @@ public final class Main {
 		try {
 			config.addSource(new PropFileConfigSource(2, PROP_FILE));
 		} catch (IOException e) {
-			System.err.println("Could not load " + PROP_FILE_NAME);
+			LOG.warn("Could not load " + PROP_FILE_NAME);
 		}
 	}
 
