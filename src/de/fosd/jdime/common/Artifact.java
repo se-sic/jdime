@@ -602,11 +602,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	/**
 	 * Set whether the <code>Artifact</code> has already been merged.
-	 * @param merged
-	 *            whether the <code>Artifact</code> has already been merged
 	 */
-	public final void setMerged(final boolean merged) {
-		this.merged = merged;
+	public final void setMerged() {
+		this.merged = true;
 	}
 
 	/**
