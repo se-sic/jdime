@@ -291,11 +291,6 @@ public final class Main {
 						// User wants to merge
 						context.setMergeStrategy(MergeStrategy.parse(cmd
 								.getOptionValue("mode")));
-
-						if (context.getMergeStrategy() instanceof NWayStrategy) {
-							LOG.trace("n-way merge");
-							context.setConditionalMerge(true);
-						}
 						break;
 					}
 				} catch (StrategyNotFoundException e) {

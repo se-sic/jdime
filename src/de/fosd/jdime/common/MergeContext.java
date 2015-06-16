@@ -31,6 +31,7 @@ import java.util.List;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.NWayStrategy;
 
 /**
  * @author Olaf Lessenich
@@ -578,6 +579,10 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
 		this.mergeStrategy = mergeStrategy;
+
+		if (mergeStrategy instanceof NWayStrategy) {
+			conditionalMerge = true;
+		}
 	}
 
 	/**
