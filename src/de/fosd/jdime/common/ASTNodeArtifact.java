@@ -145,6 +145,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		this.astnode = astnode;
 		renumberTree();
+
+		LOG.trace("created new ASTNodeArtifact for revision " + getRevision());
 	}
 
 	/**
@@ -420,8 +422,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			if (hasMatches()) {
 				assert (m != null);
-				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId())
-						.append(")");
+				LOG.trace(m);
+				LOG.trace("Matching artifacts: " + m.getMatchingArtifact(this));
+				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
 				sb.append(Color.DEFAULT.toShell());
 			}
 			sb.append(System.lineSeparator());
@@ -752,6 +755,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				? new ASTNodeArtifact(left.astnode.fullCopy())
 				: new ASTNodeArtifact(right.astnode.fullCopy());
 
+		conflict.setRevision(new Revision("conflict"));
+		conflict.setNumber(virtualcount++);
 		conflict.setConflict(left, right);
 
 		return conflict;

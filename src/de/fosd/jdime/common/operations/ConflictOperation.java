@@ -97,6 +97,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 			assert (target.exists());
 
 			if (context.isConditionalMerge() && leftCondition != null && rightCondition != null) {
+				LOG.debug("Create choice node");
 				T choice;
 				if (left.isChoice()) {
 					choice = left;
@@ -108,6 +109,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 				choice.addVariant(rightCondition, right);
 				choice.copyArtifact(target);
 			} else {
+				LOG.debug("Create conflict node");
 				T conflict = target.createConflictArtifact(left, right);
 				assert (conflict.isConflict());
 				conflict.copyArtifact(target);

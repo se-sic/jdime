@@ -461,6 +461,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public final boolean hasMatching(final Revision rev) {
 		boolean hasMatching = matches != null && matches.containsKey(rev);
 
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(getId() + ".hasMatching(" + rev + ")");
+			if (matches != null) {
+				for (Revision r : matches.keySet()) {
+					LOG.trace("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
+					LOG.trace("hasMatching(" + r + ") = " + hasMatching);
+				}
+			} else {
+				LOG.trace("no matches for " + getId() + " and " + rev);
+			}
+		}
+
 		if (!hasMatching && isChoice()) {
 			// choice nodes have to be treated specially ...
 			for (T variant: variants.values()) {
@@ -470,6 +482,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 				}
 			}
 		}
+
 		return hasMatching;
 	}
 
@@ -483,6 +496,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public final boolean hasMatching(final T other) {
 		Revision otherRev = other.getRevision();
 		boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact((T) this) == other;
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(getId() + ".hasMatching(" + other.getId() + ")");
+			if (matches != null) {
+				for (Revision r : matches.keySet()) {
+					LOG.trace("Matching found with: " + r + " (" + other.getId() + ")");
+					LOG.trace("hasMatching(" + r + ") = " + hasMatching);
+				}
+			} else {
+				LOG.trace("no matches for " + getId() + " and " + other.getId());
+			}
+		}
 
 		if (!hasMatching && isChoice()) {
 			// choice nodes have to be treated specially ...

@@ -107,6 +107,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		if (nway) {
 			mergeType = MergeType.NWAY;
 			this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
+			LOG.trace("Created N-way scenario");
 		} else {
 
 			if (numArtifacts == MergeType.TWOWAY_FILES) {
@@ -114,11 +115,13 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 				base = left.createEmptyArtifact();
 				right = inputArtifacts.get(1);
 				mergeType = MergeType.TWOWAY;
+				LOG.trace("Created TWO-way scenario");
 			} else if (numArtifacts == MergeType.THREEWAY_FILES) {
 				left = inputArtifacts.get(0);
 				base = inputArtifacts.get(1);
 				right = inputArtifacts.get(2);
 				mergeType = MergeType.THREEWAY;
+				LOG.trace("Created THREE-way scenario");
 			} else {
 				String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
 				throw new IllegalArgumentException(msg);
@@ -182,6 +185,11 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 		if (target != null && !target.exists()) {
 			target.createArtifact(mergeScenario.getLeft().isLeaf());
+		}
+
+		if (LOG.isTraceEnabled() && target != null && !target.isEmpty()) {
+			LOG.trace("Print target before merging:");
+			LOG.trace(target.dumpRootTree());
 		}
 
 		mergeScenario.run(this, context);

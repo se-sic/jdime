@@ -128,8 +128,12 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			return;
 		}
 
-		assert ((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left)) : left.getId() + " and " + right.getId()
-							+ " have no matches.";
+		if (!((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left))) {
+			LOG.fatal(left.getId() + " and " + right.getId() + " have no matches.");
+			LOG.fatal("left: " + left.dumpRootTree());
+			LOG.fatal("right: " + right.dumpRootTree());
+			throw new RuntimeException();
+		}
 
 		if (target != null && target.isRoot() && !target.hasMatches()) {
 			// hack to fix the matches for the merged root node

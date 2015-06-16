@@ -2,6 +2,8 @@ package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * A container class representing a matching between two <code>T</code>s.
@@ -9,6 +11,8 @@ import de.fosd.jdime.common.UnorderedTuple;
  * @param <T> the type of the <code>Artifact</code>
  */
 public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Matching<T>> {
+
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matching.class));
 
 	/**
 	 * The algorithm that found the matching.
@@ -91,6 +95,12 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
 	public T getMatchingArtifact(Artifact<T> artifact) {
 		T left = getLeft();
 		T right = getRight();
+
+		//if (LOG.isTraceEnabled()) {
+		//	LOG.trace("artifact = " + artifact.getId());
+		//	LOG.trace("left = " + left.getId());
+		//	LOG.trace("right = " + right.getId());
+		//}
 
 		return left == artifact ? right : right == artifact ? left : null;
 	}

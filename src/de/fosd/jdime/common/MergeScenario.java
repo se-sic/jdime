@@ -59,9 +59,20 @@ public class MergeScenario<T extends Artifact<T>> {
 	public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
 		this.artifacts = new LinkedHashMap<>();
 		this.mergeType = mergeType;
-		this.getArtifacts().put(this.leftRev, left);
-		this.getArtifacts().put(this.baseRev, base);
-		this.getArtifacts().put(this.rightRev, right);
+
+		if (left.getRevision() == null) {
+			left.setRevision(leftRev);
+		}
+
+		base.setRevision(baseRev);
+
+		if (right.getRevision() == null) {
+			right.setRevision(rightRev);
+		}
+
+		this.artifacts.put(left.getRevision(), left);
+		this.artifacts.put(base.getRevision(), base);
+		this.artifacts.put(right.getRevision(), right);
 	}
 
 	/**
