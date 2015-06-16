@@ -147,7 +147,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		this.astnode = astnode;
-		renumber(1, this);
+		renumberTree();
 	}
 
 	/**

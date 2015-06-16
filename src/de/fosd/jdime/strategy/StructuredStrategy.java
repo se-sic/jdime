@@ -155,7 +155,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
-				targetNode.forceRenumbering();
+				targetNode.renumberTree();
 
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("target.dumpTree(:");

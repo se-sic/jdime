@@ -63,14 +63,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Recursively renumbers the tree.
 	 *
-	 * @param count
-	 *            number to start with
-	 * @param artifact
-	 *            root of the tree to renumber
 	 */
-	protected static void renumber(final int count, final Artifact<?> artifact) {
-		Artifact.count = count;
-		renumber(artifact);
+	public void renumberTree() {
+		Artifact.count = 1;
+		renumber(this);
 	}
 
 	/**
@@ -255,13 +251,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if the artifact exists.
 	 */
 	public abstract boolean exists();
-
-	/**
-	 * Force renumbering of the tree.
-	 */
-	public final void forceRenumbering() {
-		renumber(1, this);
-	}
 
 	/**
 	 * Return child <code>Artifact</code> at position i.
