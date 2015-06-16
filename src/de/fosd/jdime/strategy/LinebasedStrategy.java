@@ -312,7 +312,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		StringBuilder sb = new StringBuilder();
 
 		for (String line : lines) {
-			sb.append(line + System.lineSeparator());
+			sb.append(line);
+			sb.append(System.lineSeparator());
 		}
 
 		return sb.toString();
