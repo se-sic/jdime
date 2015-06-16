@@ -818,6 +818,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			stats.incrementFragments();
 		}
 
+		/*
+		This is a rather mean hack.
+
+		Basically the loop does sanity checks.
+		While benchmarking, I switch asserts off and the code will not be executed to save time.
+		*/
 		boolean assertsEnabled = false;
 		assert assertsEnabled = true;
 		if (assertsEnabled) {
