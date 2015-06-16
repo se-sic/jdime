@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.security.Permission;
 import java.util.ArrayList;
 
 import de.fosd.jdime.common.*;
@@ -113,8 +114,23 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		SecurityManager systemSecurityManager = System.getSecurityManager();
-		NoExitSecurityManager securityManager = new NoExitSecurityManager();
-		System.setSecurityManager(securityManager);
+		System.setSecurityManager(new SecurityManager() {
+			@Override
+			public void checkPermission(Permission perm) {
+				// allow anything.
+			}
+
+			@Override
+			public void checkPermission(Permission perm, Object context) {
+				// allow anything.
+			}
+
+			@Override
+			public void checkExit(int status) {
+				super.checkExit(status);
+				throw new SecurityException("Captured attempt to exit JVM.");
+			}
+		});
 		try {
 			for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
