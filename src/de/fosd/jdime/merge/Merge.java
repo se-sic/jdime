@@ -229,7 +229,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 			unorderedMerge.merge(operation, context);
 		}
-		return;
 	}
 
 	/**
