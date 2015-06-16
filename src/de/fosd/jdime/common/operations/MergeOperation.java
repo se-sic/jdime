@@ -172,7 +172,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		if (!context.isConditionalMerge()) {
 			assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
 			assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
-			assert (mergeScenario.getBase().isEmptyDummy() || mergeScenario.getBase().exists()) :
+			assert (mergeScenario.getBase().isEmpty() || mergeScenario.getBase().exists()) :
 					"Base artifact does not exist: " + mergeScenario.getBase();
 		}
 

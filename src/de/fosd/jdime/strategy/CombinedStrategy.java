@@ -49,8 +49,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 	/**
 	 * TODO: high-level documentation
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException

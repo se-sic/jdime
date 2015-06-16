@@ -53,8 +53,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * TODO: this needs high-level explanation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -82,7 +82,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 		Matching<T> m;
 		if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
-			if (!base.isEmptyDummy()) {
+			if (!base.isEmpty()) {
 				// 3-way merge
 
 				// diff base left
@@ -146,8 +146,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			LOG.trace(prefix(right) + "-> (" + rightChildren + ")");
 		}
 
-		if ((base.isEmptyDummy() || base.hasChildren())
-				&& (leftChildren.isEmpty() || rightChildren.isEmpty())) {
+		if ((base.isEmpty() || base.hasChildren()) && (leftChildren.isEmpty() || rightChildren.isEmpty())) {
 			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(left) + "and [" + right.getId()
@@ -232,7 +231,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			}
 			unorderedMerge.merge(operation, context);
 		}
-		return;
 	}
 
 	/**

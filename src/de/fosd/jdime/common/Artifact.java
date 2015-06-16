@@ -67,14 +67,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Recursively renumbers the tree.
 	 *
-	 * @param count
-	 *            number to start with
-	 * @param artifact
-	 *            root of the tree to renumber
 	 */
-	protected static void renumber(final int count, final Artifact<?> artifact) {
-		Artifact.count = count;
-		renumber(artifact);
+	public void renumberTree() {
+		Artifact.count = 1;
+		renumber(this);
 	}
 
 	/**
@@ -85,12 +81,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Left side of a conflict.
 	 */
-	protected T left = null;
+	T left = null;
 
 	/**
 	 * Right side of a conflict.
 	 */
-	protected T right = null;
+	T right = null;
 
 	/**
 	 * Whether this artifact represents a conflict.
@@ -108,14 +104,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	protected HashMap<String, T> variants;
 
 	/**
-	 * If true, this artifact is an empty dummy.
-	 */
-	private boolean emptyDummy = false;
-
-	/**
 	 * Map to store matches.
 	 */
-	protected LinkedHashMap<Revision, Matching<T>> matches = null;
+	LinkedHashMap<Revision, Matching<T>> matches = null;
 
 	/**
 	 * Whether the artifact has been already merged.
@@ -216,10 +207,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param right
 	 *            right alternative <code>Artifact</code>
 	 * @return conflict <code>Artifact</code>
-	 * @throws FileNotFoundException
-	 *             If a file is not found
 	 */
-	public abstract T createConflictArtifact(final T left, final T right) throws FileNotFoundException;
+	public abstract T createConflictArtifact(final T left, final T right);
 
 	/**
 	 * Returns a choice artifact.
@@ -285,13 +274,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if the artifact exists.
 	 */
 	public abstract boolean exists();
-
-	/**
-	 * Force renumbering of the tree.
-	 */
-	public final void forceRenumbering() {
-		renumber(1, this);
-	}
 
 	/**
 	 * Return child <code>Artifact</code> at position i.
@@ -437,25 +419,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Returns whether the artifact has changes.
+	 * Returns true if the <code>Artifact</code> is a change.
 	 *
-	 * @param recursive
-	 *            If true, the whole subtree is checked.
-	 *            If false, only the <code>Artifact</code> itself and its direct children are checked.
-	 * @return whether the <code>Artifact</code> has changes
+	 * @return true if the <code>Artifact</code> is a change
 	 */
-	public final boolean hasChanges(final boolean recursive) {
-		if (recursive) {
-			return hasChanges();
-		} else {
-			boolean hasChanges = !hasMatches();
-
-			for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-				hasChanges = !getChild(i).hasMatches();
-			}
-
-			return hasChanges;
-		}
+	public final boolean isChange() {
+		return !hasMatches();
 	}
 
 	/**
@@ -540,7 +509,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *
 	 * FIXME: can this somehow be done in the constructors so we can get rid of this method?
 	 */
-	public abstract void initializeChildren();
+	protected abstract void initializeChildren();
 
 	/**
 	 * Returns true if the <code>Artifact</code> is a conflict node.
@@ -566,15 +535,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return true if the <code>Artifact</code> is empty
 	 */
 	public abstract boolean isEmpty();
-
-	/**
-	 * Returns whether the <code>Artifact</code> is an empty dummy.
-	 *
-	 * @return true if the <code>Artifact</code> is an empty dummy.
-	 */
-	public final boolean isEmptyDummy() {
-		return emptyDummy;
-	}
 
 	/**
 	 * Returns true if the <code>Artifact</code> is a leaf.
@@ -659,7 +619,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param right
 	 *            right alternative
 	 */
-	protected final void setConflict(final T left, final T right) {
+	final void setConflict(final T left, final T right) {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
@@ -709,22 +669,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	/**
-	 * Set whether the <code>Artifact</code> is an empty <code>Artifact</code>.
-	 *
-	 * @param emptyDummy
-	 *            true, if the <code>Artifact</code> is an empty <code>Artifact</code>
-	 */
-	protected final void setEmpty(final boolean emptyDummy) {
-		this.emptyDummy = emptyDummy;
-	}
-
-	/**
 	 * Set whether the <code>Artifact</code> has already been merged.
-	 * @param merged
-	 *            whether the <code>Artifact</code> has already been merged
 	 */
-	public final void setMerged(final boolean merged) {
-		this.merged = merged;
+	public final void setMerged() {
+		this.merged = true;
 	}
 
 	/**
@@ -742,7 +690,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param parent
 	 *            the parent to set
 	 */
-	public final void setParent(final T parent) {
+	final void setParent(final T parent) {
 		this.parent = parent;
 	}
 

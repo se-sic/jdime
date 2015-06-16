@@ -196,7 +196,7 @@ public class MergeScenario<T extends Artifact<T>> {
 
 		for (Revision rev : artifacts.keySet()) {
 			T artifact = artifacts.get(rev);
-			if (!humanReadable || !artifact.isEmptyDummy()) {
+			if (!humanReadable || !artifact.isEmpty()) {
 				sb.append(artifact.getId()).append(sep);
 			}
 		}

@@ -53,8 +53,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 	/**
 	 * TODO: this needs high-level documentation. Probably also detailed documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -142,7 +142,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					}
 					// add the left change
 					AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
-					leftChild.setMerged(true);
+					leftChild.setMerged();
 					addOp.apply(context);
 				}
 
@@ -191,7 +191,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					}
 					// add the right change
 					AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
-					rightChild.setMerged(true);
+					rightChild.setMerged();
 					addOp.apply(context);
 				}
 
@@ -216,8 +216,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
 					leftChild.addVariant(r.getName(), matchedVariant);
 					AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
-					leftChild.setMerged(true);
-					rightChild.setMerged(true);
+					leftChild.setMerged();
+					rightChild.setMerged();
 					addOp.apply(context);
 				}
 
@@ -241,8 +241,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
-					leftChild.setMerged(true);
-					rightMatch.setMerged(true);
+					leftChild.setMerged();
+					rightMatch.setMerged();
 					mergeOp.apply(context);
 				}
 
@@ -272,8 +272,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
-					leftMatch.setMerged(true);
-					rightChild.setMerged(true);
+					leftMatch.setMerged();
+					rightChild.setMerged();
 					mergeOp.apply(context);
 				}
 
