@@ -144,7 +144,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	public void apply(MergeContext context) throws IOException, InterruptedException {
 		assert (mergeTriple.getLeft().exists()) : "Left artifact does not exist: " + mergeTriple.getLeft();
 		assert (mergeTriple.getRight().exists()) : "Right artifact does not exist: " + mergeTriple.getRight();
-		assert (mergeTriple.getBase().isEmptyDummy() || mergeTriple.getBase().exists()) :
+		assert (mergeTriple.getBase().isEmpty() || mergeTriple.getBase().exists()) :
 				"Base artifact does not exist: " + mergeTriple.getBase();
 
 		if (LOG.isDebugEnabled()) {

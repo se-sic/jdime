@@ -81,7 +81,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 		Matching<T> m;
 		if (!left.matchingComputed() && !right.matchingComputed()) {
-			if (!base.isEmptyDummy()) {
+			if (!base.isEmpty()) {
 				// 3-way merge
 
 				// diff base left
@@ -144,8 +144,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			LOG.trace(prefix(right) + "-> (" + rightChildren + ")");
 		}
 
-		if ((base.isEmptyDummy() || base.hasChildren())
-				&& (leftChildren.isEmpty() || rightChildren.isEmpty())) {
+		if ((base.isEmpty() || base.hasChildren()) && (leftChildren.isEmpty() || rightChildren.isEmpty())) {
 			if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace(prefix(left) + "and [" + right.getId()

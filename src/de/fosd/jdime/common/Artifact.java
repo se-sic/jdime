@@ -94,11 +94,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	private boolean conflict = false;
 
 	/**
-	 * If true, this artifact is an empty dummy.
-	 */
-	private boolean emptyDummy = false;
-
-	/**
 	 * Map to store matches.
 	 */
 	protected LinkedHashMap<Revision, Matching<T>> matches = null;
@@ -517,15 +512,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract boolean isEmpty();
 
 	/**
-	 * Returns whether the <code>Artifact</code> is an empty dummy.
-	 *
-	 * @return true if the <code>Artifact</code> is an empty dummy.
-	 */
-	public final boolean isEmptyDummy() {
-		return emptyDummy;
-	}
-
-	/**
 	 * Returns true if the <code>Artifact</code> is a leaf.
 	 *
 	 * @return true if the <code>Artifact</code> is a leaf
@@ -612,16 +598,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
-	}
-
-	/**
-	 * Set whether the <code>Artifact</code> is an empty <code>Artifact</code>.
-	 *
-	 * @param emptyDummy
-	 *            true, if the <code>Artifact</code> is an empty <code>Artifact</code>
-	 */
-	protected final void setEmpty(final boolean emptyDummy) {
-		this.emptyDummy = emptyDummy;
 	}
 
 	/**

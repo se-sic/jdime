@@ -250,21 +250,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public final FileArtifact createEmptyArtifact() throws FileNotFoundException {
-		File dummyFile;
+		File tempFile;
 
 		try {
-			dummyFile = Files.createTempFile(null, null).toFile();
-			dummyFile.deleteOnExit();
+			tempFile = Files.createTempFile(null, null).toFile();
+			tempFile.deleteOnExit();
 		} catch (IOException e) {
 			throw new FileNotFoundException(e.getMessage());
 		}
 
-		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
-		dummyArtifact.setEmpty(true);
+		FileArtifact emptyFile = new FileArtifact(tempFile);
 
-		LOG.trace("Artifact is a dummy artifact. Using temporary file " + dummyFile.getAbsolutePath());
+		LOG.trace("Artifact is a dummy artifact. Using temporary file " + tempFile.getAbsolutePath());
 
-		return dummyArtifact;
+		return emptyFile;
 	}
 
 	@Override
@@ -604,8 +603,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 *             If an input output exception occurs
 	 */
 	public final void remove() throws IOException {
-		assert (exists() && !isEmptyDummy()) : "Tried to remove non-existing file: "
-				+ getFullPath();
+		assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
 			if (LOG.isDebugEnabled()) {

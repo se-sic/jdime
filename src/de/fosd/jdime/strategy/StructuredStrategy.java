@@ -84,7 +84,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		String rPath = rightFile.getPath();
 		
 		assert (leftFile.exists() && !leftFile.isDirectory());
-		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
+		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmpty());
 		assert (rightFile.exists() && !rightFile.isDirectory());
 
 		context.resetStreams();
@@ -148,7 +148,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				right = new ASTNodeArtifact(rightFile);
 
 				context.addElements(left);
-				if (!baseFile.isEmptyDummy()) {
+				if (!baseFile.isEmpty()) {
 					context.addElements(base);
 				}
 				context.addElements(right);

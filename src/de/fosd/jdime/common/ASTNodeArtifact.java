@@ -138,9 +138,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		setRevision(artifact.getRevision());
 
 		ASTNode<?> astnode;
-		if (artifact.isEmptyDummy()) {
+		if (artifact.isEmpty()) {
 			astnode = new ASTNode<>();
-			setEmpty(true);
 		} else {
 			Program p = initProgram();
 			p.addSourceFile(artifact.getPath());
@@ -249,7 +248,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			throws FileNotFoundException {
 		ASTNodeArtifact dummy = new ASTNodeArtifact();
 		dummy.astnode = new ASTNode<>();
-		dummy.setEmpty(true);
 		dummy.setRevision(getRevision());
 		return dummy;
 	}
