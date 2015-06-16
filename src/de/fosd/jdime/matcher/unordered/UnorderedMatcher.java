@@ -45,7 +45,7 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements Matchin
 	/**
 	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
 	 */
-	protected Matcher<T> matcher;
+	Matcher<T> matcher;
 
 	/**
 	 * Constructs a new <code>UnorderedMatcher</code> using the given <code>matcher</code> for recursive calls.

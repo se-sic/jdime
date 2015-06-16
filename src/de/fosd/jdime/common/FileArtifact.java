@@ -150,10 +150,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 		assert (getClass().equals(child.getClass())) : "Can only add children of same type";
 
-		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
-				+ File.separator + child), false);
-
-		return myChild;
+		return new FileArtifact(getRevision(), new File(file + File.separator + child), false);
 	}
 
 	@Override
@@ -230,21 +227,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public final FileArtifact createEmptyArtifact() throws FileNotFoundException {
-		File dummyFile;
+		File tempFile;
 
 		try {
-			dummyFile = Files.createTempFile(null, null).toFile();
-			dummyFile.deleteOnExit();
+			tempFile = Files.createTempFile(null, null).toFile();
+			tempFile.deleteOnExit();
 		} catch (IOException e) {
 			throw new FileNotFoundException(e.getMessage());
 		}
 
-		FileArtifact dummyArtifact = new FileArtifact(dummyFile);
-		dummyArtifact.setEmpty(true);
+		FileArtifact emptyFile = new FileArtifact(tempFile);
 
 		LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + dummyFile.getAbsolutePath());
 
-		return dummyArtifact;
+		return emptyFile;
 	}
 
 	@Override
@@ -579,8 +575,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 *             If an input output exception occurs
 	 */
 	public final void remove() throws IOException {
-		assert (exists() && !isEmptyDummy()) : "Tried to remove non-existing file: "
-				+ getFullPath();
+		assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
 			LOG.fine(() -> "Deleting directory recursively: " + file);
@@ -618,8 +613,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right)
-			throws FileNotFoundException {
+	public final FileArtifact createConflictArtifact(final FileArtifact left, final FileArtifact right) {
 		throw new NotYetImplementedException();
 	}
 

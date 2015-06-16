@@ -54,8 +54,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * TODO: this needs high-level documentation. Probably also detailed documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -168,7 +168,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								// add the left change
 								AddOperation<T> addOp = new AddOperation<>(
 										leftChild, target);
-								leftChild.setMerged(true);
+								leftChild.setMerged();
 								addOp.apply(context);
 							}
 						} else {
@@ -190,7 +190,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						// add the left change
 						AddOperation<T> addOp = new AddOperation<>(leftChild,
 								target);
-						leftChild.setMerged(true);
+						leftChild.setMerged();
 						addOp.apply(context);
 					}
 				}
@@ -268,7 +268,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 								// add the right change
 								AddOperation<T> addOp = new AddOperation<>(
 										rightChild, target);
-								rightChild.setMerged(true);
+								rightChild.setMerged();
 								addOp.apply(context);
 							}
 						} else {
@@ -290,7 +290,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						// add the right change
 						AddOperation<T> addOp = new AddOperation<>(rightChild,
 								target);
-						rightChild.setMerged(true);
+						rightChild.setMerged();
 						addOp.apply(context);
 					}
 				}
@@ -330,8 +330,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 					MergeOperation<T> mergeOp = new MergeOperation<>(
 							childTriple, targetChild);
 
-					leftChild.setMerged(true);
-					rightChild.setMerged(true);
+					leftChild.setMerged();
+					rightChild.setMerged();
 					mergeOp.apply(context);
 				}
 

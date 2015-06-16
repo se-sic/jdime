@@ -102,8 +102,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (triple.getBase() instanceof FileArtifact);
 		assert (triple.getRight() instanceof FileArtifact);
 		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
+		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple.getBase().isEmpty());
 		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
 
 		context.resetStreams();
@@ -308,7 +307,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		StringBuilder sb = new StringBuilder();
 
 		for (String line : lines) {
-			sb.append(line + System.lineSeparator());
+			sb.append(line);
+			sb.append(System.lineSeparator());
 		}
 
 		return sb.toString();

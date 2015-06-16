@@ -257,7 +257,7 @@ public class ASTStats {
 	 * @param diffstats
 	 *            the diffstats to set
 	 */
-	public final void
+	private void
 			setDiffstats(final HashMap<String, StatsElement> diffstats) {
 		this.diffstats = diffstats;
 	}
@@ -297,11 +297,11 @@ public class ASTStats {
 	 * @param fragments
 	 *            the fragments to set
 	 */
-	public void setFragments(int fragments) {
+	private void setFragments(int fragments) {
 		this.fragments = fragments;
 	}
 
-	public double getAvgFragmentSize() {
+	private double getAvgFragmentSize() {
 		return fragments == 0 ? 0.0 : (double) diffstats.get(
 				LangElem.NODE.toString()).getChanges()
 				/ (double) fragments;
@@ -331,7 +331,7 @@ public class ASTStats {
 		String[][] absolute = new String[6][7];
 		String[][] relative = new String[6][7];
 		String[] csvHead = new String[36];
-		String[] csv = new String[36];;
+		String[] csv = new String[36];
 		int[] sum = new int[5];
 		int i = 0;
 		int j = 0;

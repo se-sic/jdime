@@ -66,5 +66,5 @@ public enum LangElem {
 	/**
 	 * A method.
 	 */
-	METHOD;
+	METHOD
 }

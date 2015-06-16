@@ -82,6 +82,6 @@ public class Revision {
 	 * @return true if the artifact is contained in this revision
 	 */
 	public final boolean contains(final Artifact<?> artifact) {
-		return artifact == null ? false : artifact.hasMatching(this);
+		return artifact != null && artifact.hasMatching(this);
 	}
 }

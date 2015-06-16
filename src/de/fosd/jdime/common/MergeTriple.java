@@ -120,7 +120,7 @@ public class MergeTriple<T extends Artifact<T>> {
 				&& base != null
 				&& right != null
 				&& left.getClass().equals(right.getClass())
-				&& (base.isEmptyDummy() || base.getClass().equals(
+				&& (base.isEmpty() || base.getClass().equals(
 						left.getClass()));
 	}
 
@@ -185,11 +185,11 @@ public class MergeTriple<T extends Artifact<T>> {
 	 *            do not print dummy files if true
 	 * @return String representation
 	 */
-	public final String toString(final String sep, final boolean humanReadable) {
+	private String toString(final String sep, final boolean humanReadable) {
 		StringBuilder sb = new StringBuilder("");
 		sb.append(left.getId()).append(sep);
 
-		if (!humanReadable || !base.isEmptyDummy()) {
+		if (!humanReadable || !base.isEmpty()) {
 			sb.append(base.getId()).append(sep);
 		}
 
