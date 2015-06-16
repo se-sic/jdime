@@ -185,7 +185,7 @@ public class MergeTriple<T extends Artifact<T>> {
 	 *            do not print dummy files if true
 	 * @return String representation
 	 */
-	public final String toString(final String sep, final boolean humanReadable) {
+	private String toString(final String sep, final boolean humanReadable) {
 		StringBuilder sb = new StringBuilder("");
 		sb.append(left.getId()).append(sep);
 

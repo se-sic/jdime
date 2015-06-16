@@ -77,12 +77,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Left side of a conflict.
 	 */
-	protected T left = null;
+	T left = null;
 
 	/**
 	 * Right side of a conflict.
 	 */
-	protected T right = null;
+	T right = null;
 
 	/**
 	 * Whether this artifact represents a conflict.
@@ -92,7 +92,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	/**
 	 * Map to store matches.
 	 */
-	protected LinkedHashMap<Revision, Matching<T>> matches = null;
+	LinkedHashMap<Revision, Matching<T>> matches = null;
 
 	/**
 	 * Whether the artifact has been already merged.
@@ -469,7 +469,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *
 	 * FIXME: can this somehow be done in the constructors so we can get rid of this method?
 	 */
-	public abstract void initializeChildren();
+	protected abstract void initializeChildren();
 
 	/**
 	 * Returns true if the <code>Artifact</code> is a conflict node.
@@ -570,7 +570,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param right
 	 *            right alternative
 	 */
-	protected final void setConflict(final T left, final T right) {
+	final void setConflict(final T left, final T right) {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
@@ -598,7 +598,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param parent
 	 *            the parent to set
 	 */
-	public final void setParent(final T parent) {
+	final void setParent(final T parent) {
 		this.parent = parent;
 	}
 

@@ -114,14 +114,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
 	 * Constructor class.
 	 */
-	public ASTNodeArtifact() {
+	private ASTNodeArtifact() {
 	}
 
 	/**
 	 * @param astnode
 	 *            astnode
 	 */
-	public ASTNodeArtifact(final ASTNode<?> astnode) {
+	private ASTNodeArtifact(final ASTNode<?> astnode) {
 		assert (astnode != null);
 		this.astnode = astnode;
 	}
@@ -255,7 +255,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
      *
      */
-	public final void deleteChildren() {
+	private void deleteChildren() {
 		while (hasChildren()) {
 			ASTNodeArtifact child = getChild(0);
 			child.astnode = null;
@@ -616,7 +616,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @param child
 	 *            child that should be removed
 	 */
-	public final void removeChild(final ASTNodeArtifact child) {
+	private void removeChild(final ASTNodeArtifact child) {
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("[" + getId() + "] removing child " + child.getId());
 			LOG.trace("children before removal: " + getChildren());
@@ -655,7 +655,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * Rebuild the encapsulated ASTNode tree top down. This should be only
 	 * called at the root node
 	 */
-	public final void rebuildAST() {
+	private void rebuildAST() {
 
 		if (isConflict()) {
 			astnode.isConflict = true;

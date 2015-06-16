@@ -493,7 +493,7 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	@SuppressWarnings("unchecked")
-	public static void dumpTrees(final MergeContext context) throws IOException {
+	private static void dumpTrees(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();
@@ -510,7 +510,7 @@ public final class Main {
 	 *             If an input output exception occurs
 	 */
 	@SuppressWarnings("unchecked")
-	public static void dumpFiles(final MergeContext context) throws IOException {
+	private static void dumpFiles(final MergeContext context) throws IOException {
 		for (FileArtifact artifact : context.getInputFiles()) {
 			MergeStrategy<FileArtifact> strategy =
 					(MergeStrategy<FileArtifact>) context.getMergeStrategy();

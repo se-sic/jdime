@@ -55,7 +55,7 @@ public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 	 *
 	 * @return a string representation of this collection
 	 */
-	public String toString(String separator) {
+	private String toString(String separator) {
 		assert (separator != null);
 
 		StringBuilder sb = new StringBuilder("");
