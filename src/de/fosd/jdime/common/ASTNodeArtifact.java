@@ -576,11 +576,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			boolean rightChanges = right.isChange();
 
 			for (int i = 0; !leftChanges && i < left.getNumChildren(); i++) {
-				leftChanges = !left.getChild(i).isChange();
+				leftChanges = left.getChild(i).isChange();
 			}
 
 			for (int i = 0; !rightChanges && i < right.getNumChildren(); i++) {
-				rightChanges = !right.getChild(i).isChange();
+				rightChanges = right.getChild(i).isChange();
 			}
 
 			if (leftChanges && rightChanges) {
