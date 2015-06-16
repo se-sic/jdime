@@ -53,8 +53,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 	/**
 	 * TODO: this needs high-level documentation. Probably also detailed documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException

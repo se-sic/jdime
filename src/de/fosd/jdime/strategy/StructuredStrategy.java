@@ -62,8 +62,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 *
 	 * TODO: more high-level documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 */
 	@Override
 	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {

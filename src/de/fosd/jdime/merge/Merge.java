@@ -56,8 +56,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 	/**
 	 * TODO: this needs high-level explanation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 *
 	 * @throws IOException
 	 * @throws InterruptedException
