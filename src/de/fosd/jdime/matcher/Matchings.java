@@ -3,15 +3,7 @@ package de.fosd.jdime.matcher;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -68,7 +60,25 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 	 * @return optionally the <code>Matching</code> matching the given <code>artifacts</code>
 	 */
 	public Optional<Matching<T>> get(T left, T right) {
-		return get(UnorderedTuple.of(left, right));
+		if (left.isChoice()) {
+			/* FIXME: I know this is ugly but I can't think of a better way right now.
+			 *
+			 * We have to find the variant that actually matched, as the choice node itself cannot be found
+			 * in any of the Matchings.
+			 */
+
+			for (T variant: left.getVariants().values()) {
+				try {
+					Matching<T> m = get(variant, right).get();
+					return Optional.of(new Matching<>(left, right, m.getScore()));
+				} catch (NoSuchElementException e) {
+				}
+			}
+
+			return null;
+		} else {
+			return get(UnorderedTuple.of(left, right));
+		}
 	}
 
 	/**
