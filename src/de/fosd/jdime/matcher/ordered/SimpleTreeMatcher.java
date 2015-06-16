@@ -64,7 +64,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 	 */
 	@Override
 	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-		String id = ClassUtils.getSimpleName(getClass());
+		String id = getClass().getSimpleName();
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
