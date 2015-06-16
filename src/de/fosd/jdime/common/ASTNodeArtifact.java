@@ -114,14 +114,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
 	 * Constructor class.
 	 */
-	public ASTNodeArtifact() {
+	private ASTNodeArtifact() {
 	}
 
 	/**
 	 * @param astnode
 	 *            astnode
 	 */
-	public ASTNodeArtifact(final ASTNode<?> astnode) {
+	private ASTNodeArtifact(final ASTNode<?> astnode) {
 		assert (astnode != null);
 		this.astnode = astnode;
 	}
@@ -138,9 +138,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		setRevision(artifact.getRevision());
 
 		ASTNode<?> astnode;
-		if (artifact.isEmptyDummy()) {
+		if (artifact.isEmpty()) {
 			astnode = new ASTNode<>();
-			setEmpty(true);
 		} else {
 			Program p = initProgram();
 			p.addSourceFile(artifact.getPath());
@@ -148,7 +147,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		this.astnode = astnode;
-		renumber(1, this);
+		renumberTree();
 	}
 
 	/**
@@ -249,7 +248,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			throws FileNotFoundException {
 		ASTNodeArtifact dummy = new ASTNodeArtifact();
 		dummy.astnode = new ASTNode<>();
-		dummy.setEmpty(true);
 		dummy.setRevision(getRevision());
 		return dummy;
 	}
@@ -257,7 +255,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/**
      *
      */
-	public final void deleteChildren() {
+	private void deleteChildren() {
 		while (hasChildren()) {
 			ASTNodeArtifact child = getChild(0);
 			child.astnode = null;
@@ -574,8 +572,16 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		if (!isRoot() && numChildNoTransform > 0) {
 		
 			// this language element has a fixed number of children, we need to be careful with this one
-			boolean leftChanges = left.hasChanges(false);
-			boolean rightChanges = right.hasChanges(false);
+			boolean leftChanges = left.isChange();
+			boolean rightChanges = right.isChange();
+
+			for (int i = 0; !leftChanges && i < left.getNumChildren(); i++) {
+				leftChanges = !left.getChild(i).isChange();
+			}
+
+			for (int i = 0; !rightChanges && i < right.getNumChildren(); i++) {
+				rightChanges = !right.getChild(i).isChange();
+			}
 
 			if (leftChanges && rightChanges) {
 				
@@ -610,7 +616,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @param child
 	 *            child that should be removed
 	 */
-	public final void removeChild(final ASTNodeArtifact child) {
+	private void removeChild(final ASTNodeArtifact child) {
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("[" + getId() + "] removing child " + child.getId());
 			LOG.trace("children before removal: " + getChildren());
@@ -649,7 +655,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * Rebuild the encapsulated ASTNode tree top down. This should be only
 	 * called at the root node
 	 */
-	public final void rebuildAST() {
+	private void rebuildAST() {
 
 		if (isConflict()) {
 			astnode.isConflict = true;
@@ -697,8 +703,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right)
-			throws FileNotFoundException {
+	public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
 		ASTNodeArtifact conflict = left != null
 				? new ASTNodeArtifact(left.astnode.fullCopy())
 				: new ASTNodeArtifact(right.astnode.fullCopy());
@@ -813,6 +818,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			stats.incrementFragments();
 		}
 
+		/*
+		This is a rather mean hack.
+
+		Basically the loop does sanity checks.
+		While benchmarking, I switch asserts off and the code will not be executed to save time.
+		*/
 		boolean assertsEnabled = false;
 		assert assertsEnabled = true;
 		if (assertsEnabled) {

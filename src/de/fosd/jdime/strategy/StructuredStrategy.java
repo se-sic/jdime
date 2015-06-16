@@ -62,8 +62,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 	 *
 	 * TODO: more high-level documentation.
 	 *
-	 * @param operation
-	 * @param context
+	 * @param operation the <code>MergeOperation</code> to perform
+	 * @param context the <code>MergeContext</code>
 	 */
 	@Override
 	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
@@ -84,7 +84,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		String rPath = rightFile.getPath();
 		
 		assert (leftFile.exists() && !leftFile.isDirectory());
-		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmptyDummy());
+		assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmpty());
 		assert (rightFile.exists() && !rightFile.isDirectory());
 
 		context.resetStreams();
@@ -148,14 +148,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				right = new ASTNodeArtifact(rightFile);
 
 				context.addElements(left);
-				if (!baseFile.isEmptyDummy()) {
+				if (!baseFile.isEmpty()) {
 					context.addElements(base);
 				}
 				context.addElements(right);
 
 				ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 				targetNode.setRevision(left.getRevision());
-				targetNode.forceRenumbering();
+				targetNode.renumberTree();
 
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("target.dumpTree(:");
