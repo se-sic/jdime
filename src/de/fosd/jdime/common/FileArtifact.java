@@ -150,10 +150,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 		assert (getClass().equals(child.getClass())) : "Can only add children of same type";
 
-		FileArtifact myChild = new FileArtifact(getRevision(), new File(file
+		return new FileArtifact(getRevision(), new File(file
 				+ File.separator + child), false);
-
-		return myChild;
 	}
 
 	@Override
