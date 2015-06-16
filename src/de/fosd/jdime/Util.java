@@ -1,9 +1,7 @@
 package de.fosd.jdime;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Contains static utility methods.

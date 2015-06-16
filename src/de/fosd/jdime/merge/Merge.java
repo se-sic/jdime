@@ -32,7 +32,6 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
