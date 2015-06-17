@@ -24,6 +24,8 @@
 package de.fosd.jdime.common;
 
 import de.fosd.jdime.common.operations.MergeOperation;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import java.util.LinkedHashMap;
  * @author Olaf Lessenich
  */
 public class MergeScenario<T extends Artifact<T>> {
+	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeScenario.class));
 
 	/**
 	 * Type of merge.
@@ -70,8 +73,11 @@ public class MergeScenario<T extends Artifact<T>> {
 			right.setRevision(rightRev);
 		}
 
+		LOG.trace("artifacts.put(" + left.getId() + ")");
 		this.artifacts.put(left.getRevision(), left);
+		LOG.trace("artifacts.put(" + base.getId() + ")");
 		this.artifacts.put(base.getRevision(), base);
+		LOG.trace("artifacts.put(" + right.getId() + ")");
 		this.artifacts.put(right.getRevision(), right);
 	}
 
@@ -86,12 +92,25 @@ public class MergeScenario<T extends Artifact<T>> {
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
+
+			LOG.trace("artifacts.put(" + artifact.getId() + ")");
 			artifacts.put(artifact.getRevision(), artifact);
 		}
 	}
 
 	private final T get(int position) {
 		int i = 0;
+
+		if (LOG.isTraceEnabled()) {
+			i++;
+			LOG.trace("Mergescenario.artifacts:");
+
+			for (Revision rev : artifacts.keySet()) {
+				LOG.trace("[" + i + "] " + artifacts.get(rev).getId());
+			}
+		}
+
+		i = 0;
 
 		for (Revision rev : artifacts.keySet()) {
 			i++;
@@ -110,7 +129,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final T getBase() {
 		try {
-			return artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
+			T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
+			LOG.trace("scenario.getBase() returns " + base.getId());
+			return base;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -123,7 +144,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the leftRev
 	 */
 	public final T getLeft() {
-		return get(1);
+		T left = get(1);
+		LOG.trace("scenario.getLeft() returns " + left.getId());
+		return left;
 	}
 
 	/**
@@ -141,7 +164,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 * @return the rightRev
 	 */
 	public final T getRight() {
-		return artifacts.size() == 3 ? get(3) : get(2);
+		T right = artifacts.size() == 3 ? get(3) : get(2);
+		LOG.trace("scenario.getRight() returns " + right.getId());
+		return right;
 	}
 
 	/**
