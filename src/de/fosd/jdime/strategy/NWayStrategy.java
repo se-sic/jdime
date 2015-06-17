@@ -110,6 +110,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
 			try {
 				mergeContext = context;
+				mergeContext.resetStreams();
 
 				long cmdStart = System.currentTimeMillis();
 
