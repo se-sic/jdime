@@ -78,6 +78,7 @@ public final class Main {
 	public static final Config config;
 
 	static {
+		setLogLevel("WARN");
 		config = new Config();
 		config.addSource(new SysEnvConfigSource(1));
 
@@ -96,7 +97,6 @@ public final class Main {
 	public static void main(final String[] args) throws IOException, ParseException, InterruptedException {
 		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
-		setLogLevel("INFO");
 
 		//try {
 			if (!parseCommandLineArgs(context, args)) {

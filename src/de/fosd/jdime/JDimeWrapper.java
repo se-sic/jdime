@@ -27,7 +27,7 @@ public class JDimeWrapper {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// setup log4j (otherwise we will drown in debug output)
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.INFO);
+		Logger.getRootLogger().setLevel(Level.WARN);
 
 		// setup JDime using the MergeContext
 		MergeContext context = new MergeContext();
@@ -57,21 +57,19 @@ public class JDimeWrapper {
 		MergeStrategy<FileArtifact> structured = new StructuredStrategy();
 		MergeStrategy<FileArtifact> conditional = new NWayStrategy();
 
-		// create the merge operation
-		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
-
 		// run the merge first with structured strategy to see whether there are conflicts
 		context.setMergeStrategy(structured);
-		context.setQuiet(true);
 		context.setSaveStats(true);
+		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
 		merge.apply(context);
 
 		// if there are no conflicts, run the conditional strategy
 		if (context.getStats().getConflicts() == 0) {
 			context = (MergeContext) context.clone();
 			context.setMergeStrategy(conditional);
-			context.setQuiet(false);
 			context.setSaveStats(false);
+			// we have to recreate the operation because now we will do a conditional merge
+			merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
 			merge.apply(context);
 		}
 	}

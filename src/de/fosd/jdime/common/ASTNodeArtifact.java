@@ -146,7 +146,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		this.astnode = astnode;
 		renumberTree();
 
-		LOG.trace("created new ASTNodeArtifact for revision " + getRevision());
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("created new ASTNodeArtifact for revision " + getRevision());
+		}
 	}
 
 	/**
@@ -422,8 +424,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			if (hasMatches()) {
 				assert (m != null);
-				LOG.trace(m);
-				LOG.trace("Matching artifacts: " + m.getMatchingArtifact(this));
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(m);
+					LOG.trace("Matching artifacts: " + m.getMatchingArtifact(this));
+				}
 				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
 				sb.append(Color.DEFAULT.toShell());
 			}

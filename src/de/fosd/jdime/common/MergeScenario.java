@@ -73,11 +73,14 @@ public class MergeScenario<T extends Artifact<T>> {
 			right.setRevision(rightRev);
 		}
 
-		LOG.trace("artifacts.put(" + left.getId() + ")");
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("artifacts.put(" + left.getId() + ")");
+			LOG.trace("artifacts.put(" + base.getId() + ")");
+			LOG.trace("artifacts.put(" + right.getId() + ")");
+		}
+
 		this.artifacts.put(left.getRevision(), left);
-		LOG.trace("artifacts.put(" + base.getId() + ")");
 		this.artifacts.put(base.getRevision(), base);
-		LOG.trace("artifacts.put(" + right.getId() + ")");
 		this.artifacts.put(right.getRevision(), right);
 	}
 
@@ -92,8 +95,9 @@ public class MergeScenario<T extends Artifact<T>> {
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
-
-			LOG.trace("artifacts.put(" + artifact.getId() + ")");
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("artifacts.put(" + artifact.getId() + ")");
+			}
 			artifacts.put(artifact.getRevision(), artifact);
 		}
 	}
@@ -108,9 +112,9 @@ public class MergeScenario<T extends Artifact<T>> {
 			for (Revision rev : artifacts.keySet()) {
 				LOG.trace("[" + i + "] " + artifacts.get(rev).getId());
 			}
-		}
 
-		i = 0;
+			i = 0;
+		}
 
 		for (Revision rev : artifacts.keySet()) {
 			i++;
@@ -130,7 +134,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	public final T getBase() {
 		try {
 			T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-			LOG.trace("scenario.getBase() returns " + base.getId());
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("scenario.getBase() returns " + base.getId());
+			}
 			return base;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -145,7 +151,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final T getLeft() {
 		T left = get(1);
-		LOG.trace("scenario.getLeft() returns " + left.getId());
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("scenario.getLeft() returns " + left.getId());
+		}
 		return left;
 	}
 
@@ -165,7 +173,9 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final T getRight() {
 		T right = artifacts.size() == 3 ? get(3) : get(2);
-		LOG.trace("scenario.getRight() returns " + right.getId());
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("scenario.getRight() returns " + right.getId());
+		}
 		return right;
 	}
 
