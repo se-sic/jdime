@@ -169,6 +169,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
 			throws IOException {
+
 		if (child.isConflict() || child.isChoice()) {
 			child.setParent(this);
 			children.add(child);
@@ -946,5 +947,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 		
 		return elements;
+	}
+
+	/**
+	 * Returns whether the <code>ASTNodeArtifact</code> is a method declaration.
+	 * @return true if the <code>ASTNodeArtifact</code> is a method declaration
+	 */
+	private boolean isMethod() {
+		return astnode instanceof MethodDecl;
+	}
+
+	/**
+	 * Returns whether the <code>ASTNodeArtifact</code> is within a method.
+	 * @return true if the <code>ASTNodeArtifact</code> is within a method
+	 */
+	public boolean isWithinMethod() {
+		ASTNodeArtifact parent = getParent();
+		LOG.trace(getId());
+		return parent != null && (parent.isMethod() || parent.isWithinMethod());
 	}
 }
