@@ -81,6 +81,11 @@ public class MergeContext implements Cloneable {
 	private boolean conditionalMerge = false;
 
 	/**
+	 * Whether conditional merge should be performed outside of methods.
+	 */
+	private boolean conditionalOutsideMethods = true;
+
+	/**
 	 * Whether to run only the diff.
 	 */
 	private boolean diffOnly = false;
@@ -635,14 +640,14 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
-	 * @return the consecutive
+	 * @return whether consecutive diffing
 	 */
 	public final boolean isConsecutive() {
 		return consecutive;
 	}
 
 	/**
-	 * @param consecutive the consecutive to set
+	 * @param consecutive consecutive diffing
 	 */
 	public final void setConsecutive(final boolean consecutive) {
 		this.consecutive = consecutive;
@@ -653,6 +658,13 @@ public class MergeContext implements Cloneable {
 	 */
 	public boolean isConditionalMerge() {
 		return conditionalMerge;
+	}
+
+	/**
+	 * Whether merge inserts choice nodes instead of direct merging of artifact.
+	 */
+	public boolean isConditionalMerge(Artifact artifact) {
+		return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
 	}
 
 	public void setConditionalMerge(boolean conditionalMerge) {
@@ -758,5 +770,23 @@ public class MergeContext implements Cloneable {
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public List<Tuple<String, Double>> getSkippedElements() {
 		return skippedElements;
+	}
+
+	/**
+	 * Returns whether conditional merging is used outside of methods.
+	 *
+	 * @return true if conditional merging is used outside of methods
+	 */
+	public boolean isConditionalOutsideMethods() {
+		return conditionalOutsideMethods;
+	}
+
+	/**
+	 * Sets whether conditional merging is used outside of methods.
+	 *
+	 * @param conditionalOutsideMethods use conditional merging outside of methods
+	 */
+	public void setConditionalOutsideMethods(boolean conditionalOutsideMethods) {
+		this.conditionalOutsideMethods = conditionalOutsideMethods;
 	}
 }

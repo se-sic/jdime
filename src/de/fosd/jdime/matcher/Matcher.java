@@ -89,6 +89,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 	@Override
 	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 
+		if (left.isConflict()) {
+			return Matchings.of(left, right, 0);
+		}
+
 		if (left.isChoice()) {
 			// We have to split the choice node into its variants and create a matching for each one.
 			// The highest matching is returned.

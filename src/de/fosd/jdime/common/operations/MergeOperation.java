@@ -172,7 +172,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
 	@Override
 	public void apply(MergeContext context) throws IOException, InterruptedException {
-		if (!context.isConditionalMerge()) {
+		if (!context.isConditionalMerge(mergeScenario.getLeft())) {
 			assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
 			assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
 			assert (mergeScenario.getBase().isEmpty() || mergeScenario.getBase().exists()) :

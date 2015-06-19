@@ -92,7 +92,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
-		if (context.isConditionalMerge() && condition != null) {
+		if (context.isConditionalMerge(artifact) && condition != null) {
 			// we need to insert a choice node
 			T choice = target.createChoiceDummy(condition, artifact);
 			assert (choice.isChoice());
