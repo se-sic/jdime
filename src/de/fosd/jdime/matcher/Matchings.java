@@ -1,5 +1,6 @@
 package de.fosd.jdime.matcher;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
 
@@ -39,19 +40,41 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 
 	/**
 	 * Optionally returns the <code>Matching</code> matching the given <code>Artifact</code>s if there is such a
-	 * <code>Matching</code> in the <code>Set</code>.
+	 * <code>Matching</code> in the <code>Set</code>. If <code>left</code> is a choice node then the first
+	 * matching of a variant of <code>left</code> and <code>right</code> is returned.
 	 *
 	 * @param artifacts
 	 * 		the <code>Artifact</code>s whose <code>Matching</code> is to be returned
 	 * @return optionally the <code>Matching</code> matching the given <code>artifacts</code>
 	 */
 	public Optional<Matching<T>> get(UnorderedTuple<T, T> artifacts) {
+		T left = artifacts.getX();
+		T right = artifacts.getY();
+
+		if (left.isChoice()) {
+
+			for (T variant : left.getVariants().values()) {
+				Optional<Matching<T>> m = get(variant, right);
+
+				if (m.isPresent()) {
+					Matching<T> matching = m.get();
+					Matching<T> variantMatching = new Matching<>(left, right, matching.getScore());
+					variantMatching.setAlgorithm(matching.getAlgorithm());
+
+					return Optional.of(variantMatching);
+				}
+			}
+
+			return Optional.empty();
+		}
+
 		return stream().filter(matching -> matching.getMatchedArtifacts().equals(artifacts)).findFirst();
 	}
 
 	/**
 	 * Optionally returns the <code>Matching</code> matching the given <code>Artifact</code>s if there is such a
-	 * <code>Matching</code> in the <code>Set</code>.
+	 * <code>Matching</code> in the <code>Set</code>. If <code>left</code> is a choice node then the first
+	 * matching of a variant of <code>left</code> and <code>right</code> is returned.
 	 *
 	 * @param left
 	 * 		the left <code>Artifact</code> of the <code>Matching</code>
@@ -60,25 +83,7 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 	 * @return optionally the <code>Matching</code> matching the given <code>artifacts</code>
 	 */
 	public Optional<Matching<T>> get(T left, T right) {
-		if (left.isChoice()) {
-			/* FIXME: I know this is ugly but I can't think of a better way right now.
-			 *
-			 * We have to find the variant that actually matched, as the choice node itself cannot be found
-			 * in any of the Matchings.
-			 */
-
-			for (T variant: left.getVariants().values()) {
-				try {
-					Matching<T> m = get(variant, right).get();
-					return Optional.of(new Matching<>(left, right, m.getScore()));
-				} catch (NoSuchElementException e) {
-				}
-			}
-
-			return null;
-		} else {
-			return get(UnorderedTuple.of(left, right));
-		}
+		return get(UnorderedTuple.of(left, right));
 	}
 
 	/**
