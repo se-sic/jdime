@@ -1,6 +1,5 @@
 package de.fosd.jdime.matcher;
 
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
 
