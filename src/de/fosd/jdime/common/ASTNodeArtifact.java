@@ -231,16 +231,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see de.fosd.jdime.common.Artifact#createArtifact(boolean)
-	 */
-	@Override
-	public final void createArtifact(final boolean isLeaf) throws IOException {
-		// TODO Auto-generated method stub
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see de.fosd.jdime.common.Artifact#createEmptyArtifact()
 	 */
 	@Override

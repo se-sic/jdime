@@ -40,11 +40,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
-	public void createArtifact(boolean isLeaf) throws IOException {
-
-	}
-
-	@Override
 	public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
 		return null;
 	}
