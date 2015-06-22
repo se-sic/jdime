@@ -79,10 +79,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @throws IllegalArgumentException
 	 * 		if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeTriple</code> according to
 	 * 		{@link MergeTriple#isValid()}
-	 * @throws FileNotFoundException
+	 * @throws IOException
 	 * 		if the dummy file used as BaseArtifact in a two-way-merge can not be created
 	 */
-	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws FileNotFoundException {
+	public MergeOperation(ArtifactList<T> inputArtifacts, T target) throws IOException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 
 		this.target = target;
@@ -152,7 +152,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (target != null && !target.exists()) {
-			target.createArtifact(mergeTriple.getLeft().isLeaf());
+			assert (target.exists());
 		}
 
 		mergeTriple.getLeft().merge(this, context);

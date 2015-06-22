@@ -40,10 +40,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class represents an artifact of a program.
@@ -82,10 +79,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * @param file
 	 * 		the <code>File</code> in which the artifact is stored
 	 *
-	 * @throws FileNotFoundException
-	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
+	 *
+	 * @throws IOException
+	 * 		if does not exist according to {@link java.io.File#exists()} or cannot be created.
 	 */
-	public FileArtifact(File file) throws FileNotFoundException {
+	public FileArtifact(File file) throws IOException {
 		this(null, file);
 	}
 
@@ -97,11 +95,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * @param file
 	 * 		the <code>File</code> in which the artifact is stored
 	 *
-	 * @throws FileNotFoundException
-	 * 		if <code>file</code> does not exist according to {@link java.io.File#exists()}
+	 * @throws IOException
+	 * 		if does not exist according to {@link java.io.File#exists()} or cannot be created.
 	 */
-	public FileArtifact(Revision revision, File file) throws FileNotFoundException {
-		this(revision, file, true);
+	public FileArtifact(Revision revision, File file) throws IOException {
+		this(revision, file, false, null);
 	}
 
 	/**
@@ -111,19 +109,47 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * 		the <code>Revision</code> the artifact belongs to
 	 * @param file
 	 * 		the <code>File</code> in which the artifact is stored
-	 * @param checkExistence
-	 * 		whether to ensure that <code>file</code> exists
+	 * @param createIfNonexistent
+	 * 		whether to create that <code>file</code> if it does not exist
+	 * @param isLeaf
+	 *      if true, a leaf type artifact will be created
 	 *
-	 * @throws FileNotFoundException
-	 * 		if <code>checkExistence</code> is <code>true</code> and <code>file</code> does not exist according to {@link
-	 * 		java.io.File#exists()}
+	 * @throws IOException
+	 * 		if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to {@link
+	 * 		java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but <code>file</code>
+	 * 		cannot be created.
 	 */
-	public FileArtifact(Revision revision, File file, boolean checkExistence) throws FileNotFoundException {
+	public FileArtifact(Revision revision, File file, boolean createIfNonexistent, Boolean isLeaf) throws IOException {
 		assert file != null;
 
-		if (checkExistence && !file.exists()) {
-			LOG.fatal("File not found: " + file.getAbsolutePath());
-			throw new FileNotFoundException();
+		if (!file.exists()) {
+			if (createIfNonexistent) {
+				if (file.getParentFile() != null) {
+					boolean createdParents = file.getParentFile().mkdirs();
+
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Had to create parent directories: " + createdParents);
+					}
+				}
+
+				if (isLeaf) {
+					file.createNewFile();
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Created file" + file);
+					}
+				} else {
+					file.mkdir();
+					if (LOG.isTraceEnabled()) {
+						LOG.trace("Created directory " + file);
+					}
+
+				}
+
+				assert (exists());
+			} else {
+				LOG.fatal("File not found: " + file.getAbsolutePath());
+				throw new FileNotFoundException();
+			}
 		}
 
 		setRevision(revision);
@@ -150,8 +176,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 		assert (getClass().equals(child.getClass())) : "Can only add children of same type";
 
-		return new FileArtifact(getRevision(), new File(file
-				+ File.separator + child), false);
+		return new FileArtifact(getRevision(), new File(file + File.separator + child), false, null);
 	}
 
 	@Override
@@ -212,42 +237,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public final void createArtifact(final boolean isLeaf) throws IOException {
-
-		// assert (!artifact.exists() || Main.isForceOverwriting())
-		// : "File would be overwritten: " + artifact;
-		//
-		// if (artifact.exists()) {
-		// Artifact.remove(artifact);
-		// }
-		assert (!exists()) : "File would be overwritten: " + this;
-
-		if (file.getParentFile() != null) {
-			boolean createdParents = file.getParentFile().mkdirs();
-
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Had to create parent directories: " + createdParents);
-			}
-		}
-
-		if (isLeaf) {
-			file.createNewFile();
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Created file" + file);
-			}
-		} else {
-			file.mkdir();
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Created directory " + file);
-			}
-
-		}
-
-		assert (exists());
-	}
-
-	@Override
-	public final FileArtifact createEmptyArtifact() throws FileNotFoundException {
+	public final FileArtifact createEmptyArtifact() throws IOException {
 		File tempFile;
 
 		try {
@@ -359,7 +349,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 *
 	 * @return list of artifacts contained in this directory
 	 */
-	public final ArtifactList<FileArtifact> getDirContent() {
+	public final ArtifactList<FileArtifact> getDirContent() throws IOException {
 		assert (isDirectory());
 
 		ArtifactList<FileArtifact> contentArtifacts = new ArtifactList<>();
@@ -486,7 +476,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (exists());
 
 		if (isDirectory()) {
-			setChildren(getDirContent());
+			try {
+				setChildren(getDirContent());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			setChildren(null);
 		}
