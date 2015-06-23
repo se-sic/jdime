@@ -511,7 +511,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			LOG.debug("Using strategy: " + astNodeStrategy);
 		}
 
-		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+		MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
 		ASTNodeArtifact left = triple.getLeft();
 		ASTNodeArtifact right = triple.getRight();
 		ASTNodeArtifact target = operation.getTarget();

@@ -60,7 +60,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 			final MergeContext context) throws IOException,
 			InterruptedException {
 
-		MergeTriple<T> triple = operation.getMergeTriple();
+		MergeScenario<T> triple = operation.getMergeScenario();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
@@ -344,7 +344,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 						targetChild.deleteChildren();
 					}
 
-					MergeTriple<T> childTriple = new MergeTriple<>(childType,
+					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftChild, baseChild, rightChild);
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(

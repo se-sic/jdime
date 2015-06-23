@@ -72,7 +72,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		if (LOG.isInfoEnabled()) {
-			MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+			MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 			assert (triple != null);
 			assert (triple.isValid()) : "The merge triple is not valid!";
 			LOG.info("Merging: " + triple.getLeft().getPath() + " "

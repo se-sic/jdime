@@ -22,11 +22,8 @@
  */
 package de.fosd.jdime.merge;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
@@ -66,7 +63,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 		assert (operation != null);
 		assert (context != null);
 
-		MergeTriple<T> triple = operation.getMergeTriple();
+		MergeScenario<T> triple = operation.getMergeScenario();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
@@ -231,7 +228,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						targetChild.deleteChildren();
 					}
 
-					MergeTriple<T> childTriple = new MergeTriple<>(childType,
+					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftChild, baseChild, rightMatch);
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(
@@ -266,7 +263,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						targetChild.deleteChildren();
 					}
 
-					MergeTriple<T> childTriple = new MergeTriple<>(childType,
+					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftMatch, baseChild, rightChild);
 
 					MergeOperation<T> mergeOp = new MergeOperation<>(
