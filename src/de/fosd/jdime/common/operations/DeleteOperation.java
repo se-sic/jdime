@@ -96,7 +96,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 			// we need to insert a choice node
 			T choice = target.createChoiceDummy(condition, artifact);
 			assert (choice.isChoice());
-			choice.copyArtifact(target);
+			target.addChild(choice);
 		} else {
 			// Nothing to do :-)
 			//

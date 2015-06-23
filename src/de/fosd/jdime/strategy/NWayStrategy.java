@@ -115,7 +115,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 				long cmdStart = System.currentTimeMillis();
 
 				targetNode = ASTNodeArtifact.createProgram(merged);
-				targetNode.setRevision(merged.getRevision());
+				targetNode.setRevision(merged.getRevision(), true);
 				targetNode.renumberTree();
 
 				if (LOG.isTraceEnabled()) {

@@ -94,7 +94,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (artifact.isChoice()) {
-			artifact.copyArtifact(target);
+			target.addChild(artifact);
 			return;
 		}
 
@@ -104,7 +104,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 			if (context.isConditionalMerge(artifact) && condition != null) {
 				T choice = target.createChoiceDummy(condition, artifact);
 				assert (choice.isChoice());
-				choice.copyArtifact(target);
 				target.addChild(choice);
 			} else {
 				LOG.debug("no conditions");
