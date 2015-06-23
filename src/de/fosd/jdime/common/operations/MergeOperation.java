@@ -86,11 +86,11 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 	 * @throws IllegalArgumentException
 	 * 		if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
 	 * 		{@link MergeScenario#isValid()}
-	 * @throws FileNotFoundException
+	 * @throws IOException
 	 * 		if the dummy file used as BaseArtifact in a two-way-merge can not be created
 	 */
 	public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
-						  String rightCondition, boolean nway) throws FileNotFoundException {
+						  String rightCondition, boolean nway) throws IOException {
 		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 
 		this.target = target;
@@ -184,12 +184,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (target != null && !target.exists()) {
-			target.createArtifact(mergeScenario.getLeft().isLeaf());
-		}
-
-		if (LOG.isTraceEnabled() && target != null && !target.isEmpty()) {
-			LOG.trace("Print target before merging:");
-			LOG.trace(target.dumpRootTree());
+			assert (target.exists());
 		}
 
 		mergeScenario.run(this, context);

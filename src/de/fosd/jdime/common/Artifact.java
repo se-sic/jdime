@@ -25,7 +25,6 @@ package de.fosd.jdime.common;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
@@ -188,16 +187,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract void copyArtifact(final T destination) throws IOException;
 
 	/**
-	 * Creates a new <code>Artifact</code>,
-	 *
-	 * @param isLeaf
-	 *            if true, a leaf type artifact will be created
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public abstract void createArtifact(boolean isLeaf) throws IOException;
-
-	/**
 	 * Returns an <code>Artifact</code> that represents a merge conflict.
 	 * A conflict contains two alternative <code>Artifact</code> (left and right) and is handled in a special way
 	 * while pretty-printed.
@@ -216,19 +205,19 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param condition presence condition
 	 * @param artifact conditional artifact
 	 * @return choice artifact
-	 * @throws FileNotFoundException If a file is not found
+	 * @throws IOException If a file is not found
 	 */
-	public abstract T createChoiceDummy(final String condition, final T artifact) throws FileNotFoundException;
+	public abstract T createChoiceDummy(final String condition, final T artifact) throws IOException;
 
 	/**
 	 * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
 	 * base <code>Artifact</code> is empty.
 	 *
 	 * @return empty <code>Artifact</code>
-	 * @throws FileNotFoundException
-	 *             If a file is not found
+	 * @throws IOException
+	 *             If a file is not found or cannot be created
 	 */
-	public abstract T createEmptyArtifact() throws FileNotFoundException;
+	public abstract T createEmptyArtifact() throws IOException;
 
 	/**
 	 * Finds the root artifact and calls <code>dumpTree()</code> on it.

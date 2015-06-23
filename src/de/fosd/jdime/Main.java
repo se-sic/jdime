@@ -304,12 +304,12 @@ public final class Main {
 				}
 			}
 
+			String outputFileName = null;
 			if (cmd.hasOption("output")) {
 				// TODO[low priority]: The default should in a later,
 				// rock-stable version be changed to be overwriting file1 so
 				// that we are compatible with gnu merge call syntax
-				context.setOutputFile(new FileArtifact(new Revision("merge"),
-						new File(cmd.getOptionValue("output")), false));
+				outputFileName = cmd.getOptionValue("output");
 			}
 
 			if (cmd.hasOption("diffonly")) {
@@ -374,6 +374,7 @@ public final class Main {
 			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
 			char cond = 'A';
+			boolean targetIsFile = true;
 
 			for (Object filename : cmd.getArgList()) {
 				try {
@@ -383,14 +384,22 @@ public final class Main {
 						newArtifact.setRevision(new Revision(String.valueOf(cond++)));
 					}
 
+					if (!targetIsFile) {
+						targetIsFile = !newArtifact.isDirectory();
+					}
+
 					inputArtifacts.add(newArtifact);
 				} catch (FileNotFoundException e) {
-					System.err.println("Input file not found: "
-							+ (String) filename);
+					System.err.println("Input file not found: " + (String) filename);
 				}
 			}
 
 			context.setInputFiles(inputArtifacts);
+
+			if (outputFileName != null) {
+				context.setOutputFile(new FileArtifact(new Revision("merge"), new File(outputFileName),
+						true, targetIsFile));
+			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
 			throw e;

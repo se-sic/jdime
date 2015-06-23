@@ -22,16 +22,14 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import de.fosd.jdime.common.*;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
 
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
@@ -117,8 +115,11 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
 				if (target != null) {
 					boolean isLeaf = target.isLeaf();
+					boolean targetExists = target.exists();
+					String targetFileName = target.getFullPath();
+
 					target.remove();
-					target.createArtifact(isLeaf);
+					target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
 				}
 
 				subContext = (MergeContext) context.clone();

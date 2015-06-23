@@ -138,7 +138,7 @@ public class MergeScenario<T extends Artifact<T>> {
 				LOG.trace("scenario.getBase() returns " + base.getId());
 			}
 			return base;
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
