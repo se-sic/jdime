@@ -225,8 +225,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 							: MergeType.THREEWAY;
 					T baseChild = mBase == null ? leftChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(leftChild);
-					T targetChild = target == null ? null : target
-							.addChild(leftChild);
+					T targetChild = target == null ? null : target.addChild((T) leftChild.clone());
+					if (targetChild != null) {
+						assert targetChild.exists();
+						targetChild.deleteChildren();
+					}
 
 					MergeTriple<T> childTriple = new MergeTriple<>(childType,
 							leftChild, baseChild, rightMatch);
@@ -257,8 +260,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 							: MergeType.THREEWAY;
 					T baseChild = mBase == null ? rightChild.createEmptyArtifact()
 							: mBase.getMatchingArtifact(rightChild);
-					T targetChild = target == null ? null : target
-							.addChild(rightChild);
+					T targetChild = target == null ? null : target.addChild((T) rightChild.clone());
+					if (targetChild != null) {
+						assert targetChild.exists();
+						targetChild.deleteChildren();
+					}
 
 					MergeTriple<T> childTriple = new MergeTriple<>(childType,
 							leftMatch, baseChild, rightChild);

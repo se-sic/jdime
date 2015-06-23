@@ -112,9 +112,9 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeTriple.");
 		}
 
-		left.setRevision(new Revision(MergeType.THREEWAY.getRevision(0)));
-		base.setRevision(new Revision(MergeType.THREEWAY.getRevision(1)));
-		right.setRevision(new Revision(MergeType.THREEWAY.getRevision(2)));
+		left.setRevision(new Revision(MergeType.THREEWAY.getRevision(0)), true);
+		base.setRevision(new Revision(MergeType.THREEWAY.getRevision(1)), true);
+		right.setRevision(new Revision(MergeType.THREEWAY.getRevision(2)), true);
 	}
 
 	/**
@@ -151,8 +151,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
-		if (target != null && !target.exists()) {
-			assert (target.exists());
+		if (target != null) {
+			assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
 		}
 
 		mergeTriple.getLeft().merge(this, context);
