@@ -23,16 +23,11 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.*;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.commons.lang3.ClassUtils;
@@ -183,8 +178,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 			LOG.debug("Applying: " + this);
 		}
 
-		if (target != null && !target.exists()) {
-			assert (target.exists());
+		if (target != null) {
+			assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
 		}
 
 		mergeScenario.run(this, context);

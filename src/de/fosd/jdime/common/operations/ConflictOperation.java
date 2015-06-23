@@ -103,12 +103,13 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
 				assert (choice.isChoice());
 				choice.addVariant(rightCondition, right);
-				choice.copyArtifact(target);
+				target.addChild(choice);
 			} else {
 				LOG.debug("Create conflict node");
 				T conflict = target.createConflictArtifact(left, right);
 				assert (conflict.isConflict());
 				conflict.copyArtifact(target);
+				target.addChild(conflict);
 			}
 		}
 	}

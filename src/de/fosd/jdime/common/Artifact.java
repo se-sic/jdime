@@ -177,14 +177,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		}
 	}
 
-	/**
-	 * Copies the <code>Artifact</code> into an existing <code>Artifact</code>.
-	 *
-	 * @param destination destination artifact
-	 * @throws IOException
-	 *             If an input or output exception occurs.
-	 */
-	public abstract void copyArtifact(final T destination) throws IOException;
+	public abstract Object clone();
 
 	/**
 	 * Returns an <code>Artifact</code> that represents a merge conflict.
@@ -286,12 +279,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			return new ArtifactList<>();
 		}
 
-		if (children == null) {
-			initializeChildren();
-		}
-
 		return children;
 	}
+
+	public abstract void deleteChildren() throws IOException;
 
 	/**
 	 * Returns the identifier of the <code>Artifact</code>,
@@ -332,10 +323,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public final int getNumChildren() {
 		if (isLeaf()) {
 			return 0;
-		}
-
-		if (children == null) {
-			initializeChildren();
 		}
 
 		return children == null ? 0 : children.size();
@@ -517,13 +504,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return whether the <code>Artifact</code> has unique labels
 	 */
 	public abstract boolean hasUniqueLabels();
-
-	/**
-	 * Initializes the children of the artifact.
-	 *
-	 * FIXME: can this somehow be done in the constructors so we can get rid of this method?
-	 */
-	protected abstract void initializeChildren();
 
 	/**
 	 * Returns true if the <code>Artifact</code> is a conflict node.
@@ -715,7 +695,17 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            the <code>Revision</code> to set
 	 */
 	public final void setRevision(final Revision revision) {
+		setRevision(revision, false);
+	}
+
+	public final void setRevision(final Revision revision, boolean recursive) {
 		this.revision = revision;
+
+		if (recursive && children != null) {
+			for (T child : children) {
+				child.setRevision(revision, recursive);
+			}
+		}
 	}
 
 	/*

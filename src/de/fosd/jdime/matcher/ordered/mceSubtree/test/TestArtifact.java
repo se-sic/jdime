@@ -35,8 +35,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
-	public void copyArtifact(TestArtifact destination) throws IOException {
-
+	public Object clone() {
+		TestArtifact clone = new TestArtifact();
+		clone.id = id;
+		clone.children = children;
+		return clone;
 	}
 
 	@Override
@@ -60,6 +63,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	@Override
 	public boolean exists() {
 		return true;
+	}
+
+	@Override
+	public void deleteChildren() throws IOException {
+		this.children = new ArtifactList<>();
 	}
 
 	@Override
@@ -90,11 +98,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	@Override
 	public boolean hasUniqueLabels() {
 		return true;
-	}
-
-	@Override
-	public void initializeChildren() {
-
 	}
 
 	@Override

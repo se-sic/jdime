@@ -60,7 +60,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		p.initJavaParser(new JavaParser() {
 			@Override
 			public CompilationUnit parse(final java.io.InputStream is,
-					final String fileName) throws java.io.IOException,
+										 final String fileName) throws java.io.IOException,
 					beaver.Parser.Exception {
 				return new parser.JavaParser().parse(is, fileName);
 			}
@@ -112,6 +112,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * Constructor class.
 	 */
 	private ASTNodeArtifact() {
+		this.astnode = new ASTNode<>();
+		this.initializeChildren();
 	}
 
 	/**
@@ -121,6 +123,22 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	private ASTNodeArtifact(final ASTNode<?> astnode) {
 		assert (astnode != null);
 		this.astnode = astnode;
+
+		this.initializeChildren();
+	}
+
+	private void initializeChildren() {
+		ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
+		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
+			if (astnode != null) {
+				ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
+				child.setParent(this);
+				child.setRevision(getRevision());
+				children.add(child);
+				child.initializeChildren();
+			}
+		}
+		setChildren(children);
 	}
 
 	/**
@@ -144,6 +162,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		this.astnode = astnode;
+		this.initializeChildren();
 		renumberTree();
 
 		if (LOG.isTraceEnabled()) {
@@ -160,47 +179,38 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return astnode;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#addChild(de.fosd.jdime.common.Artifact)
-	 */
 	@Override
-	public final ASTNodeArtifact addChild(final ASTNodeArtifact child)
-			throws IOException {
+	public Object clone() {
+		assert (exists());
 
-		if (child.isConflict() || child.isChoice()) {
-			child.setParent(this);
-			children.add(child);
-			return child;
-		}
+		ASTNodeArtifact clone = null;
 
-		ASTNodeArtifact myChild;
 		try {
-			myChild = new ASTNodeArtifact((ASTNode<?>) child.astnode.clone());
-			myChild.deleteChildren();
-			myChild.setRevision(child.getRevision());
-			myChild.setParent(this);
-			myChild.astnode.setParent(astnode);
-			myChild.setRevision(child.getRevision());
-			myChild.setNumber(child.getNumber());
-			myChild.cloneMatches(child);
-
-			if (children == null) {
-				initializeChildren();
-			}
-			children.add(myChild);
-			// astnode.flushCaches();
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Added child " + myChild.getId() + " to parent node "
-						+ getId());
-			}
-			return myChild;
+			clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone());
+			clone.setRevision(getRevision());
+			clone.setNumber(getNumber());
+			clone.cloneMatches(this);
 		} catch (CloneNotSupportedException e) {
-			throw new NotYetImplementedException();
+			throw new RuntimeException(e);
 		}
 
+		assert (clone.exists());
+
+		return clone;
+	}
+
+	@Override
+	public final ASTNodeArtifact addChild(final ASTNodeArtifact child) throws IOException {
+		LOG.trace(getId() + ".addChild(" + child.getId() + ")");
+
+		assert (this.exists());
+		assert (child.exists());
+
+		child.setParent(this);
+		child.initializeChildren();
+		children.add(child);
+
+		return child;
 	}
 
 	@Override
@@ -212,42 +222,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.Artifact#copyArtifact(de.fosd.jdime.common.Artifact)
-	 */
 	@Override
-	public final void copyArtifact(final ASTNodeArtifact destination)
-			throws IOException {
-		ASTNodeArtifact copy = destination.addChild(this);
-		if (!isConflict() && !isChoice() && hasChildren()) {
-			for (ASTNodeArtifact child : getChildren()) {
-				child.copyArtifact(copy);
-			}
-		}
-
+	public final ASTNodeArtifact createEmptyArtifact() throws FileNotFoundException {
+		ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
+		emptyArtifact.setRevision(getRevision());
+		return emptyArtifact;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#createEmptyArtifact()
-	 */
-	@Override
-	public final ASTNodeArtifact createEmptyArtifact()
-			throws FileNotFoundException {
-		ASTNodeArtifact dummy = new ASTNodeArtifact();
-		dummy.astnode = new ASTNode<>();
-		dummy.setRevision(getRevision());
-		return dummy;
-	}
-
-	/**
-     *
-     */
-	private void deleteChildren() {
+	public void deleteChildren() {
 		while (hasChildren()) {
 			ASTNodeArtifact child = getChild(0);
 			child.astnode = null;
@@ -485,23 +467,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				|| Literal.class.isAssignableFrom(astnode.getClass());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#initializeChildren()
-	 */
-	@Override
-	public final void initializeChildren() {
-		assert (astnode != null);
-		ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
-		for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
-			ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
-			child.setParent(this);
-			child.setRevision(getRevision());
-			children.add(child);
-		}
-		setChildren(children);
-	}
 
 	/*
 	 * (non-Javadoc)

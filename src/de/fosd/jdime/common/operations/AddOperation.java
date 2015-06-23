@@ -105,9 +105,10 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 				T choice = target.createChoiceDummy(condition, artifact);
 				assert (choice.isChoice());
 				choice.copyArtifact(target);
+				target.addChild(choice);
 			} else {
 				LOG.debug("no conditions");
-				artifact.copyArtifact(target);
+				target.addChild((T) artifact.clone());
 			}
 		}
 
