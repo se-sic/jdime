@@ -23,7 +23,7 @@
 package de.fosd.jdime.stats;
 
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 
 /**
  * TODO: high-level documentation
@@ -32,7 +32,7 @@ import de.fosd.jdime.common.MergeTriple;
  */
 public class MergeTripleStats {
 
-	private MergeTriple<FileArtifact> triple;
+	private MergeScenario<FileArtifact> triple;
 	private int conflicts;
 	private int conflictingLines;
 	private int lines;
@@ -57,7 +57,7 @@ public class MergeTripleStats {
 	 * @param runtime
 	 *            runtime for the scenario
 	 */
-	public MergeTripleStats(final MergeTriple<FileArtifact> triple,
+	public MergeTripleStats(final MergeScenario<FileArtifact> triple,
 			final int conflicts, final int conflictingLines, final int lines,
 			final long runtime, final ASTStats astStats, final ASTStats leftStats, final ASTStats rightStats) {
 		this.triple = triple;
@@ -78,7 +78,7 @@ public class MergeTripleStats {
 	 * @param errormsg
 	 *            error message
 	 */
-	public MergeTripleStats(final MergeTriple<FileArtifact> triple,
+	public MergeTripleStats(final MergeScenario<FileArtifact> triple,
 			final String errormsg) {
 		this.triple = triple;
 		this.error = true;
@@ -106,7 +106,7 @@ public class MergeTripleStats {
 	/**
 	 * @return the triple
 	 */
-	public final MergeTriple<FileArtifact> getTriple() {
+	public final MergeScenario<FileArtifact> getTriple() {
 		return triple;
 	}
 

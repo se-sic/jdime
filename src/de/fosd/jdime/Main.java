@@ -97,6 +97,7 @@ public final class Main {
 		setLogLevel("INFO");
 
 		try {
+
 			if (!parseCommandLineArgs(context, args)) {
 				System.exit(0);
 			}
@@ -129,7 +130,12 @@ public final class Main {
 					throw new RuntimeException(msg);
 				} else {
 					LOG.warn("File exists and will be overwritten.");
+					boolean isDirectory = output.isDirectory();
 					output.remove();
+
+					if (isDirectory) {
+						output.getFile().mkdir();
+					}
 				}
 
 			}
@@ -201,6 +207,7 @@ public final class Main {
 				"collects statistical data of the merge");
 		options.addOption("runLookAheadTests", false, "Run diffs with lookahead and print statistics");
 		options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
+		options.addOption("q", false, "quiet, do not print the merge result to stdout");
 		options.addOption("version", false,
 				"print the version information and exit");
 
@@ -302,12 +309,12 @@ public final class Main {
 				}
 			}
 
+			String outputFileName = null;
 			if (cmd.hasOption("output")) {
 				// TODO[low priority]: The default should in a later,
 				// rock-stable version be changed to be overwriting file1 so
 				// that we are compatible with gnu merge call syntax
-				context.setOutputFile(new FileArtifact(new Revision("merge"),
-						new File(cmd.getOptionValue("output")), false));
+				outputFileName = cmd.getOptionValue("output");
 			}
 
 			if (cmd.hasOption("diffonly")) {
@@ -351,6 +358,8 @@ public final class Main {
 			if (cmd.hasOption("p")) {
 				context.setPretend(true);
 				context.setQuiet(false);
+			} else if (cmd.hasOption('q')) {
+				context.setQuiet(true);
 			}
 			
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
@@ -372,17 +381,27 @@ public final class Main {
 			// prepare the list of input files
 			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
+			boolean targetIsFile= true;
+
 			for (Object filename : cmd.getArgList()) {
 				try {
-					inputArtifacts.add(new FileArtifact(new File(
-							(String) filename)));
+					FileArtifact artifact = new FileArtifact(new File((String) filename));
+					if (targetIsFile) {
+						targetIsFile = !artifact.isDirectory();
+					}
+					inputArtifacts.add(artifact);
 				} catch (FileNotFoundException e) {
-					System.err.println("Input file not found: "
-							+ (String) filename);
+					System.err.println("Input file not found: " + (String) filename);
 				}
 			}
 
 			context.setInputFiles(inputArtifacts);
+
+			if (outputFileName != null) {
+				context.setOutputFile(new FileArtifact(new Revision("merge"), new File(outputFileName),
+						true, targetIsFile));
+				context.setPretend(false);
+			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
 			throw e;

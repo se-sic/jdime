@@ -32,7 +32,7 @@ package de.fosd.jdime.common;
  *            type of artifact
  *
  */
-public class MergeTriple<T extends Artifact<T>> {
+public class MergeScenario<T extends Artifact<T>> {
 
 	/**
 	 * Type of merge.
@@ -66,8 +66,8 @@ public class MergeTriple<T extends Artifact<T>> {
 	 * @param right
 	 *            artifact
 	 */
-	public MergeTriple(final MergeType mergeType, final T left, final T base,
-			final T right) {
+	public MergeScenario(final MergeType mergeType, final T left, final T base,
+						 final T right) {
 		this.mergeType = mergeType;
 		this.left = left;
 		this.base = base;
@@ -155,7 +155,7 @@ public class MergeTriple<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Returns a String representing the MergeTriple separated by whitespace.
+	 * Returns a String representing the MergeScenario separated by whitespace.
 	 *
 	 * @return String representation
 	 */
@@ -165,7 +165,7 @@ public class MergeTriple<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Returns a String representing the MergeTriple separated by whitespace,
+	 * Returns a String representing the MergeScenario separated by whitespace,
 	 * omitting empty dummy files.
 	 *
 	 * @param humanReadable
@@ -177,7 +177,7 @@ public class MergeTriple<T extends Artifact<T>> {
 	}
 
 	/**
-	 * Returns a String representing the MergeTriple.
+	 * Returns a String representing the MergeScenario.
 	 *
 	 * @param sep
 	 *            separator

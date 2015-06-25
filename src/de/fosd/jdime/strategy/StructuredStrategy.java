@@ -27,7 +27,7 @@ import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.ASTStats;
@@ -75,7 +75,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 		assert (operation != null);
 		assert (context != null);
 
-		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+		MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
@@ -167,7 +167,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 					System.out.println(targetNode.dumpTree());
 				}
 
-				MergeTriple<ASTNodeArtifact> nodeTriple = new MergeTriple<>(triple.getMergeType(), left, base, right);
+				MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
 
 				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
@@ -356,6 +356,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 			// write output
 			if (!context.isPretend() && target != null) {
+				LOG.trace("Write output to file: " + target.getFullPath());
 				assert (target.exists());
 				target.write(context.getStdIn());
 			}

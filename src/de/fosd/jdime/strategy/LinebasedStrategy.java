@@ -26,7 +26,7 @@ package de.fosd.jdime.strategy;
 import de.fosd.jdime.Util;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
@@ -94,7 +94,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		assert (operation != null);
 		assert (context != null);
 
-		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
+		MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 		assert (triple != null);
 		assert (triple.isValid()) : "The merge triple is not valid!";
 		assert (triple.getLeft() instanceof FileArtifact);

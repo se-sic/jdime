@@ -24,7 +24,7 @@ package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
@@ -40,6 +40,7 @@ import java.io.IOException;
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 
 	private static final Logger LOG = Logger.getLogger(ASTNodeStrategy.class.getSimpleName());
+	
 	/**
      *
      */
@@ -60,7 +61,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		assert (operation != null);
 		assert (context != null);
 
-		MergeTriple<ASTNodeArtifact> triple = operation.getMergeTriple();
+		MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
 
 		assert (triple.isValid());
 

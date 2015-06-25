@@ -79,14 +79,10 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (target != null) {
-			if (!target.exists()) {
-				target.createArtifact(false);
-			}
-
 			assert (target.exists());
 			T conflict = target.createConflictArtifact(left, right);
 			assert (conflict.isConflict());
-			conflict.copyArtifact(target);
+			target.addChild(conflict);
 		}
 	}
 

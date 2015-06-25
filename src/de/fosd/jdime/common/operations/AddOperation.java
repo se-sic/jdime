@@ -86,13 +86,8 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 
 		if (target != null) {
-			if (!target.exists()) {
-				target.createArtifact(false);
-			}
-
 			assert (target.exists());
-
-			artifact.copyArtifact(target);
+			target.addChild((T) artifact.clone());
 		}
 
 		if (context.hasStats()) {
