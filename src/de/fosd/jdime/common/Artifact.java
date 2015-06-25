@@ -22,13 +22,12 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Matching;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -162,25 +161,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		}
 	}
 
-	/**
-	 * Copies the <code>Artifact</code> into an existing <code>Artifact</code>.
-	 *
-	 * @param destination
-	 *            destination artifact
-	 * @throws IOException
-	 *             If an input or output exception occurs.
-	 */
-	public abstract void copyArtifact(T destination) throws IOException;
-
-	/**
-	 * Creates a new <code>Artifact</code>,
-	 *
-	 * @param isLeaf
-	 *            if true, a leaf type artifact will be created
-	 * @throws IOException
-	 *             If an input output exception occurs
-	 */
-	public abstract void createArtifact(boolean isLeaf) throws IOException;
+	public abstract Object clone();
 
 	/**
 	 * Returns an <code>Artifact</code> that represents a merge conflict.
@@ -200,10 +181,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * base <code>Artifact</code> is empty.
 	 *
 	 * @return empty <code>Artifact</code>
-	 * @throws FileNotFoundException
-	 *             If a file is not found
+	 * @throws IOException
+	 *             If a file is not found or cannot be created
 	 */
-	public abstract T createEmptyArtifact() throws FileNotFoundException;
+	public abstract T createEmptyArtifact() throws IOException;
 
 	/**
 	 * Finds the root artifact and calls <code>dumpTree()</code> on it.
@@ -272,12 +253,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			return new ArtifactList<>();
 		}
 
-		if (children == null) {
-			initializeChildren();
-		}
-
 		return children;
 	}
+
+	public abstract void deleteChildren() throws IOException;
 
 	/**
 	 * Returns the identifier of the <code>Artifact</code>,
@@ -318,10 +297,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public int getNumChildren() {
 		if (isLeaf()) {
 			return 0;
-		}
-
-		if (children == null) {
-			initializeChildren();
 		}
 
 		return children == null ? 0 : children.size();
@@ -463,13 +438,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract boolean hasUniqueLabels();
 
 	/**
-	 * Initializes the children of the artifact.
-	 *
-	 * FIXME: can this somehow be done in the constructors so we can get rid of this method?
-	 */
-	protected abstract void initializeChildren();
-
-	/**
 	 * Returns true if the <code>Artifact</code> is a conflict node.
 	 *
 	 * @return true if the <code>Artifact</code> represents a conflict
@@ -607,14 +575,19 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            the <code>Revision</code> to set
 	 */
 	public void setRevision(Revision revision) {
-		this.revision = revision;
+		setRevision(revision, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
+	public void setRevision(Revision revision, boolean recursive) {
+		this.revision = revision;
+
+		if (recursive && children != null) {
+			for (T child : children) {
+				child.setRevision(revision, recursive);
+			}
+		}
+	}
+
 	@Override
 	public abstract String toString();
 }

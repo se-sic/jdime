@@ -26,7 +26,7 @@ package de.fosd.jdime.merge;
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -67,7 +67,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			final MergeContext context) throws IOException,
 			InterruptedException {
 		logprefix = operation.getId() + " - ";
-		MergeTriple<T> triple = operation.getMergeTriple();
+		MergeScenario<T> triple = operation.getMergeScenario();
 		T left = triple.getLeft();
 		T base = triple.getBase();
 		T right = triple.getRight();
