@@ -403,26 +403,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		ASTNodeArtifact that = (ASTNodeArtifact) o;
-
-		return getId().equals(that.getId());
-	}
-
-	@Override
-	public final int hashCode() {
-		return getId().hashCode();
-	}
-
-	@Override
 	public final boolean hasUniqueLabels() {
 		return ImportDecl.class.isAssignableFrom(astnode.getClass())
 				|| Literal.class.isAssignableFrom(astnode.getClass());

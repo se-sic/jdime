@@ -309,24 +309,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		return toString().equals(o.toString());
-	}
-
-	@Override
-	public final int hashCode() {
-		return toString().hashCode();
-	}
-
-	@Override
 	public final boolean exists() {
 		assert (file != null);
 		return file.exists();
@@ -550,7 +532,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 			return true;
 		}
-		return this.equals(other);
+		return this.toString().equals(other.toString());
 	}
 
 	
