@@ -98,6 +98,7 @@ public final class Main {
 		setLogLevel("INFO");
 
 		try {
+
 			if (!parseCommandLineArgs(context, args)) {
 				System.exit(0);
 			}
@@ -207,6 +208,7 @@ public final class Main {
 				"collects statistical data of the merge");
 		options.addOption("runLookAheadTests", false, "Run diffs with lookahead and print statistics");
 		options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
+		options.addOption("q", false, "quiet, do not print the merge result to stdout");
 		options.addOption("version", false,
 				"print the version information and exit");
 
@@ -357,6 +359,8 @@ public final class Main {
 			if (cmd.hasOption("p")) {
 				context.setPretend(true);
 				context.setQuiet(false);
+			} else if (cmd.hasOption('q')) {
+				context.setQuiet(true);
 			}
 			
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
