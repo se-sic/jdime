@@ -130,7 +130,12 @@ public final class Main {
 					throw new RuntimeException(msg);
 				} else {
 					LOG.warn("File exists and will be overwritten.");
+					boolean isDirectory = output.isDirectory();
 					output.remove();
+
+					if (isDirectory) {
+						output.getFile().mkdir();
+					}
 				}
 
 			}
@@ -378,7 +383,7 @@ public final class Main {
 			for (Object filename : cmd.getArgList()) {
 				try {
 					FileArtifact artifact = new FileArtifact(new File((String) filename));
-					if (!targetIsFile) {
+					if (targetIsFile) {
 						targetIsFile = !artifact.isDirectory();
 					}
 					inputArtifacts.add(artifact);
@@ -392,6 +397,7 @@ public final class Main {
 			if (outputFileName != null) {
 				context.setOutputFile(new FileArtifact(new Revision("merge"), new File(outputFileName),
 						true, targetIsFile));
+				context.setPretend(false);
 			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
