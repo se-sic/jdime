@@ -600,11 +600,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public abstract String toString();
 }

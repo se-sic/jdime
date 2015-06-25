@@ -414,11 +414,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file.getAbsolutePath();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#getId()
-	 */
 	@Override
 	public final String getId() {
 		return getRevision() + "-" + getPath();

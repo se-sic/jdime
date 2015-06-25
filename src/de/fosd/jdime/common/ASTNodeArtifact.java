@@ -303,11 +303,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return sb.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#dumpTree(java.lang.String)
-	 */
 	@Override
 	protected final String dumpTree(final String indent) {
 		assert (astnode != null);
@@ -376,22 +371,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		return sb.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	// @Override
 	@Override
 	public final boolean exists() {
 		return astnode != null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#getId()
-	 */
 	@Override
 	public final String getId() {
 		return getRevision() + "-" + getNumber();
@@ -408,22 +392,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				|| Literal.class.isAssignableFrom(astnode.getClass());
 	}
 
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#isEmpty()
-	 */
 	@Override
 	public final boolean isEmpty() {
 		return !hasChildren();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#isLeaf()
-	 */
 	@Override
 	public final boolean isLeaf() {
 		// TODO Auto-generated method stub
@@ -627,11 +600,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#toString()
-	 */
 	@Override
 	public final String toString() {
 		assert (astnode != null);
