@@ -98,7 +98,8 @@ public final class Main {
 		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
 
-		//try {
+		try {
+
 			if (!parseCommandLineArgs(context, args)) {
 				System.exit(0);
 			}
@@ -131,7 +132,12 @@ public final class Main {
 					throw new RuntimeException(msg);
 				} else {
 					LOG.warn("File exists and will be overwritten.");
+					boolean isDirectory = output.isDirectory();
 					output.remove();
+
+					if (isDirectory) {
+						output.getFile().mkdir();
+					}
 				}
 
 			}
@@ -149,12 +155,12 @@ public final class Main {
 			if (context.hasStats()) {
 				StatsPrinter.print(context);
 			}
-		/*} catch (Throwable t) {
+		} catch (Throwable t) {
 			LOG.debug("stopping program");
 			LOG.debug("runtime: " + (System.currentTimeMillis() - context.getProgramStart())
 					+ " ms");
 			System.exit(-1);
-		}*/
+		}
 
 		System.exit(0);
 	}
@@ -203,6 +209,7 @@ public final class Main {
 				"collects statistical data of the merge");
 		options.addOption("runLookAheadTests", false, "Run diffs with lookahead and print statistics");
 		options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
+		options.addOption("q", false, "quiet, do not print the merge result to stdout");
 		options.addOption("version", false,
 				"print the version information and exit");
 
@@ -353,6 +360,8 @@ public final class Main {
 			if (cmd.hasOption("p")) {
 				context.setPretend(true);
 				context.setQuiet(false);
+			} else if (cmd.hasOption('q')) {
+				context.setQuiet(true);
 			}
 			
 			context.setKeepGoing(cmd.hasOption("keepgoing"));
@@ -384,7 +393,7 @@ public final class Main {
 						newArtifact.setRevision(new Revision(String.valueOf(cond++)));
 					}
 
-					if (!targetIsFile) {
+					if (targetIsFile) {
 						targetIsFile = !newArtifact.isDirectory();
 					}
 
@@ -399,6 +408,7 @@ public final class Main {
 			if (outputFileName != null) {
 				context.setOutputFile(new FileArtifact(new Revision("merge"), new File(outputFileName),
 						true, targetIsFile));
+				context.setPretend(false);
 			}
 		} catch (ParseException e) {
 			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));

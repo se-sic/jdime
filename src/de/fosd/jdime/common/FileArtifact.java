@@ -134,7 +134,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 		if (!file.exists()) {
 			if (createIfNonexistent) {
-				if (file.getParentFile() != null) {
+				if (file.getParentFile() != null && !file.getParentFile().exists()) {
 					boolean createdParents = file.getParentFile().mkdirs();
 
 					if (LOG.isTraceEnabled()) {
@@ -309,24 +309,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		return toString().equals(o.toString());
-	}
-
-	@Override
-	public final int hashCode() {
-		return toString().hashCode();
-	}
-
-	@Override
 	public final boolean exists() {
 		assert (file != null);
 		return file.exists();
@@ -335,9 +317,14 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	@Override
 	public void deleteChildren() throws IOException {
 		LOG.trace(this + ".deleteChildren()");
-		if (exists() && isDirectory()) {
-			for (FileArtifact child : children) {
-				child.remove();
+		if (exists()) {
+			if (isDirectory()) {
+				for (FileArtifact child : children) {
+					child.remove();
+				}
+			} else {
+				remove();
+				file.createNewFile();
 			}
 		}
 	}
@@ -427,11 +414,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file.getAbsolutePath();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.Artifact#getId()
-	 */
 	@Override
 	public final String getId() {
 		return getRevision() + "-" + getPath();
@@ -545,7 +527,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 			return true;
 		}
-		return this.equals(other);
+		return this.toString().equals(other.toString());
 	}
 
 	
@@ -583,7 +565,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Using strategy: " + strategy);
 		}
-		LOG.info(this);
+		LOG.info("merge: " + this);
 		
 		strategy.merge(operation, context);
 		
@@ -637,6 +619,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	public final void write(final String str) throws IOException {
 		assert (file != null);
 		assert (str != null);
+
+		if (file.getParentFile() != null && !file.getParentFile().exists()) {
+			file.getParentFile().mkdirs();
+		}
+
 		try (FileWriter writer = new FileWriter(file)) {
 			writer.write(str);
 		}

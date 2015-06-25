@@ -354,6 +354,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
 			// write output
 			if (!context.isPretend() && target != null) {
+				LOG.trace("Write output to file: " + target.getFullPath());
 				assert (target.exists());
 				target.write(context.getStdIn());
 			}
