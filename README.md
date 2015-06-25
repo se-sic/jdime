@@ -47,6 +47,10 @@ Precompiled binaries (including the required .dll files for glpk and glpk-java) 
 (http://sourceforge.net/projects/winglpk/)
 
 #### Installation:
+Clone the repository using `git clone $URL`
+
+For the first installation, dependencies supplied via git submodules have to be pulled. This is done by running `git submodule init` and `git submodule update`.
+
 Use `gradle -Pglpk=PATH -PglpkJava=PATH installApp` providing the paths to the `glpk_X_XX` and `glpk_X_XX_java` 
 native libraries appropriate for your platform. `X_XX` refers to the version of glpk, currently __version 4.55__ is required.  
 

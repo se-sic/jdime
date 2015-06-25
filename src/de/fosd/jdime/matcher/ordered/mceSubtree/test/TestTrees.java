@@ -8,6 +8,7 @@ import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +23,7 @@ public class TestTrees {
 	 *
 	 * @return the trees
 	 */
-	private static TestArtifact paperTree() {
+	private static TestArtifact paperTree() throws IOException {
 		TestArtifact t = new TestArtifact();
 		TestArtifact t1 = new TestArtifact();
 		TestArtifact t2 = new TestArtifact();
