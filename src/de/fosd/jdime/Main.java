@@ -94,72 +94,65 @@ public final class Main {
 	 *
 	 * @param args command line arguments
 	 */
-	public static void main(final String[] args) throws IOException, ParseException, InterruptedException {
+	public static void main(final String[] args) throws
+			IOException, ParseException, InterruptedException {
 		BasicConfigurator.configure();
 		MergeContext context = new MergeContext();
 
-		try {
+		if (!parseCommandLineArgs(context, args)) {
+			System.exit(0);
+		}
 
-			if (!parseCommandLineArgs(context, args)) {
-				System.exit(0);
+		ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
+		FileArtifact output = context.getOutputFile();
+
+		assert inputFiles != null : "List of input artifacts may not be null!";
+
+		for (FileArtifact inputFile : inputFiles) {
+			assert (inputFile != null);
+			if (inputFile.isDirectory() && !context.isRecursive()) {
+				String msg = "To merge directories, the argument '-r' "
+					+ "has to be supplied. "
+					+ "See '-help' for more information!";
+				LOG.fatal(msg);
+				throw new RuntimeException(msg);
 			}
+		}
 
-			ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
-			FileArtifact output = context.getOutputFile();
+		if (output != null && output.exists() && !output.isEmpty()) {
+			System.err.println("Output directory is not empty!");
+			System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			String response = reader.readLine();
 
-			assert inputFiles != null : "List of input artifacts may not be null!";
-
-			for (FileArtifact inputFile : inputFiles) {
-				assert (inputFile != null);
-				if (inputFile.isDirectory() && !context.isRecursive()) {
-					String msg = "To merge directories, the argument '-r' "
-						+ "has to be supplied. "
-						+ "See '-help' for more information!";
-					LOG.fatal(msg);
-					throw new RuntimeException(msg);
-				}
-			}
-
-			if (output != null && output.exists() && !output.isEmpty()) {
-				System.err.println("Output directory is not empty!");
-				System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-				BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-				String response = reader.readLine();
-
-				if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
-					String msg = "File exists and will not be overwritten.";
-					LOG.warn(msg);
-					throw new RuntimeException(msg);
-				} else {
-					LOG.warn("File exists and will be overwritten.");
-					boolean isDirectory = output.isDirectory();
-					output.remove();
-
-					if (isDirectory) {
-						output.getFile().mkdir();
-					}
-				}
-
-			}
-
-			if (context.isBugfixing()) {
-				bugfixing(context);
-			} else if (context.isDumpTree()) {
-				dumpTrees(context);
-			} else if (context.isDumpFile()) {
-				dumpFiles(context);
+			if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
+				String msg = "File exists and will not be overwritten.";
+				LOG.warn(msg);
+				throw new RuntimeException(msg);
 			} else {
-				merge(context);
+				LOG.warn("File exists and will be overwritten.");
+				boolean isDirectory = output.isDirectory();
+				output.remove();
+
+				if (isDirectory) {
+					output.getFile().mkdir();
+				}
 			}
 
-			if (context.hasStats()) {
-				StatsPrinter.print(context);
-			}
-		} catch (Throwable t) {
-			LOG.debug("stopping program");
-			LOG.debug("runtime: " + (System.currentTimeMillis() - context.getProgramStart())
-					+ " ms");
-			System.exit(-1);
+		}
+
+		if (context.isBugfixing()) {
+			bugfixing(context);
+		} else if (context.isDumpTree()) {
+			dumpTrees(context);
+		} else if (context.isDumpFile()) {
+			dumpFiles(context);
+		} else {
+			merge(context);
+		}
+
+		if (context.hasStats()) {
+			StatsPrinter.print(context);
 		}
 
 		System.exit(0);
