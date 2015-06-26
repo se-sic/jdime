@@ -387,10 +387,22 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	}
 
 	@Override
-	public abstract boolean equals(Object obj);
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		return getId().equals(((T) o).getId());
+	}
 
 	@Override
-	public abstract int hashCode();
+	public int hashCode() {
+		return getId().hashCode();
+	}
 
 	/**
 	 * Returns whether this <code>Artifact</code> has any matches.
