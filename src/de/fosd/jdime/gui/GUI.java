@@ -359,18 +359,17 @@ public final class GUI extends Application {
 
 				Charset cs = StandardCharsets.UTF_8;
 				try (BufferedReader r = new BufferedReader(new InputStreamReader(jDimeProcess.getInputStream(), cs))) {
-					List<String> lines = new ArrayList<>(bufferedLines);
+					List<String> lines = new ArrayList<>(bufferedLines + 1);
 					boolean stop = false;
 					String line;
 
-					while (!Thread.interrupted() && !stop) {
+					while (!Thread.interrupted() && !stop && jDimeProcess.isAlive()) {
 
-						if (r.ready()) {
+						while (r.ready()) {
 							if ((line = r.readLine()) != null) {
+								lines.add(line);
 
-								if (lines.size() < bufferedLines) {
-									lines.add(line);
-								} else {
+								if (lines.size() >= bufferedLines) {
 									List<String> toAdd = new ArrayList<>(lines);
 									Platform.runLater(() -> output.getItems().addAll(toAdd));
 									lines.clear();
