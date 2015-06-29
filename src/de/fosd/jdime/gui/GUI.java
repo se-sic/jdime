@@ -1,9 +1,7 @@
 package de.fosd.jdime.gui;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -11,8 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 import de.uni_passau.fim.seibt.kvconfig.Config;
@@ -60,7 +56,7 @@ public final class GUI extends Application {
 	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 	private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
-	private static final String JDIME_UPDATE_DELAY = "UPDATE_DELAY";
+	private static final String JDIME_BUFFERED_LINES = "BUFFERED_LINES";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
@@ -95,7 +91,7 @@ public final class GUI extends Application {
 	private Button historyNext;
 
 	private Config config;
-	private int updateDelay;
+	private int bufferedLines;
 	private boolean allowInvalid;
 
 	private File lastChooseDir;
@@ -106,6 +102,7 @@ public final class GUI extends Application {
 	private State inProgress;
 
 	private Task<Void> jDimeExec;
+	private Process jDimeProcess;
 
 	/**
 	 * Launches the GUI with the given <code>args</code>.
@@ -154,7 +151,7 @@ public final class GUI extends Application {
 		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
 		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
 		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-		updateDelay = config.getInteger(JDIME_UPDATE_DELAY).orElse(1000);
+		bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
 		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}
 
@@ -285,7 +282,8 @@ public final class GUI extends Application {
 	/**
 	 * Called when the 'Cancel' button is clicked.
 	 */
-	public void cancelClicked() {
+	public void cancelClicked() throws InterruptedException {
+		jDimeProcess.destroyForcibly().waitFor();
 		jDimeExec.cancel(true);
 	}
 
@@ -355,19 +353,45 @@ public final class GUI extends Application {
 					builder.environment().put(STARTSCRIPT_JVM_ENV_VAR, JVM_DEBUG_PARAMS);
 				}
 
-				Process process = builder.start();
+				jDimeProcess = builder.start();
 
 				Charset cs = StandardCharsets.UTF_8;
-				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
-					r.lines().forEach(s -> Platform.runLater(() -> {
-						output.getItems().add(s);
-					}));
+				try (BufferedReader r = new BufferedReader(new InputStreamReader(jDimeProcess.getInputStream(), cs))) {
+					List<String> lines = new ArrayList<>(bufferedLines);
+					boolean stop = false;
+					String line;
+
+					while (!Thread.interrupted() && !stop) {
+
+						if (r.ready()) {
+							if ((line = r.readLine()) != null) {
+
+								if (lines.size() < bufferedLines) {
+									lines.add(line);
+								} else {
+									List<String> toAdd = new ArrayList<>(lines);
+									Platform.runLater(() -> output.getItems().addAll(toAdd));
+									lines.clear();
+								}
+							} else {
+								stop = true;
+							}
+						}
+
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							stop = true;
+						}
+					}
+
+					Platform.runLater(() -> output.getItems().addAll(lines));
 				}
 
 				try {
-					process.waitFor();
+					jDimeProcess.waitFor();
 				} catch (InterruptedException ignored) {
-					process.destroyForcibly();
+					jDimeProcess.destroyForcibly();
 				}
 
 				return null;
