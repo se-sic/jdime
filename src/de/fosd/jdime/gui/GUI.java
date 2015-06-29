@@ -41,11 +41,11 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.apache.commons.lang3.ClassUtils;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -63,7 +63,7 @@ public final class GUI extends Application {
 	private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
 	private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
 	private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
-	private static final String JDIME_UPDATE_DELAY = "UPDATE_DELAY";
+	private static final String JDIME_BUFFERED_LINES = "BUFFERED_LINES";
 
 	private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
 	private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
@@ -89,6 +89,8 @@ public final class GUI extends Application {
 	@FXML
 	Tab outputTab;
 	@FXML
+	private StackPane cancelPane;
+	@FXML
 	private GridPane controlsPane;
 	@FXML
 	private Button historyPrevious;
@@ -96,7 +98,7 @@ public final class GUI extends Application {
 	private Button historyNext;
 
 	private Config config;
-	private int updateDelay;
+	private int bufferedLines;
 	private boolean allowInvalid;
 
 	private File lastChooseDir;
@@ -105,6 +107,9 @@ public final class GUI extends Application {
 	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
 	private State inProgress;
+
+	private Task<Void> jDimeExec;
+	private Process jDimeProcess;
 
 	/**
 	 * Launches the GUI with the given <code>args</code>.
@@ -153,7 +158,7 @@ public final class GUI extends Application {
 		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
 		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
 		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-		updateDelay = config.getInteger(JDIME_UPDATE_DELAY).orElse(1000);
+		bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
 		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}
 
@@ -281,6 +286,14 @@ public final class GUI extends Application {
 	}
 
 	/**
+	 * Called when the 'Cancel' button is clicked.
+	 */
+	public void cancelClicked() throws InterruptedException {
+		jDimeProcess.destroyForcibly().waitFor();
+		jDimeExec.cancel(true);
+	}
+
+	/**
 	 * Called when the 'Run' button is clicked.
 	 */
 	public void runClicked() {
@@ -301,9 +314,7 @@ public final class GUI extends Application {
 			return;
 		}
 
-		controlsPane.setDisable(true);
-
-		Task<Void> jDimeExec = new Task<Void>() {
+		jDimeExec = new Task<Void>() {
 
 			@Override
 			protected Void call() throws Exception {
@@ -337,6 +348,7 @@ public final class GUI extends Application {
 				}
 
 				builder.command(command);
+				builder.redirectErrorStream(true);
 
 				File workingDir = new File(jDime.getText()).getParentFile();
 				if (workingDir != null && workingDir.exists()) {
@@ -347,19 +359,55 @@ public final class GUI extends Application {
 					builder.environment().put(STARTSCRIPT_JVM_ENV_VAR, JVM_DEBUG_PARAMS);
 				}
 
-				Process process = builder.start();
+				jDimeProcess = builder.start();
 
 				Charset cs = StandardCharsets.UTF_8;
-				try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream(), cs))) {
-					r.lines().forEach(s -> Platform.runLater(() -> {
-						output.getItems().add(s);
-					}));
+				try (BufferedReader r = new BufferedReader(new InputStreamReader(jDimeProcess.getInputStream(), cs))) {
+					List<String> lines = new ArrayList<>(bufferedLines);
+					boolean stop = false;
+					String line;
+
+					while (!Thread.interrupted() && !stop) {
+
+						if (r.ready()) {
+							if ((line = r.readLine()) != null) {
+
+								if (lines.size() < bufferedLines) {
+									lines.add(line);
+								} else {
+									List<String> toAdd = new ArrayList<>(lines);
+									Platform.runLater(() -> output.getItems().addAll(toAdd));
+									lines.clear();
+								}
+							} else {
+								stop = true;
+							}
+						}
+
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							stop = true;
+						}
+					}
+
+					Platform.runLater(() -> output.getItems().addAll(lines));
 				}
 
-				process.waitFor();
+				try {
+					jDimeProcess.waitFor();
+				} catch (InterruptedException ignored) {
+					jDimeProcess.destroyForcibly();
+				}
+
 				return null;
 			}
 		};
+
+		jDimeExec.setOnRunning(event -> {
+			controlsPane.setDisable(true);
+			cancelPane.setVisible(true);
+		});
 
 		jDimeExec.setOnSucceeded(event -> {
 			boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
@@ -379,6 +427,10 @@ public final class GUI extends Application {
 			} else {
 				reactivate();
 			}
+		});
+
+		jDimeExec.setOnCancelled(event -> {
+			reactivate();
 		});
 
 		jDimeExec.setOnFailed(event -> {
@@ -404,6 +456,7 @@ public final class GUI extends Application {
 			historyIndex.setValue(history.size());
 		}
 
+		cancelPane.setVisible(false);
 		controlsPane.setDisable(false);
 	}
 
