@@ -88,8 +88,7 @@ public final class Main {
 			try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
 				LogManager.getLogManager().readConfiguration(is);
 			} catch (IOException e) {
-				System.err.println("Could not read logging configuration.");
-				System.err.println(e);
+				LOG.log(Level.WARNING, e, () -> "Could not read logging configuration.");
 			}
 		}
 
