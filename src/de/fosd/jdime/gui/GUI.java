@@ -367,7 +367,7 @@ public final class GUI extends Application {
 				try {
 					process.waitFor();
 				} catch (InterruptedException ignored) {
-					// return null
+					process.destroyForcibly();
 				}
 
 				return null;
