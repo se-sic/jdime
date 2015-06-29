@@ -53,7 +53,7 @@ import org.apache.commons.lang3.ClassUtils;
 @SuppressWarnings("unused")
 public final class GUI extends Application {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(GUI.class));
+	private static final Logger LOG = Logger.getLogger(GUI.class.getCanonicalName());
 	private static final String TITLE = "JDime";
 
 	private static final String JDIME_CONF_FILE = "JDime.properties";

@@ -41,7 +41,7 @@ import de.fosd.jdime.stats.Stats;
  */
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeStrategy.class));
+	private static final Logger LOG = Logger.getLogger(ASTNodeStrategy.class.getCanonicalName());
 
 	/**
      *

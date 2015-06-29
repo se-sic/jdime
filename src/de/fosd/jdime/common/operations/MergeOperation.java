@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
+	private static final Logger LOG = Logger.getLogger(MergeOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.

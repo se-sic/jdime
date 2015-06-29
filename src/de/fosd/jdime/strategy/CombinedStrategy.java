@@ -46,7 +46,7 @@ import de.fosd.jdime.stats.Stats;
  */
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(CombinedStrategy.class));
+	private static final Logger LOG = Logger.getLogger(CombinedStrategy.class.getCanonicalName());
 
 	/**
 	 * TODO: high-level documentation

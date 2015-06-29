@@ -71,7 +71,7 @@ import java.util.logging.Logger;
  */
 public final class Main {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
+	private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
 	private static final String TOOLNAME = "jdime";
 	private static final String VERSION = "0.3.11";

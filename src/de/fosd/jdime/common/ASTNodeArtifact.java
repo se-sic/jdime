@@ -52,7 +52,7 @@ import java.util.Set;
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeArtifact.class));
+	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
 
 	/**
 	 * Initializes parser.

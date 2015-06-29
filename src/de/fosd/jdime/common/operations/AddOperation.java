@@ -47,7 +47,7 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(AddOperation.class));
+	private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>Artifact</code> that is added by the operation.

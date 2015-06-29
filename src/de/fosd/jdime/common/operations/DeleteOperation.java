@@ -47,7 +47,7 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(DeleteOperation.class));
+	private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>Artifact</code> that is deleted by the operation.

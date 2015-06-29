@@ -55,7 +55,7 @@ import java.util.Set;
  */
 public class FileArtifact extends Artifact<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(FileArtifact.class));
+	private static final Logger LOG = Logger.getLogger(FileArtifact.class.getCanonicalName());
 
 	/**
 	 * The expected MIME content type for java source files.

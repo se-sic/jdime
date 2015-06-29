@@ -41,7 +41,7 @@ import java.util.logging.Logger;
  */
 public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	protected static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+	protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
 	/**
 	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.

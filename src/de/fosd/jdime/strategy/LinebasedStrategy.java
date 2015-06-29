@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  */
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(LinebasedStrategy.class));
+	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
 	
 	/**
 	 * The command to use for merging.

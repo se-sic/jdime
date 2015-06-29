@@ -62,7 +62,7 @@ import java.util.Queue;
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 	private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
 	private int calls = 0;

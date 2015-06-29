@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 public class Diff<T extends Artifact<T>> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Diff.class));
+	private static final Logger LOG = Logger.getLogger(Diff.class.getCanonicalName());
 
 	/**
 	 * Compares two nodes and returns matchings between them and possibly their sub-nodes.

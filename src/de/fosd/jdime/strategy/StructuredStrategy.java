@@ -48,7 +48,7 @@ import java.util.logging.Logger;
  */
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(StructuredStrategy.class));
+	private static final Logger LOG = Logger.getLogger(StructuredStrategy.class.getCanonicalName());
 	private static final String CONFLICT_START = "<<<<<<<";
 	private static final String CONFLICT_DELIM = "=======";
 	private static final String CONFLICT_END = ">>>>>>>";

@@ -42,7 +42,7 @@ import de.fosd.jdime.common.LangElem;
  */
 public class ASTStats {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTStats.class));
+	private static final Logger LOG = Logger.getLogger(ASTStats.class.getCanonicalName());
 
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
 		ASTStats sum = null;
