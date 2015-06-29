@@ -91,5 +91,11 @@
             <Insets bottom="5.0" left="5.0" right="5.0" />
          </GridPane.margin>
       </GridPane>
+      <StackPane fx:id="cancelPane" prefHeight="150.0" prefWidth="200.0" visible="false" GridPane.rowIndex="1">
+         <children>
+            <Button mnemonicParsing="false" onAction="#cancelClicked" text="Cancel" />
+            <ProgressIndicator scaleX="0.8" scaleY="0.8" />
+         </children>
+      </StackPane>
    </children>
 </GridPane>

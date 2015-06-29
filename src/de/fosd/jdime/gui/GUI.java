@@ -39,6 +39,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -85,6 +86,8 @@ public final class GUI extends Application {
 	@FXML
 	Tab outputTab;
 	@FXML
+	private StackPane cancelPane;
+	@FXML
 	private GridPane controlsPane;
 	@FXML
 	private Button historyPrevious;
@@ -101,6 +104,8 @@ public final class GUI extends Application {
 	private IntegerProperty historyIndex;
 	private ObservableList<State> history;
 	private State inProgress;
+
+	private Task<Void> jDimeExec;
 
 	/**
 	 * Launches the GUI with the given <code>args</code>.
@@ -278,6 +283,13 @@ public final class GUI extends Application {
 	}
 
 	/**
+	 * Called when the 'Cancel' button is clicked.
+	 */
+	public void cancelClicked() {
+		jDimeExec.cancel(true);
+	}
+
+	/**
 	 * Called when the 'Run' button is clicked.
 	 */
 	public void runClicked() {
@@ -298,9 +310,7 @@ public final class GUI extends Application {
 			return;
 		}
 
-		controlsPane.setDisable(true);
-
-		Task<Void> jDimeExec = new Task<Void>() {
+		jDimeExec = new Task<Void>() {
 
 			@Override
 			protected Void call() throws Exception {
@@ -334,6 +344,7 @@ public final class GUI extends Application {
 				}
 
 				builder.command(command);
+				builder.redirectErrorStream(true);
 
 				File workingDir = new File(jDime.getText()).getParentFile();
 				if (workingDir != null && workingDir.exists()) {
@@ -353,10 +364,20 @@ public final class GUI extends Application {
 					}));
 				}
 
-				process.waitFor();
+				try {
+					process.waitFor();
+				} catch (InterruptedException ignored) {
+					// return null
+				}
+
 				return null;
 			}
 		};
+
+		jDimeExec.setOnRunning(event -> {
+			controlsPane.setDisable(true);
+			cancelPane.setVisible(true);
+		});
 
 		jDimeExec.setOnSucceeded(event -> {
 			boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
@@ -376,6 +397,10 @@ public final class GUI extends Application {
 			} else {
 				reactivate();
 			}
+		});
+
+		jDimeExec.setOnCancelled(event -> {
+			reactivate();
 		});
 
 		jDimeExec.setOnFailed(event -> {
@@ -401,6 +426,7 @@ public final class GUI extends Application {
 			historyIndex.setValue(history.size());
 		}
 
+		cancelPane.setVisible(false);
 		controlsPane.setDisable(false);
 	}
 
