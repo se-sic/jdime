@@ -22,10 +22,10 @@
  */
 package de.fosd.jdime.common.operations;
 
+import java.io.IOException;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-
-import java.io.IOException;
 
 /**
  * This class represents an operation that is applied to <code>Artifact</code>s.

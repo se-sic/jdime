@@ -23,6 +23,13 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.Permission;
+import java.util.ArrayList;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
@@ -35,13 +42,6 @@ import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.log4j.Logger;
-
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringReader;
-import java.security.Permission;
-import java.util.ArrayList;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.

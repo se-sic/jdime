@@ -23,13 +23,13 @@
  */
 package de.fosd.jdime;
 
+import java.util.HashMap;
+import java.util.Random;
+
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import org.gnu.glpk.GLPK;
-
-import java.util.HashMap;
-import java.util.Random;
 
 /**
  * Contains static methods testing the functionality of various aspects of the program.

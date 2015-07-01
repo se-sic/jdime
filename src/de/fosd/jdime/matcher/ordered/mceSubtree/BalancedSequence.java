@@ -1,8 +1,5 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.Tuple;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.Tuple;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet

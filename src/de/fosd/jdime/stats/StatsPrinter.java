@@ -22,12 +22,12 @@
  */
 package de.fosd.jdime.stats;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import org.apache.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * @author Olaf Lessenich

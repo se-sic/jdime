@@ -22,13 +22,13 @@
  */
 package de.fosd.jdime.stats;
 
-import de.fosd.jdime.Util;
-import de.fosd.jdime.common.LangElem;
-import org.apache.log4j.Logger;
-
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
+
+import de.fosd.jdime.Util;
+import de.fosd.jdime.common.LangElem;
+import org.apache.log4j.Logger;
 
 /**
  * TODO: high-level documentation

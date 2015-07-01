@@ -22,6 +22,8 @@
  */
 package de.fosd.jdime.common.operations;
 
+import java.io.IOException;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
@@ -31,8 +33,6 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
 import org.apache.log4j.Logger;
-
-import java.io.IOException;
 
 /**
  * The operation deletes <code>Artifact</code>s.

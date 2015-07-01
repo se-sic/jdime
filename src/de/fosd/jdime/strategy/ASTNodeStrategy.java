@@ -22,6 +22,8 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.io.IOException;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
@@ -30,8 +32,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
 import org.apache.log4j.Logger;
-
-import java.io.IOException;
 
 /**
  * @author Olaf Lessenich

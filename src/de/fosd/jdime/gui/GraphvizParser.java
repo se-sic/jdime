@@ -1,14 +1,13 @@
 package de.fosd.jdime.gui;
 
-import javafx.concurrent.Task;
-import javafx.scene.control.TreeItem;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.concurrent.Task;
+import javafx.scene.control.TreeItem;
 
 /**
  * A <code>Task</code> parsing a <code>String</code> produced by JDime using '-mode dumpgraph' into a <code>List</code>

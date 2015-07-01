@@ -1,11 +1,10 @@
 package de.fosd.jdime.gui;
 
-import javafx.collections.ObservableList;
-import javafx.scene.control.Tab;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Tab;
 
 /**
  * A Bean encapsulating the state of the gui at one point.

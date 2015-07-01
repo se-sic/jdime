@@ -23,6 +23,10 @@
  */
 package de.fosd.jdime.merge;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -33,10 +37,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Olaf Lessenich

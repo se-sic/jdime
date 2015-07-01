@@ -23,16 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.DirectoryStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
-
-import javax.activation.MimetypesFileTypeMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +34,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.activation.MimetypesFileTypeMap;
+
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
+import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
