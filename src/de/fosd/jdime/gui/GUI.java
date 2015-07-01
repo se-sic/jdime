@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import de.uni_passau.fim.seibt.kvconfig.Config;
-import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
-import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
@@ -30,7 +26,16 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableRow;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -40,6 +45,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 
 /**
  * A simple JavaFX GUI for JDime.

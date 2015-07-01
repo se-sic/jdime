@@ -22,12 +22,12 @@
  */
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
