@@ -22,16 +22,15 @@
  */
 package de.fosd.jdime.merge;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * TODO: this probably needs an interface to implement as well, as external tools might want to use it.

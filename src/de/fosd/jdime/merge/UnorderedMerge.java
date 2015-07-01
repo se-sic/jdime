@@ -22,20 +22,21 @@
  */
 package de.fosd.jdime.merge;
 
-import de.fosd.jdime.common.*;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import java.io.IOException;
-import java.util.Iterator;
 
 /**
  * @author Olaf Lessenich

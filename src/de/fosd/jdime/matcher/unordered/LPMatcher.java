@@ -23,6 +23,9 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
@@ -36,9 +39,6 @@ import org.gnu.glpk.SWIGTYPE_p_double;
 import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.

@@ -1,5 +1,10 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree.test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
@@ -7,11 +12,6 @@ import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
 import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees

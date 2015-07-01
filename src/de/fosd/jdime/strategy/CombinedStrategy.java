@@ -25,15 +25,13 @@ package de.fosd.jdime.strategy;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
-import org.apache.commons.lang3.ClassUtils;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;

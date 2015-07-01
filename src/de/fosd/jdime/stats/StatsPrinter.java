@@ -24,9 +24,6 @@ package de.fosd.jdime.stats;
 
 import java.util.ArrayList;
 import java.util.Collections;
-
-import org.apache.commons.lang3.ClassUtils;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

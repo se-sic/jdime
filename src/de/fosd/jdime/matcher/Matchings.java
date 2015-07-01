@@ -1,8 +1,5 @@
 package de.fosd.jdime.matcher;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.UnorderedTuple;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +11,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.UnorderedTuple;
 
 /**
  * A <code>Set</code> of <code>Matching</code>s. Adds methods to retrieve specific elements of the <code>Set</code>

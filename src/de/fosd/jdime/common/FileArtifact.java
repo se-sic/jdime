@@ -23,19 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.DirectoryStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.activation.MimetypesFileTypeMap;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,6 +34,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.activation.MimetypesFileTypeMap;
+
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.matcher.Color;
+import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * This class represents an artifact of a program.
@@ -255,7 +253,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	@Override
 	public final FileArtifact createEmptyArtifact() throws IOException {
 		FileArtifact emptyFile = new FileArtifact();
-        LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " +  emptyFile.getFullPath());
+        LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
 		return emptyFile;
 	}
 

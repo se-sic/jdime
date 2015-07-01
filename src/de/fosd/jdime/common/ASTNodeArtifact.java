@@ -24,7 +24,28 @@
  */
 package de.fosd.jdime.common;
 
-import AST.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import AST.ASTNode;
+import AST.BytecodeParser;
+import AST.ClassDecl;
+import AST.CompilationUnit;
+import AST.ConstructorDecl;
+import AST.FieldDecl;
+import AST.FieldDeclaration;
+import AST.ImportDecl;
+import AST.InterfaceDecl;
+import AST.JavaParser;
+import AST.Literal;
+import AST.MethodDecl;
+import AST.Program;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
@@ -34,17 +55,6 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Olaf Lessenich

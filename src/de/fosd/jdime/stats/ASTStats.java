@@ -25,14 +25,11 @@ package de.fosd.jdime.stats;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.LangElem;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * TODO: high-level documentation

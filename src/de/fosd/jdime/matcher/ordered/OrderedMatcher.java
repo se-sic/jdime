@@ -22,14 +22,13 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.logging.Logger;
 
 /**
  * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing

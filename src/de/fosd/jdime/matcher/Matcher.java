@@ -22,6 +22,11 @@
  */
 package de.fosd.jdime.matcher;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.logging.Logger;
+
 import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -31,12 +36,6 @@ import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
-import org.apache.commons.lang3.ClassUtils;
-import java.util.logging.Logger;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to

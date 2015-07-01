@@ -1,12 +1,5 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.ordered.OrderedMatcher;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +10,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.

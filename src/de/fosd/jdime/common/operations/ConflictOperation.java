@@ -23,8 +23,6 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
-
-import org.apache.commons.lang3.ClassUtils;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
