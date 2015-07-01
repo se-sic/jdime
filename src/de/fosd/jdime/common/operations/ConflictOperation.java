@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich

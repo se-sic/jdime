@@ -130,7 +130,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
-		LOG.debug(() -> "Running external command: " + Util.joinToString(cmd, ' '));
+		LOG.fine(() -> "Running external command: " + Util.joinToString(cmd, ' '));
 
 		for (int i = 0; i < context.getBenchmarkRuns() + 1
 				&& (i == 0 || context.isBenchmark()); i++) {

@@ -34,9 +34,6 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
  * TODO: This needs more explanation, I'll fix that soon.
