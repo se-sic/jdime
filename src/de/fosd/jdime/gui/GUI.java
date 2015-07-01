@@ -52,6 +52,10 @@ import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 
+import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
+
 /**
  * A simple JavaFX GUI for JDime.
  */

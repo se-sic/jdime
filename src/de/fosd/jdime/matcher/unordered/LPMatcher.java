@@ -32,7 +32,6 @@ import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
@@ -50,7 +49,7 @@ import org.gnu.glpk.glp_smcp;
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	private String id = ClassUtils.getSimpleName(getClass());
+	private String id = getClass().getSimpleName();
 
 	/**
 	 * Threshold for rounding errors.
@@ -145,7 +144,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matchings[i][j] = new Tuple<>(0, new Matchings<T>());
+				matchings[i][j] = Tuple.of(0, new Matchings<T>());
 			}
 		}
 
@@ -158,7 +157,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				childT2 = right.getChild(j);
 				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
 				Matching<T> matching = w.get(childT1, childT2).get();
-				matchings[i][j] = new Tuple<>(matching.getScore(), w);
+				matchings[i][j] = Tuple.of(matching.getScore(), w);
 			}
 		}
 

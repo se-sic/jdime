@@ -33,7 +33,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
 
 /**
  * TODO: This needs more explanation.
@@ -61,7 +60,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-		String id = ClassUtils.getSimpleName(getClass());
+		String id = getClass().getSimpleName();
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {

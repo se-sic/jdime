@@ -33,6 +33,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+import org.apache.log4j.Logger;
 
 /**
  * The operation adds <code>Artifact</code>s.

@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.Util;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
@@ -40,7 +41,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Performs an unstructured, line based merge.
@@ -128,7 +128,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		int loc = 0;
 		int cloc = 0;
 
-		LOG.fine(() -> "Running external command: " + StringUtils.join(cmd, " "));
+		// launch the merge process by invoking GNU merge (rcs has to be
+		// installed)
+		LOG.debug(() -> "Running external command: " + Util.joinToString(cmd, ' '));
 
 		for (int i = 0; i < context.getBenchmarkRuns() + 1
 				&& (i == 0 || context.isBenchmark()); i++) {
