@@ -72,7 +72,7 @@ public final class Main {
 	private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.11-nway";
+	private static final String VERSION = "0.3.11-develop";
 
 	private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
 	private static final String CONFIG_FILE_NAME = "JDime.properties";
