@@ -372,9 +372,9 @@ public final class GUI extends Application {
 					boolean stop = false;
 					String line;
 
-					while (!Thread.interrupted() && !stop && jDimeProcess.isAlive()) {
+					do {
 
-						while (r.ready()) {
+						do {
 							if ((line = r.readLine()) != null) {
 								lines.add(line);
 
@@ -386,14 +386,14 @@ public final class GUI extends Application {
 							} else {
 								stop = true;
 							}
-						}
+						} while (r.ready());
 
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
 							stop = true;
 						}
-					}
+					} while (!Thread.interrupted() && !stop && jDimeProcess.isAlive());
 
 					Platform.runLater(() -> output.getItems().addAll(lines));
 				}
