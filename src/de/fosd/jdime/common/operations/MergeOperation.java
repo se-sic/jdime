@@ -25,13 +25,16 @@ package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
-import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -43,7 +46,7 @@ import org.apache.log4j.Logger;
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
+	private static final Logger LOG = Logger.getLogger(MergeOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
@@ -142,9 +145,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		assert (mergeScenario.getBase().isEmpty() || mergeScenario.getBase().exists()) :
 				"Base artifact does not exist: " + mergeScenario.getBase();
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null) {
 			assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";

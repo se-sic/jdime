@@ -22,13 +22,13 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * <code>UnorderedMatcher</code>s ignore the order of the elements they match when comparing <code>Artifact</code>s.
@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class UnorderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	protected static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+	protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
 	/**
 	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.

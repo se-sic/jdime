@@ -25,11 +25,10 @@ package de.fosd.jdime.stats;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
+import de.fosd.jdime.Util;
 import de.fosd.jdime.common.LangElem;
 
 /**
@@ -39,8 +38,8 @@ import de.fosd.jdime.common.LangElem;
  * 
  */
 public class ASTStats {
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ASTStats.class));
+
+	private static final Logger LOG = Logger.getLogger(ASTStats.class.getCanonicalName());
 
 	public static ASTStats add(final ASTStats a, final ASTStats b) {
 		ASTStats sum = null;
@@ -316,7 +315,7 @@ public class ASTStats {
 
 		StringBuilder sb = new StringBuilder();
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isLoggable(Level.FINE)) {
 			sb.append("Total nodes: " + nodes + System.lineSeparator());
 			sb.append("Treedepth: " + treedepth + System.lineSeparator());
 			sb.append("Maximum children: " + maxchildren
@@ -402,9 +401,9 @@ public class ASTStats {
 		}
 
 		// CSV
-		sb.append(StringUtils.join(csvHead, ';'));
+		sb.append(Util.joinToString(csvHead, ';'));
 		sb.append(System.lineSeparator());
-		sb.append(StringUtils.join(csv, ';'));
+		sb.append(Util.joinToString(csv, ';'));
 
 		return sb.toString();
 	}

@@ -23,9 +23,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -38,8 +36,9 @@ import de.fosd.jdime.common.MergeContext;
  */
 public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ConflictOperation.class));
+	private static final Logger LOG = Logger.getLogger(ConflictOperation.class.getCanonicalName());
+	
+	private T type;
 	private T left;
 	private T right;
 
@@ -76,9 +75,8 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	@Override
 	public final void apply(final MergeContext context) throws IOException,
 			InterruptedException {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+
+		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null) {
 			assert (target.exists());

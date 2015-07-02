@@ -23,22 +23,21 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
 import org.gnu.glpk.GLPK;
 import org.gnu.glpk.GLPKConstants;
 import org.gnu.glpk.SWIGTYPE_p_double;
 import org.gnu.glpk.SWIGTYPE_p_int;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_smcp;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This unordered matcher calls an LP-Solver to solve the assignment problem.
@@ -50,7 +49,7 @@ import java.util.List;
  */
 public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-	private String id = ClassUtils.getSimpleName(getClass());
+	private String id = getClass().getSimpleName();
 
 	/**
 	 * Threshold for rounding errors.
@@ -97,7 +96,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 	/**
 	 * {@inheritDoc}
-	 *
+	 * <p>
 	 * TODO: this really needs documentation. I'll soon take care of that.
 	 */
 	@Override
@@ -111,10 +110,10 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				 * subtrees and return early to save time.
 				 */
 
-				if (LOG.isTraceEnabled()) {
+				LOG.finest(() -> {
 					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
-				}
+					return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
+				});
 
 				Matchings<T> m = Matchings.of(left, right, rootMatching);
 				m.get(left, right).get().setAlgorithm(id);
@@ -145,7 +144,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
-				matchings[i][j] = new Tuple<>(0, new Matchings<T>());
+				matchings[i][j] = Tuple.of(0, new Matchings<T>());
 			}
 		}
 
@@ -158,7 +157,7 @@ public class LPMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 				childT2 = right.getChild(j);
 				Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
 				Matching<T> matching = w.get(childT1, childT2).get();
-				matchings[i][j] = new Tuple<>(matching.getScore(), w);
+				matchings[i][j] = Tuple.of(matching.getScore(), w);
 			}
 		}
 
