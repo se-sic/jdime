@@ -23,8 +23,8 @@ public class JDimeWrapper {
 	private static final Logger LOG = Logger.getLogger(JDimeWrapper.class.getCanonicalName());
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		// setup log4j (otherwise we will drown in debug output)
-		Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+		// setup logging
+		Logger root = Logger.getLogger(JDimeWrapper.class.getPackage().getName());
 		root.setLevel(Level.WARNING);
 
 		for (Handler handler : root.getHandlers()) {
