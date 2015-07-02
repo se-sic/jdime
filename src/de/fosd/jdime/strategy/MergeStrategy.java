@@ -30,26 +30,25 @@ import java.util.Objects;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
  * A <code>MergeStrategy</code> implements an algorithm to merge a certain type of <code>Artifacts</code>.
  * <p>
- * The respective <code>MergeStrategies</code> can be optimized regarding different objectives,
- * e.g., generalization, performance, precision, or also a trade-off of concerns.
- *
- * @author Olaf Lessenich
+ * The respective <code>MergeStrategies</code> can be optimized regarding different objectives, e.g., generalization,
+ * performance, precision, or also a trade-off of concerns.
  *
  * @param <T>
- *            type of artifact
+ * 		type of artifact
+ * @author Olaf Lessenich
  */
-public abstract class MergeStrategy<T extends Artifact<T>> implements
-		MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
+public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
 
-	private static final Map<String, MergeStrategy<?>> strategyMap;
+	private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
 
 	static {
-		Map<String, MergeStrategy<?>> entries = new HashMap<>();
+		Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
 		LinebasedStrategy lineBased = new LinebasedStrategy();
 		StructuredStrategy structured = new StructuredStrategy();
 		CombinedStrategy combined = new CombinedStrategy();
@@ -59,7 +58,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 		entries.put("structured", structured);
 		entries.put("combined", combined);
 		entries.put("autotuning", combined);
-		
+
 		strategyMap = Collections.unmodifiableMap(entries);
 	}
 
@@ -75,27 +74,25 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements
 	/**
 	 * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
 	 * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
-	 * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code>
-	 * will be thrown.
+	 * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code> will
+	 * be thrown.
 	 *
 	 * @param name
 	 * 		the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
-	 *
 	 * @return the <code>MergeStrategy</code>
-	 *
 	 * @throws StrategyNotFoundException
 	 * 		if no <code>MergeStrategy</code> for <code>name</code> is found
 	 * @throws NullPointerException
 	 * 		if <code>name</code> is <code>null</code>
 	 */
-	public static MergeStrategy<?> parse(String name) {
+	public static MergeStrategy<FileArtifact> parse(String name) {
 		Objects.requireNonNull(name, "name may not be null!");
 		name = name.trim().toLowerCase();
 
 		if (!strategyMap.containsKey(name)) {
 			throw new StrategyNotFoundException("Strategy not found: " + name);
 		}
-		
+
 		return strategyMap.get(name);
 	}
 
