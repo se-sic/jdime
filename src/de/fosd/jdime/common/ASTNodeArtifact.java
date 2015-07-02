@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -178,6 +179,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		this.astnode = astnode;
 		this.initializeChildren();
 		renumberTree();
+
+		LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
 	}
 
 	/**
@@ -262,21 +265,35 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		StringBuilder sb = new StringBuilder();
 
-		if (isConflict()) {
+		if (isConflict() || isChoice()) {
 			// insert virtual node
-			String conflictId = "\"c" + virtualcount + "\"";
-			sb.append(conflictId);
-			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
+			String virtualId = "\"c" + virtualcount + "\"";
+			String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
+			String virtualColor = isConflict() ? "red" : "blue";
+			sb.append(virtualId);
+			sb.append("[label=").append(virtualLabel);
+			sb.append(", fillcolor = ").append(virtualColor);
+			sb.append(", style = filled]").append(System.lineSeparator());
 
-			// left alternative
-			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(left)).
-					append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+			if (isConflict()) {
+				// left alternative
+				sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(left)).
+						append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
 
-			// right alternative
-			sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(right)).
-					append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+				// right alternative
+				sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(right)).
+						append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+			} else {
+				// choice node
+				for (String condition : getVariants().keySet()) {
+					ASTNodeArtifact variant = getVariants().get(condition);
+					sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
+					sb.append(virtualId).append("->").append(getGraphvizId(variant)).
+							append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
+				}
+			}
 		} else {
 			sb.append(getGraphvizId(this)).append("[label=\"");
 
@@ -299,7 +316,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			// children
 			for (ASTNodeArtifact child : getChildren()) {
 				String childId = getGraphvizId(child);
-				if (child.isConflict()) {
+				if (child.isConflict() || child.isChoice()) {
 					virtualcount++;
 					childId = "\"c" + virtualcount + "\"";
 				}
@@ -361,14 +378,38 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			sb.append(Color.RED.toShell());
 			sb.append(">>>>>>> ");
 			sb.append(System.lineSeparator());
+		} else if (isChoice()) {
+			Set<String> conditions = getVariants().keySet();
+			sb.append(Color.RED.toShell());
+			sb.append(indent).append("(").append(getId()).append(") ");
+			sb.append(this);
+			sb.append(System.lineSeparator());
+
+			for (String condition : conditions) {
+				sb.append(Color.RED.toShell());
+				sb.append("#ifdef " + condition);
+				sb.append(System.lineSeparator());
+				// children
+				ASTNodeArtifact variant = getVariants().get(condition);
+				if (variant != null) {
+					sb.append(variant.dumpTree(indent));
+				}
+				sb.append(Color.RED.toShell());
+				sb.append("#endif");
+				sb.append(System.lineSeparator());
+
+			}
 		} else {
 			sb.append(indent).append("(").append(getId()).append(") ");
 			sb.append(this);
 
 			if (hasMatches()) {
 				assert (m != null);
-				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId())
-						.append(")");
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest(m.toString());
+					LOG.finest("Matching artifacts: " + m.getMatchingArtifact(this));
+				}
+				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
 				sb.append(Color.DEFAULT.toShell());
 			}
 			sb.append(System.lineSeparator());
@@ -515,7 +556,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
 				
-				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent);
+				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
+						left.getRevision().getName(), right.getRevision().getName());
 				conflictOp.apply(context);
 			}
 		}
@@ -587,7 +629,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				right.rebuildAST();
 				astnode.right = right.astnode;
 			}
+		}
 
+		if (isChoice()) {
+			astnode.isChoice = true;
+			astnode.jdimeId = getId();
+			astnode.variants = new LinkedHashMap<String, ASTNode<?>>();
+
+			for (String condition : variants.keySet()) {
+				ASTNodeArtifact variant = variants.get(condition);
+				variant.rebuildAST();
+				astnode.variants.put(condition, variant.astnode);
+			}
 		}
 
 		ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
@@ -620,9 +673,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				? new ASTNodeArtifact(left.astnode.fullCopy())
 				: new ASTNodeArtifact(right.astnode.fullCopy());
 
+		conflict.setRevision(new Revision("conflict"));
+		conflict.setNumber(virtualcount++);
 		conflict.setConflict(left, right);
 
 		return conflict;
+	}
+
+	@Override
+	public final ASTNodeArtifact createChoiceDummy(final String condition, final ASTNodeArtifact artifact) {
+		LOG.fine("Creating choice node");
+		ASTNodeArtifact choice;
+
+		choice = new ASTNodeArtifact(artifact.astnode.fullCopy());
+		choice.setRevision(new Revision("choice"));
+		choice.setNumber(virtualcount++);
+		choice.setChoice(condition, artifact);
+		return choice;
 	}
 
 	/**
@@ -793,5 +860,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 		
 		return elements;
+	}
+
+	/**
+	 * Returns whether the <code>ASTNodeArtifact</code> is a method declaration.
+	 * @return true if the <code>ASTNodeArtifact</code> is a method declaration
+	 */
+	private boolean isMethod() {
+		return astnode instanceof MethodDecl;
+	}
+
+	/**
+	 * Returns whether the <code>ASTNodeArtifact</code> is within a method.
+	 * @return true if the <code>ASTNodeArtifact</code> is within a method
+	 */
+	public boolean isWithinMethod() {
+		ASTNodeArtifact parent = getParent();
+		LOG.finest(getId());
+		return parent != null && (parent.isMethod() || parent.isWithinMethod());
 	}
 }

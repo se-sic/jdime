@@ -167,7 +167,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				}
 
 				MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
-				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
+
+				LOG.finest(nodeTriple.toString());
+
+				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode,
+						left.getRevision().getName(), right.getRevision().getName());
 
 				LOG.finest("MergeOperation<ASTNodeArtifact>.apply(context)");
 				astMergeOp.apply(mergeContext);

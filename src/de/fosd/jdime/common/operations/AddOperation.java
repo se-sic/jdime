@@ -57,18 +57,22 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String condition;
+
 	/**
 	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is added by the operation.
-	 * @param target
-	 *            output artifact
+	 * @param artifact that is added by the operation
+	 * @param target output artifact
+	 * @param condition presence condition
 	 */
-	public AddOperation(final T artifact, final T target) {
+	public AddOperation(final T artifact, final T target, String condition) {
 		super();
 		this.artifact = artifact;
 		this.target = target;
+
+		if (condition != null) {
+			this.condition = condition;
+		}
 	}
 
 	/*
@@ -83,9 +87,22 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
 		LOG.fine(() -> "Applying: " + this);
 
+		if (artifact.isChoice()) {
+			target.addChild(artifact);
+			return;
+		}
+
 		if (target != null) {
 			assert (target.exists());
-			target.addChild((T) artifact.clone());
+
+			if (context.isConditionalMerge(artifact) && condition != null) {
+				T choice = target.createChoiceDummy(condition, artifact);
+				assert (choice.isChoice());
+				target.addChild(choice);
+			} else {
+				LOG.fine("no conditions");
+				target.addChild((T) artifact.clone());
+			}
 		}
 
 		if (context.hasStats()) {
@@ -136,6 +153,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
 	}
 }

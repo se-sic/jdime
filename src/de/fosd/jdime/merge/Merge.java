@@ -33,6 +33,7 @@ import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -73,6 +74,10 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		T right = triple.getRight();
 		T target = operation.getTarget();
 
+		Revision l = left.getRevision();
+		Revision b = base.getRevision();
+		Revision r = right.getRevision();
+
 		if (!context.isDiffOnly() && !context.isPretend()) {
 			Objects.requireNonNull(target, "target must not be null!");
 		}
@@ -80,7 +85,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 		Diff<T> diff = new Diff<>();
 
 		Matching<T> m;
-		if (!left.matchingComputed() && !right.matchingComputed()) {
+		if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
 			if (!base.isEmpty()) {
 				// 3-way merge
 
@@ -120,7 +125,12 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 			return;
 		}
 
-		assert (left.hasMatching(right) && right.hasMatching(left));
+		if (!((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left))) {
+			LOG.severe(left.getId() + " and " + right.getId() + " have no matches.");
+			LOG.severe("left: " + left.dumpRootTree());
+			LOG.severe("right: " + right.dumpRootTree());
+			throw new RuntimeException();
+		}
 
 		if (target != null && target.isRoot() && !target.hasMatches()) {
 			// hack to fix the matches for the merged root node
@@ -147,7 +157,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
 					for (T rightChild : right.getChildren()) {
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;
@@ -155,8 +166,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
 					for (T rightChild : rightChildren) {
 
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								rightChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, l.getName());
 						delOp.apply(context);
 					}
 					return;
@@ -169,15 +179,15 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 					LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
 					for (T leftChild : left.getChildren()) {
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					}
 					return;
 				} else {
 
 					for (T leftChild : leftChildren) {
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								leftChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, r.getName());
 						delOp.apply(context);
 					}
 					return;

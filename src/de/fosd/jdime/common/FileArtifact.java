@@ -614,6 +614,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		throw new NotYetImplementedException();
 	}
 
+	@Override
+	public final FileArtifact createChoiceDummy(final String condition, final FileArtifact artifact)
+			throws FileNotFoundException {
+		throw new NotYetImplementedException();
+	}
+
 	public final String getContent() throws IOException {
 		return file == null ? "" : FileUtils.readFileToString(file);
 	}

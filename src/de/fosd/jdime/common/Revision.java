@@ -82,6 +82,18 @@ public class Revision {
 	 * @return true if the artifact is contained in this revision
 	 */
 	public final boolean contains(final Artifact<?> artifact) {
-		return artifact != null && artifact.hasMatching(this);
+		boolean result = artifact != null && artifact.hasMatching(this);
+		return result;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return name.equals(((Revision) obj).name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
 }

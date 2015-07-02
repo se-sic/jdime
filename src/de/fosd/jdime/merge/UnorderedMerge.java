@@ -115,14 +115,16 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					// was deleted in right
 					if (leftChild.hasChanges()) {
 						// insertion-deletion-conflict
-						LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalLeftChild)));
-						
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
+						if (LOG.isLoggable(Level.FINEST)) {
+							LOG.finest(prefix(leftChild) + "has changes in subtree.");
+						}
+
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								leftChild, null, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								leftChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
 						delOp.apply(context);
 					}
 				} else {
@@ -133,8 +135,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
 
 					// add the left change
-					AddOperation<T> addOp = new AddOperation<>(leftChild,
-							target);
+					AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
 					leftChild.setMerged();
 					addOp.apply(context);
 				}
@@ -160,12 +161,12 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 						LOG.finest(() -> String.format("%shas changes in subtree.", prefix(finalRightChild)));
 
 						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
+						ConflictOperation<T> conflictOp = new ConflictOperation<>(
+								null, rightChild, target, l.getName(), r.getName());
 						conflictOp.apply(context);
 					} else {
 						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(
-								rightChild);
+						DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
 						delOp.apply(context);
 					}
 				} else {
@@ -176,8 +177,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
 					// add the right change
-					AddOperation<T> addOp = new AddOperation<>(rightChild,
-							target);
+					AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
 					rightChild.setMerged();
 					addOp.apply(context);
 				}
@@ -195,6 +195,16 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
 				// left and right have the artifact. merge it.
 				LOG.finest(() -> String.format("%s is in both revisions, [%s] too", prefix(finalLeftChild), finalRightChild.getId()));
+
+				// leftChild is a choice node
+				if (leftChild.isChoice()) {
+					T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
+					leftChild.addVariant(r.getName(), matchedVariant);
+					AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+					leftChild.setMerged();
+					rightChild.setMerged();
+					addOp.apply(context);
+				}
 
 				// merge left
 				if (!leftChild.isMerged()) {
@@ -217,8 +227,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftChild, baseChild, rightMatch);
 
-					MergeOperation<T> mergeOp = new MergeOperation<>(
-							childTriple, targetChild);
+					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
 					leftChild.setMerged();
 					rightMatch.setMerged();
@@ -252,8 +261,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 					MergeScenario<T> childTriple = new MergeScenario<>(childType,
 							leftMatch, baseChild, rightChild);
 
-					MergeOperation<T> mergeOp = new MergeOperation<>(
-							childTriple, targetChild);
+					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
 					leftMatch.setMerged();
 					rightChild.setMerged();

@@ -47,22 +47,30 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String leftCondition;
+	private String rightCondition;
+
 	/**
 	 * Class constructor.
 	 *
-	 * @param left
-	 *            left alternatives
-	 * @param right
-	 *            right alternatives
-	 * @param target
-	 *            target node
+	 * @param left left alternatives
+	 * @param right right alternatives
+	 * @param target target node
 	 */
-	public ConflictOperation(final T left, final T right,
-			final T target) {
+	public ConflictOperation(final T left, final T right, final T target, final String leftCondition,
+							 final String rightCondition) {
 		super();
 		this.left = left;
 		this.right = right;
 		this.target = target;
+
+		if (leftCondition != null) {
+			this.leftCondition = leftCondition;
+		}
+
+		if (rightCondition != null) {
+			this.rightCondition = rightCondition;
+		}
 	}
 
 	/*
@@ -80,9 +88,25 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
 		if (target != null) {
 			assert (target.exists());
-			T conflict = target.createConflictArtifact(left, right);
-			assert (conflict.isConflict());
-			target.addChild(conflict);
+
+			if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
+				LOG.fine("Create choice node");
+				T choice;
+				if (left.isChoice()) {
+					choice = left;
+				} else {
+					choice = target.createChoiceDummy(leftCondition, left);
+				}
+
+				assert (choice.isChoice());
+				choice.addVariant(rightCondition, right);
+				target.addChild(choice);
+			} else {
+				LOG.fine("Create conflict node");
+				T conflict = target.createConflictArtifact(left, right);
+				assert (conflict.isConflict());
+				target.addChild(conflict);
+			}
 		}
 	}
 

@@ -72,7 +72,7 @@ public final class Main {
 	private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.11";
+	private static final String VERSION = "0.3.11-nway";
 
 	private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
 	private static final String CONFIG_FILE_NAME = "JDime.properties";
@@ -203,7 +203,7 @@ public final class Main {
 				"Use heuristics for matching. Supply off, full, or a number as argument.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
-						+ ", dumpgraph, dumpfile, prettyprint)");
+						+ ", dumpgraph, dumpfile, prettyprint, nway)");
 		options.addOption("output", true, "output directory/file");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
@@ -375,8 +375,7 @@ public final class Main {
 			int numInputFiles = cmd.getArgList().size();
 
 			if (!((context.isDumpTree() || context.isDumpFile() || context
-					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
-					&& numInputFiles <= MergeType.MAXFILES)) {
+					.isBugfixing()) || numInputFiles >= MergeType.MINFILES)) {
 				help(options);
 				return false;
 			}
@@ -384,15 +383,22 @@ public final class Main {
 			// prepare the list of input files
 			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-			boolean targetIsFile= true;
+			char cond = 'A';
+			boolean targetIsFile = true;
 
 			for (Object filename : cmd.getArgList()) {
 				try {
-					FileArtifact artifact = new FileArtifact(new File((String) filename));
-					if (targetIsFile) {
-						targetIsFile = !artifact.isDirectory();
+					FileArtifact newArtifact = new FileArtifact(new File((String) filename));
+
+					if (context.isConditionalMerge()) {
+						newArtifact.setRevision(new Revision(String.valueOf(cond++)));
 					}
-					inputArtifacts.add(artifact);
+
+					if (targetIsFile) {
+						targetIsFile = !newArtifact.isDirectory();
+					}
+
+					inputArtifacts.add(newArtifact);
 				} catch (FileNotFoundException e) {
 					System.err.println("Input file not found: " + (String) filename);
 				}
@@ -517,9 +523,7 @@ public final class Main {
 	public static void merge(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
-		Operation<FileArtifact> merge =
-				new MergeOperation<>(context.getInputFiles(),
-						context.getOutputFile());
+		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
 		merge.apply(context);
 	}
 

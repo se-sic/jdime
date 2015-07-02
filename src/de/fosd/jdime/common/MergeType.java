@@ -31,65 +31,24 @@ public enum MergeType {
 	/**
 	 * Two-way merge.
 	 */
-	TWOWAY(2, "left", "right"),
+	TWOWAY,
 
 	/**
 	 * Three-way merge.
 	 */
-	THREEWAY(3, "left", "base", "right");
+	THREEWAY,
+
+	/**
+	 * N-way merge.
+	 */
+	NWAY;
 
 	/**
 	 * At least two input files are needed.
 	 */
-	public static final int MINFILES = TWOWAY.numFiles;
-
-	/**
-	 * More than three input files are not supported at the moment.
-	 */
-	public static final int MAXFILES = THREEWAY.numFiles;
-
-	/**
-	 * Number of required input files.
-	 */
-	private int numFiles;
-
-	/**
-	 * Names of input revisions.
-	 */
-	private String[] revisions;
-
-	/**
-	 * Creates a new instance of MergeType.
-	 *
-	 * @param numFiles
-	 *            number of required input files
-	 * @param revisions
-	 *            names of input revisions
-	 */
-	MergeType(final int numFiles, final String... revisions) {
-		this.numFiles = numFiles;
-		this.revisions = revisions;
-	}
-
-	/**
-	 * Returns revision name of the input file at a certain position.
-	 *
-	 * @param pos
-	 *            position of the input file
-	 * @return revision name
-	 */
-	public String getRevision(final int pos) {
-		return revisions[pos];
-	}
-
-	/**
-	 * Returns number of required input files.
-	 *
-	 * @return required input files.
-	 */
-	public int getNumFiles() {
-		return numFiles;
-	}
+	public static final int TWOWAY_FILES = 2;
+	public static final int THREEWAY_FILES = 3;
+	public static final int MINFILES = TWOWAY_FILES;
 
 	/*
 	 * (non-Javadoc)

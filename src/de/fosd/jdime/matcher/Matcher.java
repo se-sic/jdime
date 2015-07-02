@@ -23,7 +23,10 @@
 package de.fosd.jdime.matcher;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.logging.Logger;
 
@@ -85,6 +88,33 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	@Override
 	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+
+		if (left.isConflict()) {
+			return Matchings.of(left, right, 0);
+		}
+
+		if (left.isChoice()) {
+			// We have to split the choice node into its variants and create a matching for each one.
+			// The highest matching is returned.
+
+			LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
+					left.getId()));
+
+			Map<Integer, Matchings> variantMatches = new HashMap<>();
+
+			for (T variant: left.getVariants().values()) {
+				LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
+				Matchings<T> cur = match(context, variant, right, lookAhead);
+				Matching<T> highest = cur.get(variant, right).get();
+				variantMatches.put(highest.getScore(), cur);
+			}
+
+			Matchings<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
+
+			LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
+			return maxMatching;
+		}
+
 		boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
         boolean isOrdered = false;
 		boolean uniqueLabels = true;
