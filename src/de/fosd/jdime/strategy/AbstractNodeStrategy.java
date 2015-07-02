@@ -55,18 +55,13 @@ public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeS
 	}
 
 	private String dumpGraphVizTree(T artifact) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("digraph ast {").append(System.lineSeparator());
-		sb.append("node [shape=ellipse];").append(System.lineSeparator());
-		sb.append("nodesep=0.8;").append(System.lineSeparator());
+		final String format = "digraph ast {%n" +
+				              "node [shape=ellipse];%n" +
+				              "nodesep=0.8;%n" +
+				              "%s" +
+				              "}";
 
-		// nodes
-		sb.append(artifact.dumpGraphvizTree(true, 0));
-
-		// footer
-		sb.append("}");
-
-		return sb.toString();
+		return String.format(format, artifact.dumpGraphvizTree(true, 0));
 	}
 
 	@Override
