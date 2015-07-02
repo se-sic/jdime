@@ -10,6 +10,12 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 
+/**
+ * A <code>MergeStrategy</code> than may be implemented for <code>Artifact</code>s representing AST nodes parsed from
+ * source files such as <code>ASTNodeArtifact</code>.
+ *
+ * @param <T> the type of the artifact
+ */
 public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeStrategy<T> {
 
 	private static final Logger LOG = Logger.getLogger(AbstractNodeStrategy.class.getCanonicalName());
