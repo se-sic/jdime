@@ -23,13 +23,11 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich

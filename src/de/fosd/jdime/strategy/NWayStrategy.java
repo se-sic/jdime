@@ -23,23 +23,25 @@
  */
 package de.fosd.jdime.strategy;
 
-import AST.ASTNode;
-import de.fosd.jdime.common.*;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+
+import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.

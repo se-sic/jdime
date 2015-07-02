@@ -23,6 +23,9 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Direction;
@@ -31,10 +34,6 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.

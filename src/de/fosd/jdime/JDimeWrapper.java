@@ -1,5 +1,9 @@
 package de.fosd.jdime;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -14,12 +18,6 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 public class JDimeWrapper {
 	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(JDimeWrapper.class));

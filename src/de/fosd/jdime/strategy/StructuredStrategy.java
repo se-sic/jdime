@@ -30,7 +30,12 @@ import java.io.StringReader;
 import java.security.Permission;
 import java.util.ArrayList;
 
-import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.LangElem;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeTripleStats;

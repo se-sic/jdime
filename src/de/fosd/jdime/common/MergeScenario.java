@@ -23,13 +23,12 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+
 import de.fosd.jdime.common.operations.MergeOperation;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.LinkedHashMap;
 
 /**
  * This class represents a merge scenario.

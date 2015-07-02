@@ -22,14 +22,17 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-
-import java.io.IOException;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.log4j.Logger;
-
-import java.util.*;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.

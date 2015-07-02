@@ -45,7 +45,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import de.uni_passau.fim.seibt.kvconfig.Config;
