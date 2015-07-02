@@ -14,7 +14,8 @@ import de.fosd.jdime.merge.Merge;
  * A <code>MergeStrategy</code> than may be implemented for <code>Artifact</code>s representing AST nodes parsed from
  * source files such as <code>ASTNodeArtifact</code>.
  *
- * @param <T> the type of the artifact
+ * @param <T>
+ * 		the type of the artifact
  */
 public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeStrategy<T> {
 
@@ -24,9 +25,11 @@ public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeS
 
 	/**
 	 * TODO: high-level documentation
-	 * @param operation the <code>MergeOperation</code> to perform
-	 * @param context the <code>MergeContext</code>
 	 *
+	 * @param operation
+	 * 		the <code>MergeOperation</code> to perform
+	 * @param context
+	 * 		the <code>MergeContext</code>
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
