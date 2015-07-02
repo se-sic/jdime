@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import AST.ASTNode;
 import AST.BytecodeParser;
@@ -54,8 +56,6 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -63,8 +63,7 @@ import org.apache.log4j.Logger;
  */
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(ASTNodeArtifact.class));
+	private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
 
 	/**
 	 * Initializes parser.
@@ -181,9 +180,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		this.initializeChildren();
 		renumberTree();
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("created new ASTNodeArtifact for revision " + getRevision());
-		}
+		LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
 	}
 
 	/**
@@ -217,7 +214,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final ASTNodeArtifact addChild(final ASTNodeArtifact child) throws IOException {
-		LOG.trace(getId() + ".addChild(" + child.getId() + ")");
+		LOG.finest(() -> String.format("%s.addChild(%s)", getId(), child.getId()));
 
 		assert (this.exists());
 		assert (child.exists());
@@ -408,9 +405,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			if (hasMatches()) {
 				assert (m != null);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(m);
-					LOG.trace("Matching artifacts: " + m.getMatchingArtifact(this));
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest(m.toString());
+					LOG.finest("Matching artifacts: " + m.getMatchingArtifact(this));
 				}
 				sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
 				sb.append(Color.DEFAULT.toShell());
@@ -486,25 +483,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (other != null);
 		assert (other.astnode != null);
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("match(" + getId() + ", " + other.getId() + ")");
-		}
+		LOG.finest(() -> "match(" + getId() + ", " + other.getId() + ")");
 
 		if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) || Literal.class
 				.isAssignableFrom(astnode.getClass()))
 				&& other.astnode.getClass().equals(astnode.getClass())) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Try Matching (prettyPrint): {"
-						+ astnode.prettyPrint() + "} and {"
-						+ other.astnode.prettyPrint() + "}");
-			}
+
+			LOG.finest(() -> {
+				String prettyPrint = astnode.prettyPrint();
+				String otherPrettyPrint = other.astnode.prettyPrint();
+				return String.format("Try Matching (prettyPrint): {%s} and {%s}", prettyPrint, otherPrettyPrint);
+			});
+
 			return astnode.prettyPrint().equals(other.astnode.prettyPrint());
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Try Matching (dumpString): {" + astnode.dumpString()
-					+ "} and {" + other.astnode.dumpString() + "}");
-		}
+		LOG.finest(() -> {
+			String dumpString = astnode.dumpString();
+			String otherDumpString = other.astnode.dumpString();
+			return String.format("Try Matching (dumpString): {%s} and {%s}", dumpString, otherDumpString);
+		});
+
 		return astnode.dumpString().equals(other.astnode.dumpString());
 	}
 
@@ -515,9 +514,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 		MergeStrategy<ASTNodeArtifact> astNodeStrategy = new ASTNodeStrategy();
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Using strategy: " + astNodeStrategy);
-		}
+		LOG.fine(() -> "Using strategy: " + astNodeStrategy);
 
 		MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
 		ASTNodeArtifact left = triple.getLeft();
@@ -549,11 +546,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 			if (leftChanges && rightChanges) {
 				
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("Target " + target.getId() + " expects a fixed amount of children.");
-					LOG.trace("Both " + left.getId() + " and " + right.getId() + " contain changes.");
-					LOG.trace("We will report a conflict instead of performing the merge.");
-				}
+				LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
+				LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
+				LOG.finest(() -> "We will report a conflict instead of performing the merge.");
+
 				safeMerge = false;
 				
 				// to be safe, we will report a conflict instead of merging
@@ -582,10 +578,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 *            child that should be removed
 	 */
 	private void removeChild(final ASTNodeArtifact child) {
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("[" + getId() + "] removing child " + child.getId());
-			LOG.trace("children before removal: " + getChildren());
-		}
+		LOG.finest(() -> String.format("[%s] Removing child %s", getId(), child.getId()));
+		LOG.finest(() -> String.format("Children before removal: %s", getChildren()));
 
 		Iterator<ASTNodeArtifact> it = children.iterator();
 		ASTNodeArtifact elem;
@@ -596,9 +590,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			}
 		}
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("children after removal: " + getChildren());
-		}
+		LOG.finest(() -> String.format("Children after removal: %s", getChildren()));
 	}
 
 	/**
@@ -610,9 +602,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		assert (astnode != null);
 		rebuildAST();
 		astnode.flushCaches();
-		if (LOG.isDebugEnabled()) {
+
+		if (LOG.isLoggable(Level.FINEST)) {
 			System.out.println(dumpTree());
 		}
+
 		return astnode.prettyPrint();
 	}
 
@@ -688,7 +682,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final ASTNodeArtifact createChoiceDummy(final String condition, final ASTNodeArtifact artifact) {
-		LOG.debug("Creating choice node");
+		LOG.fine("Creating choice node");
 		ASTNodeArtifact choice;
 
 		choice = new ASTNodeArtifact(artifact.astnode.fullCopy());
@@ -882,7 +876,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 */
 	public boolean isWithinMethod() {
 		ASTNodeArtifact parent = getParent();
-		LOG.trace(getId());
+		LOG.finest(getId());
 		return parent != null && (parent.isMethod() || parent.isWithinMethod());
 	}
 }

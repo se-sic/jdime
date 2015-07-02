@@ -28,11 +28,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(ASTNodeArtifact.class));
+	private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
 	/**
 	 * Used to renumber artifacts.
@@ -452,15 +452,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public final boolean hasMatching(Revision rev) {
 		boolean hasMatching = matches != null && matches.containsKey(rev);
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(getId() + ".hasMatching(" + rev + ")");
+		if (LOG.isLoggable(Level.FINEST)) {
+			LOG.finest(getId() + ".hasMatching(" + rev + ")");
 			if (matches != null) {
 				for (Revision r : matches.keySet()) {
-					LOG.trace("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
-					LOG.trace("hasMatching(" + r + ") = " + hasMatching);
+					LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
+					LOG.finest("hasMatching(" + r + ") = " + hasMatching);
 				}
 			} else {
-				LOG.trace("no matches for " + getId() + " and " + rev);
+				LOG.finest("no matches for " + getId() + " and " + rev);
 			}
 		}
 
@@ -488,15 +488,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		Revision otherRev = other.getRevision();
 		boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact((T) this) == other;
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(getId() + ".hasMatching(" + other.getId() + ")");
+		if (LOG.isLoggable(Level.FINEST)) {
+			LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
 			if (matches != null) {
 				for (Revision r : matches.keySet()) {
-					LOG.trace("Matching found with: " + r + " (" + other.getId() + ")");
-					LOG.trace("hasMatching(" + r + ") = " + hasMatching);
+					LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
+					LOG.finest("hasMatching(" + r + ") = " + hasMatching);
 				}
 			} else {
-				LOG.trace("no matches for " + getId() + " and " + other.getId());
+				LOG.finest("no matches for " + getId() + " and " + other.getId());
 			}
 		}
 
@@ -656,7 +656,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 			throw new RuntimeException("condition must not be null!");
 		}
 
-		LOG.debug("Add node " + artifact.getId() + " under condition " + condition);
+		LOG.fine("Add node " + artifact.getId() + " under condition " + condition);
 
 		if (variants == null) {
 			variants = new HashMap<>();

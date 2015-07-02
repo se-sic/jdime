@@ -3,6 +3,10 @@ package de.fosd.jdime;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
@@ -14,18 +18,18 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class JDimeWrapper {
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(JDimeWrapper.class));
+	private static final Logger LOG = Logger.getLogger(JDimeWrapper.class.getCanonicalName());
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// setup log4j (otherwise we will drown in debug output)
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.WARN);
+		Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+		root.setLevel(Level.WARNING);
+
+		for (Handler handler : root.getHandlers()) {
+			handler.setLevel(Level.WARNING);
+		}
 
 		// setup JDime using the MergeContext
 		MergeContext context = new MergeContext();

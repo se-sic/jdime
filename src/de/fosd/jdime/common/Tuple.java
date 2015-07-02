@@ -23,7 +23,7 @@
 package de.fosd.jdime.common;
 
 /**
- * A generic tuple datatype.
+ * A generic tuple.
  *
  * @author Olaf Lessenich
  *
@@ -31,11 +31,34 @@ package de.fosd.jdime.common;
  * @param <Y> type of second element
  */
 public class Tuple<X, Y> {
+
 	public final X x;
 	public final Y y;
 
-	public Tuple(X x, Y y) {
+	private Tuple(X x, Y y) {
 		this.x = x;
 		this.y = y;
+	}
+
+	public static <X, Y> Tuple<X, Y> of(X x, Y y) {
+		return new Tuple<>(x, y);
+	}
+
+	/**
+	 * Returns the first object contained in the <code>Tuple</code>.
+	 *
+	 * @return the first object
+	 */
+	public X getX() {
+		return x;
+	}
+
+	/**
+	 * Returns the second object contained in the <code>Tuple</code>.
+	 *
+	 * @return the second object
+	 */
+	public Y getY() {
+		return y;
 	}
 }

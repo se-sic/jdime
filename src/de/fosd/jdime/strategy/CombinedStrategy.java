@@ -25,6 +25,7 @@ package de.fosd.jdime.strategy;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -34,8 +35,6 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -45,8 +44,7 @@ import org.apache.log4j.Logger;
  */
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(CombinedStrategy.class));
+	private static final Logger LOG = Logger.getLogger(CombinedStrategy.class.getCanonicalName());
 
 	/**
 	 * TODO: high-level documentation
@@ -74,14 +72,16 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 					+ target;
 		}
 
-		if (LOG.isInfoEnabled()) {
+
+		LOG.fine(() -> {
 			MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-			assert (triple != null);
-			assert (triple.isValid()) : "The merge triple is not valid!";
-			LOG.info("Merging: " + triple.getLeft().getPath() + " "
-					+ triple.getBase().getPath() + " "
-					+ triple.getRight().getPath());
-		}
+			String leftPath = triple.getLeft().getPath();
+			String basePath = triple.getBase().getPath();
+			String rightPath = triple.getRight().getPath();
+
+			return String.format("Merging: %s %s %s", leftPath, basePath, rightPath);
+		});
+
 
 		ArrayList<Long> runtimes = new ArrayList<>();
 		MergeContext subContext = null;
@@ -93,8 +93,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			subContext = (MergeContext) context.clone();
 			subContext.setOutputFile(null);
 
-			if (LOG.isInfoEnabled() && i == 0) {
-				LOG.info("Trying linebased strategy.");
+			if (i == 0) {
+				LOG.fine("Trying linebased strategy.");
 			}
 
 			MergeStrategy<FileArtifact> s = new LinebasedStrategy();
@@ -105,16 +105,15 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			int conflicts = subContext.getStats().getConflicts();
 			if (conflicts > 0) {
 				// merge not successful. we need another strategy.
-				if (LOG.isInfoEnabled() && i == 0) {
-					String noun = conflicts > 1 ? "conflicts" : "conflict";
-					LOG.info("Got " + conflicts + " " + noun
-							+ ". Need to use structured strategy.");
+				if (i == 0) {
+					LOG.fine(() -> {
+						String noun = conflicts > 1 ? "conflicts" : "conflict";
+						return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
+					});
 				}
 
 				// clean target file
-				if (LOG.isInfoEnabled()) {
-					LOG.info("Deleting: " + target);
-				}
+				LOG.fine("Deleting: " + target);
 
 				if (target != null) {
 					boolean isLeaf = target.isLeaf();
@@ -139,8 +138,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 				}
 				s.merge(operation, subContext);
 			} else {
-				if (LOG.isInfoEnabled() && i == 0) {
-					LOG.info("Linebased strategy worked fine.");
+				if (i == 0) {
+					LOG.fine("Linebased strategy worked fine.");
 				}
 			}
 
@@ -151,12 +150,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 			long runtime = System.currentTimeMillis() - cmdStart;
 			runtimes.add(runtime);
 
-			if (LOG.isInfoEnabled() && context.isBenchmark()) {
+			if (context.isBenchmark()) {
 				if (i == 0) {
-					LOG.info("Initial run: " + runtime + " ms");
+					LOG.fine(() -> "Initial run: " + runtime + " ms");
 				} else {
-					LOG.info("Run " + i + " of " + context.getBenchmarkRuns()
-							+ ": " + runtime + " ms");
+					final int finalLogI = i;
+					LOG.fine(() -> String.format("Run %d of %d: %d ms", finalLogI, context.getBenchmarkRuns(), runtime));
 				}
 			}
 		}
@@ -167,7 +166,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		Long runtime = MergeContext.median(runtimes);
-		LOG.debug("Combined merge time was " + runtime + " ms.");
+		LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
 
 		assert (subContext != null);
 

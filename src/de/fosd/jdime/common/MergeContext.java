@@ -749,7 +749,7 @@ public class MergeContext implements Cloneable {
 		skippedLeftElements.put(key, value);
 
 		// subtreeSize should never be zero if this is a skipped element.
-		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+		skippedElements.add(Tuple.of(key, (double) score / (double) element.getSubtreeSize()));
 	}
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
@@ -764,7 +764,7 @@ public class MergeContext implements Cloneable {
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);
-		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+		skippedElements.add(Tuple.of(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */

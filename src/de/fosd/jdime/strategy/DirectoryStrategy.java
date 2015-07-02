@@ -23,6 +23,7 @@
 package de.fosd.jdime.strategy;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -31,8 +32,6 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -40,8 +39,7 @@ import org.apache.log4j.Logger;
  */
 public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(DirectoryStrategy.class));
+	private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class.getCanonicalName());
 	private static Merge<FileArtifact> merge = null;
 
 	/**
@@ -85,10 +83,7 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 			merge = new Merge<>();
 		}
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("merge(operation, context)");
-		}
-
+		LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
 		merge.merge(operation, context);
 	}
 

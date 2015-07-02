@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
-import org.apache.commons.lang3.tuple.Pair;
+import de.fosd.jdime.common.Tuple;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet
@@ -137,10 +137,10 @@ public class BalancedSequence<T extends Artifact<T>> {
 	 *
 	 * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
 	 */
-	public Pair<BalancedSequence<T>, BalancedSequence<T>> partition() {
+	public Tuple<BalancedSequence<T>, BalancedSequence<T>> partition() {
 
 		if (seq.size() == 0 || seq.size() == 2) {
-			return Pair.of(emptySeq(), emptySeq());
+			return Tuple.of(emptySeq(), emptySeq());
 		}
 
 		int numZeros = 0;
@@ -172,7 +172,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 			tail = emptySeq();
 		}
 
-		return Pair.of(head, tail);
+		return Tuple.of(head, tail);
 	}
 
 	/**
@@ -202,9 +202,9 @@ public class BalancedSequence<T extends Artifact<T>> {
 
 		Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
 
-		Pair<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
-		BalancedSequence<T> head = partition.getLeft();
-		BalancedSequence<T> tail = partition.getRight();
+		Tuple<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
+		BalancedSequence<T> head = partition.getX();
+		BalancedSequence<T> tail = partition.getY();
 
 		decomposition.addAll(head.decompose());
 		decomposition.addAll(tail.decompose());
@@ -317,12 +317,12 @@ public class BalancedSequence<T extends Artifact<T>> {
             return result;
         }
 
-        Pair<BalancedSequence<T>, BalancedSequence<T>> sPart = s.partition();
-        Pair<BalancedSequence<T>, BalancedSequence<T>> tPart = t.partition();
-        BalancedSequence<T> sHead = sPart.getLeft();
-        BalancedSequence<T> tHead = tPart.getLeft();
-        BalancedSequence<T> sTail = sPart.getRight();
-        BalancedSequence<T> tTail = tPart.getRight();
+        Tuple<BalancedSequence<T>, BalancedSequence<T>> sPart = s.partition();
+        Tuple<BalancedSequence<T>, BalancedSequence<T>> tPart = t.partition();
+        BalancedSequence<T> sHead = sPart.getX();
+        BalancedSequence<T> tHead = tPart.getX();
+        BalancedSequence<T> sTail = sPart.getY();
+        BalancedSequence<T> tTail = tPart.getY();
 
         Integer a = lcsRec(concatenate(sHead, sTail), t, codes, results);
         Integer b = lcsRec(s, concatenate(tHead, tTail), codes, results);

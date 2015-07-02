@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
@@ -40,8 +42,6 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -50,7 +50,7 @@ import org.apache.log4j.Logger;
  */
 public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(NWayStrategy.class));
+	private static final Logger LOG = Logger.getLogger(NWayStrategy.class.getCanonicalName());
 
 	/**
 	 * The source <code>FileArtifacts</code> are extracted from the
@@ -94,10 +94,10 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 		ASTNodeArtifact merged, next, targetNode;
 		MergeContext mergeContext;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Merging:");
+		if (LOG.isLoggable(Level.FINE)) {
+			LOG.fine("Merging:");
 			for (Revision rev : variants.keySet()) {
-				LOG.debug(String.format("%s: %s", rev, variants.get(rev).getPath()));
+				LOG.fine(String.format("%s: %s", rev, variants.get(rev).getPath()));
 			}
 		}
 
@@ -120,8 +120,8 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 				targetNode.setRevision(merged.getRevision(), true);
 				targetNode.renumberTree();
 
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("target.dumpTree(:");
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest("target.dumpTree(:");
 					System.out.println(targetNode.dumpTree());
 				}
 
@@ -130,27 +130,27 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
 						merged.getRevision().getName(), next.getRevision().getName());
 
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("ASTMOperation.apply(context)");
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest("ASTMOperation.apply(context)");
 				}
 
 				astMergeOp.apply(mergeContext);
 
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("Structured merge finished.");
+				if (LOG.isLoggable(Level.FINEST)) {
+					LOG.finest("Structured merge finished.");
 
 					if (!context.isDiffOnly()) {
-						LOG.trace("target.dumpTree():");
+						LOG.finest("target.dumpTree():");
 						System.out.println(targetNode.dumpTree());
 					}
 
-					LOG.trace("Pretty-printing merged:");
+					LOG.finest("Pretty-printing merged:");
 					System.out.println(merged.prettyPrint());
-					LOG.trace("Pretty-printing next:");
+					LOG.finest("Pretty-printing next:");
 					System.out.println(next.prettyPrint());
 
 					if (!context.isDiffOnly()) {
-						LOG.trace("Pretty-printing target:");
+						LOG.finest("Pretty-printing target:");
 						System.out.print(targetNode.prettyPrint());
 					}
 				}
@@ -164,13 +164,13 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
 				long runtime = System.currentTimeMillis() - cmdStart;
 
-				if (LOG.isDebugEnabled()) {
+				if (LOG.isLoggable(Level.FINE)) {
 					FileWriter file = new FileWriter(merged + ".dot");
 					file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
 					file.close();
 				}
 
-				LOG.debug("Structured merge time was " + runtime + " ms.");
+				LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
 
 				if (context.hasErrors()) {
 					System.err.println(context.getStdErr());
@@ -183,11 +183,11 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 				}
 
 			} catch (Throwable t) {
-				LOG.fatal("Exception while merging:");
+				LOG.severe("Exception while merging:");
 				for (Revision rev : variants.keySet()) {
-					LOG.fatal(String.format("%s: %s", rev, variants.get(rev).getPath()));
+					LOG.severe(String.format("%s: %s", rev, variants.get(rev).getPath()));
 				}
-				LOG.fatal(t);
+				LOG.severe(t.toString());
 
 				if (!context.isKeepGoing()) {
 					throw new Error(t);

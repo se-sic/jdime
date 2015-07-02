@@ -25,10 +25,10 @@ package de.fosd.jdime.common;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * This class represents a merge scenario.
@@ -37,7 +37,8 @@ import org.apache.log4j.Logger;
  * @author Olaf Lessenich
  */
 public class MergeScenario<T extends Artifact<T>> {
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeScenario.class));
+
+	private static final Logger LOG = Logger.getLogger(MergeScenario.class.getCanonicalName());
 
 	/**
 	 * Type of merge.
@@ -72,11 +73,9 @@ public class MergeScenario<T extends Artifact<T>> {
 			right.setRevision(rightRev, true);
 		}
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("artifacts.put(" + left.getId() + ")");
-			LOG.trace("artifacts.put(" + base.getId() + ")");
-			LOG.trace("artifacts.put(" + right.getId() + ")");
-		}
+		LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
+		LOG.finest(() -> String.format("artifacts.put(%s)", base.getId()));
+		LOG.finest(() -> String.format("artifacts.put(%s)", right.getId()));
 
 		this.artifacts.put(left.getRevision(), left);
 		this.artifacts.put(base.getRevision(), base);
@@ -94,9 +93,7 @@ public class MergeScenario<T extends Artifact<T>> {
 		this.mergeType = mergeType;
 
 		for (T artifact : inputArtifacts) {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("artifacts.put(" + artifact.getId() + ")");
-			}
+			LOG.finest(() -> String.format("artifacts.put(%s)", artifact.getId()));
 			artifacts.put(artifact.getRevision(), artifact);
 		}
 	}
@@ -104,12 +101,12 @@ public class MergeScenario<T extends Artifact<T>> {
 	private final T get(int position) {
 		int i = 0;
 
-		if (LOG.isTraceEnabled()) {
+		if (LOG.isLoggable(Level.FINEST)) {
 			i++;
-			LOG.trace("Mergescenario.artifacts:");
+			LOG.finest("Mergescenario.artifacts:");
 
 			for (Revision rev : artifacts.keySet()) {
-				LOG.trace("[" + i + "] " + artifacts.get(rev).getId());
+				LOG.finest(String.format("[%d] %s", i, artifacts.get(rev).getId()));
 			}
 
 			i = 0;
@@ -133,9 +130,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	public final T getBase() {
 		try {
 			T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("scenario.getBase() returns " + base.getId());
-			}
+			LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
 			return base;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -150,9 +145,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final T getLeft() {
 		T left = get(1);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("scenario.getLeft() returns " + left.getId());
-		}
+		LOG.finest(() -> String.format("scenario.getLeft() returns %s", left.getId()));
 		return left;
 	}
 
@@ -172,9 +165,7 @@ public class MergeScenario<T extends Artifact<T>> {
 	 */
 	public final T getRight() {
 		T right = artifacts.size() == 3 ? get(3) : get(2);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("scenario.getRight() returns " + right.getId());
-		}
+		LOG.finest(() -> String.format("scenario.getRight() returns %s", right.getId()));
 		return right;
 	}
 

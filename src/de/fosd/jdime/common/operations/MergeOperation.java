@@ -25,6 +25,7 @@ package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -33,8 +34,6 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -46,7 +45,7 @@ import org.apache.log4j.Logger;
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(MergeOperation.class));
+	private static final Logger LOG = Logger.getLogger(MergeOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
@@ -105,7 +104,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 		if (nway) {
 			mergeType = MergeType.NWAY;
 			this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
-			LOG.trace("Created N-way scenario");
+			LOG.finest("Created N-way scenario");
 		} else {
 
 			if (numArtifacts == MergeType.TWOWAY_FILES) {
@@ -113,13 +112,13 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 				base = left.createEmptyArtifact();
 				right = inputArtifacts.get(1);
 				mergeType = MergeType.TWOWAY;
-				LOG.trace("Created TWO-way scenario");
+				LOG.finest("Created TWO-way scenario");
 			} else if (numArtifacts == MergeType.THREEWAY_FILES) {
 				left = inputArtifacts.get(0);
 				base = inputArtifacts.get(1);
 				right = inputArtifacts.get(2);
 				mergeType = MergeType.THREEWAY;
-				LOG.trace("Created THREE-way scenario");
+				LOG.finest("Created THREE-way scenario");
 			} else {
 				String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
 				throw new IllegalArgumentException(msg);
@@ -177,9 +176,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 					"Base artifact does not exist: " + mergeScenario.getBase();
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null) {
 			assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
