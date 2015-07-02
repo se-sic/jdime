@@ -191,7 +191,8 @@ public final class Main {
 		options.addOption("benchmark", false,
 				"benchmark with " + context.getBenchmarkRuns()
 						+ " runs per file");
-		options.addOption("debug", true, "set debug level");
+		options.addOption("debug", true, "set debug level"
+				+ " (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)");
 		options.addOption("consecutive", false,
 				"requires diffonly, treats versions"
 						+ " as consecutive versions");
