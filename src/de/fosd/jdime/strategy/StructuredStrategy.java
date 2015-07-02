@@ -173,21 +173,23 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 				astMergeOp.apply(mergeContext);
 
 				if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-					LOG.finest("Structured merge finished.");
+					if (LOG.isLoggable(Level.FINEST)) {
+						LOG.finest("Structured merge finished.");
 
-					if (!context.isDiffOnly()) {
-						LOG.finest("target.dumpTree():");
-						System.out.println(targetNode.dumpTree());
-					}
+						if (!context.isDiffOnly()) {
+							LOG.finest("target.dumpTree():");
+							System.out.println(targetNode.dumpTree());
+						}
 
-					LOG.finest("Pretty-printing left:");
-					System.out.println(left.prettyPrint());
-					LOG.finest("Pretty-printing right:");
-					System.out.println(right.prettyPrint());
+						LOG.finest("Pretty-printing left:");
+						System.out.println(left.prettyPrint());
+						LOG.finest("Pretty-printing right:");
+						System.out.println(right.prettyPrint());
 
-					if (!context.isDiffOnly()) {
-						LOG.finest("Pretty-printing merge:");
-						System.out.print(targetNode.prettyPrint());
+						if (!context.isDiffOnly()) {
+							LOG.finest("Pretty-printing merge:");
+							System.out.print(targetNode.prettyPrint());
+						}
 					}
 
 					if (!context.isDiffOnly()) {
