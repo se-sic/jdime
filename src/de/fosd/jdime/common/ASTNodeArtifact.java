@@ -70,15 +70,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @param p
 	 *            program
 	 */
-	private static void initParser(final Program p) {
-		p.initJavaParser(new JavaParser() {
-			@Override
-			public CompilationUnit parse(final java.io.InputStream is,
-										 final String fileName) throws java.io.IOException,
-					beaver.Parser.Exception {
-				return new parser.JavaParser().parse(is, fileName);
-			}
-		});
+	private static void initParser(Program p) {
+		p.initJavaParser((is, fileName) -> new parser.JavaParser().parse(is, fileName));
 	}
 
 	/**
@@ -247,71 +240,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
-	private static String getGraphvizId(ASTNodeArtifact artifact) {
-		return "\"" + artifact.getId() + "\"";
-	}
-
-	/**
-	 * Returns the AST in dot-format.
-	 *
-	 * @param includeNumbers
-	 *            include node number in label if true
-	 * @return AST in dot-format.
-	 */
-	public final String dumpGraphvizTree(final boolean includeNumbers, int virtualcount) {
+	@Override
+	public String prettyPrint() {
 		assert (astnode != null);
-		StringBuilder sb = new StringBuilder();
 
-		if (isConflict()) {
-			// insert virtual node
-			String conflictId = "\"c" + virtualcount + "\"";
-			sb.append(conflictId);
-			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
+		rebuildAST();
+		astnode.flushCaches();
 
-			// left alternative
-			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(left)).
-					append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-
-			// right alternative
-			sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-			sb.append(conflictId).append("->").append(getGraphvizId(right)).
-					append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-		} else {
-			sb.append(getGraphvizId(this)).append("[label=\"");
-
-			// node label
-			if (includeNumbers) {
-				sb.append("(").append(getNumber()).append(") ");
-			}
-
-			sb.append(astnode.dumpString());
-
-			sb.append("\"");
-
-			if (hasMatches()) {
-				sb.append(", fillcolor = green, style = filled");
-			}
-
-			sb.append("];");
-			sb.append(System.lineSeparator());
-
-			// children
-			for (ASTNodeArtifact child : getChildren()) {
-				String childId = getGraphvizId(child);
-				if (child.isConflict()) {
-					virtualcount++;
-					childId = "\"c" + virtualcount + "\"";
-				}
-
-				sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
-
-				// edge
-				sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
-			}
+		if (LOG.isLoggable(Level.FINEST)) {
+			System.out.println(dumpTree());
 		}
 
-		return sb.toString();
+		return astnode.prettyPrint();
 	}
 
 	@Override
@@ -552,23 +492,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	/**
-	 * Pretty-prints the AST to source code.
-	 *
-	 * @return Pretty-printed AST (source code)
-	 */
-	public final String prettyPrint() {
-		assert (astnode != null);
-		rebuildAST();
-		astnode.flushCaches();
-
-		if (LOG.isLoggable(Level.FINEST)) {
-			System.out.println(dumpTree());
-		}
-
-		return astnode.prettyPrint();
-	}
-
-	/**
 	 * Rebuild the encapsulated ASTNode tree top down. This should be only
 	 * called at the root node
 	 */
@@ -610,7 +533,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final String toString() {
-		assert (astnode != null);
 		return astnode.dumpString();
 	}
 

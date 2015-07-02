@@ -225,6 +225,80 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	protected abstract String dumpTree(String indent);
 
 	/**
+	 * Returns the AST in dot-format. {@link #toString()} will be used to label the nodes.
+	 *
+	 * @param includeNumbers
+	 *            include node number in label if true
+	 * @return AST in dot-format.
+	 */
+	public String dumpGraphvizTree(boolean includeNumbers, int virtualcount) {
+		StringBuilder sb = new StringBuilder();
+
+		if (isConflict()) {
+			// insert virtual node
+			String conflictId = "\"c" + virtualcount + "\"";
+			sb.append(conflictId);
+			sb.append("[label=\"Conflict\", fillcolor = red, style = filled]").append(System.lineSeparator());
+
+			// left alternative
+			sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
+			sb.append(conflictId).append("->").append(getGraphvizId(left)).
+					append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+
+			// right alternative
+			sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
+			sb.append(conflictId).append("->").append(getGraphvizId(right)).
+					append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+		} else {
+			sb.append(getGraphvizId(this)).append("[label=\"");
+
+			// node label
+			if (includeNumbers) {
+				sb.append("(").append(getNumber()).append(") ");
+			}
+
+			sb.append(toString());
+
+			sb.append("\"");
+
+			if (hasMatches()) {
+				sb.append(", fillcolor = green, style = filled");
+			}
+
+			sb.append("];");
+			sb.append(System.lineSeparator());
+
+			// children
+			for (Artifact<T> child : getChildren()) {
+				String childId = getGraphvizId(child);
+
+				if (child.isConflict()) {
+					virtualcount++;
+					childId = "\"c" + virtualcount + "\"";
+				}
+
+				sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
+
+				// edge
+				sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private String getGraphvizId(Artifact<T> artifact) {
+		return "\"" + artifact.getId() + "\"";
+	}
+
+	/**
+	 * Pretty-prints the <code>Artifact</code> to source code.
+	 *
+	 * @return Pretty-printed AST (source code)
+	 */
+	public abstract String prettyPrint();
+
+	/**
 	 * Returns true if this artifact physically exists.
 	 *
 	 * @return true if the artifact exists.
