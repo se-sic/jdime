@@ -35,15 +35,11 @@ import de.fosd.jdime.stats.Stats;
 
 /**
  * @author Olaf Lessenich
- *
  */
 public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 
 	private static final Logger LOG = Logger.getLogger(ASTNodeStrategy.class.getCanonicalName());
 
-	/**
-     *
-     */
 	private static Merge<ASTNodeArtifact> merge = null;
 
 	/**
@@ -55,8 +51,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	 * @throws InterruptedException
 	 */
 	@Override
-	public final void merge(final MergeOperation<ASTNodeArtifact> operation,
-			final MergeContext context) throws IOException,
+	public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException,
 			InterruptedException {
 		assert (operation != null);
 		assert (context != null);
@@ -86,11 +81,6 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 		merge.merge(operation, context);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-	 */
 	@Override
 	public final String toString() {
 		return "astnode";
@@ -108,20 +98,11 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final String dumpTree(final ASTNodeArtifact artifact,
-			final boolean graphical) throws IOException {
-		if (graphical) {
-			return dumpGraphVizTree(artifact);
-		} else {
-			return artifact.dumpTree();
-		}
+	public String dumpTree(ASTNodeArtifact artifact, boolean graphical) {
+		return graphical ? dumpGraphVizTree(artifact) : artifact.dumpTree();
 	}
 
-	/**
-	 * @param artifact
-	 *            artifact that should be printed
-	 */
-	private String dumpGraphVizTree(final ASTNodeArtifact artifact) {
+	private String dumpGraphVizTree(ASTNodeArtifact artifact) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("digraph ast {").append(System.lineSeparator());
 		sb.append("node [shape=ellipse];").append(System.lineSeparator());
@@ -137,8 +118,7 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public String dumpFile(final ASTNodeArtifact artifact, final boolean graphical)
-			throws IOException {
+	public String dumpFile(ASTNodeArtifact artifact, boolean graphical) {
 		return artifact.prettyPrint();
 	}
 }
