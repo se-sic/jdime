@@ -36,55 +36,7 @@ import de.fosd.jdime.stats.Stats;
 /**
  * @author Olaf Lessenich
  */
-public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
-
-	private static final Logger LOG = Logger.getLogger(ASTNodeStrategy.class.getCanonicalName());
-
-	private static Merge<ASTNodeArtifact> merge = null;
-
-	/**
-	 * TODO: high-level documentation
-	 * @param operation the <code>MergeOperation</code> to perform
-	 * @param context the <code>MergeContext</code>
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@Override
-	public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
-
-		MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
-
-		assert (triple.isValid());
-
-		ASTNodeArtifact left = triple.getLeft();
-		ASTNodeArtifact base = triple.getBase();
-		ASTNodeArtifact right = triple.getRight();
-		ASTNodeArtifact target = operation.getTarget();
-
-		ASTNodeArtifact[] revisions = { left, base, right };
-
-		for (ASTNodeArtifact node : revisions) {
-			assert (node.exists());
-		}
-
-		assert (target != null);
-
-		if (merge == null) {
-			merge = new Merge<>();
-		}
-
-		LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
-		merge.merge(operation, context);
-	}
-
-	@Override
-	public final String toString() {
-		return "astnode";
-	}
+public class ASTNodeStrategy extends AbstractNodeStrategy<ASTNodeArtifact> {
 
 	@Override
 	public final Stats createStats() {
@@ -120,5 +72,10 @@ public class ASTNodeStrategy extends MergeStrategy<ASTNodeArtifact> {
 	@Override
 	public String dumpFile(ASTNodeArtifact artifact, boolean graphical) {
 		return artifact.prettyPrint();
+	}
+
+	@Override
+	public String toString() {
+		return ASTNodeStrategy.class.getSimpleName();
 	}
 }
