@@ -26,6 +26,8 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
 
+mainClassName = 'de.fosd.jdime.gui.GUI'
+
 sourceSets {
     main {
         java {
