@@ -48,4 +48,29 @@ public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeS
 		LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
 		merge.merge(operation, context);
 	}
+
+	@Override
+	public String dumpTree(T artifact, boolean graphical) {
+		return graphical ? dumpGraphVizTree(artifact) : artifact.dumpTree();
+	}
+
+	private String dumpGraphVizTree(T artifact) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("digraph ast {").append(System.lineSeparator());
+		sb.append("node [shape=ellipse];").append(System.lineSeparator());
+		sb.append("nodesep=0.8;").append(System.lineSeparator());
+
+		// nodes
+		sb.append(artifact.dumpGraphvizTree(true, 0));
+
+		// footer
+		sb.append("}");
+
+		return sb.toString();
+	}
+
+	@Override
+	public String dumpFile(T artifact, boolean graphical) {
+		return artifact.prettyPrint();
+	}
 }

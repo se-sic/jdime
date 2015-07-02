@@ -50,31 +50,6 @@ public class ASTNodeStrategy extends AbstractNodeStrategy<ASTNodeArtifact> {
 	}
 
 	@Override
-	public String dumpTree(ASTNodeArtifact artifact, boolean graphical) {
-		return graphical ? dumpGraphVizTree(artifact) : artifact.dumpTree();
-	}
-
-	private String dumpGraphVizTree(ASTNodeArtifact artifact) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("digraph ast {").append(System.lineSeparator());
-		sb.append("node [shape=ellipse];").append(System.lineSeparator());
-		sb.append("nodesep=0.8;").append(System.lineSeparator());
-
-		// nodes
-		sb.append(artifact.dumpGraphvizTree(true, 0));
-
-		// footer
-		sb.append("}");
-
-		return sb.toString();
-	}
-
-	@Override
-	public String dumpFile(ASTNodeArtifact artifact, boolean graphical) {
-		return artifact.prettyPrint();
-	}
-
-	@Override
 	public String toString() {
 		return ASTNodeStrategy.class.getSimpleName();
 	}
