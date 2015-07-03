@@ -22,7 +22,6 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
@@ -75,13 +74,8 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#apply()
-	 */
 	@Override
-	public final void apply(final MergeContext context) throws IOException {
+	public void apply(MergeContext context) {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 

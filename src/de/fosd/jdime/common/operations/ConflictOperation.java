@@ -22,7 +22,6 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
@@ -73,17 +72,8 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * de.fosd.jdime.common.operations.Operation#apply(de.fosd.jdime.common.
-	 * MergeContext)
-	 */
 	@Override
-	public final void apply(final MergeContext context) throws IOException,
-			InterruptedException {
-
+	public void apply(MergeContext context) {
 		LOG.fine(() -> "Applying: " + this);
 
 		if (target != null) {
