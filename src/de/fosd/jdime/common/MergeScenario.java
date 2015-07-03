@@ -127,15 +127,10 @@ public class MergeScenario<T extends Artifact<T>> {
 	 *
 	 * @return the baseRev
 	 */
-	public final T getBase() {
-		try {
-			T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-			LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
-			return base;
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+	public T getBase() {
+		T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
+		LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
+		return base;
 	}
 
 	/**
@@ -184,10 +179,8 @@ public class MergeScenario<T extends Artifact<T>> {
 	 *
 	 * @param mergeOperation merge operation
 	 * @param context merge context
-	 * @throws IOException
-	 * @throws InterruptedException
 	 */
-	public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
+	public void run(MergeOperation mergeOperation, MergeContext context) {
 		// FIXME: I think this could be done easier. It's just too fucking ugly.
 		//        We need the first element that was inserted and run the merge on it.
 		artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
