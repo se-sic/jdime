@@ -81,15 +81,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 	 *
 	 * @param operation <code>MergeOperation</code> that is executed by this strategy
 	 * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
 	 */
 	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-
+	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 		assert (operation != null);
 		assert (context != null);
 

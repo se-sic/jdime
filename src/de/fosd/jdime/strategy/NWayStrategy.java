@@ -62,13 +62,9 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 	 * <code>ASTNodeArtifacts</code> as source and target nodes, is created and applied.
 	 * <p>
 	 * TODO: more high-level documentation.
-	 *
-	 * @param operation
-	 * @param context
 	 */
 	@Override
-	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-
+	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 		assert (operation != null);
 		assert (context != null);
 

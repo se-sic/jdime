@@ -47,14 +47,9 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 	 *
 	 * @param operation the <code>MergeOperation</code> to perform
 	 * @param context the <code>MergeContext</code>
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
 	 */
 	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
+	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 		assert (operation != null);
 		assert (context != null);
 		assert (context.isRecursive()) : "Recursive merging needs to "
