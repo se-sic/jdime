@@ -48,12 +48,20 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
+	public TestArtifact createChoiceDummy(String condition, TestArtifact artifact) throws FileNotFoundException {
+		return null;
+	}
 	public TestArtifact createEmptyArtifact() throws FileNotFoundException {
 		return null;
 	}
 
 	@Override
 	protected String dumpTree(String indent) {
+		return null;
+	}
+
+	@Override
+	public String prettyPrint() {
 		return null;
 	}
 

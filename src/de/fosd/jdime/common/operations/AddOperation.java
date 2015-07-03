@@ -23,6 +23,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
@@ -32,8 +33,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -46,8 +45,7 @@ import org.apache.log4j.Logger;
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(AddOperation.class));
+	private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>Artifact</code> that is added by the operation.
@@ -59,18 +57,22 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	private T target;
 
+	private String condition;
+
 	/**
 	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is added by the operation.
-	 * @param target
-	 *            output artifact
+	 * @param artifact that is added by the operation
+	 * @param target output artifact
+	 * @param condition presence condition
 	 */
-	public AddOperation(final T artifact, final T target) {
+	public AddOperation(final T artifact, final T target, String condition) {
 		super();
 		this.artifact = artifact;
 		this.target = target;
+
+		if (condition != null) {
+			this.condition = condition;
+		}
 	}
 
 	/*
@@ -83,13 +85,24 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
+		LOG.fine(() -> "Applying: " + this);
+
+		if (artifact.isChoice()) {
+			target.addChild(artifact);
+			return;
 		}
 
 		if (target != null) {
 			assert (target.exists());
-			target.addChild((T) artifact.clone());
+
+			if (context.isConditionalMerge(artifact) && condition != null) {
+				T choice = target.createChoiceDummy(condition, artifact);
+				assert (choice.isChoice());
+				target.addChild(choice);
+			} else {
+				LOG.fine("no conditions");
+				target.addChild((T) artifact.clone());
+			}
 		}
 
 		if (context.hasStats()) {
@@ -107,9 +120,8 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
 					ASTStats childStats = childAST.getStats(null,
 							LangElem.TOPLEVELNODE, false);
-					if (LOG.isDebugEnabled()) {
-						LOG.debug(childStats.toString());
-					}
+
+					LOG.fine(childStats::toString);
 
 					if (context.isConsecutive()) {
 						context.getStats().addRightStats(childStats);
@@ -141,6 +153,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 	 */
 	@Override
 	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
+		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
 	}
 }

@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -56,6 +58,7 @@ import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 @SuppressWarnings("unused")
 public final class GUI extends Application {
 
+	private static final Logger LOG = Logger.getLogger(GUI.class.getCanonicalName());
 	private static final String TITLE = "JDime";
 
 	private static final String JDIME_CONF_FILE = "JDime.properties";
@@ -176,8 +179,7 @@ public final class GUI extends Application {
 			try {
 				config.addSource(new PropFileConfigSource(configFile));
 			} catch (IOException e) {
-				System.err.println("Could not load " + configFile);
-				System.err.println(e.getMessage());
+				LOG.log(Level.WARNING, e, () -> "Could not load " + configFile);
 			}
 		}
 	}
@@ -370,9 +372,9 @@ public final class GUI extends Application {
 					boolean stop = false;
 					String line;
 
-					while (!Thread.interrupted() && !stop && jDimeProcess.isAlive()) {
+					do {
 
-						while (r.ready()) {
+						do {
 							if ((line = r.readLine()) != null) {
 								lines.add(line);
 
@@ -384,14 +386,14 @@ public final class GUI extends Application {
 							} else {
 								stop = true;
 							}
-						}
+						} while (r.ready());
 
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
 							stop = true;
 						}
-					}
+					} while (!Thread.interrupted() && !stop && jDimeProcess.isAlive());
 
 					Platform.runLater(() -> output.getItems().addAll(lines));
 				}
@@ -422,7 +424,7 @@ public final class GUI extends Application {
 					reactivate();
 				});
 				parser.setOnFailed(event1 -> {
-					System.err.println(event1.getSource().getException().getMessage());
+					LOG.log(Level.WARNING, event1.getSource().getException(), () -> "Graphviz parsing failed.");
 					reactivate();
 				});
 				new Thread(parser).start();
@@ -436,7 +438,7 @@ public final class GUI extends Application {
 		});
 
 		jDimeExec.setOnFailed(event -> {
-			System.err.println(event.getSource().getException().getMessage());
+			LOG.log(Level.WARNING, event.getSource().getException(), () -> "JDime execution failed.");
 			reactivate();
 		});
 
@@ -502,7 +504,7 @@ public final class GUI extends Application {
 					BackgroundFill fill = new BackgroundFill(Color.valueOf(color), CornerRadii.EMPTY, Insets.EMPTY);
 					row.setBackground(new Background(fill));
 				} catch (IllegalArgumentException e) {
-					System.err.println("Could not convert \'" + color + "\' to a JavaFX Color.");
+					LOG.fine(() -> String.format("Could not convert '%s' to a JavaFX Color.", color));
 				}
 			}
 

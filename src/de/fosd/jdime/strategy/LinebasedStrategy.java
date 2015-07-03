@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -39,9 +40,6 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 /**
  * Performs an unstructured, line based merge.
@@ -52,7 +50,7 @@ import org.apache.log4j.Logger;
  */
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(LinebasedStrategy.class));
+	private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
 	
 	/**
 	 * The command to use for merging.
@@ -131,7 +129,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
 		// launch the merge process by invoking GNU merge (rcs has to be
 		// installed)
-		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+		LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
 
 		for (int i = 0; i < context.getBenchmarkRuns() + 1
 				&& (i == 0 || context.isBenchmark()); i++) {
@@ -170,9 +168,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 							continue;
 						}
 						if (line.matches("^\\s*<<<<<<<.*")) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug("CONFLICT in " + triple);
-							}
+							LOG.fine(() -> "CONFLICT in " + triple);
+
 							conflict = true;
 							comment = false;
 							tmp = cloc;
@@ -218,13 +215,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 			long runtime = System.currentTimeMillis() - cmdStart;
 			runtimes.add(runtime);
 
-			if (LOG.isInfoEnabled() && context.isBenchmark()
-					&& context.hasStats()) {
+			if (context.isBenchmark() && context.hasStats()) {
 				if (i == 0) {
-					LOG.info("Initial run: " + runtime + " ms");
+					LOG.fine(() -> String.format("Initial run: %d ms", runtime));
 				} else {
-					LOG.info("Run " + i + " of " + context.getBenchmarkRuns()
-							+ ": " + runtime + " ms");
+					LOG.fine(String.format("Run %d of %d: %d ms", i, context.getBenchmarkRuns(), runtime));
 				}
 			}
 		}
@@ -235,10 +230,10 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		Long runtime = MergeContext.median(runtimes);
-		LOG.debug("Linebased merge time was " + runtime + " ms.");
+		LOG.fine(() -> String.format("Linebased merge time was %d ms.", runtime));
 
 		if (context.hasErrors()) {
-			LOG.fatal("Errors occured while calling '" + cmd + "')");
+			LOG.severe(() -> "Errors occurred while calling '" + cmd + "')");
 			System.err.println(context.getStdErr());
 		}
 

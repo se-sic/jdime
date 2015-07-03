@@ -22,14 +22,15 @@
  */
 package de.fosd.jdime.merge;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
@@ -40,8 +41,8 @@ import org.apache.log4j.Logger;
  *            type of artifact
  */
 public class Diff<T extends Artifact<T>> {
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Diff.class));
+
+	private static final Logger LOG = Logger.getLogger(Diff.class.getCanonicalName());
 
 	/**
 	 * Compares two nodes and returns matchings between them and possibly their sub-nodes.
@@ -60,26 +61,22 @@ public class Diff<T extends Artifact<T>> {
 		Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
 		Matching<T> matching = matchings.get(left, right).get();
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("match(" + left.getRevision() + ", "
-					+ right.getRevision() + ") = " + matching.getScore());
-			LOG.debug(matcher.getLog());
-			LOG.trace("Store matching information within nodes.");
-		}
+		LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
+		LOG.fine(matcher::getLog);
+		LOG.finest("Store matching information within nodes.");
 
 		matcher.storeMatchings(context, matchings, color);
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Dumping matching of " + left.getRevision() + " and "
-					+ right.getRevision());
+		if (LOG.isLoggable(Level.FINEST)) {
+			LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
 			System.out.println(matchings);
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(left.getRevision() + ".dumpTree():");
+		if (LOG.isLoggable(Level.FINE)) {
+			LOG.fine(left.getRevision() + ".dumpTree():");
 			System.out.println(left.dumpTree());
 
-			LOG.debug(right.getRevision() + ".dumpTree():");
+			LOG.fine(right.getRevision() + ".dumpTree():");
 			System.out.println(right.dumpTree());
 		}
 

@@ -34,6 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -43,8 +45,6 @@ import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * This class represents an artifact of a program.
@@ -53,7 +53,7 @@ import org.apache.log4j.Logger;
  */
 public class FileArtifact extends Artifact<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(FileArtifact.class));
+	private static final Logger LOG = Logger.getLogger(FileArtifact.class.getCanonicalName());
 
 	/**
 	 * The expected MIME content type for java source files.
@@ -139,47 +139,35 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			if (createIfNonexistent) {
 				if (file.getParentFile() != null && !file.getParentFile().exists()) {
 					boolean createdParents = file.getParentFile().mkdirs();
-
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("Had to create parent directories: " + createdParents);
-					}
+					LOG.finest(() -> "Had to create parent directories: " + createdParents);
 				}
 
 				if (isLeaf) {
 					file.createNewFile();
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("Created file" + file);
-					}
+					LOG.finest(() -> "Created file" + file);
 				} else {
 					file.mkdir();
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("Created directory " + file);
-					}
-
+					LOG.finest(() -> "Created directory " + file);
 				}
 
 				assert (file.exists());
 
 			} else {
-				LOG.fatal("File not found: " + file.getAbsolutePath());
+				LOG.severe(() -> "File not found: " + file.getAbsolutePath());
 				throw new FileNotFoundException();
 			}
 		}
 
 		this.file = file;
-
 		setRevision(revision);
-
 		initializeChildren();
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Artifact initialized: " + file.getPath());
-			LOG.trace("Artifact exists: " + exists());
-			LOG.trace("File exists: " + file.exists());
+		LOG.finest(() -> "Artifact initialized: " + file.getPath());
+		LOG.finest(() -> "Artifact exists: " + exists());
+		LOG.finest(() -> "File exists: " + file.exists());
 
-			if (exists()) {
-				LOG.trace("Artifact isEmpty: " + isEmpty());
-			}
+		if (exists()) {
+			LOG.finest(() -> "Artifact isEmpty: " + isEmpty());
 		}
 	}
 
@@ -216,15 +204,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		if (exists() && isDirectory()) {
 
 			if (child.isFile()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Copying file " + child + " to directory " + this);
-				}
+				LOG.fine(() -> "Copying file " + child + " to directory " + this);
 				FileUtils.copyFileToDirectory(child.file, this.file);
 			} else if (child.isDirectory()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Copying directory " + child + " to directory " + this);
-					LOG.debug("Destination already exists overwriting: " + exists());
-				}
+				LOG.fine(() -> "Copying directory " + child + " to directory " + this);
+				LOG.fine(() -> "Destination already exists overwriting: " + exists());
 				FileUtils.copyDirectory(child.file, this.file);
 			}
 
@@ -238,7 +222,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 				}
 			}
 
-			LOG.trace(this + ".children: " + children);
+			LOG.finest(() -> this + ".children: " + children);
 
 			return null;
 		} else {
@@ -248,7 +232,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public Object clone() {
-		LOG.trace("CLONE: " + this);
+		LOG.finest(() -> "CLONE: " + this);
+
 		try {
 			return new FileArtifact(getRevision(), file);
 		} catch (IOException e) {
@@ -268,7 +253,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	@Override
 	public final FileArtifact createEmptyArtifact() throws IOException {
 		FileArtifact emptyFile = new FileArtifact();
-		LOG.trace("Artifact is a dummy artifact. Using temporary file " + emptyFile.getFullPath());
+        LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
 		return emptyFile;
 	}
 
@@ -312,6 +297,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
+	public String prettyPrint() {
+		return getContent();
+	}
+
+	@Override
 	public final boolean exists() {
 		assert (file != null);
 		return file.exists();
@@ -319,7 +309,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public void deleteChildren() throws IOException {
-		LOG.trace(this + ".deleteChildren()");
+		LOG.finest(() -> this + ".deleteChildren()");
+
 		if (exists()) {
 			if (isDirectory()) {
 				for (FileArtifact child : children) {
@@ -371,12 +362,15 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		File[] content = file.listFiles();
 
 		for (int i = 0; i < content.length; i++) {
+			FileArtifact child;
+			File file = content[i];
+
 			try {
-				FileArtifact child = new FileArtifact(getRevision(), content[i]);
+				child = new FileArtifact(getRevision(), file);
 				child.setParent(this);
 				contentArtifacts.add(child);
 			} catch (FileNotFoundException e) {
-				LOG.fatal(e);
+				LOG.log(Level.SEVERE, e, () -> "Could not create the FileArtifact of " + file);
 			}
 		}
 
@@ -521,15 +515,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	@Override
 	public final boolean matches(final FileArtifact other) {
-		if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug(this + " and " + other + " are toplevel directories.");
-				LOG.debug("We assume a match here and continue to merge the "
-						+ "contained files and directories.");
-			}
 
+		if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
+			LOG.fine(() -> String.format("%s and %s are toplevel directories.", this, other));
+			LOG.fine("We assume a match here and continue to merge the contained files and directories.");
 			return true;
 		}
+
 		return this.toString().equals(other.toString());
 	}
 
@@ -554,21 +546,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
 			strategy = new DirectoryStrategy();
 		} else {
 			String contentType = getContentType();
-
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(getId() + " (" + this + ") has content type: " + contentType);
-			}
+			LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
 
 			if (!MIME_JAVA_SOURCE.equals(contentType)) {
-				LOG.debug("Skipping non-java file.");
+				LOG.fine(() -> "Skipping non-java file " + this);
 				return;
 			}
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Using strategy: " + strategy);
-		}
-		LOG.info("merge: " + this);
+		LOG.fine("Using strategy: " + strategy);
+		LOG.finest(() -> "merge: " + this);
 		
 		strategy.merge(operation, context);
 		
@@ -588,18 +575,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
 
 		if (isDirectory()) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Deleting directory recursively: " + file);
-			}
+			LOG.fine(() -> "Deleting directory recursively: " + file);
 			FileUtils.deleteDirectory(file);
 		} else if (isFile()) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Deleting file: " + file);
-			}
-			file.delete();
+			LOG.fine(() -> "Deleting file: " + file);
+			FileUtils.deleteQuietly(file);
 		} else {
-			throw new UnsupportedOperationException(
-					"Only files and directories can be removed at the moment");
+			throw new UnsupportedOperationException("Only files and directories can be removed at the moment");
 		}
 
 		assert (!exists());
@@ -637,7 +619,19 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		throw new NotYetImplementedException();
 	}
 
-	public final String getContent() throws IOException {
-		return file == null ? "" : FileUtils.readFileToString(file);
+	@Override
+	public final FileArtifact createChoiceDummy(final String condition, final FileArtifact artifact)
+			throws FileNotFoundException {
+		throw new NotYetImplementedException();
+	}
+
+	public final String getContent() {
+
+		try {
+			return file == null ? "" : FileUtils.readFileToString(file);
+		} catch (IOException e) {
+			LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
+			return "";
+		}
 	}
 }

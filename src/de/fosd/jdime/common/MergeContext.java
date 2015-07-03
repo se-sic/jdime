@@ -31,6 +31,7 @@ import java.util.List;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.NWayStrategy;
 
 /**
  * @author Olaf Lessenich
@@ -73,6 +74,16 @@ public class MergeContext implements Cloneable {
 	 * Whether we are in bug-fixing mode.
 	 */
 	private boolean bugfixing = false;
+
+	/**
+	 * Whether merge inserts choice nodes instead of direct merging.
+	 */
+	private boolean conditionalMerge = false;
+
+	/**
+	 * Whether conditional merge should be performed outside of methods.
+	 */
+	private boolean conditionalOutsideMethods = true;
 
 	/**
 	 * Whether to run only the diff.
@@ -573,6 +584,10 @@ public class MergeContext implements Cloneable {
 	 */
 	public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
 		this.mergeStrategy = mergeStrategy;
+
+		if (mergeStrategy instanceof NWayStrategy) {
+			conditionalMerge = true;
+		}
 	}
 
 	/**
@@ -625,17 +640,35 @@ public class MergeContext implements Cloneable {
 	}
 
 	/**
-	 * @return the consecutive
+	 * @return whether consecutive diffing
 	 */
 	public final boolean isConsecutive() {
 		return consecutive;
 	}
 
 	/**
-	 * @param consecutive the consecutive to set
+	 * @param consecutive consecutive diffing
 	 */
 	public final void setConsecutive(final boolean consecutive) {
 		this.consecutive = consecutive;
+	}
+
+	/**
+	 * Whether merge inserts choice nodes instead of direct merging.
+	 */
+	public boolean isConditionalMerge() {
+		return conditionalMerge;
+	}
+
+	/**
+	 * Whether merge inserts choice nodes instead of direct merging of artifact.
+	 */
+	public boolean isConditionalMerge(Artifact artifact) {
+		return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
+	}
+
+	public void setConditionalMerge(boolean conditionalMerge) {
+		this.conditionalMerge = conditionalMerge;
 	}
 
 	/**
@@ -716,7 +749,7 @@ public class MergeContext implements Cloneable {
 		skippedLeftElements.put(key, value);
 
 		// subtreeSize should never be zero if this is a skipped element.
-		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+		skippedElements.add(Tuple.of(key, (double) score / (double) element.getSubtreeSize()));
 	}
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
@@ -731,11 +764,29 @@ public class MergeContext implements Cloneable {
 		Integer value = skippedRightElements.get(key);
 		value = value == null ? new Integer(1) : new Integer(value + 1);
 		skippedRightElements.put(key, value);
-		skippedElements.add(new Tuple<String, Double>(key, (double) score/(double) element.getSubtreeSize()));
+		skippedElements.add(Tuple.of(key, (double) score/(double) element.getSubtreeSize()));
 	}
 
 	/** TODO: This is only for debugging and messing around with the look-ahead feature. */
 	public List<Tuple<String, Double>> getSkippedElements() {
 		return skippedElements;
+	}
+
+	/**
+	 * Returns whether conditional merging is used outside of methods.
+	 *
+	 * @return true if conditional merging is used outside of methods
+	 */
+	public boolean isConditionalOutsideMethods() {
+		return conditionalOutsideMethods;
+	}
+
+	/**
+	 * Sets whether conditional merging is used outside of methods.
+	 *
+	 * @param conditionalOutsideMethods use conditional merging outside of methods
+	 */
+	public void setConditionalOutsideMethods(boolean conditionalOutsideMethods) {
+		this.conditionalOutsideMethods = conditionalOutsideMethods;
 	}
 }

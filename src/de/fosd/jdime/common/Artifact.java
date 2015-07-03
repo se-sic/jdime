@@ -23,8 +23,13 @@
 package de.fosd.jdime.common;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
@@ -38,6 +43,8 @@ import de.fosd.jdime.matcher.Matching;
  *            type of artifact
  */
 public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
+
+	private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
 	/**
 	 * Used to renumber artifacts.
@@ -89,6 +96,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	private boolean conflict = false;
 
 	/**
+	 * Whether this artifact represents a choice node.
+	 */
+	private boolean choice = false;
+
+	/**
+	 * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+	 */
+	protected HashMap<String, T> variants;
+
+	/**
 	 * Map to store matches.
 	 */
 	LinkedHashMap<Revision, Matching<T>> matches = null;
@@ -102,6 +119,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * Number used to identify the artifact.
 	 */
 	private int number = -1;
+
+	protected static int virtualcount = 1;
 
 	/**
 	 * Parent artifact.
@@ -177,6 +196,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	public abstract T createConflictArtifact(T left, T right);
 
 	/**
+	 * Returns a choice artifact.
+	 *
+	 * @param condition presence condition
+	 * @param artifact conditional artifact
+	 * @return choice artifact
+	 * @throws IOException If a file is not found
+	 */
+	public abstract T createChoiceDummy(final String condition, final T artifact) throws IOException;
+
+	/**
 	 * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
 	 * base <code>Artifact</code> is empty.
 	 *
@@ -223,6 +252,93 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @return artifact structure as indented plain text
 	 */
 	protected abstract String dumpTree(String indent);
+
+	/**
+	 * Returns the AST in dot-format. {@link #toString()} will be used to label the nodes.
+	 *
+	 * @param includeNumbers
+	 *            include node number in label if true
+	 * @return AST in dot-format.
+	 */
+	public String dumpGraphvizTree(boolean includeNumbers, int virtualcount) {
+		StringBuilder sb = new StringBuilder();
+
+		if (isConflict() || isChoice()) {
+			// insert virtual node
+			String virtualId = "\"c" + virtualcount + "\"";
+			String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
+			String virtualColor = isConflict() ? "red" : "blue";
+			sb.append(virtualId);
+			sb.append("[label=").append(virtualLabel);
+			sb.append(", fillcolor = ").append(virtualColor);
+			sb.append(", style = filled]").append(System.lineSeparator());
+
+			if (isConflict()) {
+				// left alternative
+				sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(left)).
+						append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+
+				// right alternative
+				sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
+				sb.append(virtualId).append("->").append(getGraphvizId(right)).
+						append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
+			} else {
+				// choice node
+				for (String condition : getVariants().keySet()) {
+					Artifact<T> variant = getVariants().get(condition);
+					sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
+					sb.append(virtualId).append("->").append(getGraphvizId(variant)).
+							append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
+				}
+			}
+		} else {
+			sb.append(getGraphvizId(this)).append("[label=\"");
+
+			// node label
+			if (includeNumbers) {
+				sb.append("(").append(getNumber()).append(") ");
+			}
+
+			sb.append(toString());
+
+			sb.append("\"");
+
+			if (hasMatches()) {
+				sb.append(", fillcolor = green, style = filled");
+			}
+
+			sb.append("];");
+			sb.append(System.lineSeparator());
+
+			// children
+			for (Artifact<T> child : getChildren()) {
+				String childId = getGraphvizId(child);
+				if (child.isConflict() || child.isChoice()) {
+					virtualcount++;
+					childId = "\"c" + virtualcount + "\"";
+				}
+
+				sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
+
+				// edge
+				sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private String getGraphvizId(Artifact<T> artifact) {
+		return "\"" + artifact.getId() + "\"";
+	}
+
+	/**
+	 * Pretty-prints the <code>Artifact</code> to source code.
+	 *
+	 * @return Pretty-printed AST (source code)
+	 */
+	public abstract String prettyPrint();
 
 	/**
 	 * Returns true if this artifact physically exists.
@@ -420,8 +536,32 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            <code>Revision</code>
 	 * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
 	 */
-	public boolean hasMatching(Revision rev) {
-		return matches != null && matches.containsKey(rev);
+	public final boolean hasMatching(Revision rev) {
+		boolean hasMatching = matches != null && matches.containsKey(rev);
+
+		if (LOG.isLoggable(Level.FINEST)) {
+			LOG.finest(getId() + ".hasMatching(" + rev + ")");
+			if (matches != null) {
+				for (Revision r : matches.keySet()) {
+					LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
+					LOG.finest("hasMatching(" + r + ") = " + hasMatching);
+				}
+			} else {
+				LOG.finest("no matches for " + getId() + " and " + rev);
+			}
+		}
+
+		if (!hasMatching && isChoice()) {
+			// choice nodes have to be treated specially ...
+			for (T variant: variants.values()) {
+				if (variant.hasMatching(rev)) {
+					hasMatching = true;
+					break;
+				}
+			}
+		}
+
+		return hasMatching;
 	}
 
 	/**
@@ -431,14 +571,32 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            other <code>Artifact</code> to search <code>Matching</code>s for
 	 * @return whether a <code>Matching</code> exists
 	 */
-	public boolean hasMatching(T other) {
+	public final boolean hasMatching(T other) {
+		Revision otherRev = other.getRevision();
+		boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact((T) this) == other;
 
-		if (matches == null) {
-			return false;
+		if (LOG.isLoggable(Level.FINEST)) {
+			LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
+			if (matches != null) {
+				for (Revision r : matches.keySet()) {
+					LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
+					LOG.finest("hasMatching(" + r + ") = " + hasMatching);
+				}
+			} else {
+				LOG.finest("no matches for " + getId() + " and " + other.getId());
+			}
 		}
 
-		Matching<T> m = matches.get(other.getRevision());
-		return m != null && m.getMatchingArtifact(this) == other;
+		if (!hasMatching && isChoice()) {
+			// choice nodes have to be treated specially ...
+			for (T variant: variants.values()) {
+				if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact((T) variant) == other) {
+					hasMatching = true;
+					break;
+				}
+			}
+		}
+		return hasMatching;
 	}
 
 	/**
@@ -456,6 +614,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 */
 	public boolean isConflict() {
 		return conflict;
+	}
+
+	/**
+	 * Returns true if the artifact is a choice node.
+	 *
+	 * @return true if the artifact represents a choice node
+	 */
+	public final boolean isChoice() {
+		return choice;
 	}
 
 	/**
@@ -510,8 +677,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *
 	 * @return true if matches were already computed
 	 */
-	public boolean matchingComputed() {
-		return matches != null;
+	public boolean matchingComputed(Revision rev) {
+		return matches != null && hasMatching(rev);
 	}
 
 	/**
@@ -552,6 +719,49 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		this.conflict = true;
 		this.left = left;
 		this.right = right;
+	}
+
+	/**
+	 * Marks this artifact as a choice.
+	 *
+	 * @param condition presence condition
+	 * @param artifact conditional artifact
+	 */
+	public final void setChoice(final String condition, final T artifact) {
+		this.choice = true;
+		if (condition == null) {
+			throw new RuntimeException("condition must not be null!");
+		}
+		addVariant(condition, artifact);
+	}
+
+	public void addVariant(String condition, final T artifact) {
+		if (!choice) {
+			throw new RuntimeException("addVariant() can only be called on choice nodes!");
+		}
+		if (condition == null) {
+			throw new RuntimeException("condition must not be null!");
+		}
+
+		LOG.fine("Add node " + artifact.getId() + " under condition " + condition);
+
+		if (variants == null) {
+			variants = new HashMap<>();
+		}
+
+		// merge conditions for same artifact
+		List<String> mergedConditions = new ArrayList<>();
+		for (String existingCondition : variants.keySet()) {
+			if (variants.get(existingCondition).equals(artifact)) {
+				mergedConditions.add(existingCondition);
+				condition = existingCondition + " || " + condition;
+			}
+		}
+		for (String mergedCondition : mergedConditions) {
+			variants.remove(mergedCondition);
+		}
+
+		variants.put(condition, artifact);
 	}
 
 	/**
@@ -602,4 +812,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 
 	@Override
 	public abstract String toString();
+
+	/**
+	 * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+	 */
+	public HashMap<String, T> getVariants() {
+		return variants;
+	}
 }

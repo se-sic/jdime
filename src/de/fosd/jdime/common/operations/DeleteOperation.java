@@ -23,6 +23,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
@@ -32,8 +33,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -46,8 +45,7 @@ import org.apache.log4j.Logger;
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(DeleteOperation.class));
+	private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
 	/**
 	 * The <code>Artifact</code> that is deleted by the operation.
@@ -55,14 +53,26 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 	private T artifact;
 
 	/**
-	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is deleted by the operation
+	 * Output Artifact.
 	 */
-	public DeleteOperation(final T artifact) {
+	private T target;
+
+	private String condition;
+
+	/**
+	 * Class constructor.
+	 * @param artifact that is added by the operation
+	 * @param target output artifact
+	 * @param condition condition under which the node is NOT deleted
+	 */
+	public DeleteOperation(final T artifact, final T target, String condition) {
 		super();
 		this.artifact = artifact;
+		this.target = target;
+
+		if (condition != null) {
+			this.condition = condition;
+		}
 	}
 
 	/*
@@ -75,24 +85,28 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 		assert (artifact != null);
 		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
+		LOG.fine(() -> "Applying: " + this);
+
+		if (context.isConditionalMerge(artifact) && condition != null) {
+			// we need to insert a choice node
+			T choice = target.createChoiceDummy(condition, artifact);
+			assert (choice.isChoice());
+			target.addChild(choice);
+		} else {
+			// Nothing to do :-)
+			//
+			// Why?
+			// While merging, the target node is created with no children.
+			// Therefore if a deletion of an element is applied during the merge,
+			// nothing has to be done.
+			//
+			// For ASTNodeArtifacts, the important method we rely on here is
+			// StructuredStrategy.merge(), which calls
+			// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+			// which then calls deleteChildren() on the created Program.
 		}
 
-		// This method does actually nothing!
-		//
-		// Why?
-		// While merging, the target node is created with no children.
-		// Therefore if a deletion of an element is applied during the merge,
-		// nothing has to be done.
-		//
-		// For ASTNodeArtifacts, the important method we rely on here is
-		// StructuredStrategy.merge(), which calls
-		// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-		// which then calls deleteChildren() on the created Program.
-
 		if (context.hasStats()) {
-			// but for the statistics, we have to look at the element
 			Stats stats = context.getStats();
 			stats.incrementOperation(this);
 			StatsElement element = stats.getElement(artifact
@@ -107,10 +121,9 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
 					ASTStats childStats = childAST.getStats(null,
 							LangElem.TOPLEVELNODE, false);
-					if (LOG.isDebugEnabled()) {
-						LOG.debug(childStats.toString());
-					}
-					
+
+					LOG.fine(childStats::toString);
+
 					childStats.setRemovalsfromAdditions(childStats);
 					childStats.resetAdditions();
 

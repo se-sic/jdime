@@ -23,8 +23,12 @@
 package de.fosd.jdime.matcher;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
@@ -35,8 +39,6 @@ import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -62,7 +64,7 @@ import org.apache.log4j.Logger;
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Matcher.class));
+	private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 	private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
 	private int calls = 0;
@@ -86,6 +88,33 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
 	@Override
 	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+
+		if (left.isConflict()) {
+			return Matchings.of(left, right, 0);
+		}
+
+		if (left.isChoice()) {
+			// We have to split the choice node into its variants and create a matching for each one.
+			// The highest matching is returned.
+
+			LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
+					left.getId()));
+
+			Map<Integer, Matchings> variantMatches = new HashMap<>();
+
+			for (T variant: left.getVariants().values()) {
+				LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
+				Matchings<T> cur = match(context, variant, right, lookAhead);
+				Matching<T> highest = cur.get(variant, right).get();
+				variantMatches.put(highest.getScore(), cur);
+			}
+
+			Matchings<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
+
+			LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
+			return maxMatching;
+		}
+
 		boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
         boolean isOrdered = false;
 		boolean uniqueLabels = true;
@@ -124,43 +153,42 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
         if (fullyOrdered) {
             orderedCalls++;
-            
-            if (LOG.isTraceEnabled()) {
-                String matcherName = mceSubtreeMatcher.getClass().getSimpleName();
-                LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
-            }
-            
+
+			logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             return mceSubtreeMatcher.match(context, left, right, lookAhead);
         }
         
 		if (isOrdered) {
 			orderedCalls++;
 
-			if (LOG.isTraceEnabled()) {
-				String matcherName = orderedMatcher.getClass().getSimpleName();
-				LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
-			}
-
+			logMatcherUse(orderedMatcher.getClass(), left, right);
 			return orderedMatcher.match(context, left, right, lookAhead);
 		} else {
 			unorderedCalls++;
 
 			if (uniqueLabels) {
-				if (LOG.isTraceEnabled()) {
-					String matcherName = unorderedLabelMatcher.getClass().getSimpleName();
-					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
-				}
-
+				logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
 				return unorderedLabelMatcher.match(context, left, right, lookAhead);
 			} else {
-				if (LOG.isTraceEnabled()) {
-					String matcherName = unorderedMatcher.getClass().getSimpleName();
-					LOG.trace(String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId()));
-				}
-
+				logMatcherUse(unorderedMatcher.getClass(), left, right);
 				return unorderedMatcher.match(context, left, right, lookAhead);
 			}
 		}
+	}
+
+	/**
+	 * Logs the use of a <code>MatchingInterface</code> implementation to match <code>left</code> and
+	 * <code>right</code>.
+	 *
+	 * @param c the <code>MatchingInterface</code> that is used
+	 * @param left the left <code>Artifact</code> that is matched
+	 * @param right the right <code>Artifact</code> that is matched
+	 */
+	private void logMatcherUse(Class<? extends MatchingInterface> c, T left, T right) {
+		LOG.finest(() -> {
+			String matcherName = c.getClass().getSimpleName();
+			return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
+		});
 	}
 
 	/**

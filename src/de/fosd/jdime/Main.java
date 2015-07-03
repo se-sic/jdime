@@ -25,14 +25,20 @@ package de.fosd.jdime;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -56,10 +62,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -67,23 +69,37 @@ import org.apache.log4j.Logger;
  */
 public final class Main {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(Main.class));
+	private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
 	private static final String TOOLNAME = "jdime";
-	private static final String VERSION = "0.3.11";
+	private static final String VERSION = "0.3.11-develop";
 
-	private static final String PROP_FILE_NAME = "JDime.properties";
-	private static final File PROP_FILE = new File(PROP_FILE_NAME);
+	private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
+	private static final String CONFIG_FILE_NAME = "JDime.properties";
+	private static final File LOGGING_CONFIG_FILE = new File(LOGGING_CONFIG_FILE_NAME);
+	private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
 	public static final Config config;
 
 	static {
+		if (LOGGING_CONFIG_FILE.exists()) {
+
+			try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
+				LogManager.getLogManager().readConfiguration(is);
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not read logging configuration.");
+			}
+		}
+
 		config = new Config();
 		config.addSource(new SysEnvConfigSource(1));
 
-		try {
-			config.addSource(new PropFileConfigSource(2, PROP_FILE));
-		} catch (IOException e) {
-			System.err.println("Could not load " + PROP_FILE_NAME);
+		if (CONFIG_FILE.exists()) {
+
+			try {
+				config.addSource(new PropFileConfigSource(2, CONFIG_FILE));
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + CONFIG_FILE.getAbsolutePath());
+			}
 		}
 	}
 
@@ -92,11 +108,8 @@ public final class Main {
 	 *
 	 * @param args command line arguments
 	 */
-	public static void main(final String[] args) throws
-			IOException, ParseException, InterruptedException {
-		BasicConfigurator.configure();
+	public static void main(final String[] args) throws	IOException, ParseException, InterruptedException {
 		MergeContext context = new MergeContext();
-		setLogLevel("INFO");
 
 		if (!parseCommandLineArgs(context, args)) {
 			System.exit(0);
@@ -110,10 +123,8 @@ public final class Main {
 		for (FileArtifact inputFile : inputFiles) {
 			assert (inputFile != null);
 			if (inputFile.isDirectory() && !context.isRecursive()) {
-				String msg = "To merge directories, the argument '-r' "
-					+ "has to be supplied. "
-					+ "See '-help' for more information!";
-				LOG.fatal(msg);
+				String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
+				LOG.severe(msg);
 				throw new RuntimeException(msg);
 			}
 		}
@@ -126,10 +137,10 @@ public final class Main {
 
 			if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
 				String msg = "File exists and will not be overwritten.";
-				LOG.warn(msg);
+				LOG.warning(msg);
 				throw new RuntimeException(msg);
 			} else {
-				LOG.warn("File exists and will be overwritten.");
+				LOG.warning("File exists and will be overwritten.");
 				boolean isDirectory = output.isDirectory();
 				output.remove();
 
@@ -173,14 +184,15 @@ public final class Main {
 	private static boolean parseCommandLineArgs(final MergeContext context,
 			final String[] args) throws IOException, ParseException {
 		assert (context != null);
-		LOG.debug("parsing command line arguments: " + Arrays.toString(args));
+		LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
 		boolean continueRun = true;
 
 		Options options = new Options();
 		options.addOption("benchmark", false,
 				"benchmark with " + context.getBenchmarkRuns()
 						+ " runs per file");
-		options.addOption("debug", true, "set debug level");
+		options.addOption("debug", true, "set debug level"
+				+ " (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)");
 		options.addOption("consecutive", false,
 				"requires diffonly, treats versions"
 						+ " as consecutive versions");
@@ -192,7 +204,7 @@ public final class Main {
 				"Use heuristics for matching. Supply off, full, or a number as argument.");
 		options.addOption("mode", true,
 				"set merge mode (unstructured, structured, autotuning, dumptree"
-						+ ", dumpgraph, dumpfile, prettyprint)");
+						+ ", dumpgraph, dumpfile, prettyprint, nway)");
 		options.addOption("output", true, "output directory/file");
 		options.addOption("r", false, "merge directories recursively");
 		options.addOption("showconfig", false,
@@ -230,7 +242,7 @@ public final class Main {
 
 			if (cmd.hasOption("runLookAheadTests")) {
 				if (!cmd.hasOption("debug")) {
-					setLogLevel("WARN");
+					setLogLevel("WARNING");
 				}
 				
 				String wd = null;
@@ -293,7 +305,7 @@ public final class Main {
 						break;
 					}
 				} catch (StrategyNotFoundException e) {
-					LOG.fatal(e.getMessage());
+					LOG.severe(e.getMessage());
 					throw e;
 				}
 
@@ -338,9 +350,7 @@ public final class Main {
 				}
 
 				context.setLookAhead(lookAhead);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("lookahead = " + lookAhead);
-				}
+				LOG.finest(() -> "Lookahead = " + context.getLookAhead());
 			}
 
 			context.setSaveStats(cmd.hasOption("stats")
@@ -366,8 +376,7 @@ public final class Main {
 			int numInputFiles = cmd.getArgList().size();
 
 			if (!((context.isDumpTree() || context.isDumpFile() || context
-					.isBugfixing()) || numInputFiles >= MergeType.MINFILES
-					&& numInputFiles <= MergeType.MAXFILES)) {
+					.isBugfixing()) || numInputFiles >= MergeType.MINFILES)) {
 				help(options);
 				return false;
 			}
@@ -375,15 +384,22 @@ public final class Main {
 			// prepare the list of input files
 			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-			boolean targetIsFile= true;
+			char cond = 'A';
+			boolean targetIsFile = true;
 
 			for (Object filename : cmd.getArgList()) {
 				try {
-					FileArtifact artifact = new FileArtifact(new File((String) filename));
-					if (targetIsFile) {
-						targetIsFile = !artifact.isDirectory();
+					FileArtifact newArtifact = new FileArtifact(new File((String) filename));
+
+					if (context.isConditionalMerge()) {
+						newArtifact.setRevision(new Revision(String.valueOf(cond++)));
 					}
-					inputArtifacts.add(artifact);
+
+					if (targetIsFile) {
+						targetIsFile = !newArtifact.isDirectory();
+					}
+
+					inputArtifacts.add(newArtifact);
 				} catch (FileNotFoundException e) {
 					System.err.println("Input file not found: " + (String) filename);
 				}
@@ -397,7 +413,7 @@ public final class Main {
 				context.setPretend(false);
 			}
 		} catch (ParseException e) {
-			LOG.fatal("arguments could not be parsed: " + Arrays.toString(args));
+			LOG.severe(() -> "Arguments could not be parsed: " + e.getMessage());
 			throw e;
 		}
 
@@ -436,13 +452,39 @@ public final class Main {
 	}
 
 	/**
-	 * Set the logging level. Default is DEBUG.
+	 * Set the logging level. The levels in descending order are:<br>
 	 *
-	 * @param loglevel
-	 *            May be OFF, FATAL, ERROR, WARN, INFO, DEBUG or ALL
+	 * <ul>
+	 *  <li>ALL</li>
+	 *  <li>SEVERE (highest value)</li>
+	 *  <li>WARNING</li>
+	 *  <li>INFO</li>
+	 *  <li>CONFIG</li>
+	 *  <li>FINE</li>
+	 *  <li>FINER</li>
+	 *  <li>FINEST (lowest value)</li>
+	 *  <li>OFF</li>
+	 * </ul>
+	 *
+	 * @param logLevel
+	 * 			one of the valid log levels according to {@link Level#parse(String)}
 	 */
-	private static void setLogLevel(final String loglevel) {
-		Logger.getRootLogger().setLevel(Level.toLevel(loglevel));
+	private static void setLogLevel(String logLevel) {
+		Level level;
+
+		try {
+			level = Level.parse(logLevel);
+		} catch (IllegalArgumentException e) {
+			LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
+			return;
+		}
+
+		Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+		root.setLevel(level);
+
+		for (Handler handler : root.getHandlers()) {
+			handler.setLevel(level);
+		}
 	}
 
 	/**
@@ -482,9 +524,7 @@ public final class Main {
 	public static void merge(final MergeContext context) throws IOException,
 			InterruptedException {
 		assert (context != null);
-		Operation<FileArtifact> merge =
-				new MergeOperation<>(context.getInputFiles(),
-						context.getOutputFile());
+		Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
 		merge.apply(context);
 	}
 
@@ -532,7 +572,7 @@ public final class Main {
 	private static void bugfixing(final MergeContext context) {
 		context.setPretend(true);
 		context.setQuiet(false);
-		setLogLevel("trace");
+		setLogLevel("FINEST");
 
 		for (FileArtifact artifact : context.getInputFiles()) {
 			ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
@@ -614,9 +654,7 @@ public final class Main {
 					}
 
 					for (Tuple<String, Double> t : curSkippedElements) {
-						skippedElements.add(
-								new Tuple<String, Tuple<Integer, Double>>(
-									t.x, new Tuple<>(lookAhead, t.y)));
+						skippedElements.add(Tuple.of(t.x, Tuple.of(lookAhead, t.y)));
 					}
 
 					for (String elem : curMatchedElements.keySet()) {

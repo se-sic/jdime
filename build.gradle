@@ -24,6 +24,9 @@
 
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'eclipse'
+
+mainClassName = 'de.fosd.jdime.gui.GUI'
 
 sourceSets {
     main {
@@ -46,12 +49,25 @@ repositories {
 
 dependencies {
     compile 'commons-io:commons-io:2.4'
-    compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
-    compile 'log4j:log4j:1.2.17'
     compile files('lib/JJ7.jar')
     compile project(':KVConfig')
+}
+
+task config {
+    def config = file('JDime.properties')
+    def logging = file('JDimeLogging.properties')
+
+    if (config.exists()) {
+        inputs.files(config)
+        outputs.files(config)
+    }
+
+    if (logging.exists()) {
+        inputs.files(logging)
+        outputs.files(logging)
+    }
 }
 
 task natives {
@@ -135,12 +151,15 @@ task guiScripts(type: CreateStartScripts) {
 distributions {
     main {
         contents.with {
-            into('bin') {
+            def binDir = 'bin'
+
+            into(binDir) {
                 from(guiScripts)
                 fileMode = 0755
             }
-            into('bin') {
+            into(binDir) {
                 from(natives)
+                from(config)
             }
         }
     }

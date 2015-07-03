@@ -46,18 +46,17 @@ __Windows:__
 Precompiled binaries (including the required .dll files for glpk and glpk-java) can be found at
 (http://sourceforge.net/projects/winglpk/)
 
-#### Installation:
-Clone the repository using `git clone $URL`
+## Installation:
+Clone the repository using `git clone --recursive $URL`. If you forgot the `--recursive` switch, you have to change into the cloned directory and run `git submodule update --init` afterwards to initialize the submodule dependencies.
 
-For the first installation, dependencies supplied via git submodules have to be pulled. This is done by running `git submodule init` and `git submodule update`.
+JDime uses gradle as a build system.
+To avoid version mismatches with already installed instances of gradle, you can use the supplied gradle wrapper `gradlew` that bootstraps the right version of gradle automatically.
 
-Use `gradle -Pglpk=PATH -PglpkJava=PATH installApp` providing the paths to the `glpk_X_XX` and `glpk_X_XX_java` 
+Use `./gradlew -Pglpk=PATH -PglpkJava=PATH installDist` providing the paths to the `glpk_X_XX` and `glpk_X_XX_java` 
 native libraries appropriate for your platform. `X_XX` refers to the version of glpk, currently __version 4.55__ is required.  
 
 After running the command given above the directory `build/install/JDime/bin` will contain Unix and Windows scripts
 that you can use to start the application.
-
-Please note that, using gradle 2.3 or newer, you should use the task `installDist` instead of `installApp`.
 
 Instead of passing the library paths as command line arguments, you can also store them to a `gradle.properties` file, which looks like this:
 ```
@@ -68,4 +67,6 @@ glpk=PATH
 ## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows: 
 
-`JDime -mode [unstructured|structured|autotuning] -output [directory] <leftVersion> <baseVersion> <rightVersion>`
+`JDime -mode [unstructured|structured|autotuning] -output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
+
+Run `JDime -help` to show more extensive usage information.

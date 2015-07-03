@@ -33,7 +33,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import org.apache.commons.lang3.ClassUtils;
 
 /**
  * TODO: This needs more explanation.
@@ -56,12 +55,12 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 
 	/**
 	 * {@inheritDoc}
-	 *
+	 * <p>
 	 * TODO: this needs explanation, I'll fix it soon.
 	 */
 	@Override
 	public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-		String id = ClassUtils.getSimpleName(getClass());
+		String id = getClass().getSimpleName();
 		int rootMatching = left.matches(right) ? 1 : 0;
 
 		if (rootMatching == 0) {
@@ -71,10 +70,10 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 				 * subtrees and return early to save time.
 				 */
 
-				if (LOG.isTraceEnabled()) {
+				LOG.finest(() -> {
 					String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-					LOG.trace(String.format(format, id, left.getId(), right.getId(), context.getLookAhead()));
-				}
+					return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
+				});
 
 				Matchings<T> m = Matchings.of(left, right, rootMatching);
 				m.get(left, right).get().setAlgorithm(id);
