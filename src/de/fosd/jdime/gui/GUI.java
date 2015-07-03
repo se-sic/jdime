@@ -2,8 +2,12 @@ package de.fosd.jdime.gui;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -62,6 +66,7 @@ public final class GUI extends Application {
 	private static final String TITLE = "JDime";
 
 	private static final String JDIME_CONF_FILE = "JDime.properties";
+	private static final String JDIME_DEFAULT_HISTFILE_KEY = "DEFAULT_HISTFILE";
 	private static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
 	private static final String JDIME_DEFAULT_LEFT_KEY = "DEFAULT_LEFT";
 	private static final String JDIME_DEFAULT_BASE_KEY = "DEFAULT_BASE";
@@ -143,6 +148,24 @@ public final class GUI extends Application {
 		loadConfigFile();
 		loadDefaults();
 
+		// try to read history
+		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent() &&
+				new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()).exists()) {
+			try {
+				ObjectInputStream in = new ObjectInputStream(
+						new FileInputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
+
+				// ObservableListWrapper is not serializable, so we need this hack
+				ArrayList<State> data = (ArrayList<State>) in.readObject();
+				history.addAll(data);
+				historyIndex.setValue(history.size());
+
+				in.close();
+
+			} catch (Exception e) {
+			}
+		}
+
 		SimpleListProperty<State> historyListProp = new SimpleListProperty<>(history);
 		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
 		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
@@ -154,6 +177,26 @@ public final class GUI extends Application {
 		primaryStage.show();
 	}
 
+	@Override
+	public void stop() throws Exception {
+		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent()) {
+			File histfile = new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get());
+
+			if (!histfile.exists() && !histfile.createNewFile()) {
+				return;
+			}
+
+			// ObservableListWrapper is not serializable, so we need this hack
+			ArrayList<State> data = new ArrayList<>();
+			data.addAll(history);
+
+			ObjectOutputStream out = new ObjectOutputStream(
+					new FileOutputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
+			out.writeObject(data);
+			out.close();
+		}
+	}
+
 	/**
 	 * Loads default values for the <code>TextField</code>s from the config file.
 	 */
@@ -163,6 +206,7 @@ public final class GUI extends Application {
 		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
 		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
 		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		config.get(JDIME_DEFAULT_HISTFILE_KEY);
 		bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
 		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}

@@ -1,5 +1,6 @@
 package de.fosd.jdime.gui;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -9,10 +10,10 @@ import javafx.scene.control.Tab;
 /**
  * A Bean encapsulating the state of the gui at one point.
  */
-final class State {
+final class State implements Serializable {
 
 	private List<Tab> treeViewTabs;
-	private ObservableList<String> output;
+	private transient ObservableList<String> output;
 	private String left;
 	private String base;
 	private String right;
