@@ -37,13 +37,11 @@ import java.util.logging.Logger;
 import AST.ASTNode;
 import AST.BytecodeParser;
 import AST.ClassDecl;
-import AST.CompilationUnit;
 import AST.ConstructorDecl;
 import AST.FieldDecl;
 import AST.FieldDeclaration;
 import AST.ImportDecl;
 import AST.InterfaceDecl;
-import AST.JavaParser;
 import AST.Literal;
 import AST.MethodDecl;
 import AST.Program;
@@ -71,15 +69,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	 * @param p
 	 *            program
 	 */
-	private static void initParser(final Program p) {
-		p.initJavaParser(new JavaParser() {
-			@Override
-			public CompilationUnit parse(final java.io.InputStream is,
-										 final String fileName) throws java.io.IOException,
-					beaver.Parser.Exception {
-				return new parser.JavaParser().parse(is, fileName);
-			}
-		});
+	private static void initParser(Program p) {
+		p.initJavaParser((is, fileName) -> new parser.JavaParser().parse(is, fileName));
 	}
 
 	/**
@@ -250,85 +241,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 	}
 
-	private static String getGraphvizId(ASTNodeArtifact artifact) {
-		return "\"" + artifact.getId() + "\"";
-	}
-
-	/**
-	 * Returns the AST in dot-format.
-	 *
-	 * @param includeNumbers
-	 *            include node number in label if true
-	 * @return AST in dot-format.
-	 */
-	public final String dumpGraphvizTree(final boolean includeNumbers, int virtualcount) {
+	@Override
+	public String prettyPrint() {
 		assert (astnode != null);
-		StringBuilder sb = new StringBuilder();
 
-		if (isConflict() || isChoice()) {
-			// insert virtual node
-			String virtualId = "\"c" + virtualcount + "\"";
-			String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
-			String virtualColor = isConflict() ? "red" : "blue";
-			sb.append(virtualId);
-			sb.append("[label=").append(virtualLabel);
-			sb.append(", fillcolor = ").append(virtualColor);
-			sb.append(", style = filled]").append(System.lineSeparator());
+		rebuildAST();
+		astnode.flushCaches();
 
-			if (isConflict()) {
-				// left alternative
-				sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-				sb.append(virtualId).append("->").append(getGraphvizId(left)).
-						append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-
-				// right alternative
-				sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-				sb.append(virtualId).append("->").append(getGraphvizId(right)).
-						append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-			} else {
-				// choice node
-				for (String condition : getVariants().keySet()) {
-					ASTNodeArtifact variant = getVariants().get(condition);
-					sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
-					sb.append(virtualId).append("->").append(getGraphvizId(variant)).
-							append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
-				}
-			}
-		} else {
-			sb.append(getGraphvizId(this)).append("[label=\"");
-
-			// node label
-			if (includeNumbers) {
-				sb.append("(").append(getNumber()).append(") ");
-			}
-
-			sb.append(astnode.dumpString());
-
-			sb.append("\"");
-
-			if (hasMatches()) {
-				sb.append(", fillcolor = green, style = filled");
-			}
-
-			sb.append("];");
-			sb.append(System.lineSeparator());
-
-			// children
-			for (ASTNodeArtifact child : getChildren()) {
-				String childId = getGraphvizId(child);
-				if (child.isConflict() || child.isChoice()) {
-					virtualcount++;
-					childId = "\"c" + virtualcount + "\"";
-				}
-
-				sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
-
-				// edge
-				sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
-			}
+		if (LOG.isLoggable(Level.FINEST)) {
+			System.out.println(dumpTree());
 		}
 
-		return sb.toString();
+		return astnode.prettyPrint();
 	}
 
 	@Override
@@ -531,7 +455,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		if (!isRoot() && numChildNoTransform > 0) {
-		
+
 			// this language element has a fixed number of children, we need to be careful with this one
 			boolean leftChanges = left.isChange();
 			boolean rightChanges = right.isChange();
@@ -545,13 +469,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			}
 
 			if (leftChanges && rightChanges) {
-				
+
 				LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
 				LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
 				LOG.finest(() -> "We will report a conflict instead of performing the merge.");
 
 				safeMerge = false;
-				
+
 				// to be safe, we will report a conflict instead of merging
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
@@ -561,7 +485,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				conflictOp.apply(context);
 			}
 		}
-		
+
 		if (safeMerge) {
 			astNodeStrategy.merge(operation, context);
 		}
@@ -591,23 +515,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		LOG.finest(() -> String.format("Children after removal: %s", getChildren()));
-	}
-
-	/**
-	 * Pretty-prints the AST to source code.
-	 *
-	 * @return Pretty-printed AST (source code)
-	 */
-	public final String prettyPrint() {
-		assert (astnode != null);
-		rebuildAST();
-		astnode.flushCaches();
-
-		if (LOG.isLoggable(Level.FINEST)) {
-			System.out.println(dumpTree());
-		}
-
-		return astnode.prettyPrint();
 	}
 
 	/**
@@ -663,7 +570,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
 	@Override
 	public final String toString() {
-		assert (astnode != null);
 		return astnode.dumpString();
 	}
 
@@ -858,7 +764,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				elements.put(childKey, value);
 			}
 		}
-		
+
 		return elements;
 	}
 

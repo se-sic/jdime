@@ -28,7 +28,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.Util;
 import de.fosd.jdime.common.LangElem;
 
 /**
@@ -401,9 +400,9 @@ public class ASTStats {
 		}
 
 		// CSV
-		sb.append(Util.joinToString(csvHead, ';'));
+		sb.append(String.join(";", csvHead));
 		sb.append(System.lineSeparator());
-		sb.append(Util.joinToString(csv, ';'));
+		sb.append(String.join(";", csv));
 
 		return sb.toString();
 	}

@@ -297,6 +297,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	}
 
 	@Override
+	public String prettyPrint() {
+		return getContent();
+	}
+
+	@Override
 	public final boolean exists() {
 		assert (file != null);
 		return file.exists();
@@ -620,7 +625,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		throw new NotYetImplementedException();
 	}
 
-	public final String getContent() throws IOException {
-		return file == null ? "" : FileUtils.readFileToString(file);
+	public final String getContent() {
+
+		try {
+			return file == null ? "" : FileUtils.readFileToString(file);
+		} catch (IOException e) {
+			LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
+			return "";
+		}
 	}
 }

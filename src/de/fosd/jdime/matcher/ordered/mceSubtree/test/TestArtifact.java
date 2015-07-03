@@ -61,6 +61,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
 	}
 
 	@Override
+	public String prettyPrint() {
+		return null;
+	}
+
+	@Override
 	public boolean exists() {
 		return true;
 	}

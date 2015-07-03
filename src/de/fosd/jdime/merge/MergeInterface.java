@@ -26,43 +26,34 @@ import java.io.IOException;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * Interface for merge algorithms.
  *
- * @author Olaf Lessenich
- *
  * @param <T>
- *            type of artifact
- *
+ * 		the type of the artifact
+ * @author Olaf Lessenich
  */
 public interface MergeInterface<T extends Artifact<T>> {
-
-	int MINFILES = MergeType.MINFILES;
 
 	/**
 	 * Executes a merge based on a <code>MergeOperation</code>.
 	 * <p>
-	 * The source and target <code>Artifacts</code> are extracted from the
-	 * <code>MergeOperation</code>.
-	 * It is determined what kind of merge (e.g., two-way or three-way) has to be done.
-	 * The source <code>Artifacts</code> are compared to each other using
-	 * implementations of <code>MatchingInterface</code>.
-	 * Finally, a unified <code>Artifact</code> is created, the target <code>Artifact</code>.
-	 * Therefore, it should be considered by the merge implementation whether
+	 * The source and target <code>Artifacts</code> are extracted from the <code>MergeOperation</code>. It is determined
+	 * what kind of merge (e.g., two-way or three-way) has to be done. The source <code>Artifacts</code> are compared to
+	 * each other using implementations of <code>MatchingInterface</code>. Finally, a unified <code>Artifact</code> is
+	 * created, the target <code>Artifact</code>. Therefore, it should be considered by the merge implementation whether
 	 * the order of elements is significant or not.
 	 *
 	 * @param operation
-	 *            merge operation
+	 * 		merge operation
 	 * @param context
-	 *            merge context
+	 * 		merge context
 	 * @throws IOException
-	 *             IOException
+	 * 		IOException
 	 * @throws InterruptedException
-	 *             InterruptedException
+	 * 		InterruptedException
 	 */
-	void merge(MergeOperation<T> operation, MergeContext context)
-			throws IOException, InterruptedException;
+	void merge(MergeOperation<T> operation, MergeContext context) throws IOException, InterruptedException;
 }
