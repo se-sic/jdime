@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
@@ -116,7 +117,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		}
 
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		ArrayList<Long> runtimes = new ArrayList<>();
+		List<Long> runtimes = new ArrayList<>();
 		int conflicts = 0;
 		int loc = 0;
 		int cloc = 0;
@@ -125,86 +126,104 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 		// installed)
 		LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
 
-		for (int i = 0; i < context.getBenchmarkRuns() + 1
-				&& (i == 0 || context.isBenchmark()); i++) {
+		for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
 			long cmdStart = System.currentTimeMillis();
-			Process pr = pb.start();
+			Process pr;
+
+			try {
+				pr = pb.start();
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not start external command: " + String.join(" ", cmd));
+				continue;
+			}
 
 			if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
 				// process input stream
-				BufferedReader buf = new BufferedReader(new InputStreamReader(
-						pr.getInputStream()));
 				boolean conflict = false;
 				boolean comment = false;
 
 				int tmp = 0;
 				String line;
-				while ((line = buf.readLine()) != null) {
-					context.appendLine(line);
 
-					if (context.hasStats()) {
-						if (line.matches("^$") || line.matches("^\\s*$")
-								|| line.matches("^\\s*//.*$")) {
-							// skip empty lines and single line comments
-							continue;
-						} else if (line.matches("^\\s*/\\*.*")) {
-							if (line.matches("^\\s*/\\*.*?\\*/")) {
-								// one line comment
+				try (BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+
+					while ((line = buf.readLine()) != null) {
+						context.appendLine(line);
+
+						if (context.hasStats()) {
+							if (line.matches("^$") || line.matches("^\\s*$")
+									|| line.matches("^\\s*//.*$")) {
+								// skip empty lines and single line comments
 								continue;
+							} else if (line.matches("^\\s*/\\*.*")) {
+								if (line.matches("^\\s*/\\*.*?\\*/")) {
+									// one line comment
+									continue;
+								} else {
+									// starting block comment
+									comment = true;
+									continue;
+								}
+							} else if (line.matches("^.*?\\*/")) {
+								// ending block comment
+								comment = false;
+								continue;
+							}
+							if (line.matches("^\\s*<<<<<<<.*")) {
+								LOG.fine(() -> "CONFLICT in " + triple);
+
+								conflict = true;
+								comment = false;
+								tmp = cloc;
+								conflicts++;
+							} else if (line.matches("^\\s*=======.*")) {
+								comment = false;
+							} else if (line.matches("^\\s*>>>>>>>.*")) {
+								conflict = false;
+								comment = false;
+								if (tmp == cloc) {
+									// only conflicting comments or empty lines
+									conflicts--;
+								}
 							} else {
-								// starting block comment
-								comment = true;
-								continue;
-							}
-						} else if (line.matches("^.*?\\*/")) {
-							// ending block comment
-							comment = false;
-							continue;
-						}
-						if (line.matches("^\\s*<<<<<<<.*")) {
-							LOG.fine(() -> "CONFLICT in " + triple);
-
-							conflict = true;
-							comment = false;
-							tmp = cloc;
-							conflicts++;
-						} else if (line.matches("^\\s*=======.*")) {
-							comment = false;
-						} else if (line.matches("^\\s*>>>>>>>.*")) {
-							conflict = false;
-							comment = false;
-							if (tmp == cloc) {
-								// only conflicting comments or empty lines
-								conflicts--;
-							}
-						} else {
-							loc++;
-							if (conflict && !comment) {
-								cloc++;
+								loc++;
+								if (conflict && !comment) {
+									cloc++;
+								}
 							}
 						}
 					}
+				} catch (IOException e) {
+					LOG.log(Level.WARNING, e, () -> "Exception reading the process input stream.");
 				}
-
-				buf.close();
 
 				// process error stream
-				buf = new BufferedReader(new InputStreamReader(
-						pr.getErrorStream()));
-				while ((line = buf.readLine()) != null) {
-					if (i == 0
-							&& (!context.isBenchmark() || context.hasStats())) {
-						context.appendErrorLine(line);
+				try (BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+
+					while ((line = buf.readLine()) != null) {
+						if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+							context.appendErrorLine(line);
+						}
 					}
+				} catch (IOException e) {
+					LOG.log(Level.WARNING, e, () -> "Exception reading the process error stream.");
 				}
-
-				buf.close();
 			}
-			pr.getInputStream().close();
-			pr.getErrorStream().close();
-			pr.getOutputStream().close();
 
-			pr.waitFor();
+			try {
+				pr.waitFor();
+
+				if (pr.exitValue() != 0) {
+					pr.getOutputStream().close();
+					pr.getErrorStream().close();
+					pr.getInputStream().close();
+				}
+			} catch (InterruptedException e) {
+				LOG.log(Level.WARNING, e, () -> "Interrupted while waiting for " + pr + " to finish.");
+				pr.destroyForcibly();
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not close process streams after it finished with non-zero exit value.");
+			}
 
 			long runtime = System.currentTimeMillis() - cmdStart;
 			runtimes.add(runtime);
