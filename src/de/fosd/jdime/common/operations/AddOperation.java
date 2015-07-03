@@ -109,11 +109,9 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 			if (artifact instanceof FileArtifact) {
 
 				// analyze java files to get statistics
-				for (FileArtifact child : ((FileArtifact) artifact)
-						.getJavaFiles()) {
+				for (FileArtifact child : ((FileArtifact) artifact).getJavaFiles()) {
 					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-					ASTStats childStats = childAST.getStats(null,
-							LangElem.TOPLEVELNODE, false);
+					ASTStats childStats = childAST.getStats(null, LangElem.TOPLEVELNODE, false);
 
 					LOG.fine(childStats::toString);
 
