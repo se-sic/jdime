@@ -141,7 +141,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @throws IOException
 	 *             If an input output exception occurs
 	 */
-	public abstract T addChild(final T child) throws IOException;
+	public abstract T addChild(final T child);
 
 	/**
 	 * Adds a matching.
@@ -201,19 +201,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 * @param condition presence condition
 	 * @param artifact conditional artifact
 	 * @return choice artifact
-	 * @throws IOException If a file is not found
 	 */
-	public abstract T createChoiceDummy(final String condition, final T artifact) throws IOException;
+	public abstract T createChoiceDummy(String condition, T artifact);
 
 	/**
 	 * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
 	 * base <code>Artifact</code> is empty.
 	 *
 	 * @return empty <code>Artifact</code>
-	 * @throws IOException
-	 *             If a file is not found or cannot be created
 	 */
-	public abstract T createEmptyArtifact() throws IOException;
+	public abstract T createEmptyArtifact();
 
 	/**
 	 * Finds the root artifact and calls <code>dumpTree()</code> on it.
@@ -372,7 +369,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 		return children;
 	}
 
-	public abstract void deleteChildren() throws IOException;
+	public abstract void deleteChildren();
 
 	/**
 	 * Returns the identifier of the <code>Artifact</code>,
@@ -689,13 +686,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
 	 *            merge operation
 	 * @param context
 	 *            merge context
-	 * @throws InterruptedException
-	 *             If a thread is interrupted
-	 * @throws IOException
-	 *             If an input output exception occurs
 	 */
-	public abstract void merge(MergeOperation<T> operation, MergeContext context)
-			throws IOException, InterruptedException;
+	public abstract void merge(MergeOperation<T> operation, MergeContext context);
 
 	/**
 	 * Sets the children of the <code>Artifact</code>.

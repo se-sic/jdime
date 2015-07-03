@@ -24,7 +24,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -204,7 +203,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final ASTNodeArtifact addChild(final ASTNodeArtifact child) throws IOException {
+	public ASTNodeArtifact addChild(ASTNodeArtifact child) {
 		LOG.finest(() -> String.format("%s.addChild(%s)", getId(), child.getId()));
 
 		assert (this.exists());
@@ -227,7 +226,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final ASTNodeArtifact createEmptyArtifact() throws FileNotFoundException {
+	public ASTNodeArtifact createEmptyArtifact() {
 		ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
 		emptyArtifact.setRevision(getRevision());
 		return emptyArtifact;
@@ -432,7 +431,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 	}
 
 	@Override
-	public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+	public void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) {
 		Objects.requireNonNull(operation, "operation must not be null!");
 		Objects.requireNonNull(context, "context must not be null!");
 

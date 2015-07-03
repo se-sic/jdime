@@ -348,14 +348,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
 	 * If the content type can not be determined <code>null</code> will be returned.
 	 *
 	 * @return the MIME content type 
-	 *
-	 * @throws IOException
-	 *         if an I/O exception occurs while trying to determine the content type
 	 */
-	public final String getContentType() throws IOException {
+	public final String getContentType() {
 		assert (exists());
 
-		String mimeType = Files.probeContentType(file.toPath());
+		String mimeType = null;
+
+		try {
+			mimeType = Files.probeContentType(file.toPath());
+		} catch (IOException e) {
+			LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
+		}
 
 		if (mimeType == null) {
 			
@@ -406,15 +409,19 @@ public class FileArtifact extends Artifact<FileArtifact> {
 		return file;
 	}
 
-	public ArtifactList<FileArtifact> getJavaFiles() throws IOException {
+	public ArtifactList<FileArtifact> getJavaFiles() {
 		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
 
 		if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
 			javaFiles.add(this);
 		} else if (isDirectory()) {
-			
-			for (FileArtifact child : getDirContent()) {
-				javaFiles.addAll(child.getJavaFiles());
+
+			try {
+				for (FileArtifact child : getDirContent()) {
+					javaFiles.addAll(child.getJavaFiles());
+				}
+			} catch (IOException e) {
+				LOG.log(Level.WARNING, e, () -> "Could not get directory content of " + this);
 			}
 		}
 
@@ -547,7 +554,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
 	
 	@Override
-	public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
 		Objects.requireNonNull(operation, "operation must not be null!");
 		Objects.requireNonNull(context, "context must not be null!");
 		
