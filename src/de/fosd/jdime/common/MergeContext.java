@@ -51,7 +51,7 @@ public class MergeContext implements Cloneable {
 	 *            list of values for which to compute the median
 	 * @return median
 	 */
-	public static long median(final ArrayList<Long> values) {
+	public static long median(List<Long> values) {
 		Collections.sort(values);
 
 		if (values.size() % 2 == 1) {
