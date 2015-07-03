@@ -36,13 +36,11 @@ import java.util.logging.Logger;
 import AST.ASTNode;
 import AST.BytecodeParser;
 import AST.ClassDecl;
-import AST.CompilationUnit;
 import AST.ConstructorDecl;
 import AST.FieldDecl;
 import AST.FieldDeclaration;
 import AST.ImportDecl;
 import AST.InterfaceDecl;
-import AST.JavaParser;
 import AST.Literal;
 import AST.MethodDecl;
 import AST.Program;
@@ -430,7 +428,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 		}
 
 		if (!isRoot() && numChildNoTransform > 0) {
-		
+
 			// this language element has a fixed number of children, we need to be careful with this one
 			boolean leftChanges = left.isChange();
 			boolean rightChanges = right.isChange();
@@ -444,22 +442,22 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 			}
 
 			if (leftChanges && rightChanges) {
-				
+
 				LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
 				LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
 				LOG.finest(() -> "We will report a conflict instead of performing the merge.");
 
 				safeMerge = false;
-				
+
 				// to be safe, we will report a conflict instead of merging
 				ASTNodeArtifact targetParent = target.getParent();
 				targetParent.removeChild(target);
-				
+
 				Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent);
 				conflictOp.apply(context);
 			}
 		}
-		
+
 		if (safeMerge) {
 			astNodeStrategy.merge(operation, context);
 		}
@@ -713,7 +711,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 				elements.put(childKey, value);
 			}
 		}
-		
+
 		return elements;
 	}
 }
