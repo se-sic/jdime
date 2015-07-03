@@ -147,24 +147,7 @@ public final class GUI extends Application {
 		config.addSource(new SysEnvConfigSource());
 		loadConfigFile();
 		loadDefaults();
-
-		// try to read history
-		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent() &&
-				new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()).exists()) {
-			try {
-				ObjectInputStream in = new ObjectInputStream(
-						new FileInputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
-
-				// ObservableListWrapper is not serializable, so we need this hack
-				ArrayList<State> data = (ArrayList<State>) in.readObject();
-				history.addAll(data);
-				historyIndex.setValue(history.size());
-
-				in.close();
-
-			} catch (Exception e) {
-			}
-		}
+		importHistory();
 
 		SimpleListProperty<State> historyListProp = new SimpleListProperty<>(history);
 		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
@@ -179,22 +162,7 @@ public final class GUI extends Application {
 
 	@Override
 	public void stop() throws Exception {
-		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent()) {
-			File histfile = new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get());
-
-			if (!histfile.exists() && !histfile.createNewFile()) {
-				return;
-			}
-
-			// ObservableListWrapper is not serializable, so we need this hack
-			ArrayList<State> data = new ArrayList<>();
-			data.addAll(history);
-
-			ObjectOutputStream out = new ObjectOutputStream(
-					new FileOutputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
-			out.writeObject(data);
-			out.close();
-		}
+		exportHistory();
 	}
 
 	/**
@@ -560,5 +528,49 @@ public final class GUI extends Application {
 
 		tableView.getColumns().setAll(Arrays.asList(label, id));
 		return new Tab("Tree View", tableView);
+	}
+
+	private void importHistory() {
+		// TODO: this doesn't work with multiple instances.
+		//       should be replaced with parsing a proper file format
+
+		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent() &&
+				new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()).exists()) {
+			try {
+				ObjectInputStream in = new ObjectInputStream(
+						new FileInputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
+
+				// ObservableListWrapper is not serializable, so we need this hack
+				ArrayList<State> data = (ArrayList<State>) in.readObject();
+				history.addAll(data);
+				historyIndex.setValue(history.size());
+
+				in.close();
+
+			} catch (Exception e) {
+			}
+		}
+	}
+
+	private void exportHistory() throws Exception {
+		// TODO: this doesn't work with multiple instances.
+		//       should be replaced with appending a proper file format
+
+		if (config.get(JDIME_DEFAULT_HISTFILE_KEY).isPresent()) {
+			File histfile = new File(config.get(JDIME_DEFAULT_HISTFILE_KEY).get());
+
+			if (!histfile.exists() && !histfile.createNewFile()) {
+				return;
+			}
+
+			// ObservableListWrapper is not serializable, so we need this hack
+			ArrayList<State> data = new ArrayList<>();
+			data.addAll(history);
+
+			ObjectOutputStream out = new ObjectOutputStream(
+					new FileOutputStream(config.get(JDIME_DEFAULT_HISTFILE_KEY).get()));
+			out.writeObject(data);
+			out.close();
+		}
 	}
 }
