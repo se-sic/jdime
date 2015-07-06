@@ -40,65 +40,65 @@ import de.fosd.jdime.merge.MergeInterface;
  * performance, precision, or also a trade-off of concerns.
  *
  * @param <T>
- * 		type of artifact
+ *         type of artifact
  * @author Olaf Lessenich
  */
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T>, StatsInterface<T>, DumpInterface<T> {
 
-	private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
+    private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
 
-	static {
-		Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
-		LinebasedStrategy lineBased = new LinebasedStrategy();
-		StructuredStrategy structured = new StructuredStrategy();
-		CombinedStrategy combined = new CombinedStrategy();
-		NWayStrategy nway = new NWayStrategy();
+    static {
+        Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
+        LinebasedStrategy lineBased = new LinebasedStrategy();
+        StructuredStrategy structured = new StructuredStrategy();
+        CombinedStrategy combined = new CombinedStrategy();
+        NWayStrategy nway = new NWayStrategy();
 
-		entries.put("linebased", lineBased);
-		entries.put("unstructured", lineBased);
-		entries.put("structured", structured);
-		entries.put("combined", combined);
-		entries.put("autotuning", combined);
-		entries.put("nway", nway);
-		entries.put("variants", nway);
+        entries.put("linebased", lineBased);
+        entries.put("unstructured", lineBased);
+        entries.put("structured", structured);
+        entries.put("combined", combined);
+        entries.put("autotuning", combined);
+        entries.put("nway", nway);
+        entries.put("variants", nway);
 
-		strategyMap = Collections.unmodifiableMap(entries);
-	}
+        strategyMap = Collections.unmodifiableMap(entries);
+    }
 
-	/**
-	 * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
-	 *
-	 * @return names of available strategies
-	 */
-	public static Set<String> listStrategies() {
-		return strategyMap.keySet();
-	}
+    /**
+     * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
+     *
+     * @return names of available strategies
+     */
+    public static Set<String> listStrategies() {
+        return strategyMap.keySet();
+    }
 
-	/**
-	 * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
-	 * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
-	 * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code> will
-	 * be thrown.
-	 *
-	 * @param name
-	 * 		the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
-	 * @return the <code>MergeStrategy</code>
-	 * @throws StrategyNotFoundException
-	 * 		if no <code>MergeStrategy</code> for <code>name</code> is found
-	 * @throws NullPointerException
-	 * 		if <code>name</code> is <code>null</code>
-	 */
-	public static MergeStrategy<FileArtifact> parse(String name) {
-		Objects.requireNonNull(name, "name may not be null!");
-		name = name.trim().toLowerCase();
+    /**
+     * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
+     * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
+     * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code> will
+     * be thrown.
+     *
+     * @param name
+     *         the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
+     * @return the <code>MergeStrategy</code>
+     * @throws StrategyNotFoundException
+     *         if no <code>MergeStrategy</code> for <code>name</code> is found
+     * @throws NullPointerException
+     *         if <code>name</code> is <code>null</code>
+     */
+    public static MergeStrategy<FileArtifact> parse(String name) {
+        Objects.requireNonNull(name, "name may not be null!");
+        name = name.trim().toLowerCase();
 
-		if (!strategyMap.containsKey(name)) {
-			throw new StrategyNotFoundException("Strategy not found: " + name);
-		}
+        if (!strategyMap.containsKey(name)) {
+            throw new StrategyNotFoundException("Strategy not found: " + name);
+        }
 
-		return strategyMap.get(name);
-	}
+        return strategyMap.get(name);
+    }
 
-	@Override
-	public abstract String toString();
+    @Override
+    public abstract String toString();
 }

@@ -39,83 +39,83 @@ import de.fosd.jdime.stats.Stats;
  */
 public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class.getCanonicalName());
-	private static Merge<FileArtifact> merge = null;
+    private static final Logger LOG = Logger.getLogger(DirectoryStrategy.class.getCanonicalName());
+    private static Merge<FileArtifact> merge = null;
 
-	/**
-	 * TODO: high-level documentation
-	 *
-	 * @param operation the <code>MergeOperation</code> to perform
-	 * @param context the <code>MergeContext</code>
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
-		assert (context.isRecursive()) : "Recursive merging needs to "
-				+ "be enabled in order to merge directories. "
-				+ "Use '-r' or see '-help'!";
+    /**
+     * TODO: high-level documentation
+     *
+     * @param operation the <code>MergeOperation</code> to perform
+     * @param context the <code>MergeContext</code>
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Override
+    public final void merge(final MergeOperation<FileArtifact> operation,
+            final MergeContext context) throws IOException,
+            InterruptedException {
+        assert (operation != null);
+        assert (context != null);
+        assert (context.isRecursive()) : "Recursive merging needs to "
+                + "be enabled in order to merge directories. "
+                + "Use '-r' or see '-help'!";
 
-		MergeScenario<FileArtifact> triple = operation.getMergeScenario();
+        MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 
-		assert (triple.isValid());
+        assert (triple.isValid());
 
-		assert (triple.getLeft() instanceof FileArtifact);
-		assert (triple.getBase() instanceof FileArtifact);
-		assert (triple.getRight() instanceof FileArtifact);
+        assert (triple.getLeft() instanceof FileArtifact);
+        assert (triple.getBase() instanceof FileArtifact);
+        assert (triple.getRight() instanceof FileArtifact);
 
-		FileArtifact left = triple.getLeft();
-		FileArtifact base = triple.getBase();
-		FileArtifact right = triple.getRight();
+        FileArtifact left = triple.getLeft();
+        FileArtifact base = triple.getBase();
+        FileArtifact right = triple.getRight();
 
-		FileArtifact[] revisions = { left, base, right };
+        FileArtifact[] revisions = { left, base, right };
 
-		for (FileArtifact dir : revisions) {
-			assert ((dir.exists() && dir.isDirectory()) || dir.isEmpty());
-		}
+        for (FileArtifact dir : revisions) {
+            assert ((dir.exists() && dir.isDirectory()) || dir.isEmpty());
+        }
 
-		if (merge == null) {
-			merge = new Merge<>();
-		}
+        if (merge == null) {
+            merge = new Merge<>();
+        }
 
-		LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
-		merge.merge(operation, context);
-	}
+        LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
+        merge.merge(operation, context);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files" });
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[] { "directories", "files" });
+    }
 
-	@Override
-	public final String toString() {
-		return "directory";
-	}
+    @Override
+    public final String toString() {
+        return "directory";
+    }
 
-	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
-		return artifact.isDirectory() ? "directories" : "files";
-	}
+    @Override
+    public final String getStatsKey(final FileArtifact artifact) {
+        return artifact.isDirectory() ? "directories" : "files";
+    }
 
-	@Override
-	public final String dumpTree(final FileArtifact artifact,
-			final boolean graphical) throws IOException {
-		throw new NotYetImplementedException("TODO: print directory tree");
-	}
+    @Override
+    public final String dumpTree(final FileArtifact artifact,
+            final boolean graphical) throws IOException {
+        throw new NotYetImplementedException("TODO: print directory tree");
+    }
 
-	@Override
-	public final String dumpFile(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		throw new NotYetImplementedException("TODO: print content of all files");
-	}
+    @Override
+    public final String dumpFile(final FileArtifact artifact, final boolean graphical)
+            throws IOException {
+        throw new NotYetImplementedException("TODO: print content of all files");
+    }
 }

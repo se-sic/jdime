@@ -33,27 +33,27 @@ import de.fosd.jdime.common.Artifact;
  */
 public interface DumpInterface<T extends Artifact<T>> {
 
-	/**
-	 * TODO: documentation
-	 *
-	 * @param artifact
-	 *            artifact to dump
-	 * @param graphical
-	 *            output option
-	 * @throws IOException
-	 *             IOException
-	 */
-	String dumpTree(final T artifact, final boolean graphical) throws IOException;
-	
-	/**
-	 * TODO: documentation
-	 *
-	 * @param artifact
-	 *            artifact to dump
-	 * @param graphical
-	 *            output option
-	 * @throws IOException
-	 *             IOException
-	 */
-	String dumpFile(final T artifact, final boolean graphical) throws IOException;
+    /**
+     * TODO: documentation
+     *
+     * @param artifact
+     *            artifact to dump
+     * @param graphical
+     *            output option
+     * @throws IOException
+     *             IOException
+     */
+    String dumpTree(final T artifact, final boolean graphical) throws IOException;
+    
+    /**
+     * TODO: documentation
+     *
+     * @param artifact
+     *            artifact to dump
+     * @param graphical
+     *            output option
+     * @throws IOException
+     *             IOException
+     */
+    String dumpFile(final T artifact, final boolean graphical) throws IOException;
 }

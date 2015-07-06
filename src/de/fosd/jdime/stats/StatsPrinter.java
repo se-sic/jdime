@@ -36,102 +36,102 @@ import de.fosd.jdime.strategy.LinebasedStrategy;
  */
 public final class StatsPrinter {
 
-	private static final Logger LOG = Logger.getLogger(StatsPrinter.class.getCanonicalName());
-	private static String delimiter = "=================================================";
+    private static final Logger LOG = Logger.getLogger(StatsPrinter.class.getCanonicalName());
+    private static String delimiter = "=================================================";
 
-	/**
-	 * Prints statistical information.
-	 * 
-	 * @param context
-	 *            merge context
-	 */
-	public static void print(final MergeContext context) {
-		assert (context != null);
+    /**
+     * Prints statistical information.
+     * 
+     * @param context
+     *            merge context
+     */
+    public static void print(final MergeContext context) {
+        assert (context != null);
 
-		Stats stats = context.getStats();
-		assert (stats != null);
+        Stats stats = context.getStats();
+        assert (stats != null);
 
-		if (LOG.isLoggable(Level.FINE)) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("Keys:");
+        if (LOG.isLoggable(Level.FINE)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Keys:");
 
-			for (String key : stats.getKeys()) {
-				sb.append(" ").append(key);
-			}
+            for (String key : stats.getKeys()) {
+                sb.append(" ").append(key);
+            }
 
-			LOG.fine(sb.toString());
+            LOG.fine(sb.toString());
 
-			System.out.println(delimiter);
-			System.out.println("Number of conflicts: " + stats.getConflicts());
+            System.out.println(delimiter);
+            System.out.println("Number of conflicts: " + stats.getConflicts());
 
-			for (String key : stats.getKeys()) {
-				System.out.println(delimiter);
-				StatsElement element = stats.getElement(key);
-				System.out.println("Added " + key + ": " + element.getAdded());
-				System.out.println("Deleted " + key + ": "
-						+ element.getDeleted());
-				System.out
-						.println("Merged " + key + ": " + element.getMerged());
-				System.out.println("Conflicting " + key + ": "
-						+ element.getConflicting());
-			}
+            for (String key : stats.getKeys()) {
+                System.out.println(delimiter);
+                StatsElement element = stats.getElement(key);
+                System.out.println("Added " + key + ": " + element.getAdded());
+                System.out.println("Deleted " + key + ": "
+                        + element.getDeleted());
+                System.out
+                        .println("Merged " + key + ": " + element.getMerged());
+                System.out.println("Conflicting " + key + ": "
+                        + element.getConflicting());
+            }
 
-			System.out.println(delimiter);
+            System.out.println(delimiter);
 
-			ArrayList<String> operations =
-					new ArrayList<>(stats.getOperations());
-			Collections.sort(operations);
-			for (String key : operations) {
-				System.out.println("applied " + key + " operations: "
-						+ stats.getOperation(key));
-			}
+            ArrayList<String> operations =
+                    new ArrayList<>(stats.getOperations());
+            Collections.sort(operations);
+            for (String key : operations) {
+                System.out.println("applied " + key + " operations: "
+                        + stats.getOperation(key));
+            }
 
-			System.out.println(delimiter);
-		}
+            System.out.println(delimiter);
+        }
 
-		if (context.isConsecutive()) {
-			ASTStats rightStats = stats.getRightStats();
-			ASTStats leftStats = stats.getLeftStats();
+        if (context.isConsecutive()) {
+            ASTStats rightStats = stats.getRightStats();
+            ASTStats leftStats = stats.getLeftStats();
 
-			if (rightStats == null) {
-				return;
-			}
+            if (rightStats == null) {
+                return;
+            }
 
-			if (leftStats != null) {
-				rightStats.setRemovalsfromAdditions(leftStats);
-			}
+            if (leftStats != null) {
+                rightStats.setRemovalsfromAdditions(leftStats);
+            }
 
-			System.out.println(rightStats);
-		} else {
-			ASTStats astStats = stats.getAstStats();
-			System.out.println(astStats);
-		}
+            System.out.println(rightStats);
+        } else {
+            ASTStats astStats = stats.getAstStats();
+            System.out.println(astStats);
+        }
 
-		if (LOG.isLoggable(Level.FINE)) {
-			System.out.println(delimiter);
-			System.out.println("Runtime: " + stats.getRuntime() + " ms");
-			System.out.println(delimiter);
-		}
+        if (LOG.isLoggable(Level.FINE)) {
+            System.out.println(delimiter);
+            System.out.println("Runtime: " + stats.getRuntime() + " ms");
+            System.out.println(delimiter);
+        }
 
-		if (context.getMergeStrategy().getClass().getName()
-				.equals(LinebasedStrategy.class.getName())) {
-			assert (stats.getElement("files").getAdded()
-					+ stats.getElement("directories").getAdded() == stats
-						.getOperation("ADD"));
-			assert (stats.getElement("files").getDeleted()
-					+ stats.getElement("directories").getDeleted() == stats
-						.getOperation("DELETE"));
-			assert (stats.getElement("files").getMerged()
-					+ stats.getElement("directories").getMerged() == stats
-						.getOperation("MERGE"));
-			LOG.fine("Sanity checks for linebased merge passed!");
-		}
+        if (context.getMergeStrategy().getClass().getName()
+                .equals(LinebasedStrategy.class.getName())) {
+            assert (stats.getElement("files").getAdded()
+                    + stats.getElement("directories").getAdded() == stats
+                        .getOperation("ADD"));
+            assert (stats.getElement("files").getDeleted()
+                    + stats.getElement("directories").getDeleted() == stats
+                        .getOperation("DELETE"));
+            assert (stats.getElement("files").getMerged()
+                    + stats.getElement("directories").getMerged() == stats
+                        .getOperation("MERGE"));
+            LOG.fine("Sanity checks for linebased merge passed!");
+        }
 
-	}
+    }
 
-	/**
-	 * Private constructor.
-	 */
-	private StatsPrinter() {
-	}
+    /**
+     * Private constructor.
+     */
+    private StatsPrinter() {
+    }
 }

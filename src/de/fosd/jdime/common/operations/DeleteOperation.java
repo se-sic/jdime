@@ -45,110 +45,110 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
-	/**
-	 * The <code>Artifact</code> that is deleted by the operation.
-	 */
-	private T artifact;
+    /**
+     * The <code>Artifact</code> that is deleted by the operation.
+     */
+    private T artifact;
 
-	/**
-	 * Output Artifact.
-	 */
-	private T target;
+    /**
+     * Output Artifact.
+     */
+    private T target;
 
-	private String condition;
+    private String condition;
 
-	/**
-	 * Class constructor.
-	 * @param artifact that is added by the operation
-	 * @param target output artifact
-	 * @param condition condition under which the node is NOT deleted
-	 */
-	public DeleteOperation(final T artifact, final T target, String condition) {
-		super();
-		this.artifact = artifact;
-		this.target = target;
+    /**
+     * Class constructor.
+     * @param artifact that is added by the operation
+     * @param target output artifact
+     * @param condition condition under which the node is NOT deleted
+     */
+    public DeleteOperation(final T artifact, final T target, String condition) {
+        super();
+        this.artifact = artifact;
+        this.target = target;
 
-		if (condition != null) {
-			this.condition = condition;
-		}
-	}
+        if (condition != null) {
+            this.condition = condition;
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#apply()
-	 */
-	@Override
-	public final void apply(final MergeContext context) throws IOException {
-		assert (artifact != null);
-		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.common.operations.Operation#apply()
+     */
+    @Override
+    public final void apply(final MergeContext context) throws IOException {
+        assert (artifact != null);
+        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-		LOG.fine(() -> "Applying: " + this);
+        LOG.fine(() -> "Applying: " + this);
 
-		if (context.isConditionalMerge(artifact) && condition != null) {
-			// we need to insert a choice node
-			T choice = target.createChoiceDummy(condition, artifact);
-			assert (choice.isChoice());
-			target.addChild(choice);
-		} else {
-			// Nothing to do :-)
-			//
-			// Why?
-			// While merging, the target node is created with no children.
-			// Therefore if a deletion of an element is applied during the merge,
-			// nothing has to be done.
-			//
-			// For ASTNodeArtifacts, the important method we rely on here is
-			// StructuredStrategy.merge(), which calls
-			// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-			// which then calls deleteChildren() on the created Program.
-		}
+        if (context.isConditionalMerge(artifact) && condition != null) {
+            // we need to insert a choice node
+            T choice = target.createChoiceDummy(condition, artifact);
+            assert (choice.isChoice());
+            target.addChild(choice);
+        } else {
+            // Nothing to do :-)
+            //
+            // Why?
+            // While merging, the target node is created with no children.
+            // Therefore if a deletion of an element is applied during the merge,
+            // nothing has to be done.
+            //
+            // For ASTNodeArtifacts, the important method we rely on here is
+            // StructuredStrategy.merge(), which calls
+            // ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+            // which then calls deleteChildren() on the created Program.
+        }
 
-		if (context.hasStats()) {
-			Stats stats = context.getStats();
-			stats.incrementOperation(this);
-			StatsElement element = stats.getElement(artifact
-					.getStatsKey(context));
-			element.incrementDeleted();
-			
-			if (artifact instanceof FileArtifact) {
+        if (context.hasStats()) {
+            Stats stats = context.getStats();
+            stats.incrementOperation(this);
+            StatsElement element = stats.getElement(artifact
+                    .getStatsKey(context));
+            element.incrementDeleted();
+            
+            if (artifact instanceof FileArtifact) {
 
-				// analyze java files to get statistics
-				for (FileArtifact child : ((FileArtifact) artifact)
-						.getJavaFiles()) {
-					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-					ASTStats childStats = childAST.getStats(null,
-							LangElem.TOPLEVELNODE, false);
+                // analyze java files to get statistics
+                for (FileArtifact child : ((FileArtifact) artifact)
+                        .getJavaFiles()) {
+                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+                    ASTStats childStats = childAST.getStats(null,
+                            LangElem.TOPLEVELNODE, false);
 
-					LOG.fine(childStats::toString);
+                    LOG.fine(childStats::toString);
 
-					childStats.setRemovalsfromAdditions(childStats);
-					childStats.resetAdditions();
+                    childStats.setRemovalsfromAdditions(childStats);
+                    childStats.resetAdditions();
 
-					if (context.isConsecutive()) {
-						context.getStats().addRightStats(childStats);
-					} else {
-						context.getStats().addASTStats(childStats);
-					}
-				}
-			}
-		}
-	}
+                    if (context.isConsecutive()) {
+                        context.getStats().addRightStats(childStats);
+                    } else {
+                        context.getStats().addASTStats(childStats);
+                    }
+                }
+            }
+        }
+    }
 
-	@Override
-	public final String getName() {
-		return "DELETE";
-	}
+    @Override
+    public final String getName() {
+        return "DELETE";
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final String toString() {
+        return getId() + ": " + getName() + " " + artifact;
+    }
 }

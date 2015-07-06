@@ -32,136 +32,136 @@ import de.fosd.jdime.common.MergeScenario;
  */
 public class MergeTripleStats {
 
-	private MergeScenario<FileArtifact> triple;
-	private int conflicts;
-	private int conflictingLines;
-	private int lines;
-	private long runtime;
-	private boolean error = false;
-	private String errormsg;
-	private ASTStats astStats;
-	private ASTStats leftStats;
-	private ASTStats rightStats;
+    private MergeScenario<FileArtifact> triple;
+    private int conflicts;
+    private int conflictingLines;
+    private int lines;
+    private long runtime;
+    private boolean error = false;
+    private String errormsg;
+    private ASTStats astStats;
+    private ASTStats leftStats;
+    private ASTStats rightStats;
 
-	/**
-	 * Class Constructor.
-	 *
-	 * @param triple
-	 *            merge triple
-	 * @param conflicts
-	 *            number of conflicts
-	 * @param conflictingLines
-	 *            number of conflicting lines
-	 * @param lines
-	 *            number of lines
-	 * @param runtime
-	 *            runtime for the scenario
-	 */
-	public MergeTripleStats(final MergeScenario<FileArtifact> triple,
-			final int conflicts, final int conflictingLines, final int lines,
-			final long runtime, final ASTStats astStats, final ASTStats leftStats, final ASTStats rightStats) {
-		this.triple = triple;
-		this.conflicts = conflicts;
-		this.conflictingLines = conflictingLines;
-		this.lines = lines;
-		this.runtime = runtime;
-		this.astStats = astStats;
-		this.leftStats = leftStats;
-		this.rightStats = rightStats;
-	}
+    /**
+     * Class Constructor.
+     *
+     * @param triple
+     *            merge triple
+     * @param conflicts
+     *            number of conflicts
+     * @param conflictingLines
+     *            number of conflicting lines
+     * @param lines
+     *            number of lines
+     * @param runtime
+     *            runtime for the scenario
+     */
+    public MergeTripleStats(final MergeScenario<FileArtifact> triple,
+            final int conflicts, final int conflictingLines, final int lines,
+            final long runtime, final ASTStats astStats, final ASTStats leftStats, final ASTStats rightStats) {
+        this.triple = triple;
+        this.conflicts = conflicts;
+        this.conflictingLines = conflictingLines;
+        this.lines = lines;
+        this.runtime = runtime;
+        this.astStats = astStats;
+        this.leftStats = leftStats;
+        this.rightStats = rightStats;
+    }
 
-	/**
-	 * Class constructor.
-	 *
-	 * @param triple
-	 *            merge triple
-	 * @param errormsg
-	 *            error message
-	 */
-	public MergeTripleStats(final MergeScenario<FileArtifact> triple,
-			final String errormsg) {
-		this.triple = triple;
-		this.error = true;
-		this.errormsg = errormsg;
-	}
+    /**
+     * Class constructor.
+     *
+     * @param triple
+     *            merge triple
+     * @param errormsg
+     *            error message
+     */
+    public MergeTripleStats(final MergeScenario<FileArtifact> triple,
+            final String errormsg) {
+        this.triple = triple;
+        this.error = true;
+        this.errormsg = errormsg;
+    }
 
-	/**
-	 * Returns true if there were errors during this merge.
-	 *
-	 * @return true if errors occurred during the merge
-	 */
-	public final boolean hasErrors() {
-		return error;
-	}
+    /**
+     * Returns true if there were errors during this merge.
+     *
+     * @return true if errors occurred during the merge
+     */
+    public final boolean hasErrors() {
+        return error;
+    }
 
-	/**
-	 * Returns the error message.
-	 *
-	 * @return error message
-	 */
-	public final String getErrorMsg() {
-		return errormsg;
-	}
+    /**
+     * Returns the error message.
+     *
+     * @return error message
+     */
+    public final String getErrorMsg() {
+        return errormsg;
+    }
 
-	/**
-	 * @return the triple
-	 */
-	public final MergeScenario<FileArtifact> getTriple() {
-		return triple;
-	}
+    /**
+     * @return the triple
+     */
+    public final MergeScenario<FileArtifact> getTriple() {
+        return triple;
+    }
 
-	/**
-	 * @return the conflicts
-	 */
-	public final int getConflicts() {
-		return conflicts;
-	}
+    /**
+     * @return the conflicts
+     */
+    public final int getConflicts() {
+        return conflicts;
+    }
 
-	/**
-	 * @return the conflictingLines
-	 */
-	public final int getConflictingLines() {
-		return conflictingLines;
-	}
+    /**
+     * @return the conflictingLines
+     */
+    public final int getConflictingLines() {
+        return conflictingLines;
+    }
 
-	/**
-	 * @return the lines
-	 */
-	public final int getLines() {
-		return lines;
-	}
+    /**
+     * @return the lines
+     */
+    public final int getLines() {
+        return lines;
+    }
 
-	/**
-	 * @return the runtime
-	 */
-	public final long getRuntime() {
-		return runtime;
-	}
+    /**
+     * @return the runtime
+     */
+    public final long getRuntime() {
+        return runtime;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return triple.toString() + ": " + conflicts + " conflicts, "
-				+ conflictingLines + " cloc, " + lines + " loc, " + runtime
-				+ " ms.";
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final String toString() {
+        return triple.toString() + ": " + conflicts + " conflicts, "
+                + conflictingLines + " cloc, " + lines + " loc, " + runtime
+                + " ms.";
+    }
 
-	/**
-	 * @return the astStats
-	 */
-	public final ASTStats getASTStats() {
-		return astStats;
-	}
-	
-	public final ASTStats getLeftASTStats() {
-		return leftStats;
-	}
-	
-	public final ASTStats getRightASTStats() {
-		return rightStats;
-	}
+    /**
+     * @return the astStats
+     */
+    public final ASTStats getASTStats() {
+        return astStats;
+    }
+    
+    public final ASTStats getLeftASTStats() {
+        return leftStats;
+    }
+    
+    public final ASTStats getRightASTStats() {
+        return rightStats;
+    }
 }
