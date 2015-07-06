@@ -174,7 +174,6 @@ public final class GUI extends Application {
         config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
         config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
         config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-        config.get(JDIME_DEFAULT_HISTFILE_KEY);
         bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
         allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
     }
