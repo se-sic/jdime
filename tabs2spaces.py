@@ -31,8 +31,7 @@ def tabs2spaces(target, num_spaces=4, pattern='*.java'):
 
     if not os.path.isdir(target):
         matches = [target]
-
-    if not matches:
+    else:
         for root, dirnames, filenames in os.walk(target):
             for filename in fnmatch.filter(filenames, pattern):
                 matches.append(os.path.join(root, filename))
