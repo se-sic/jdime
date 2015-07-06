@@ -38,29 +38,29 @@ import org.gnu.glpk.GLPK;
  */
 public final class InternalTests {
 
-	private static String delimiter = "====================================================";
+    private static String delimiter = "====================================================";
 
-	/**
-	 * Utility class constructor.
-	 */
-	private InternalTests() {
+    /**
+     * Utility class constructor.
+     */
+    private InternalTests() {
 
-	}
+    }
 
-	/**
+    /**
      * Runs all internal tests.
      */
-	public static void run() {
-		runEnvironmentTest();
-		runASTStatsTests();
-	}
+    public static void run() {
+        runEnvironmentTest();
+        runASTStatsTests();
+    }
 
     /**
      * Checks whether the environment for the program is correctly configured. Particularly this verifies that
      * the native libraries are working. 
      */
-	public static void runEnvironmentTest() {
-		
+    public static void runEnvironmentTest() {
+        
         try {
             System.out.println("Library search path: ");
 
@@ -72,13 +72,13 @@ public final class InternalTests {
             
             System.out.println("GLPK " + GLPK.glp_version() +  " is working.");
             System.out.println(InternalTests.class.getCanonicalName() + " : OK");
-		} catch (Throwable t) {
+        } catch (Throwable t) {
             System.out.println(t);
             System.out.println(InternalTests.class.getCanonicalName() + " : FAILED");
-			
+            
             throw t;
-		}
-	}
+        }
+    }
 
     /**
      * Checks whether the <code>ASTStats</code> are working correctly.

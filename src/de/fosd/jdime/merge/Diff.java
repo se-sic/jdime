@@ -42,44 +42,44 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class Diff<T extends Artifact<T>> {
 
-	private static final Logger LOG = Logger.getLogger(Diff.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(Diff.class.getCanonicalName());
 
-	/**
-	 * Compares two nodes and returns matchings between them and possibly their sub-nodes.
-	 *
-	 * @param context <code>MergeContext</code>
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @param color
-	 *            color of the matching (for debug output only)
-	 * @return <code>Matchings</code> of the two nodes
-	 */
-	public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
-		Matcher<T> matcher = new Matcher<>();
-		Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
-		Matching<T> matching = matchings.get(left, right).get();
+    /**
+     * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+     *
+     * @param context <code>MergeContext</code>
+     * @param left
+     *            left node
+     * @param right
+     *            right node
+     * @param color
+     *            color of the matching (for debug output only)
+     * @return <code>Matchings</code> of the two nodes
+     */
+    public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
+        Matcher<T> matcher = new Matcher<>();
+        Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
+        Matching<T> matching = matchings.get(left, right).get();
 
-		LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
-		LOG.fine(matcher::getLog);
-		LOG.finest("Store matching information within nodes.");
+        LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
+        LOG.fine(matcher::getLog);
+        LOG.finest("Store matching information within nodes.");
 
-		matcher.storeMatchings(context, matchings, color);
+        matcher.storeMatchings(context, matchings, color);
 
-		if (LOG.isLoggable(Level.FINEST)) {
-			LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
-			System.out.println(matchings);
-		}
+        if (LOG.isLoggable(Level.FINEST)) {
+            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
+            System.out.println(matchings);
+        }
 
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine(left.getRevision() + ".dumpTree():");
-			System.out.println(left.dumpTree());
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine(left.getRevision() + ".dumpTree():");
+            System.out.println(left.dumpTree());
 
-			LOG.fine(right.getRevision() + ".dumpTree():");
-			System.out.println(right.dumpTree());
-		}
+            LOG.fine(right.getRevision() + ".dumpTree():");
+            System.out.println(right.dumpTree());
+        }
 
-		return matchings;
-	}
+        return matchings;
+    }
 }
