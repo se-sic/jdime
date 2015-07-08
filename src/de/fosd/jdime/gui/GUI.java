@@ -109,9 +109,7 @@ public final class GUI extends Application {
 	private File lastChooseDir;
 	private List<TextField> textFields;
 
-	private IntegerProperty historyIndex;
-	private ObservableList<State> history;
-	private State inProgress;
+	private History history;
 
 	private Task<Void> jDimeExec;
 	private Process jDimeProcess;
@@ -135,19 +133,15 @@ public final class GUI extends Application {
 		Scene scene = new Scene(root);
 
 		textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
-		historyIndex = new SimpleIntegerProperty(0);
-		history = FXCollections.observableArrayList();
 
 		config = new Config();
 		config.addSource(new SysEnvConfigSource());
 		loadConfigFile();
 		loadDefaults();
 
-		SimpleListProperty<State> historyListProp = new SimpleListProperty<>(history);
-		BooleanBinding noPrev = historyListProp.emptyProperty().or(historyIndex.isEqualTo(0));
-		BooleanBinding noNext = historyListProp.emptyProperty().or(historyIndex.greaterThanOrEqualTo(historyListProp.sizeProperty()));
-		historyNext.disableProperty().bind(noNext);
-		historyPrevious.disableProperty().bind(noPrev);
+		history = new History(this);
+		historyNext.disableProperty().bind(history.hasNextProperty().not());
+		historyPrevious.disableProperty().bind(history.hasPreviousProperty().not());
 
 		primaryStage.setTitle(TITLE);
 		primaryStage.setScene(scene);
@@ -268,26 +262,14 @@ public final class GUI extends Application {
 	 * Called when the '{@literal >}' button for the history is clicked.
 	 */
 	public void historyNext() {
-		historyIndex.setValue(historyIndex.get() + 1);
-
-		if (historyIndex.get() == history.size()) {
-			inProgress.applyTo(this);
-		} else {
-			history.get(historyIndex.get()).applyTo(this);
-		}
+		history.applyNext();
 	}
 
 	/**
 	 * Called when the '{@literal <}' button for the history is clicked.
 	 */
 	public void historyPrevious() {
-
-		if (historyIndex.get() == history.size()) {
-			inProgress = State.of(this);
-		}
-
-		historyIndex.setValue(historyIndex.get() - 1);
-		history.get(historyIndex.get()).applyTo(this);
+        history.applyPrevious();
 	}
 
 	/**
@@ -373,7 +355,6 @@ public final class GUI extends Application {
 					String line;
 
 					do {
-
 						do {
 							if ((line = r.readLine()) != null) {
 								lines.add(line);
@@ -453,13 +434,7 @@ public final class GUI extends Application {
 	 * Saves the current state of the GUI to the history and then reactivates the user controls.
 	 */
 	private void reactivate() {
-		State currentState = State.of(GUI.this);
-
-		if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
-			history.add(currentState);
-			historyIndex.setValue(history.size());
-		}
-
+		history.storeCurrent();
 		cancelPane.setVisible(false);
 		controlsPane.setDisable(false);
 	}

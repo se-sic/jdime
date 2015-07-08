@@ -51,6 +51,7 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
+    compile 'com.thoughtworks.xstream:xstream:1.4.8'
     compile files('lib/JJ7.jar')
     compile project(':KVConfig')
 }
