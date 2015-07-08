@@ -10,7 +10,9 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 /**
- * A history of GUI <code>State</code>s.
+ * A history of GUI <code>State</code>s. The <code>History</code> stores an index into the list of stored
+ * <code>State</code>s it represents. The <code>applyX</code> methods advance/regress the index by one and apply
+ * the <code>State</code> at the new index to the <code>GUI</code>.
  */
 public class History {
 
@@ -43,36 +45,58 @@ public class History {
         this.hasNext = ReadOnlyBooleanProperty.readOnlyBooleanProperty(nextProperty);
     }
 
+    /**
+     * If possible, advances the index by one and applies the new <code>State</code> to the <code>GUI</code>.
+     * If the new index is the size of the list the previously stored in-progress <code>State</code> of the
+     * <code>GUI</code> is applied.
+     */
     public void applyNext() {
-        index.setValue(index.get() + 1);
+        if (getIndex() == getSize()) {
+            return;
+        }
+        
+        index.setValue(getIndex() + 1);
 
-        if (index.get() == history.size()) {
+        if (getIndex() == getSize()) {
             inProgress.applyTo(gui);
         } else {
-            history.get(index.get()).applyTo(gui);
+            history.get(getIndex()).applyTo(gui);
         }
     }
 
+    /**
+     * If possible, regresses the index by one and applies the new <code>State</code> to the <code>GUI</code>.
+     * If the index was the size of the list (indicating that the current <code>State</code> of the <code>GUI</code>
+     * if not one of the archived states) the current <code>State</code> is stored.
+     */
     public void applyPrevious() {
-        if (index.get() == history.size()) {
+        if (getIndex() == 0) {
+            return;
+        }
+        
+        if (getIndex() == getSize()) {
             inProgress = State.of(gui);
         }
 
-        index.setValue(index.get() - 1);
-        history.get(index.get()).applyTo(gui);
+        index.setValue(getIndex() - 1);
+        history.get(getIndex()).applyTo(gui);
     }
 
+    /**
+     * Adds the current state of the <code>GUI</code> to the <code>History</code> and sets the index to the size of the
+     * list (indicating that the current state of the GUI is not one of the archived states).
+     */
     public void storeCurrent() {
         State currentState = State.of(gui);
 
-        if (history.isEmpty() || !history.get(history.size() - 1).equals(currentState)) {
+        if (history.isEmpty() || !history.get(getSize() - 1).equals(currentState)) {
             history.add(currentState);
-            index.setValue(history.size());
+            index.setValue(getSize());
         }
     }
 
     public int getSize() {
-        return history.sizeProperty().get();
+        return history.size();
     }
 
     public ReadOnlyIntegerProperty sizeProperty() {
