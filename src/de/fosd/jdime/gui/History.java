@@ -1,14 +1,13 @@
 package de.fosd.jdime.gui;
 
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 /**
  * A history of GUI <code>State</code>s.
@@ -70,6 +69,22 @@ public class History {
             history.add(currentState);
             index.setValue(history.size());
         }
+    }
+
+    public int getSize() {
+        return history.sizeProperty().get();
+    }
+
+    public ReadOnlyIntegerProperty sizeProperty() {
+        return history.sizeProperty();
+    }
+
+    public int getIndex() {
+        return index.get();
+    }
+
+    public IntegerProperty indexProperty() {
+        return index;
     }
 
     public boolean hasPrevious() {
