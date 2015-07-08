@@ -148,7 +148,12 @@ public final class GUI extends Application {
 		primaryStage.show();
 	}
 
-	/**
+    @Override
+    public void stop() throws Exception {
+        history.store(new File(System.currentTimeMillis() + "_history.txt"));
+    }
+
+    /**
 	 * Loads default values for the <code>TextField</code>s from the config file.
 	 */
 	private void loadDefaults() {
@@ -458,7 +463,7 @@ public final class GUI extends Application {
 	 * 		the root of the tree to display
 	 * @return a <code>Tab</code> containing the tree
 	 */
-	private Tab getTreeTableViewTab(TreeItem<TreeDumpNode> root) {
+	static Tab getTreeTableViewTab(TreeItem<TreeDumpNode> root) {
 		TreeTableView<TreeDumpNode> tableView = new TreeTableView<>(root);
 		TreeTableColumn<TreeDumpNode, String> id = new TreeTableColumn<>("ID");
 		TreeTableColumn<TreeDumpNode, String> label = new TreeTableColumn<>("AST Type");

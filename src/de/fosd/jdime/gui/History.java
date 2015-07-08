@@ -1,5 +1,16 @@
 package de.fosd.jdime.gui;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -9,6 +20,14 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
+import com.sun.javafx.collections.ObservableListWrapper;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
 /**
  * A history of GUI <code>State</code>s. The <code>History</code> stores an index into the list of stored
  * <code>State</code>s it represents. The <code>applyX</code> methods advance/regress the index by one and apply
@@ -16,8 +35,39 @@ import javafx.collections.FXCollections;
  */
 public class History {
 
+    private static XStream serializer;
+
+    static {
+        serializer = new XStream();
+        serializer.registerConverter(new Converter() {
+
+            private Converter c = serializer.getConverterLookup().lookupConverterForType(ArrayList.class);
+
+            @Override
+            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+                c.marshal(new ArrayList<>((Collection<?>) source), writer, context);
+            }
+
+            @Override
+            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+                return FXCollections.observableArrayList((Collection<?>) c.unmarshal(reader, context));
+            }
+
+            @Override
+            public boolean canConvert(Class type) {
+                return type.equals(ObservableListWrapper.class);
+            }
+        });
+
+        serializer.alias("root", ObservableListWrapper.class);
+
+        serializer.omitField(State.class, "treeViewTabs");
+        serializer.addImplicitCollection(State.class, "output");
+        serializer.alias("state", State.class);
+    }
+
     private GUI gui;
-    
+
     private IntegerProperty index;
     private SimpleListProperty<State> history;
     private State inProgress;
@@ -54,7 +104,7 @@ public class History {
         if (getIndex() == getSize()) {
             return;
         }
-        
+
         index.setValue(getIndex() + 1);
 
         if (getIndex() == getSize()) {
@@ -73,7 +123,7 @@ public class History {
         if (getIndex() == 0) {
             return;
         }
-        
+
         if (getIndex() == getSize()) {
             inProgress = State.of(gui);
         }
@@ -93,6 +143,34 @@ public class History {
             history.add(currentState);
             index.setValue(getSize());
         }
+    }
+
+    public static History load(GUI gui, File file) throws IOException {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(file))) {
+            return load(gui, is);
+        }
+    }
+
+    public static History load(GUI gui, InputStream stream) {
+        History history = new History(gui);
+        history.history.setAll((Collection<? extends State>) serializer.fromXML(stream));
+        history.history.forEach(state -> {
+            GraphvizParser p = new GraphvizParser(state.getOutput());
+            state.setTreeViewTabs(p.call().stream().map(GUI::getTreeTableViewTab).collect(Collectors.toList()));
+        });
+
+        return history;
+    }
+
+    public void store(File file) throws IOException {
+
+        try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
+            store(os);
+        }
+    }
+
+    public void store(OutputStream stream) {
+        serializer.toXML(history.get(), stream);
     }
 
     public int getSize() {

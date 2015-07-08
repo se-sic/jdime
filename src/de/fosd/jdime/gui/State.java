@@ -1,5 +1,6 @@
 package de.fosd.jdime.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -20,9 +21,7 @@ final class State {
 	private String cmdArgs;
 	private boolean debugMode;
 
-	private State() {
-
-	}
+	private State() {}
 
 	/**
 	 * Returns a <code>State</code> instance containing the current state of the given <code>GUI</code>.
@@ -66,6 +65,18 @@ final class State {
 		gui.debugMode.setSelected(debugMode);
 	}
 
+	public List<Tab> getTreeViewTabs() {
+		return treeViewTabs;
+	}
+
+	public void setTreeViewTabs(List<Tab> treeViewTabs) {
+		this.treeViewTabs = treeViewTabs;
+	}
+
+	public ObservableList<String> getOutput() {
+		return output;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -91,5 +102,21 @@ final class State {
 	@Override
 	public int hashCode() {
 		return Objects.hash(treeViewTabs, output, left, base, right, jDime, cmdArgs, debugMode);
+	}
+
+    /**
+     * This method will be called by the JVM after deserialization. In it we ensure that the 'treeViewTabs' list
+     * (which is implicitly represented in the XML) is not null (but rather empty) if it was empty at the time of
+     * serialization.
+     *
+     * @return <code>this</code>
+     */
+	private Object readResolve() {
+
+		if (treeViewTabs == null) {
+			treeViewTabs = new ArrayList<>();
+		}
+
+		return this;
 	}
 }
