@@ -203,7 +203,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
      * @return choice artifact
      * @throws IOException If a file is not found
      */
-    public abstract T createChoiceDummy(final String condition, final T artifact) throws IOException;
+    public abstract T createChoiceArtifact(final String condition, final T artifact) throws IOException;
 
     /**
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the

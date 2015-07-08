@@ -95,7 +95,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
                 if (left.isChoice()) {
                     choice = left;
                 } else {
-                    choice = target.createChoiceDummy(leftCondition, left);
+                    choice = target.createChoiceArtifact(leftCondition, left);
                 }
 
                 assert (choice.isChoice());
