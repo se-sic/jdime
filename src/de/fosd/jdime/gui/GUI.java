@@ -14,12 +14,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -137,7 +132,7 @@ public final class GUI extends Application {
 		config = new Config();
 		config.addSource(new SysEnvConfigSource());
 		loadConfigFile();
-		loadDefaults();
+		loadConfig();
 
 		history = new History(this);
 		historyNext.disableProperty().bind(history.hasNextProperty().not());
@@ -152,19 +147,6 @@ public final class GUI extends Application {
     public void stop() throws Exception {
         history.store(new File(System.currentTimeMillis() + "_history.txt"));
     }
-
-    /**
-	 * Loads default values for the <code>TextField</code>s from the config file.
-	 */
-	private void loadDefaults() {
-		config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
-		config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
-		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
-		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
-		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-		bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
-		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
-	}
 
 	/**
 	 * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so adds
@@ -181,6 +163,19 @@ public final class GUI extends Application {
 				LOG.log(Level.WARNING, e, () -> "Could not load " + configFile);
 			}
 		}
+	}
+
+    /**
+	 * Loads the config values from {@value #JDIME_CONF_FILE}.
+	 */
+	private void loadConfig() {
+		config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
+		config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
+		config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
+		config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
+		config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
+		bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
+		allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
 	}
 
 	/**
