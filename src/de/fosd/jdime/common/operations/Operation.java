@@ -38,71 +38,71 @@ import de.fosd.jdime.common.MergeContext;
  */
 public abstract class Operation<T extends Artifact<T>> {
 
-	/**
-	 * Operation counter.
-	 */
-	private static long count = 1;
+    /**
+     * Operation counter.
+     */
+    private static long count = 1;
 
-	/**
-	 * Returns counter value.
-	 *
-	 * @return counter value
-	 */
-	public static long getCount() {
-		return count;
-	}
+    /**
+     * Returns counter value.
+     *
+     * @return counter value
+     */
+    public static long getCount() {
+        return count;
+    }
 
-	/**
-	 * Number of the current operation.
-	 */
-	private long number;
+    /**
+     * Number of the current operation.
+     */
+    private long number;
 
-	/**
-	 * Returns a new instance of operation.
-	 */
-	public Operation() {
-		this.number = count;
-		count++;
-	}
+    /**
+     * Returns a new instance of operation.
+     */
+    public Operation() {
+        this.number = count;
+        count++;
+    }
 
-	/**
-	 * Applies the operation.
-	 *
-	 * @param context
-	 * 		merge context
-	 */
-	public abstract void apply(MergeContext context);
+    /**
+     * Applies the operation.
+     *
+     * @param context
+     *         merge context
+     */
+    public abstract void apply(MergeContext context);
 
-	/**
-	 * Returns the name of the operation.
-	 *
-	 * @return name of the operation
-	 */
-	public abstract String getName();
+    /**
+     * Returns the name of the operation.
+     *
+     * @return name of the operation
+     */
+    public abstract String getName();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public abstract String toString();
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public abstract String toString();
 
-	/**
-	 * Returns the number of the operation.
-	 *
-	 * @return number
-	 */
-	public final long getNumber() {
-		return number;
-	}
+    /**
+     * Returns the number of the operation.
+     *
+     * @return number
+     */
+    public final long getNumber() {
+        return number;
+    }
 
-	/**
-	 * Returns an ID.
-	 *
-	 * @return id
-	 */
-	public final String getId() {
-		return "OP" + number;
-	}
+    /**
+     * Returns an ID.
+     *
+     * @return id
+     */
+    public final String getId() {
+        return "OP" + number;
+    }
 }

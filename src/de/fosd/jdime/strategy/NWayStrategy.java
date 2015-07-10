@@ -50,176 +50,176 @@ import de.fosd.jdime.stats.Stats;
  */
 public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(NWayStrategy.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(NWayStrategy.class.getCanonicalName());
 
-	/**
-	 * The source <code>FileArtifacts</code> are extracted from the
-	 * <code>MergeOperation</code>, parsed by the <code>JastAddJ</code> parser
-	 * into abstract syntax trees, and on the fly encapsulated into
-	 * <code>ASTNodeArtifacts</code>.
-	 * <p>
-	 * A new <code>MergeOperation</code>, encapsulating
-	 * <code>ASTNodeArtifacts</code> as source and target nodes, is created and applied.
-	 * <p>
-	 * TODO: more high-level documentation.
-	 */
-	@Override
-	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-		assert (operation != null);
-		assert (context != null);
+    /**
+     * The source <code>FileArtifacts</code> are extracted from the
+     * <code>MergeOperation</code>, parsed by the <code>JastAddJ</code> parser
+     * into abstract syntax trees, and on the fly encapsulated into
+     * <code>ASTNodeArtifacts</code>.
+     * <p>
+     * A new <code>MergeOperation</code>, encapsulating
+     * <code>ASTNodeArtifacts</code> as source and target nodes, is created and applied.
+     * <p>
+     * TODO: more high-level documentation.
+     */
+    @Override
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
+        assert (operation != null);
+        assert (context != null);
 
-		MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
-		Map<Revision, FileArtifact> variants = scenario.getArtifacts();
+        MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
+        Map<Revision, FileArtifact> variants = scenario.getArtifacts();
 
-		FileArtifact nextFile;
+        FileArtifact nextFile;
 
-		assert (variants.size() > 1);
+        assert (variants.size() > 1);
 
-		context.resetStreams();
+        context.resetStreams();
 
-		FileArtifact target = operation.getTarget();
+        FileArtifact target = operation.getTarget();
 
-		if (!context.isDiffOnly() && target != null) {
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
-		}
-		
-		/* ASTNodeArtifacts are created from the input files.
-		 * Then, a ASTNodeStrategy can be applied.
-		 * The result is pretty printed and can be written into the output file.
-		 */
-		ASTNodeArtifact merged, next, targetNode;
-		MergeContext mergeContext;
+        if (!context.isDiffOnly() && target != null) {
+            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
+        }
+        
+        /* ASTNodeArtifacts are created from the input files.
+         * Then, a ASTNodeStrategy can be applied.
+         * The result is pretty printed and can be written into the output file.
+         */
+        ASTNodeArtifact merged, next, targetNode;
+        MergeContext mergeContext;
 
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("Merging:");
-			for (Revision rev : variants.keySet()) {
-				LOG.fine(String.format("%s: %s", rev, variants.get(rev).getPath()));
-			}
-		}
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine("Merging:");
+            for (Revision rev : variants.keySet()) {
+                LOG.fine(String.format("%s: %s", rev, variants.get(rev).getPath()));
+            }
+        }
 
-		Iterator it = variants.keySet().iterator();
-		targetNode = new ASTNodeArtifact(variants.get((Revision) it.next()));
+        Iterator it = variants.keySet().iterator();
+        targetNode = new ASTNodeArtifact(variants.get((Revision) it.next()));
 
-		while (it.hasNext()) {
+        while (it.hasNext()) {
 
-			merged = targetNode;
+            merged = targetNode;
 
-			next = new ASTNodeArtifact(variants.get((Revision) it.next()));
+            next = new ASTNodeArtifact(variants.get((Revision) it.next()));
 
-			try {
-				mergeContext = context;
-				mergeContext.resetStreams();
+            try {
+                mergeContext = context;
+                mergeContext.resetStreams();
 
-				long cmdStart = System.currentTimeMillis();
+                long cmdStart = System.currentTimeMillis();
 
-				targetNode = ASTNodeArtifact.createProgram(merged);
-				targetNode.setRevision(merged.getRevision(), true);
-				targetNode.renumberTree();
+                targetNode = ASTNodeArtifact.createProgram(merged);
+                targetNode.setRevision(merged.getRevision(), true);
+                targetNode.renumberTree();
 
-				if (LOG.isLoggable(Level.FINEST)) {
-					LOG.finest("target.dumpTree(:");
-					System.out.println(targetNode.dumpTree());
-				}
+                if (LOG.isLoggable(Level.FINEST)) {
+                    LOG.finest("target.dumpTree(:");
+                    System.out.println(targetNode.dumpTree());
+                }
 
-				MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(), next);
+                MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(), next);
 
-				MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
-						merged.getRevision().getName(), next.getRevision().getName());
+                MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
+                        merged.getRevision().getName(), next.getRevision().getName());
 
-				if (LOG.isLoggable(Level.FINEST)) {
-					LOG.finest("ASTMOperation.apply(context)");
-				}
+                if (LOG.isLoggable(Level.FINEST)) {
+                    LOG.finest("ASTMOperation.apply(context)");
+                }
 
-				astMergeOp.apply(mergeContext);
+                astMergeOp.apply(mergeContext);
 
-				if (LOG.isLoggable(Level.FINEST)) {
-					LOG.finest("Structured merge finished.");
+                if (LOG.isLoggable(Level.FINEST)) {
+                    LOG.finest("Structured merge finished.");
 
-					if (!context.isDiffOnly()) {
-						LOG.finest("target.dumpTree():");
-						System.out.println(targetNode.dumpTree());
-					}
+                    if (!context.isDiffOnly()) {
+                        LOG.finest("target.dumpTree():");
+                        System.out.println(targetNode.dumpTree());
+                    }
 
-					LOG.finest("Pretty-printing merged:");
-					System.out.println(merged.prettyPrint());
-					LOG.finest("Pretty-printing next:");
-					System.out.println(next.prettyPrint());
+                    LOG.finest("Pretty-printing merged:");
+                    System.out.println(merged.prettyPrint());
+                    LOG.finest("Pretty-printing next:");
+                    System.out.println(next.prettyPrint());
 
-					if (!context.isDiffOnly()) {
-						LOG.finest("Pretty-printing target:");
-						System.out.print(targetNode.prettyPrint());
-					}
-				}
+                    if (!context.isDiffOnly()) {
+                        LOG.finest("Pretty-printing target:");
+                        System.out.print(targetNode.prettyPrint());
+                    }
+                }
 
-				try (BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
-					String line;
-					while ((line = buf.readLine()) != null) {
-						context.appendLine(line);
-					}
-				}
+                try (BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
+                    String line;
+                    while ((line = buf.readLine()) != null) {
+                        context.appendLine(line);
+                    }
+                }
 
-				long runtime = System.currentTimeMillis() - cmdStart;
+                long runtime = System.currentTimeMillis() - cmdStart;
 
-				if (LOG.isLoggable(Level.FINE)) {
-					FileWriter file = new FileWriter(merged + ".dot");
-					file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
-					file.close();
-				}
+                if (LOG.isLoggable(Level.FINE)) {
+                    FileWriter file = new FileWriter(merged + ".dot");
+                    file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
+                    file.close();
+                }
 
-				LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
+                LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
 
-				if (context.hasErrors()) {
-					System.err.println(context.getStdErr());
-				}
+                if (context.hasErrors()) {
+                    System.err.println(context.getStdErr());
+                }
 
-				// write output
-				if (!context.isPretend() && target != null) {
-					assert (target.exists());
-					target.write(context.getStdIn());
-				}
+                // write output
+                if (!context.isPretend() && target != null) {
+                    assert (target.exists());
+                    target.write(context.getStdIn());
+                }
 
-			} catch (Throwable t) {
-				LOG.severe("Exception while merging:");
-				for (Revision rev : variants.keySet()) {
-					LOG.severe(String.format("%s: %s", rev, variants.get(rev).getPath()));
-				}
-				LOG.severe(t.toString());
+            } catch (Throwable t) {
+                LOG.severe("Exception while merging:");
+                for (Revision rev : variants.keySet()) {
+                    LOG.severe(String.format("%s: %s", rev, variants.get(rev).getPath()));
+                }
+                LOG.severe(t.toString());
 
-				if (!context.isKeepGoing()) {
-					throw new Error(t);
-				} else {
-					if (context.hasStats()) {
-						MergeTripleStats scenarioStats = new MergeTripleStats(scenario, t.toString());
-						context.getStats().addScenarioStats(scenarioStats);
-					}
-				}
-			}
-		}
-	}
+                if (!context.isKeepGoing()) {
+                    throw new Error(t);
+                } else {
+                    if (context.hasStats()) {
+                        MergeTripleStats scenarioStats = new MergeTripleStats(scenario, t.toString());
+                        context.getStats().addScenarioStats(scenarioStats);
+                    }
+                }
+            }
+        }
+    }
 
-	@Override
-	public final String toString() {
-		return "nway";
-	}
+    @Override
+    public final String toString() {
+        return "nway";
+    }
 
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[]{"directories", "files", "lines", "nodes"});
-	}
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[]{"directories", "files", "lines", "nodes"});
+    }
 
-	@Override
-	public final String getStatsKey(FileArtifact artifact) {
-		// FIXME: remove me when implementation is complete!
-		throw new NotYetImplementedException("StructuredStrategy: Implement me!");
-	}
+    @Override
+    public final String getStatsKey(FileArtifact artifact) {
+        // FIXME: remove me when implementation is complete!
+        throw new NotYetImplementedException("StructuredStrategy: Implement me!");
+    }
 
-	@Override
-	public final String dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
-		return new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
-	}
+    @Override
+    public final String dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
+        return new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
+    }
 
-	@Override
-	public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-		return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
-	}
+    @Override
+    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
+        return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
+    }
 }

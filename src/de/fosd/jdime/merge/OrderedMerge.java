@@ -45,337 +45,337 @@ import de.fosd.jdime.matcher.Matching;
  */
 public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(OrderedMerge.class.getCanonicalName());
-	private String logprefix;
+    private static final Logger LOG = Logger.getLogger(OrderedMerge.class.getCanonicalName());
+    private String logprefix;
 
-	/**
-	 * TODO: this needs high-level documentation. Probably also detailed documentation.
-	 *
-	 * @param operation the <code>MergeOperation</code> to perform
-	 * @param context the <code>MergeContext</code>
-	 */
-	@Override
-	public void merge(MergeOperation<T> operation, MergeContext context) {
-		MergeScenario<T> triple = operation.getMergeScenario();
-		T left = triple.getLeft();
-		T base = triple.getBase();
-		T right = triple.getRight();
-		T target = operation.getTarget();
-		logprefix = operation.getId() + " - ";
+    /**
+     * TODO: this needs high-level documentation. Probably also detailed documentation.
+     *
+     * @param operation the <code>MergeOperation</code> to perform
+     * @param context the <code>MergeContext</code>
+     */
+    @Override
+    public void merge(MergeOperation<T> operation, MergeContext context) {
+        MergeScenario<T> triple = operation.getMergeScenario();
+        T left = triple.getLeft();
+        T base = triple.getBase();
+        T right = triple.getRight();
+        T target = operation.getTarget();
+        logprefix = operation.getId() + " - ";
 
-		assert (left.matches(right));
-		assert (left.hasMatching(right)) && right.hasMatching(left);
+        assert (left.matches(right));
+        assert (left.hasMatching(right)) && right.hasMatching(left);
 
-		LOG.finest(() -> {
-			String name = getClass().getSimpleName();
-			return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
-		});
+        LOG.finest(() -> {
+            String name = getClass().getSimpleName();
+            return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
+        });
 
-		Revision l = left.getRevision();
-		Revision b = base.getRevision();
-		Revision r = right.getRevision();
-		Iterator<T> leftIt = left.getChildren().iterator();
-		Iterator<T> rightIt = right.getChildren().iterator();
+        Revision l = left.getRevision();
+        Revision b = base.getRevision();
+        Revision r = right.getRevision();
+        Iterator<T> leftIt = left.getChildren().iterator();
+        Iterator<T> rightIt = right.getChildren().iterator();
 
-		boolean leftdone = false;
-		boolean rightdone = false;
-		T leftChild = null;
-		T rightChild = null;
+        boolean leftdone = false;
+        boolean rightdone = false;
+        T leftChild = null;
+        T rightChild = null;
 
-		if (leftIt.hasNext()) {
-			leftChild = leftIt.next();
-		} else {
-			leftdone = true;
-		}
-		if (rightIt.hasNext()) {
-			rightChild = rightIt.next();
-		} else {
-			rightdone = true;
-		}
+        if (leftIt.hasNext()) {
+            leftChild = leftIt.next();
+        } else {
+            leftdone = true;
+        }
+        if (rightIt.hasNext()) {
+            rightChild = rightIt.next();
+        } else {
+            rightdone = true;
+        }
 
-		while (!leftdone || !rightdone) {
-			if (!leftdone && !r.contains(leftChild)) {
-				assert (leftChild != null);
-				final T finalLeftChild = leftChild;
-				final T finalRightChild = rightChild;
+        while (!leftdone || !rightdone) {
+            if (!leftdone && !r.contains(leftChild)) {
+                assert (leftChild != null);
+                final T finalLeftChild = leftChild;
+                final T finalRightChild = rightChild;
 
-				LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
+                LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
 
-				if (b != null && b.contains(leftChild)) {
-					LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
+                if (b != null && b.contains(leftChild)) {
+                    LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
-					// was deleted in right
-					if (leftChild.hasChanges()) {
-						// insertion-deletion-conflict
-						if (LOG.isLoggable(Level.FINEST)) {
-							LOG.finest(prefix(leftChild) + "has changes in subtree.");
-						}
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, rightChild, target, l.getName(), r.getName());
-						conflictOp.apply(context);
-						if (rightIt.hasNext()) {
-							rightChild = rightIt.next();
-						} else {
-							rightdone = true;
-						}
-						if (leftIt.hasNext()) {
-							leftChild = leftIt.next();
-						} else {
-							leftdone = true;
-						}
-					} else {
-						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
-						delOp.apply(context);
-					}
-				} else {
-					LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
+                    // was deleted in right
+                    if (leftChild.hasChanges()) {
+                        // insertion-deletion-conflict
+                        if (LOG.isLoggable(Level.FINEST)) {
+                            LOG.finest(prefix(leftChild) + "has changes in subtree.");
+                        }
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                leftChild, rightChild, target, l.getName(), r.getName());
+                        conflictOp.apply(context);
+                        if (rightIt.hasNext()) {
+                            rightChild = rightIt.next();
+                        } else {
+                            rightdone = true;
+                        }
+                        if (leftIt.hasNext()) {
+                            leftChild = leftIt.next();
+                        } else {
+                            leftdone = true;
+                        }
+                    } else {
+                        // can be safely deleted
+                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
+                        delOp.apply(context);
+                    }
+                } else {
+                    LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
 
-					// leftChild is a change
-					if (!rightdone && !l.contains(rightChild)) {
-						assert (rightChild != null);
-						LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
+                    // leftChild is a change
+                    if (!rightdone && !l.contains(rightChild)) {
+                        assert (rightChild != null);
+                        LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
 
-						if (b != null && b.contains(rightChild)) {
-							LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
+                        if (b != null && b.contains(rightChild)) {
+                            LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
-							// rightChild was deleted in left
-							if (rightChild.hasChanges()) {
-								LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
+                            // rightChild was deleted in left
+                            if (rightChild.hasChanges()) {
+                                LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
-								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										leftChild, rightChild, target, l.getName(), r.getName());
-								conflictOp.apply(context);
-								if (rightIt.hasNext()) {
-									rightChild = rightIt.next();
-								} else {
-									rightdone = true;
-								}
-								if (leftIt.hasNext()) {
-									leftChild = leftIt.next();
-								} else {
-									leftdone = true;
-								}
-							} else {
-								// add the left change
-								AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
-								leftChild.setMerged();
-								addOp.apply(context);
-							}
-						} else {
-							LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
+                                // deletion-insertion conflict
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                        leftChild, rightChild, target, l.getName(), r.getName());
+                                conflictOp.apply(context);
+                                if (rightIt.hasNext()) {
+                                    rightChild = rightIt.next();
+                                } else {
+                                    rightdone = true;
+                                }
+                                if (leftIt.hasNext()) {
+                                    leftChild = leftIt.next();
+                                } else {
+                                    leftdone = true;
+                                }
+                            } else {
+                                // add the left change
+                                AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                                leftChild.setMerged();
+                                addOp.apply(context);
+                            }
+                        } else {
+                            LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
 
-							// rightChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, rightChild, target, l.getName(), r.getName());
-							conflictOp.apply(context);
+                            // rightChild is a change
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                    leftChild, rightChild, target, l.getName(), r.getName());
+                            conflictOp.apply(context);
 
-							if (rightIt.hasNext()) {
-								rightChild = rightIt.next();
-							} else {
-								rightdone = true;
-							}
-						}
-					} else {
-						LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
+                            if (rightIt.hasNext()) {
+                                rightChild = rightIt.next();
+                            } else {
+                                rightdone = true;
+                            }
+                        }
+                    } else {
+                        LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
 
-						// add the left change
-						AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
-						leftChild.setMerged();
-						addOp.apply(context);
-					}
-				}
+                        // add the left change
+                        AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                        leftChild.setMerged();
+                        addOp.apply(context);
+                    }
+                }
 
-				if (leftIt.hasNext()) {
-					leftChild = leftIt.next();
-				} else {
-					leftdone = true;
-				}
-			}
+                if (leftIt.hasNext()) {
+                    leftChild = leftIt.next();
+                } else {
+                    leftdone = true;
+                }
+            }
 
-			if (!rightdone && !l.contains(rightChild)) {
-				assert (rightChild != null);
-				final T finalLeftChild = leftChild;
-				final T finalRightChild = rightChild;
+            if (!rightdone && !l.contains(rightChild)) {
+                assert (rightChild != null);
+                final T finalLeftChild = leftChild;
+                final T finalRightChild = rightChild;
 
-				LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
+                LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
 
-				if (b != null && b.contains(rightChild)) {
-					LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
+                if (b != null && b.contains(rightChild)) {
+                    LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
-					// was deleted in left
-					if (rightChild.hasChanges()) {
-						LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
+                    // was deleted in left
+                    if (rightChild.hasChanges()) {
+                        LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
-						// insertion-deletion-conflict
-						ConflictOperation<T> conflictOp = new ConflictOperation<>(
-								leftChild, rightChild, target, l.getName(), r.getName());
-						conflictOp.apply(context);
-						if (rightIt.hasNext()) {
-							rightChild = rightIt.next();
-						} else {
-							rightdone = true;
-						}
-						if (leftIt.hasNext()) {
-							leftChild = leftIt.next();
-						} else {
-							leftdone = true;
-						}
-					} else {
-						// can be safely deleted
-						DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
-						delOp.apply(context);
-					}
-				} else {
-					LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
+                        // insertion-deletion-conflict
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                leftChild, rightChild, target, l.getName(), r.getName());
+                        conflictOp.apply(context);
+                        if (rightIt.hasNext()) {
+                            rightChild = rightIt.next();
+                        } else {
+                            rightdone = true;
+                        }
+                        if (leftIt.hasNext()) {
+                            leftChild = leftIt.next();
+                        } else {
+                            leftdone = true;
+                        }
+                    } else {
+                        // can be safely deleted
+                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
+                        delOp.apply(context);
+                    }
+                } else {
+                    LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
 
-					// rightChild is a change
-					if (!leftdone && !r.contains(leftChild)) {
-						assert (leftChild != null);
-						LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
+                    // rightChild is a change
+                    if (!leftdone && !r.contains(leftChild)) {
+                        assert (leftChild != null);
+                        LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
 
-						if (b != null && b.contains(leftChild)) {
-							LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
+                        if (b != null && b.contains(leftChild)) {
+                            LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
-							if (leftChild.hasChanges()) {
-								LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
+                            if (leftChild.hasChanges()) {
+                                LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
 
-								// deletion-insertion conflict
-								ConflictOperation<T> conflictOp = new ConflictOperation<>(
-										leftChild, rightChild, target, l.getName(), r.getName());
-								conflictOp.apply(context);
-								if (rightIt.hasNext()) {
-									rightChild = rightIt.next();
-								} else {
-									rightdone = true;
-								}
-								if (leftIt.hasNext()) {
-									leftChild = leftIt.next();
-								} else {
-									leftdone = true;
-								}
-							} else {
-								LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
+                                // deletion-insertion conflict
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                        leftChild, rightChild, target, l.getName(), r.getName());
+                                conflictOp.apply(context);
+                                if (rightIt.hasNext()) {
+                                    rightChild = rightIt.next();
+                                } else {
+                                    rightdone = true;
+                                }
+                                if (leftIt.hasNext()) {
+                                    leftChild = leftIt.next();
+                                } else {
+                                    leftdone = true;
+                                }
+                            } else {
+                                LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
-								// add the right change
-								AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
-								rightChild.setMerged();
-								addOp.apply(context);
-							}
-						} else {
-							LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
+                                // add the right change
+                                AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                                rightChild.setMerged();
+                                addOp.apply(context);
+                            }
+                        } else {
+                            LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
 
-							// leftChild is a change
-							ConflictOperation<T> conflictOp = new ConflictOperation<>(
-									leftChild, rightChild, target, l.getName(), r.getName());
-							conflictOp.apply(context);
+                            // leftChild is a change
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(
+                                    leftChild, rightChild, target, l.getName(), r.getName());
+                            conflictOp.apply(context);
 
-							if (leftIt.hasNext()) {
-								leftChild = leftIt.next();
-							} else {
-								leftdone = true;
-							}
-						}
-					} else {
-						LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
+                            if (leftIt.hasNext()) {
+                                leftChild = leftIt.next();
+                            } else {
+                                leftdone = true;
+                            }
+                        }
+                    } else {
+                        LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
-						// add the right change
-						AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
-						rightChild.setMerged();
-						addOp.apply(context);
-					}
-				}
+                        // add the right change
+                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                        rightChild.setMerged();
+                        addOp.apply(context);
+                    }
+                }
 
-				if (rightIt.hasNext()) {
-					rightChild = rightIt.next();
-				} else {
-					rightdone = true;
-				}
+                if (rightIt.hasNext()) {
+                    rightChild = rightIt.next();
+                } else {
+                    rightdone = true;
+                }
 
-			} else if (l.contains(rightChild) && r.contains(leftChild)) {
-				assert (leftChild != null);
-				assert (rightChild != null);
-				final T finalLeftChild = leftChild;
-				final T finalRightChild = rightChild;
+            } else if (l.contains(rightChild) && r.contains(leftChild)) {
+                assert (leftChild != null);
+                assert (rightChild != null);
+                final T finalLeftChild = leftChild;
+                final T finalRightChild = rightChild;
 
-				// left and right have the artifact. merge it.
-				if (LOG.isLoggable(Level.FINEST)) {
-					LOG.finest(prefix(leftChild) + "is in both revisions [" + rightChild.getId() + "]");
-				}
+                // left and right have the artifact. merge it.
+                if (LOG.isLoggable(Level.FINEST)) {
+                    LOG.finest(prefix(leftChild) + "is in both revisions [" + rightChild.getId() + "]");
+                }
 
-				// leftChild is a choice node
-				if (leftChild.isChoice()) {
-					T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
-					leftChild.addVariant(r.getName(), matchedVariant);
-					AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
-					leftChild.setMerged();
-					rightChild.setMerged();
-					addOp.apply(context);
-				} else {
-					assert (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild));
-				}
+                // leftChild is a choice node
+                if (leftChild.isChoice()) {
+                    T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
+                    leftChild.addVariant(r.getName(), matchedVariant);
+                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+                    leftChild.setMerged();
+                    rightChild.setMerged();
+                    addOp.apply(context);
+                } else {
+                    assert (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild));
+                }
 
-				if (!leftChild.isMerged() && !rightChild.isMerged()) {
-					// determine whether the child is 2 or 3-way merged
-					Matching<T> mBase = leftChild.getMatching(b);
+                if (!leftChild.isMerged() && !rightChild.isMerged()) {
+                    // determine whether the child is 2 or 3-way merged
+                    Matching<T> mBase = leftChild.getMatching(b);
 
-					MergeType childType = mBase == null ? MergeType.TWOWAY
-							: MergeType.THREEWAY;
-					T baseChild = mBase == null ? leftChild.createEmptyArtifact()
-							: mBase.getMatchingArtifact(leftChild);
-					T targetChild = target == null ? null : target.addChild((T) leftChild.clone());
-					if (targetChild != null) {
-						assert targetChild.exists();
-						targetChild.deleteChildren();
-					}
+                    MergeType childType = mBase == null ? MergeType.TWOWAY
+                            : MergeType.THREEWAY;
+                    T baseChild = mBase == null ? leftChild.createEmptyArtifact()
+                            : mBase.getMatchingArtifact(leftChild);
+                    T targetChild = target == null ? null : target.addChild((T) leftChild.clone());
+                    if (targetChild != null) {
+                        assert targetChild.exists();
+                        targetChild.deleteChildren();
+                    }
 
-					MergeScenario<T> childTriple = new MergeScenario<>(childType,
-							leftChild, baseChild, rightChild);
+                    MergeScenario<T> childTriple = new MergeScenario<>(childType,
+                            leftChild, baseChild, rightChild);
 
-					MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
+                    MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild, l.getName(), r.getName());
 
-					leftChild.setMerged();
-					rightChild.setMerged();
-					mergeOp.apply(context);
-				}
+                    leftChild.setMerged();
+                    rightChild.setMerged();
+                    mergeOp.apply(context);
+                }
 
-				if (leftIt.hasNext()) {
-					leftChild = leftIt.next();
-				} else {
-					leftdone = true;
-				}
+                if (leftIt.hasNext()) {
+                    leftChild = leftIt.next();
+                } else {
+                    leftdone = true;
+                }
 
-				if (rightIt.hasNext()) {
-					rightChild = rightIt.next();
-				} else {
-					rightdone = true;
-				}
-			}
-			if (LOG.isLoggable(Level.FINEST) && target != null) {
-				LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
-				System.out.println(target.dumpRootTree());
-			}
-		}
-	}
+                if (rightIt.hasNext()) {
+                    rightChild = rightIt.next();
+                } else {
+                    rightdone = true;
+                }
+            }
+            if (LOG.isLoggable(Level.FINEST) && target != null) {
+                LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
+                System.out.println(target.dumpRootTree());
+            }
+        }
+    }
 
-	/**
-	 * Returns the logging prefix.
-	 *
-	 * @return logging prefix
-	 */
-	private String prefix() {
-		return logprefix;
-	}
+    /**
+     * Returns the logging prefix.
+     *
+     * @return logging prefix
+     */
+    private String prefix() {
+        return logprefix;
+    }
 
-	/**
-	 * Returns the logging prefix.
-	 *
-	 * @param artifact
-	 *            artifact that is subject of the logging
-	 * @return logging prefix
-	 */
-	private String prefix(T artifact) {
-		return String.format("%s[%s]", logprefix, (artifact == null) ? "null" : artifact.getId());
-	}
+    /**
+     * Returns the logging prefix.
+     *
+     * @param artifact
+     *            artifact that is subject of the logging
+     * @return logging prefix
+     */
+    private String prefix(T artifact) {
+        return String.format("%s[%s]", logprefix, (artifact == null) ? "null" : artifact.getId());
+    }
 }

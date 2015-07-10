@@ -32,33 +32,33 @@ package de.fosd.jdime.common;
  */
 public class Tuple<X, Y> {
 
-	public final X x;
-	public final Y y;
+    public final X x;
+    public final Y y;
 
-	private Tuple(X x, Y y) {
-		this.x = x;
-		this.y = y;
-	}
+    private Tuple(X x, Y y) {
+        this.x = x;
+        this.y = y;
+    }
 
-	public static <X, Y> Tuple<X, Y> of(X x, Y y) {
-		return new Tuple<>(x, y);
-	}
+    public static <X, Y> Tuple<X, Y> of(X x, Y y) {
+        return new Tuple<>(x, y);
+    }
 
-	/**
-	 * Returns the first object contained in the <code>Tuple</code>.
-	 *
-	 * @return the first object
-	 */
-	public X getX() {
-		return x;
-	}
+    /**
+     * Returns the first object contained in the <code>Tuple</code>.
+     *
+     * @return the first object
+     */
+    public X getX() {
+        return x;
+    }
 
-	/**
-	 * Returns the second object contained in the <code>Tuple</code>.
-	 *
-	 * @return the second object
-	 */
-	public Y getY() {
-		return y;
-	}
+    /**
+     * Returns the second object contained in the <code>Tuple</code>.
+     *
+     * @return the second object
+     */
+    public Y getY() {
+        return y;
+    }
 }

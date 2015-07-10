@@ -64,60 +64,60 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
  */
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
-	private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
+    private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
+    private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
-	private int calls = 0;
-	private int orderedCalls = 0;
-	private int unorderedCalls = 0;
+    private int calls = 0;
+    private int orderedCalls = 0;
+    private int unorderedCalls = 0;
 
-	private UnorderedMatcher<T> unorderedMatcher;
-	private UnorderedMatcher<T> unorderedLabelMatcher;
-	private OrderedMatcher<T> orderedMatcher;
+    private UnorderedMatcher<T> unorderedMatcher;
+    private UnorderedMatcher<T> unorderedLabelMatcher;
+    private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
 
-	/**
-	 * Constructs a new <code>Matcher</code>.
-	 */
-	public Matcher() {
-		unorderedMatcher = new LPMatcher<>(this);
-		unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
-		orderedMatcher = new SimpleTreeMatcher<>(this);
+    /**
+     * Constructs a new <code>Matcher</code>.
+     */
+    public Matcher() {
+        unorderedMatcher = new LPMatcher<>(this);
+        unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
+        orderedMatcher = new SimpleTreeMatcher<>(this);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
-	}
+    }
 
-	@Override
-	public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+    @Override
+    public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 
-		if (left.isConflict()) {
-			return Matchings.of(left, right, 0);
-		}
+        if (left.isConflict()) {
+            return Matchings.of(left, right, 0);
+        }
 
-		if (left.isChoice()) {
-			// We have to split the choice node into its variants and create a matching for each one.
-			// The highest matching is returned.
+        if (left.isChoice()) {
+            // We have to split the choice node into its variants and create a matching for each one.
+            // The highest matching is returned.
 
-			LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
-					left.getId()));
+            LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
+                    left.getId()));
 
-			Map<Integer, Matchings> variantMatches = new HashMap<>();
+            Map<Integer, Matchings> variantMatches = new HashMap<>();
 
-			for (T variant: left.getVariants().values()) {
-				LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
-				Matchings<T> cur = match(context, variant, right, lookAhead);
-				Matching<T> highest = cur.get(variant, right).get();
-				variantMatches.put(highest.getScore(), cur);
-			}
+            for (T variant: left.getVariants().values()) {
+                LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
+                Matchings<T> cur = match(context, variant, right, lookAhead);
+                Matching<T> highest = cur.get(variant, right).get();
+                variantMatches.put(highest.getScore(), cur);
+            }
 
-			Matchings<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
+            Matchings<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
 
-			LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
-			return maxMatching;
-		}
+            LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
+            return maxMatching;
+        }
 
-		boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
+        boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
         boolean isOrdered = false;
-		boolean uniqueLabels = true;
+        boolean uniqueLabels = true;
 
         Queue<T> wait = new LinkedList<>(Arrays.asList(left, right));
         while (fullyOrdered && !wait.isEmpty()) {
@@ -129,128 +129,128 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
             }
         }
         
-		for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
-			T leftChild = left.getChild(i);
-			if (leftChild.isOrdered()) {
-				isOrdered = true;
-			}
-			if (!uniqueLabels || !leftChild.hasUniqueLabels()) {
-				uniqueLabels = false;
-			}
-		}
+        for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
+            T leftChild = left.getChild(i);
+            if (leftChild.isOrdered()) {
+                isOrdered = true;
+            }
+            if (!uniqueLabels || !leftChild.hasUniqueLabels()) {
+                uniqueLabels = false;
+            }
+        }
 
-		for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
-			T rightChild = right.getChild(i);
-			if (rightChild.isOrdered()) {
-				isOrdered = true;
-			}
-			if (!uniqueLabels || !rightChild.hasUniqueLabels()) {
-				uniqueLabels = false;
-			}
-		}
+        for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
+            T rightChild = right.getChild(i);
+            if (rightChild.isOrdered()) {
+                isOrdered = true;
+            }
+            if (!uniqueLabels || !rightChild.hasUniqueLabels()) {
+                uniqueLabels = false;
+            }
+        }
 
-		calls++;
+        calls++;
 
         if (fullyOrdered) {
             orderedCalls++;
 
-			logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
+            logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             return mceSubtreeMatcher.match(context, left, right, lookAhead);
         }
         
-		if (isOrdered) {
-			orderedCalls++;
+        if (isOrdered) {
+            orderedCalls++;
 
-			logMatcherUse(orderedMatcher.getClass(), left, right);
-			return orderedMatcher.match(context, left, right, lookAhead);
-		} else {
-			unorderedCalls++;
+            logMatcherUse(orderedMatcher.getClass(), left, right);
+            return orderedMatcher.match(context, left, right, lookAhead);
+        } else {
+            unorderedCalls++;
 
-			if (uniqueLabels) {
-				logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
-				return unorderedLabelMatcher.match(context, left, right, lookAhead);
-			} else {
-				logMatcherUse(unorderedMatcher.getClass(), left, right);
-				return unorderedMatcher.match(context, left, right, lookAhead);
-			}
-		}
-	}
+            if (uniqueLabels) {
+                logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
+                return unorderedLabelMatcher.match(context, left, right, lookAhead);
+            } else {
+                logMatcherUse(unorderedMatcher.getClass(), left, right);
+                return unorderedMatcher.match(context, left, right, lookAhead);
+            }
+        }
+    }
 
-	/**
-	 * Logs the use of a <code>MatchingInterface</code> implementation to match <code>left</code> and
-	 * <code>right</code>.
-	 *
-	 * @param c the <code>MatchingInterface</code> that is used
-	 * @param left the left <code>Artifact</code> that is matched
-	 * @param right the right <code>Artifact</code> that is matched
-	 */
-	private void logMatcherUse(Class<? extends MatchingInterface> c, T left, T right) {
-		LOG.finest(() -> {
-			String matcherName = c.getClass().getSimpleName();
-			return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
-		});
-	}
+    /**
+     * Logs the use of a <code>MatchingInterface</code> implementation to match <code>left</code> and
+     * <code>right</code>.
+     *
+     * @param c the <code>MatchingInterface</code> that is used
+     * @param left the left <code>Artifact</code> that is matched
+     * @param right the right <code>Artifact</code> that is matched
+     */
+    private void logMatcherUse(Class<? extends MatchingInterface> c, T left, T right) {
+        LOG.finest(() -> {
+            String matcherName = c.getClass().getSimpleName();
+            return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
+        });
+    }
 
-	/**
-	 * Stores the <code>Matching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
-	 * match.
-	 *
-	 * @param context
-	 * 		the <code>MergeContext</code> of the current merge
-	 * @param matchings
-	 * 		the <code>Matchings</code> to store
-	 * @param color
-	 * 		the <code>Color</code> used to highlight the matchings in the debug output
-	 */
-	public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+    /**
+     * Stores the <code>Matching</code>s contained in <code>matchings</code> in the <code>Artifact</code>s they
+     * match.
+     *
+     * @param context
+     *         the <code>MergeContext</code> of the current merge
+     * @param matchings
+     *         the <code>Matchings</code> to store
+     * @param color
+     *         the <code>Color</code> used to highlight the matchings in the debug output
+     */
+    public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
 
-		for (Matching<T> matching : matchings.optimized()) {
+        for (Matching<T> matching : matchings.optimized()) {
 
-			if (matching.getScore() > 0) {
-				T left = matching.getLeft();
-				T right = matching.getRight();
+            if (matching.getScore() > 0) {
+                T left = matching.getLeft();
+                T right = matching.getRight();
 
-				// TODO: collect statistical data about matching scores per language element and look-ahead setting
-				if (left.matches(right)) {
-					// regular top-down matching where the compared nodes do match
-					matching.setHighlightColor(color);
-					left.addMatching(matching);
-					right.addMatching(matching);
+                // TODO: collect statistical data about matching scores per language element and look-ahead setting
+                if (left.matches(right)) {
+                    // regular top-down matching where the compared nodes do match
+                    matching.setHighlightColor(color);
+                    left.addMatching(matching);
+                    right.addMatching(matching);
 
-					// just for statistics
-					context.matchedElement(left);
-					context.matchedElement(right);
-				} else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
-					// the compared nodes do not match but look-ahead is active and found matchings in the subtree
+                    // just for statistics
+                    context.matchedElement(left);
+                    context.matchedElement(right);
+                } else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
+                    // the compared nodes do not match but look-ahead is active and found matchings in the subtree
 
-					// just for statistics
-					context.skippedLeftElement(left, matching.getScore());
-					context.skippedRightElement(left, matching.getScore());
-				} else {
-					// the compared nodes do not match and look-ahead is inactive: this is a serious bug!
-					String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";
-					throw new RuntimeException(msg);
-				}
-			}
-		}
-	}
+                    // just for statistics
+                    context.skippedLeftElement(left, matching.getScore());
+                    context.skippedRightElement(left, matching.getScore());
+                } else {
+                    // the compared nodes do not match and look-ahead is inactive: this is a serious bug!
+                    String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";
+                    throw new RuntimeException(msg);
+                }
+            }
+        }
+    }
 
-	/**
-	 * Resets the call counters.
-	 */
-	public void reset() {
-		calls = 0;
-		unorderedCalls = 0;
-		orderedCalls = 0;
-	}
+    /**
+     * Resets the call counters.
+     */
+    public void reset() {
+        calls = 0;
+        unorderedCalls = 0;
+        orderedCalls = 0;
+    }
 
-	/**
-	 * Returns a formatted string describing the logged call counts.
-	 *
-	 * @return a log of the call counts
-	 */
-	public String getLog() {
-		assert (calls == unorderedCalls + orderedCalls) : "Wrong sum for matcher calls";
-		return "Matcher calls (all/ordered/unordered): " + calls + "/" + orderedCalls + "/" + unorderedCalls;
-	}
+    /**
+     * Returns a formatted string describing the logged call counts.
+     *
+     * @return a log of the call counts
+     */
+    public String getLog() {
+        assert (calls == unorderedCalls + orderedCalls) : "Wrong sum for matcher calls";
+        return "Matcher calls (all/ordered/unordered): " + calls + "/" + orderedCalls + "/" + unorderedCalls;
+    }
 }

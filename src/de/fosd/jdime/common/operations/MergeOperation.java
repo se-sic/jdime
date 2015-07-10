@@ -39,191 +39,191 @@ import de.fosd.jdime.stats.StatsElement;
  * The operation merges <code>Artifact</code>s.
  *
  * @param <T>
- * 		type of artifact
+ *         type of artifact
  *
  * @author Olaf Lessenich
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(MergeOperation.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(MergeOperation.class.getCanonicalName());
 
-	/**
-	 * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
-	 */
-	private MergeScenario<T> mergeScenario;
+    /**
+     * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
+     */
+    private MergeScenario<T> mergeScenario;
 
-	/**
-	 * The <code>Artifact</code> to output the result of the merge to.
-	 */
-	private T target;
+    /**
+     * The <code>Artifact</code> to output the result of the merge to.
+     */
+    private T target;
 
-	private boolean nway = false;
-	private String leftCondition;
-	private String rightCondition;
+    private boolean nway = false;
+    private String leftCondition;
+    private String rightCondition;
 
-	/**
-	 * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
-	 * will be output into <code>target</code> if output is enabled. <code>inputArtifacts</code> may not be
-	 * <code>null</code>. <br><br>
-	 *
-	 * <code>inputArtifacts</code> must have either two or three elements which will be interpreted as
-	 * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
-	 * three-way-merge for one of length three.
-	 *
-	 * @param inputArtifacts
-	 * 		the input artifacts
-	 * @param target
-	 * 		the output artifact
-	 * @param leftCondition condition for left alternative
-	 * @param rightCondition condition for right alternative
-	 *
-	 * @param nway
-	 * @throws IllegalArgumentException
-	 * 		if the size of <code>inputArtifacts</code> is invalid
-	 * @throws IllegalArgumentException
-	 * 		if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
-	 * 		{@link MergeScenario#isValid()}
-	 * @throws IOException
-	 * 		if the dummy file used as BaseArtifact in a two-way-merge can not be created
-	 */
-	public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
-						  String rightCondition, boolean nway) throws IOException {
-		Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
+    /**
+     * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
+     * will be output into <code>target</code> if output is enabled. <code>inputArtifacts</code> may not be
+     * <code>null</code>. <br><br>
+     *
+     * <code>inputArtifacts</code> must have either two or three elements which will be interpreted as
+     * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
+     * three-way-merge for one of length three.
+     *
+     * @param inputArtifacts
+     *         the input artifacts
+     * @param target
+     *         the output artifact
+     * @param leftCondition condition for left alternative
+     * @param rightCondition condition for right alternative
+     *
+     * @param nway
+     * @throws IllegalArgumentException
+     *         if the size of <code>inputArtifacts</code> is invalid
+     * @throws IllegalArgumentException
+     *         if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
+     *         {@link MergeScenario#isValid()}
+     * @throws IOException
+     *         if the dummy file used as BaseArtifact in a two-way-merge can not be created
+     */
+    public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
+                          String rightCondition, boolean nway) throws IOException {
+        Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 
-		this.target = target;
+        this.target = target;
 
-		MergeType mergeType;
-		T left, base, right;
-		int numArtifacts = inputArtifacts.size();
+        MergeType mergeType;
+        T left, base, right;
+        int numArtifacts = inputArtifacts.size();
 
-		if (numArtifacts < MergeType.MINFILES) {
-			String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
-			throw new IllegalArgumentException(msg);
-		}
+        if (numArtifacts < MergeType.MINFILES) {
+            String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
+            throw new IllegalArgumentException(msg);
+        }
 
-		if (nway) {
-			mergeType = MergeType.NWAY;
-			this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
-			LOG.finest("Created N-way scenario");
-		} else {
+        if (nway) {
+            mergeType = MergeType.NWAY;
+            this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
+            LOG.finest("Created N-way scenario");
+        } else {
 
-			if (numArtifacts == MergeType.TWOWAY_FILES) {
-				left = inputArtifacts.get(0);
-				base = left.createEmptyArtifact();
-				right = inputArtifacts.get(1);
-				mergeType = MergeType.TWOWAY;
-				LOG.finest("Created TWO-way scenario");
-			} else if (numArtifacts == MergeType.THREEWAY_FILES) {
-				left = inputArtifacts.get(0);
-				base = inputArtifacts.get(1);
-				right = inputArtifacts.get(2);
-				mergeType = MergeType.THREEWAY;
-				LOG.finest("Created THREE-way scenario");
-			} else {
-				String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
-				throw new IllegalArgumentException(msg);
-			}
+            if (numArtifacts == MergeType.TWOWAY_FILES) {
+                left = inputArtifacts.get(0);
+                base = left.createEmptyArtifact();
+                right = inputArtifacts.get(1);
+                mergeType = MergeType.TWOWAY;
+                LOG.finest("Created TWO-way scenario");
+            } else if (numArtifacts == MergeType.THREEWAY_FILES) {
+                left = inputArtifacts.get(0);
+                base = inputArtifacts.get(1);
+                right = inputArtifacts.get(2);
+                mergeType = MergeType.THREEWAY;
+                LOG.finest("Created THREE-way scenario");
+            } else {
+                String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
+                throw new IllegalArgumentException(msg);
+            }
 
-			this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
+            this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
 
-			if (!mergeScenario.isValid()) {
-				throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
-			}
-		}
+            if (!mergeScenario.isValid()) {
+                throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
+            }
+        }
 
-		if (leftCondition != null || rightCondition != null) {
-			this.leftCondition = leftCondition;
-			this.rightCondition = rightCondition;
-		}
-	}
+        if (leftCondition != null || rightCondition != null) {
+            this.leftCondition = leftCondition;
+            this.rightCondition = rightCondition;
+        }
+    }
 
-	/**
-	 * Constructs a new <code>MergeOperation</code> using the given <code>mergeScenario</code> and <code>target</code>.
-	 * <code>mergeScenario</code> may be <code>null</code>.
-	 *
-	 * @param mergeScenario
-	 * 		the <code>Artifact</code>s to be merged
-	 * @param target
-	 * 		the output <code>Artifact</code>
-	 * @param leftCondition condition for left alternative
-	 * @param rightCondition condition for right alternative
-	 *
-	 * @throws IllegalArgumentException
-	 * 		if <code>mergeScenario</code> is invalid
-	 */
-	public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
-		Objects.requireNonNull(mergeScenario, "mergeScenario must not be null!");
+    /**
+     * Constructs a new <code>MergeOperation</code> using the given <code>mergeScenario</code> and <code>target</code>.
+     * <code>mergeScenario</code> may be <code>null</code>.
+     *
+     * @param mergeScenario
+     *         the <code>Artifact</code>s to be merged
+     * @param target
+     *         the output <code>Artifact</code>
+     * @param leftCondition condition for left alternative
+     * @param rightCondition condition for right alternative
+     *
+     * @throws IllegalArgumentException
+     *         if <code>mergeScenario</code> is invalid
+     */
+    public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
+        Objects.requireNonNull(mergeScenario, "mergeScenario must not be null!");
 
-		if (!mergeScenario.isValid()) {
-			throw new IllegalArgumentException("mergeScenario is invalid.");
-		}
+        if (!mergeScenario.isValid()) {
+            throw new IllegalArgumentException("mergeScenario is invalid.");
+        }
 
-		this.mergeScenario = mergeScenario;
-		this.target = target;
+        this.mergeScenario = mergeScenario;
+        this.target = target;
 
-		if (leftCondition != null || rightCondition != null) {
-			this.leftCondition = leftCondition;
-			this.rightCondition = rightCondition;
-		}
-	}
+        if (leftCondition != null || rightCondition != null) {
+            this.leftCondition = leftCondition;
+            this.rightCondition = rightCondition;
+        }
+    }
 
-	@Override
-	public void apply(MergeContext context) {
-		if (!context.isConditionalMerge(mergeScenario.getLeft())) {
-			assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
-			assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
-			assert (mergeScenario.getBase().isEmpty() || mergeScenario.getBase().exists()) :
-					"Base artifact does not exist: " + mergeScenario.getBase();
-		}
+    @Override
+    public void apply(MergeContext context) {
+        if (!context.isConditionalMerge(mergeScenario.getLeft())) {
+            assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
+            assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
+            assert (mergeScenario.getBase().isEmpty() || mergeScenario.getBase().exists()) :
+                    "Base artifact does not exist: " + mergeScenario.getBase();
+        }
 
-		LOG.fine(() -> "Applying: " + this);
+        LOG.fine(() -> "Applying: " + this);
 
-		if (target != null) {
-			assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
-		}
+        if (target != null) {
+            assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
+        }
 
-		mergeScenario.run(this, context);
+        mergeScenario.run(this, context);
 
-		if (context.hasStats()) {
-			Stats stats = context.getStats();
-			if (stats != null) {
-				stats.incrementOperation(this);
-				StatsElement element = stats.getElement(mergeScenario.getLeft().getStatsKey(context));
-				element.incrementMerged();
-			}
-		}
-	}
+        if (context.hasStats()) {
+            Stats stats = context.getStats();
+            if (stats != null) {
+                stats.incrementOperation(this);
+                StatsElement element = stats.getElement(mergeScenario.getLeft().getStatsKey(context));
+                element.incrementMerged();
+            }
+        }
+    }
 
-	/**
-	 * Returns the <code>MergeScenario</code> containing the <code>Artifact</code>s this <code>MergeOperation</code>
-	 * is merging.
-	 *
-	 * @return the <code>MergeScenario</code>
-	 */
-	public MergeScenario<T> getMergeScenario() {
-		return mergeScenario;
-	}
+    /**
+     * Returns the <code>MergeScenario</code> containing the <code>Artifact</code>s this <code>MergeOperation</code>
+     * is merging.
+     *
+     * @return the <code>MergeScenario</code>
+     */
+    public MergeScenario<T> getMergeScenario() {
+        return mergeScenario;
+    }
 
-	@Override
-	public String getName() {
-		return "MERGE";
-	}
+    @Override
+    public String getName() {
+        return "MERGE";
+    }
 
-	/**
-	 * Returns the target @code{Artifact}.
-	 *
-	 * @return the target
-	 */
-	public T getTarget() {
-		return target;
-	}
+    /**
+     * Returns the target @code{Artifact}.
+     *
+     * @return the target
+     */
+    public T getTarget() {
+        return target;
+    }
 
-	@Override
-	public String toString() {
-		String dst = target == null ? "" : target.getId();
-		String mScenarioString = mergeScenario.toString(true);
-		MergeType mergeType = mergeScenario.getMergeType();
+    @Override
+    public String toString() {
+        String dst = target == null ? "" : target.getId();
+        String mScenarioString = mergeScenario.toString(true);
+        MergeType mergeType = mergeScenario.getMergeType();
 
-		return String.format("%s: %s %s %s INTO %s", getId(), getName(), mergeType, mScenarioString, dst);
-	}
+        return String.format("%s: %s %s %s INTO %s", getId(), getName(), mergeType, mScenarioString, dst);
+    }
 }

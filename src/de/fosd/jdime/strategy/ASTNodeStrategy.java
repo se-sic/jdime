@@ -31,19 +31,19 @@ import de.fosd.jdime.stats.Stats;
  */
 public class ASTNodeStrategy extends AbstractNodeStrategy<ASTNodeArtifact> {
 
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "nodes" });
-	}
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[] { "nodes" });
+    }
 
-	@Override
-	public final String getStatsKey(final ASTNodeArtifact artifact) {
-		// FIXME: remove me when implementation is complete
-		throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
-	}
+    @Override
+    public final String getStatsKey(final ASTNodeArtifact artifact) {
+        // FIXME: remove me when implementation is complete
+        throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
+    }
 
-	@Override
-	public String toString() {
-		return ASTNodeStrategy.class.getSimpleName();
-	}
+    @Override
+    public String toString() {
+        return ASTNodeStrategy.class.getSimpleName();
+    }
 }

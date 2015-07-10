@@ -53,616 +53,616 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class FileArtifact extends Artifact<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(FileArtifact.class.getCanonicalName());
-
-	/**
-	 * The expected MIME content type for java source files.
-	 */
-	private static final String MIME_JAVA_SOURCE = "text/x-java";
-
-	/**
-	 * Used for determining the content type of this <code>FileArtifact</code> if
-	 * {@link Files#probeContentType(java.nio.file.Path)} fails.
-	 */
-	private static final MimetypesFileTypeMap mimeMap;
-
-	static {
-		mimeMap = new MimetypesFileTypeMap();
-		mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
-	}
-
-	/**
-	 * File in which the artifact is stored.
-	 */
-	private File file;
-
-	private FileArtifact() throws IOException {
-		file = Files.createTempFile(null, null).toFile();
-		file.deleteOnExit();
-	}
-
-	/**
-	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
-	 * The newly constructed <code>FileArtifact</code> will not belong to a revision.
-	 *
-	 * @param file
-	 * 		the <code>File</code> in which the artifact is stored
-	 *
-	 *
-	 * @throws IOException
-	 * 		if does not exist according to {@link java.io.File#exists()} or cannot be created.
-	 */
-	public FileArtifact(File file) throws IOException {
-		this(null, file);
-	}
-
-	/**
-	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
-	 *
-	 * @param revision
-	 * 		the <code>Revision</code> the artifact belongs to
-	 * @param file
-	 * 		the <code>File</code> in which the artifact is stored
-	 *
-	 * @throws IOException
-	 * 		if does not exist according to {@link java.io.File#exists()} or cannot be created.
-	 */
-	public FileArtifact(Revision revision, File file) throws IOException {
-		this(revision, file, false, null);
-	}
-
-	/**
-	 * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
-	 *
-	 * @param revision
-	 * 		the <code>Revision</code> the artifact belongs to
-	 * @param file
-	 * 		the <code>File</code> in which the artifact is stored
-	 * @param createIfNonexistent
-	 * 		whether to create that <code>file</code> if it does not exist
-	 * @param isLeaf
-	 *      if true, a leaf type artifact will be created
-	 *
-	 * @throws IOException
-	 * 		if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to {@link
-	 * 		java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but <code>file</code>
-	 * 		cannot be created.
-	 */
-	public FileArtifact(Revision revision, File file, boolean createIfNonexistent, Boolean isLeaf) throws IOException {
-		assert file != null;
-
-		if (!file.exists()) {
-			if (createIfNonexistent) {
-				if (file.getParentFile() != null && !file.getParentFile().exists()) {
-					boolean createdParents = file.getParentFile().mkdirs();
-					LOG.finest(() -> "Had to create parent directories: " + createdParents);
-				}
-
-				if (isLeaf) {
-					file.createNewFile();
-					LOG.finest(() -> "Created file" + file);
-				} else {
-					file.mkdir();
-					LOG.finest(() -> "Created directory " + file);
-				}
-
-				assert (file.exists());
-
-			} else {
-				LOG.severe(() -> "File not found: " + file.getAbsolutePath());
-				throw new FileNotFoundException();
-			}
-		}
-
-		this.file = file;
-		setRevision(revision);
-		initializeChildren();
-
-		LOG.finest(() -> "Artifact initialized: " + file.getPath());
-		LOG.finest(() -> "Artifact exists: " + exists());
-		LOG.finest(() -> "File exists: " + file.exists());
-
-		if (exists()) {
-			LOG.finest(() -> "Artifact isEmpty: " + isEmpty());
-		}
-	}
-
-	private void initializeChildren() {
-		if (!exists()) {
-			return;
-		}
-
-		if (isDirectory()) {
-			try {
-				setChildren(getDirContent());
-				for (FileArtifact child : children) {
-					child.setRevision(getRevision());
-					child.initializeChildren();
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		} else {
-			setChildren(null);
-		}
-	}
-
-	@Override
-	public FileArtifact addChild(FileArtifact child) {
-		assert (child != null);
-		assert (!isLeaf()) : String.format("Child elements can not be added to leaf artifacts. isLeaf(%s) = %s", this, isLeaf());
-		assert (getClass().equals(child.getClass())) : "Can only add children of same type";
-
-		if (exists() && isDirectory()) {
-
-			try {
-				if (child.isFile()) {
-					LOG.fine(() -> "Copying file " + child + " to directory " + this);
-					FileUtils.copyFileToDirectory(child.file, this.file);
-				} else if (child.isDirectory()) {
-					LOG.fine(() -> "Copying directory " + child + " to directory " + this);
-					LOG.fine(() -> "Destination already exists overwriting: " + exists());
-					FileUtils.copyDirectory(child.file, this.file);
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
-			// re-initialize children
-			initializeChildren();
-
-			// find added child
-			for (FileArtifact myChild : children) {
-				if (FilenameUtils.getBaseName(myChild.getFullPath()).equals(FilenameUtils.getBaseName(child.getFullPath()))) {
-
-					try {
-						return new FileArtifact(child.getRevision(), myChild.file);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-
-			LOG.finest(() -> this + ".children: " + children);
-
-			return null;
-		} else {
-
-			try {
-				return new FileArtifact(getRevision(), new File(file + File.separator + child), false, null);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	@Override
-	public Object clone() {
-		LOG.finest(() -> "CLONE: " + this);
-
-		try {
-			return new FileArtifact(getRevision(), file);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public final int compareTo(final FileArtifact o) {
-		if (o == this) {
-			return 0;
-		}
-
-		return this.toString().compareTo(o.toString());
-	}
-
-	@Override
-	public final FileArtifact createEmptyArtifact() {
-		FileArtifact emptyFile;
-
-		try {
-			emptyFile = new FileArtifact();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
-		return emptyFile;
-	}
-
-	@Override
-	protected final String dumpTree(final String indent) {
-		StringBuilder sb = new StringBuilder();
-
-		Matching<FileArtifact> m = null;
-		if (hasMatches()) {
-			Set<Revision> matchingRevisions = matches.keySet();
-
-			// print color code
-			String color = "";
-
-			for (Revision rev : matchingRevisions) {
-				m = getMatching(rev);
-				color = m.getHighlightColor().toShell();
-			}
-
-			sb.append(color);
-		}
-
-		sb.append(indent).append("(").append(getId()).append(") ");
-		sb.append(this);
-
-		if (hasMatches()) {
-			assert (m != null);
-			sb.append(" <=> (").append(m.getMatchingArtifact(this)).append(")");
-			sb.append(Color.DEFAULT.toShell());
-		}
-		sb.append(System.lineSeparator());
-
-		if (!isLeaf()) {
-			// children
-			for (FileArtifact child : getChildren()) {
-				sb.append(child.dumpTree(indent + "  "));
-			}
-		}
-
-		return sb.toString();
-	}
-
-	@Override
-	public String prettyPrint() {
-		return getContent();
-	}
-
-	@Override
-	public final boolean exists() {
-		assert (file != null);
-		return file.exists();
-	}
-
-	@Override
-	public void deleteChildren() {
-		LOG.finest(() -> this + ".deleteChildren()");
-
-		if (exists()) {
-			if (isDirectory()) {
-				for (FileArtifact child : children) {
-					child.remove();
-				}
-			} else {
-				remove();
-
-				try {
-					if (!file.createNewFile()) {
-						throw new IOException("File#createNewFile returned false.");
-					}
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
-	 * If the content type can not be determined <code>null</code> will be returned.
-	 *
-	 * @return the MIME content type 
-	 */
-	public final String getContentType() {
-		assert (exists());
-
-		String mimeType = null;
-
-		try {
-			mimeType = Files.probeContentType(file.toPath());
-		} catch (IOException e) {
-			LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
-		}
-
-		if (mimeType == null) {
-			
-			// returns application/octet-stream if the type can not be determined
-			mimeType = mimeMap.getContentType(file); 
-			
-			if ("application/octet-stream".equals(mimeType)) { 
-				mimeType = null;
-			}
-		}
-
-		return mimeType;
-	}
-
-	/**
-	 * Returns the list of artifacts contained in this directory.
-	 *
-	 * @return list of artifacts contained in this directory
-	 */
-	public final ArtifactList<FileArtifact> getDirContent() throws IOException {
-		assert (isDirectory());
-
-		ArtifactList<FileArtifact> contentArtifacts = new ArtifactList<>();
-		File[] content = file.listFiles();
-
-		for (int i = 0; i < content.length; i++) {
-			FileArtifact child;
-			File file = content[i];
-
-			try {
-				child = new FileArtifact(getRevision(), file);
-				child.setParent(this);
-				contentArtifacts.add(child);
-			} catch (FileNotFoundException e) {
-				LOG.log(Level.SEVERE, e, () -> "Could not create the FileArtifact of " + file);
-			}
-		}
-
-		return contentArtifacts;
-	}
-
-	/**
-	 * Returns the encapsulated file.
-	 *
-	 * @return file
-	 */
-	public final File getFile() {
-		return file;
-	}
-
-	public ArtifactList<FileArtifact> getJavaFiles() {
-		ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
-
-		if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
-			javaFiles.add(this);
-		} else if (isDirectory()) {
-
-			try {
-				for (FileArtifact child : getDirContent()) {
-					javaFiles.addAll(child.getJavaFiles());
-				}
-			} catch (IOException e) {
-				LOG.log(Level.WARNING, e, () -> "Could not get directory content of " + this);
-			}
-		}
-
-		return javaFiles;
-	}
-
-	/**
-	 * Returns the absolute path of this artifact.
-	 *
-	 * @return absolute part of the artifact
-	 */
-	public final String getFullPath() {
-		assert (file != null);
-		return file.getAbsolutePath();
-	}
-
-	@Override
-	public final String getId() {
-		return getRevision() + "-" + getPath();
-	}
-
-	/**
-	 * Returns the path of this artifact.
-	 *
-	 * @return path of the artifact
-	 */
-	public final String getPath() {
-		assert (file != null);
-		return file.getPath();
-	}
-
-	/**
-	 * Returns a reader that can be used to retrieve the content of the
-	 * artifact.
-	 *
-	 * @return Reader
-	 * @throws FileNotFoundException
-	 *             If the artifact is a file which is not found
-	 */
-	public final BufferedReader getReader() throws FileNotFoundException {
-		if (isFile()) {
-			return new BufferedReader(new FileReader(file));
-		} else {
-			throw new NotYetImplementedException();
-		}
-	}
-
-	/**
-	 * Returns the list of (relative) filenames contained in this directory.
-	 *
-	 * @return list of relative filenames
-	 */
-	public final List<String> getRelativeDirContent() {
-		assert (isDirectory());
-		return Arrays.asList(file.list());
-	}
-
-	@Override
-	public final String getStatsKey(final MergeContext context) {
-		assert (context != null);
-
-		// MergeStrategy<FileArtifact> strategy
-		// = (MergeStrategy<FileArtifact>) (isDirectory()
-		// ? new DirectoryStrategy() : context.getMergeStrategy());
-		// assert (strategy != null);
-		//
-		// return strategy.getStatsKey(this);
-		return isDirectory() ? "directories" : "files";
-	}
-
-	@Override
-	public final boolean hasUniqueLabels() {
-		return true;
-	}
-
-	/**
-	 * Returns true if artifact is a directory.
-	 *
-	 * @return true if artifact is a directory
-	 */
-	public final boolean isDirectory() {
-		return file.isDirectory();
-	}
-
-	/**
-	 * Returns true if the artifact is empty.
-	 *
-	 * @return true if the artifact is empty
-	 */
-	@Override
-	public final boolean isEmpty() {
-		assert (exists());
-		if (isDirectory()) {
-			return file.listFiles().length == 0;
-		} else {
-			return FileUtils.sizeOf(file) == 0;
-		}
-	}
-
-	/**
-	 * Returns true if artifact is a normal file.
-	 *
-	 * @return true if artifact is a normal file
-	 */
-	public final boolean isFile() {
-		return file.isFile();
-	}
-
-	@Override
-	public final boolean isLeaf() {
-		return !file.isDirectory();
-	}
-
-	@Override
-	public final boolean isOrdered() {
-		return false;
-	}
-
-	@Override
-	public final boolean matches(final FileArtifact other) {
-
-		if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
-			LOG.fine(() -> String.format("%s and %s are toplevel directories.", this, other));
-			LOG.fine("We assume a match here and continue to merge the contained files and directories.");
-			return true;
-		}
-
-		return this.toString().equals(other.toString());
-	}
-
-	
-	@Override
-	public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-		Objects.requireNonNull(operation, "operation must not be null!");
-		Objects.requireNonNull(context, "context must not be null!");
-		
-		if (!exists()) {
-			String className = getClass().getSimpleName();
-			String filePath = file.getAbsolutePath();
-			String message = String.format("Trying to merge %s whose file %s does not exist.", className, filePath);
-			
-			throw new RuntimeException(message);
-		}
-		
-		@SuppressWarnings("unchecked")
-		MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
-		
-		if (isDirectory()) {
-			strategy = new DirectoryStrategy();
-		} else {
-			String contentType = getContentType();
-			LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
-
-			if (!MIME_JAVA_SOURCE.equals(contentType)) {
-				LOG.fine(() -> "Skipping non-java file " + this);
-				return;
-			}
-		}
-
-		LOG.fine("Using strategy: " + strategy);
-		LOG.finest(() -> "merge: " + this);
-		
-		strategy.merge(operation, context);
-		
-		if (!context.isQuiet() && context.hasOutput()) {
-			System.out.print(context.getStdIn());
-		}
-		context.resetStreams();
-	}
-
-	/**
-	 * Removes the artifact's file.
-	 */
-	public void remove() {
-		assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
-
-		try {
-			if (isDirectory()) {
-				LOG.fine(() -> "Deleting directory recursively: " + file);
-				FileUtils.forceDelete(file);
-			} else if (isFile()) {
-				LOG.fine(() -> "Deleting file: " + file);
-				FileUtils.forceDelete(file);
-			} else {
-				throw new UnsupportedOperationException("Only files and directories can be removed at the moment");
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		assert (!exists());
-	}
-
-	@Override
-	public final String toString() {
-		assert (file != null);
-		return file.getName();
-	}
-
-	/**
-	 * Writes the given <code>String</code> to this <code>FileArtifact</code>.
-	 *
-	 * @param str the <code>String</code> to write
-	 */
-	public void write(String str) {
-		assert (file != null);
-		assert (str != null);
-
-		if (file.getParentFile() != null && !file.getParentFile().exists()) {
-
-			try {
-				FileUtils.forceMkdir(file.getParentFile());
-			} catch (IOException e) {
-				LOG.log(Level.WARNING, e, () -> "Could not create the parent folder of " + file);
-			}
-		}
-
-		try (FileWriter writer = new FileWriter(file)) {
-			writer.write(str);
-		} catch (IOException e) {
-			LOG.log(Level.WARNING, e, () -> "Could not write to " + this);
-		}
-	}
-
-	@Override
-	public FileArtifact createConflictArtifact(FileArtifact left, FileArtifact right) {
-		throw new NotYetImplementedException();
-	}
-
-	@Override
-	public FileArtifact createChoiceDummy(String condition, FileArtifact artifact) {
-		throw new NotYetImplementedException();
-	}
-
-	public final String getContent() {
-
-		try {
-			return file == null ? "" : FileUtils.readFileToString(file);
-		} catch (IOException e) {
-			LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
-			return "";
-		}
-	}
+    private static final Logger LOG = Logger.getLogger(FileArtifact.class.getCanonicalName());
+
+    /**
+     * The expected MIME content type for java source files.
+     */
+    private static final String MIME_JAVA_SOURCE = "text/x-java";
+
+    /**
+     * Used for determining the content type of this <code>FileArtifact</code> if
+     * {@link Files#probeContentType(java.nio.file.Path)} fails.
+     */
+    private static final MimetypesFileTypeMap mimeMap;
+
+    static {
+        mimeMap = new MimetypesFileTypeMap();
+        mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
+    }
+
+    /**
+     * File in which the artifact is stored.
+     */
+    private File file;
+
+    private FileArtifact() throws IOException {
+        file = Files.createTempFile(null, null).toFile();
+        file.deleteOnExit();
+    }
+
+    /**
+     * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
+     * The newly constructed <code>FileArtifact</code> will not belong to a revision.
+     *
+     * @param file
+     *         the <code>File</code> in which the artifact is stored
+     *
+     *
+     * @throws IOException
+     *         if does not exist according to {@link java.io.File#exists()} or cannot be created.
+     */
+    public FileArtifact(File file) throws IOException {
+        this(null, file);
+    }
+
+    /**
+     * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
+     *
+     * @param revision
+     *         the <code>Revision</code> the artifact belongs to
+     * @param file
+     *         the <code>File</code> in which the artifact is stored
+     *
+     * @throws IOException
+     *         if does not exist according to {@link java.io.File#exists()} or cannot be created.
+     */
+    public FileArtifact(Revision revision, File file) throws IOException {
+        this(revision, file, false, null);
+    }
+
+    /**
+     * Constructs a new <code>FileArtifact</code> contained in the given <code>File</code>.
+     *
+     * @param revision
+     *         the <code>Revision</code> the artifact belongs to
+     * @param file
+     *         the <code>File</code> in which the artifact is stored
+     * @param createIfNonexistent
+     *         whether to create that <code>file</code> if it does not exist
+     * @param isLeaf
+     *      if true, a leaf type artifact will be created
+     *
+     * @throws IOException
+     *         if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to {@link
+     *         java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but <code>file</code>
+     *         cannot be created.
+     */
+    public FileArtifact(Revision revision, File file, boolean createIfNonexistent, Boolean isLeaf) throws IOException {
+        assert file != null;
+
+        if (!file.exists()) {
+            if (createIfNonexistent) {
+                if (file.getParentFile() != null && !file.getParentFile().exists()) {
+                    boolean createdParents = file.getParentFile().mkdirs();
+                    LOG.finest(() -> "Had to create parent directories: " + createdParents);
+                }
+
+                if (isLeaf) {
+                    file.createNewFile();
+                    LOG.finest(() -> "Created file" + file);
+                } else {
+                    file.mkdir();
+                    LOG.finest(() -> "Created directory " + file);
+                }
+
+                assert (file.exists());
+
+            } else {
+                LOG.severe(() -> "File not found: " + file.getAbsolutePath());
+                throw new FileNotFoundException();
+            }
+        }
+
+        this.file = file;
+        setRevision(revision);
+        initializeChildren();
+
+        LOG.finest(() -> "Artifact initialized: " + file.getPath());
+        LOG.finest(() -> "Artifact exists: " + exists());
+        LOG.finest(() -> "File exists: " + file.exists());
+
+        if (exists()) {
+            LOG.finest(() -> "Artifact isEmpty: " + isEmpty());
+        }
+    }
+
+    private void initializeChildren() {
+        if (!exists()) {
+            return;
+        }
+
+        if (isDirectory()) {
+            try {
+                setChildren(getDirContent());
+                for (FileArtifact child : children) {
+                    child.setRevision(getRevision());
+                    child.initializeChildren();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            setChildren(null);
+        }
+    }
+
+    @Override
+    public FileArtifact addChild(FileArtifact child) {
+        assert (child != null);
+        assert (!isLeaf()) : String.format("Child elements can not be added to leaf artifacts. isLeaf(%s) = %s", this, isLeaf());
+        assert (getClass().equals(child.getClass())) : "Can only add children of same type";
+
+        if (exists() && isDirectory()) {
+
+            try {
+                if (child.isFile()) {
+                    LOG.fine(() -> "Copying file " + child + " to directory " + this);
+                    FileUtils.copyFileToDirectory(child.file, this.file);
+                } else if (child.isDirectory()) {
+                    LOG.fine(() -> "Copying directory " + child + " to directory " + this);
+                    LOG.fine(() -> "Destination already exists overwriting: " + exists());
+                    FileUtils.copyDirectory(child.file, this.file);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // re-initialize children
+            initializeChildren();
+
+            // find added child
+            for (FileArtifact myChild : children) {
+                if (FilenameUtils.getBaseName(myChild.getFullPath()).equals(FilenameUtils.getBaseName(child.getFullPath()))) {
+
+                    try {
+                        return new FileArtifact(child.getRevision(), myChild.file);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            LOG.finest(() -> this + ".children: " + children);
+
+            return null;
+        } else {
+
+            try {
+                return new FileArtifact(getRevision(), new File(file + File.separator + child), false, null);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public Object clone() {
+        LOG.finest(() -> "CLONE: " + this);
+
+        try {
+            return new FileArtifact(getRevision(), file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public final int compareTo(final FileArtifact o) {
+        if (o == this) {
+            return 0;
+        }
+
+        return this.toString().compareTo(o.toString());
+    }
+
+    @Override
+    public final FileArtifact createEmptyArtifact() {
+        FileArtifact emptyFile;
+
+        try {
+            emptyFile = new FileArtifact();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
+        return emptyFile;
+    }
+
+    @Override
+    protected final String dumpTree(final String indent) {
+        StringBuilder sb = new StringBuilder();
+
+        Matching<FileArtifact> m = null;
+        if (hasMatches()) {
+            Set<Revision> matchingRevisions = matches.keySet();
+
+            // print color code
+            String color = "";
+
+            for (Revision rev : matchingRevisions) {
+                m = getMatching(rev);
+                color = m.getHighlightColor().toShell();
+            }
+
+            sb.append(color);
+        }
+
+        sb.append(indent).append("(").append(getId()).append(") ");
+        sb.append(this);
+
+        if (hasMatches()) {
+            assert (m != null);
+            sb.append(" <=> (").append(m.getMatchingArtifact(this)).append(")");
+            sb.append(Color.DEFAULT.toShell());
+        }
+        sb.append(System.lineSeparator());
+
+        if (!isLeaf()) {
+            // children
+            for (FileArtifact child : getChildren()) {
+                sb.append(child.dumpTree(indent + "  "));
+            }
+        }
+
+        return sb.toString();
+    }
+
+    @Override
+    public String prettyPrint() {
+        return getContent();
+    }
+
+    @Override
+    public final boolean exists() {
+        assert (file != null);
+        return file.exists();
+    }
+
+    @Override
+    public void deleteChildren() {
+        LOG.finest(() -> this + ".deleteChildren()");
+
+        if (exists()) {
+            if (isDirectory()) {
+                for (FileArtifact child : children) {
+                    child.remove();
+                }
+            } else {
+                remove();
+
+                try {
+                    if (!file.createNewFile()) {
+                        throw new IOException("File#createNewFile returned false.");
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
+     * If the content type can not be determined <code>null</code> will be returned.
+     *
+     * @return the MIME content type 
+     */
+    public final String getContentType() {
+        assert (exists());
+
+        String mimeType = null;
+
+        try {
+            mimeType = Files.probeContentType(file.toPath());
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
+        }
+
+        if (mimeType == null) {
+            
+            // returns application/octet-stream if the type can not be determined
+            mimeType = mimeMap.getContentType(file); 
+            
+            if ("application/octet-stream".equals(mimeType)) { 
+                mimeType = null;
+            }
+        }
+
+        return mimeType;
+    }
+
+    /**
+     * Returns the list of artifacts contained in this directory.
+     *
+     * @return list of artifacts contained in this directory
+     */
+    public final ArtifactList<FileArtifact> getDirContent() throws IOException {
+        assert (isDirectory());
+
+        ArtifactList<FileArtifact> contentArtifacts = new ArtifactList<>();
+        File[] content = file.listFiles();
+
+        for (int i = 0; i < content.length; i++) {
+            FileArtifact child;
+            File file = content[i];
+
+            try {
+                child = new FileArtifact(getRevision(), file);
+                child.setParent(this);
+                contentArtifacts.add(child);
+            } catch (FileNotFoundException e) {
+                LOG.log(Level.SEVERE, e, () -> "Could not create the FileArtifact of " + file);
+            }
+        }
+
+        return contentArtifacts;
+    }
+
+    /**
+     * Returns the encapsulated file.
+     *
+     * @return file
+     */
+    public final File getFile() {
+        return file;
+    }
+
+    public ArtifactList<FileArtifact> getJavaFiles() {
+        ArtifactList<FileArtifact> javaFiles = new ArtifactList<>();
+
+        if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
+            javaFiles.add(this);
+        } else if (isDirectory()) {
+
+            try {
+                for (FileArtifact child : getDirContent()) {
+                    javaFiles.addAll(child.getJavaFiles());
+                }
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not get directory content of " + this);
+            }
+        }
+
+        return javaFiles;
+    }
+
+    /**
+     * Returns the absolute path of this artifact.
+     *
+     * @return absolute part of the artifact
+     */
+    public final String getFullPath() {
+        assert (file != null);
+        return file.getAbsolutePath();
+    }
+
+    @Override
+    public final String getId() {
+        return getRevision() + "-" + getPath();
+    }
+
+    /**
+     * Returns the path of this artifact.
+     *
+     * @return path of the artifact
+     */
+    public final String getPath() {
+        assert (file != null);
+        return file.getPath();
+    }
+
+    /**
+     * Returns a reader that can be used to retrieve the content of the
+     * artifact.
+     *
+     * @return Reader
+     * @throws FileNotFoundException
+     *             If the artifact is a file which is not found
+     */
+    public final BufferedReader getReader() throws FileNotFoundException {
+        if (isFile()) {
+            return new BufferedReader(new FileReader(file));
+        } else {
+            throw new NotYetImplementedException();
+        }
+    }
+
+    /**
+     * Returns the list of (relative) filenames contained in this directory.
+     *
+     * @return list of relative filenames
+     */
+    public final List<String> getRelativeDirContent() {
+        assert (isDirectory());
+        return Arrays.asList(file.list());
+    }
+
+    @Override
+    public final String getStatsKey(final MergeContext context) {
+        assert (context != null);
+
+        // MergeStrategy<FileArtifact> strategy
+        // = (MergeStrategy<FileArtifact>) (isDirectory()
+        // ? new DirectoryStrategy() : context.getMergeStrategy());
+        // assert (strategy != null);
+        //
+        // return strategy.getStatsKey(this);
+        return isDirectory() ? "directories" : "files";
+    }
+
+    @Override
+    public final boolean hasUniqueLabels() {
+        return true;
+    }
+
+    /**
+     * Returns true if artifact is a directory.
+     *
+     * @return true if artifact is a directory
+     */
+    public final boolean isDirectory() {
+        return file.isDirectory();
+    }
+
+    /**
+     * Returns true if the artifact is empty.
+     *
+     * @return true if the artifact is empty
+     */
+    @Override
+    public final boolean isEmpty() {
+        assert (exists());
+        if (isDirectory()) {
+            return file.listFiles().length == 0;
+        } else {
+            return FileUtils.sizeOf(file) == 0;
+        }
+    }
+
+    /**
+     * Returns true if artifact is a normal file.
+     *
+     * @return true if artifact is a normal file
+     */
+    public final boolean isFile() {
+        return file.isFile();
+    }
+
+    @Override
+    public final boolean isLeaf() {
+        return !file.isDirectory();
+    }
+
+    @Override
+    public final boolean isOrdered() {
+        return false;
+    }
+
+    @Override
+    public final boolean matches(final FileArtifact other) {
+
+        if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
+            LOG.fine(() -> String.format("%s and %s are toplevel directories.", this, other));
+            LOG.fine("We assume a match here and continue to merge the contained files and directories.");
+            return true;
+        }
+
+        return this.toString().equals(other.toString());
+    }
+
+    
+    @Override
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
+        Objects.requireNonNull(operation, "operation must not be null!");
+        Objects.requireNonNull(context, "context must not be null!");
+        
+        if (!exists()) {
+            String className = getClass().getSimpleName();
+            String filePath = file.getAbsolutePath();
+            String message = String.format("Trying to merge %s whose file %s does not exist.", className, filePath);
+            
+            throw new RuntimeException(message);
+        }
+        
+        @SuppressWarnings("unchecked")
+        MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+        
+        if (isDirectory()) {
+            strategy = new DirectoryStrategy();
+        } else {
+            String contentType = getContentType();
+            LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
+
+            if (!MIME_JAVA_SOURCE.equals(contentType)) {
+                LOG.fine(() -> "Skipping non-java file " + this);
+                return;
+            }
+        }
+
+        LOG.fine("Using strategy: " + strategy);
+        LOG.finest(() -> "merge: " + this);
+        
+        strategy.merge(operation, context);
+        
+        if (!context.isQuiet() && context.hasOutput()) {
+            System.out.print(context.getStdIn());
+        }
+        context.resetStreams();
+    }
+
+    /**
+     * Removes the artifact's file.
+     */
+    public void remove() {
+        assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
+
+        try {
+            if (isDirectory()) {
+                LOG.fine(() -> "Deleting directory recursively: " + file);
+                FileUtils.forceDelete(file);
+            } else if (isFile()) {
+                LOG.fine(() -> "Deleting file: " + file);
+                FileUtils.forceDelete(file);
+            } else {
+                throw new UnsupportedOperationException("Only files and directories can be removed at the moment");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        assert (!exists());
+    }
+
+    @Override
+    public final String toString() {
+        assert (file != null);
+        return file.getName();
+    }
+
+    /**
+     * Writes the given <code>String</code> to this <code>FileArtifact</code>.
+     *
+     * @param str the <code>String</code> to write
+     */
+    public void write(String str) {
+        assert (file != null);
+        assert (str != null);
+
+        if (file.getParentFile() != null && !file.getParentFile().exists()) {
+
+            try {
+                FileUtils.forceMkdir(file.getParentFile());
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not create the parent folder of " + file);
+            }
+        }
+
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(str);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, e, () -> "Could not write to " + this);
+        }
+    }
+
+    @Override
+    public FileArtifact createConflictArtifact(FileArtifact left, FileArtifact right) {
+        throw new NotYetImplementedException();
+    }
+
+    @Override
+    public FileArtifact createChoiceDummy(String condition, FileArtifact artifact) {
+        throw new NotYetImplementedException();
+    }
+
+    public final String getContent() {
+
+        try {
+            return file == null ? "" : FileUtils.readFileToString(file);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
+            return "";
+        }
+    }
 }

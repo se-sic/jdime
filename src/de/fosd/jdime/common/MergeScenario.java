@@ -38,236 +38,236 @@ import de.fosd.jdime.common.operations.MergeOperation;
  */
 public class MergeScenario<T extends Artifact<T>> {
 
-	private static final Logger LOG = Logger.getLogger(MergeScenario.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(MergeScenario.class.getCanonicalName());
 
-	/**
-	 * Type of merge.
-	 */
-	private MergeType mergeType;
+    /**
+     * Type of merge.
+     */
+    private MergeType mergeType;
 
-	private LinkedHashMap<Revision, T> artifacts;
+    private LinkedHashMap<Revision, T> artifacts;
 
-	private Revision leftRev = new Revision("left");
-	private Revision baseRev = new Revision("base");
-	private Revision rightRev = new Revision("right");
+    private Revision leftRev = new Revision("left");
+    private Revision baseRev = new Revision("base");
+    private Revision rightRev = new Revision("right");
 
-	/**
-	 * Creates a new merge scenario.
-	 *
-	 * @param mergeType type of merge
-	 * @param left      artifact
-	 * @param base      artifact
-	 * @param right     artifact
-	 */
-	public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
-		this.artifacts = new LinkedHashMap<>();
-		this.mergeType = mergeType;
+    /**
+     * Creates a new merge scenario.
+     *
+     * @param mergeType type of merge
+     * @param left      artifact
+     * @param base      artifact
+     * @param right     artifact
+     */
+    public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
+        this.artifacts = new LinkedHashMap<>();
+        this.mergeType = mergeType;
 
-		if (left.getRevision() == null) {
-			left.setRevision(leftRev, true);
-		}
+        if (left.getRevision() == null) {
+            left.setRevision(leftRev, true);
+        }
 
-		base.setRevision(baseRev, true);
+        base.setRevision(baseRev, true);
 
-		if (right.getRevision() == null) {
-			right.setRevision(rightRev, true);
-		}
+        if (right.getRevision() == null) {
+            right.setRevision(rightRev, true);
+        }
 
-		LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
-		LOG.finest(() -> String.format("artifacts.put(%s)", base.getId()));
-		LOG.finest(() -> String.format("artifacts.put(%s)", right.getId()));
+        LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
+        LOG.finest(() -> String.format("artifacts.put(%s)", base.getId()));
+        LOG.finest(() -> String.format("artifacts.put(%s)", right.getId()));
 
-		this.artifacts.put(left.getRevision(), left);
-		this.artifacts.put(base.getRevision(), base);
-		this.artifacts.put(right.getRevision(), right);
-	}
+        this.artifacts.put(left.getRevision(), left);
+        this.artifacts.put(base.getRevision(), base);
+        this.artifacts.put(right.getRevision(), right);
+    }
 
-	/**
-	 * Creates a new merge scenario.
-	 *
-	 * @param mergeType      type of merge
-	 * @param inputArtifacts artifacts to merge
-	 */
-	public MergeScenario(final MergeType mergeType, ArtifactList<T> inputArtifacts) {
-		this.artifacts = new LinkedHashMap<>();
-		this.mergeType = mergeType;
+    /**
+     * Creates a new merge scenario.
+     *
+     * @param mergeType      type of merge
+     * @param inputArtifacts artifacts to merge
+     */
+    public MergeScenario(final MergeType mergeType, ArtifactList<T> inputArtifacts) {
+        this.artifacts = new LinkedHashMap<>();
+        this.mergeType = mergeType;
 
-		for (T artifact : inputArtifacts) {
-			LOG.finest(() -> String.format("artifacts.put(%s)", artifact.getId()));
-			artifacts.put(artifact.getRevision(), artifact);
-		}
-	}
+        for (T artifact : inputArtifacts) {
+            LOG.finest(() -> String.format("artifacts.put(%s)", artifact.getId()));
+            artifacts.put(artifact.getRevision(), artifact);
+        }
+    }
 
-	private final T get(int position) {
-		int i = 0;
+    private final T get(int position) {
+        int i = 0;
 
-		if (LOG.isLoggable(Level.FINEST)) {
-			i++;
-			LOG.finest("Mergescenario.artifacts:");
+        if (LOG.isLoggable(Level.FINEST)) {
+            i++;
+            LOG.finest("Mergescenario.artifacts:");
 
-			for (Revision rev : artifacts.keySet()) {
-				LOG.finest(String.format("[%d] %s", i, artifacts.get(rev).getId()));
-			}
+            for (Revision rev : artifacts.keySet()) {
+                LOG.finest(String.format("[%d] %s", i, artifacts.get(rev).getId()));
+            }
 
-			i = 0;
-		}
+            i = 0;
+        }
 
-		for (Revision rev : artifacts.keySet()) {
-			i++;
-			if (i == position) {
-				return artifacts.get(rev);
-			}
-		}
+        for (Revision rev : artifacts.keySet()) {
+            i++;
+            if (i == position) {
+                return artifacts.get(rev);
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * Returns the baseRev artifact.
-	 *
-	 * @return the baseRev
-	 */
-	public T getBase() {
-		T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-		LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
-		return base;
-	}
+    /**
+     * Returns the baseRev artifact.
+     *
+     * @return the baseRev
+     */
+    public T getBase() {
+        T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
+        LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
+        return base;
+    }
 
-	/**
-	 * Returns the leftRev artifact.
-	 *
-	 * @return the leftRev
-	 */
-	public final T getLeft() {
-		T left = get(1);
-		LOG.finest(() -> String.format("scenario.getLeft() returns %s", left.getId()));
-		return left;
-	}
+    /**
+     * Returns the leftRev artifact.
+     *
+     * @return the leftRev
+     */
+    public final T getLeft() {
+        T left = get(1);
+        LOG.finest(() -> String.format("scenario.getLeft() returns %s", left.getId()));
+        return left;
+    }
 
-	/**
-	 * Returns the type of merge.
-	 *
-	 * @return type of merge
-	 */
-	public final MergeType getMergeType() {
-		return mergeType;
-	}
+    /**
+     * Returns the type of merge.
+     *
+     * @return type of merge
+     */
+    public final MergeType getMergeType() {
+        return mergeType;
+    }
 
-	/**
-	 * Returns the rightRev artifact.
-	 *
-	 * @return the rightRev
-	 */
-	public final T getRight() {
-		T right = artifacts.size() == 3 ? get(3) : get(2);
-		LOG.finest(() -> String.format("scenario.getRight() returns %s", right.getId()));
-		return right;
-	}
+    /**
+     * Returns the rightRev artifact.
+     *
+     * @return the rightRev
+     */
+    public final T getRight() {
+        T right = artifacts.size() == 3 ? get(3) : get(2);
+        LOG.finest(() -> String.format("scenario.getRight() returns %s", right.getId()));
+        return right;
+    }
 
-	/**
-	 * Returns whether this is a valid merge scenario.
-	 *
-	 * @return true if the merge scenario is valid.
-	 */
-	public final boolean isValid() {
-		// FIXME: this needs to be reimplemented
-		return true;
-	}
+    /**
+     * Returns whether this is a valid merge scenario.
+     *
+     * @return true if the merge scenario is valid.
+     */
+    public final boolean isValid() {
+        // FIXME: this needs to be reimplemented
+        return true;
+    }
 
-	/**
-	 * Run the merge scenario.
-	 *
-	 * @param mergeOperation merge operation
-	 * @param context merge context
-	 */
-	public void run(MergeOperation mergeOperation, MergeContext context) {
-		// FIXME: I think this could be done easier. It's just too fucking ugly.
-		//        We need the first element that was inserted and run the merge on it.
-		artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
-	}
+    /**
+     * Run the merge scenario.
+     *
+     * @param mergeOperation merge operation
+     * @param context merge context
+     */
+    public void run(MergeOperation mergeOperation, MergeContext context) {
+        // FIXME: I think this could be done easier. It's just too fucking ugly.
+        //        We need the first element that was inserted and run the merge on it.
+        artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
+    }
 
-	/**
-	 * Sets the baseRev artifact.
-	 *
-	 * @param base the baseRev to set
-	 */
-	public final void setBase(final T base) {
-		artifacts.put(baseRev, base);
-	}
+    /**
+     * Sets the baseRev artifact.
+     *
+     * @param base the baseRev to set
+     */
+    public final void setBase(final T base) {
+        artifacts.put(baseRev, base);
+    }
 
-	/**
-	 * Sets the leftRev artifact.
-	 *
-	 * @param left the leftRev to set
-	 */
-	public final void setLeft(final T left) {
-		artifacts.put(leftRev, left);
-	}
+    /**
+     * Sets the leftRev artifact.
+     *
+     * @param left the leftRev to set
+     */
+    public final void setLeft(final T left) {
+        artifacts.put(leftRev, left);
+    }
 
-	/**
-	 * Sets the rightRev artifact.
-	 *
-	 * @param right the rightRev to set
-	 */
-	public final void setRight(final T right) {
-		artifacts.put(rightRev, right);
-	}
+    /**
+     * Sets the rightRev artifact.
+     *
+     * @param right the rightRev to set
+     */
+    public final void setRight(final T right) {
+        artifacts.put(rightRev, right);
+    }
 
-	/**
-	 * Returns a String representing the MergeScenario separated by whitespace.
-	 *
-	 * @return String representation
-	 */
-	@Override
-	public final String toString() {
-		return toString(" ", false);
-	}
+    /**
+     * Returns a String representing the MergeScenario separated by whitespace.
+     *
+     * @return String representation
+     */
+    @Override
+    public final String toString() {
+        return toString(" ", false);
+    }
 
-	/**
-	 * Returns a String representing the MergeScenario separated by whitespace,
-	 * omitting empty dummy files.
-	 *
-	 * @param humanReadable do not print dummy files if true
-	 * @return String representation
-	 */
-	public final String toString(final boolean humanReadable) {
-		return toString(" ", humanReadable);
-	}
+    /**
+     * Returns a String representing the MergeScenario separated by whitespace,
+     * omitting empty dummy files.
+     *
+     * @param humanReadable do not print dummy files if true
+     * @return String representation
+     */
+    public final String toString(final boolean humanReadable) {
+        return toString(" ", humanReadable);
+    }
 
-	/**
-	 * Returns a String representing the MergeScenario.
-	 *
-	 * @param sep           separator
-	 * @param humanReadable do not print dummy files if true
-	 * @return String representation
-	 */
-	public final String toString(final String sep, final boolean humanReadable) {
-		StringBuilder sb = new StringBuilder("");
+    /**
+     * Returns a String representing the MergeScenario.
+     *
+     * @param sep           separator
+     * @param humanReadable do not print dummy files if true
+     * @return String representation
+     */
+    public final String toString(final String sep, final boolean humanReadable) {
+        StringBuilder sb = new StringBuilder("");
 
-		for (Revision rev : artifacts.keySet()) {
-			T artifact = artifacts.get(rev);
-			if (!humanReadable || !artifact.isEmpty()) {
-				sb.append(artifact.getId()).append(sep);
-			}
-		}
-		return sb.toString();
-	}
+        for (Revision rev : artifacts.keySet()) {
+            T artifact = artifacts.get(rev);
+            if (!humanReadable || !artifact.isEmpty()) {
+                sb.append(artifact.getId()).append(sep);
+            }
+        }
+        return sb.toString();
+    }
 
-	/**
-	 * Returns a list containing all three revisions. Empty dummies for baseRev are
-	 * included.
-	 *
-	 * @return list of artifacts
-	 */
-	public final ArtifactList<T> getList() {
-		ArtifactList<T> list = new ArtifactList<>();
-		list.add(getLeft());
-		list.add(getBase());
-		list.add(getRight());
-		return list;
-	}
+    /**
+     * Returns a list containing all three revisions. Empty dummies for baseRev are
+     * included.
+     *
+     * @return list of artifacts
+     */
+    public final ArtifactList<T> getList() {
+        ArtifactList<T> list = new ArtifactList<>();
+        list.add(getLeft());
+        list.add(getBase());
+        list.add(getRight());
+        return list;
+    }
 
-	public LinkedHashMap<Revision, T> getArtifacts() {
-		return artifacts;
-	}
+    public LinkedHashMap<Revision, T> getArtifacts() {
+        return artifacts;
+    }
 }

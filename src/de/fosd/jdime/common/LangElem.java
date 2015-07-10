@@ -38,33 +38,33 @@ package de.fosd.jdime.common;
  * @author Olaf Lessenich
  */
 public enum LangElem {
-	/**
-	 * Any node.
-	 */
-	NODE,
+    /**
+     * Any node.
+     */
+    NODE,
 
-	/**
-	 * Everything above class declaration, e.g. import statements.
-	 */
-	TOPLEVELNODE,
+    /**
+     * Everything above class declaration, e.g. import statements.
+     */
+    TOPLEVELNODE,
 
-	/**
-	 * Everything within class declaration but outside methods.
-	 */
-	CLASSLEVELNODE,
+    /**
+     * Everything within class declaration but outside methods.
+     */
+    CLASSLEVELNODE,
 
-	/**
-	 * Everything inside methods.
-	 */
-	METHODLEVELNODE,
+    /**
+     * Everything inside methods.
+     */
+    METHODLEVELNODE,
 
-	/**
-	 * A class.
-	 */
-	CLASS,
+    /**
+     * A class.
+     */
+    CLASS,
 
-	/**
-	 * A method.
-	 */
-	METHOD
+    /**
+     * A method.
+     */
+    METHOD
 }
