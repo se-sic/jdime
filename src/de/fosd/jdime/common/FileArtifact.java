@@ -620,7 +620,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final FileArtifact createChoiceDummy(final String condition, final FileArtifact artifact)
+    public final FileArtifact createChoiceArtifact(final String condition, final FileArtifact artifact)
             throws FileNotFoundException {
         throw new NotYetImplementedException();
     }
