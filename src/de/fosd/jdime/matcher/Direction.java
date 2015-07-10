@@ -30,24 +30,24 @@ package de.fosd.jdime.matcher;
  */
 public enum Direction {
 
-	LEFT {
-		@Override
-		public String toString() {
-			return "LEFT";
-		}
-	},
+    LEFT {
+        @Override
+        public String toString() {
+            return "LEFT";
+        }
+    },
 
-	TOP {
-		@Override
-		public String toString() {
-			return "TOP";
-		}
-	},
+    TOP {
+        @Override
+        public String toString() {
+            return "TOP";
+        }
+    },
 
-	DIAG {
-		@Override
-		public String toString() {
-			return "DIAG";
-		}
-	}
+    DIAG {
+        @Override
+        public String toString() {
+            return "DIAG";
+        }
+    }
 }

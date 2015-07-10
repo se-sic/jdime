@@ -30,15 +30,15 @@ package de.fosd.jdime.strategy;
  */
 public class StrategyNotFoundException extends RuntimeException {
 
-	private static final long serialVersionUID = -7644611893570243018L;
+    private static final long serialVersionUID = -7644611893570243018L;
 
-	/**
-	 * Class constructor.
-	 *
-	 * @param string
-	 *            description
-	 */
-	public StrategyNotFoundException(final String string) {
-		super(string);
-	}
+    /**
+     * Class constructor.
+     *
+     * @param string
+     *            description
+     */
+    public StrategyNotFoundException(final String string) {
+        super(string);
+    }
 }

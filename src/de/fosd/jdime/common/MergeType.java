@@ -28,35 +28,35 @@ package de.fosd.jdime.common;
  */
 public enum MergeType {
 
-	/**
-	 * Two-way merge.
-	 */
-	TWOWAY,
+    /**
+     * Two-way merge.
+     */
+    TWOWAY,
 
-	/**
-	 * Three-way merge.
-	 */
-	THREEWAY,
+    /**
+     * Three-way merge.
+     */
+    THREEWAY,
 
-	/**
-	 * N-way merge.
-	 */
-	NWAY;
+    /**
+     * N-way merge.
+     */
+    NWAY;
 
-	/**
-	 * At least two input files are needed.
-	 */
-	public static final int TWOWAY_FILES = 2;
-	public static final int THREEWAY_FILES = 3;
-	public static final int MINFILES = TWOWAY_FILES;
+    /**
+     * At least two input files are needed.
+     */
+    public static final int TWOWAY_FILES = 2;
+    public static final int THREEWAY_FILES = 3;
+    public static final int MINFILES = TWOWAY_FILES;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Enum#toString()
-	 */
-	@Override
-	public final String toString() {
-		return this.name();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Enum#toString()
+     */
+    @Override
+    public final String toString() {
+        return this.name();
+    }
 }
