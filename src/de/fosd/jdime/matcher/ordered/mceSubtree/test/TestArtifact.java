@@ -47,7 +47,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public TestArtifact createChoiceDummy(String condition, TestArtifact artifact) {
+    public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) {
         return null;
     }
     public TestArtifact createEmptyArtifact() {

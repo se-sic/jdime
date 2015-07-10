@@ -652,7 +652,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public FileArtifact createChoiceDummy(String condition, FileArtifact artifact) {
+    public FileArtifact createChoiceArtifact(String condition, FileArtifact artifact) {
         throw new NotYetImplementedException();
     }
 

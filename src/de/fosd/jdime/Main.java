@@ -108,7 +108,7 @@ public final class Main {
      *
      * @param args command line arguments
      */
-    public static void main(final String[] args) throws    IOException, ParseException, InterruptedException {
+    public static void main(final String[] args) throws IOException, ParseException, InterruptedException {
         MergeContext context = new MergeContext();
 
         if (!parseCommandLineArgs(context, args)) {

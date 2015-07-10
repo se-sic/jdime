@@ -586,7 +586,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createChoiceDummy(final String condition, final ASTNodeArtifact artifact) {
+    public final ASTNodeArtifact createChoiceArtifact(final String condition, final ASTNodeArtifact artifact) {
         LOG.fine("Creating choice node");
         ASTNodeArtifact choice;
 

@@ -202,7 +202,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
      * @param artifact conditional artifact
      * @return choice artifact
      */
-    public abstract T createChoiceDummy(String condition, T artifact);
+    public abstract T createChoiceArtifact(String condition, T artifact);
 
     /**
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
