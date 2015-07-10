@@ -45,114 +45,114 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
 
-	/**
-	 * The <code>Artifact</code> that is added by the operation.
-	 */
-	private T artifact;
+    /**
+     * The <code>Artifact</code> that is added by the operation.
+     */
+    private T artifact;
 
-	/**
-	 * The output <code>Artifact</code>.
-	 */
-	private T target;
+    /**
+     * The output <code>Artifact</code>.
+     */
+    private T target;
 
-	private String condition;
+    private String condition;
 
-	/**
-	 * Class constructor.
-	 * @param artifact that is added by the operation
-	 * @param target output artifact
-	 * @param condition presence condition
-	 */
-	public AddOperation(final T artifact, final T target, String condition) {
-		super();
-		this.artifact = artifact;
-		this.target = target;
+    /**
+     * Class constructor.
+     * @param artifact that is added by the operation
+     * @param target output artifact
+     * @param condition presence condition
+     */
+    public AddOperation(final T artifact, final T target, String condition) {
+        super();
+        this.artifact = artifact;
+        this.target = target;
 
-		if (condition != null) {
-			this.condition = condition;
-		}
-	}
+        if (condition != null) {
+            this.condition = condition;
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#apply()
-	 */
-	@Override
-	public final void apply(final MergeContext context) throws IOException {
-		assert (artifact != null);
-		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.common.operations.Operation#apply()
+     */
+    @Override
+    public final void apply(final MergeContext context) throws IOException {
+        assert (artifact != null);
+        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-		LOG.fine(() -> "Applying: " + this);
+        LOG.fine(() -> "Applying: " + this);
 
-		if (artifact.isChoice()) {
-			target.addChild(artifact);
-			return;
-		}
+        if (artifact.isChoice()) {
+            target.addChild(artifact);
+            return;
+        }
 
-		if (target != null) {
-			assert (target.exists());
+        if (target != null) {
+            assert (target.exists());
 
-			if (context.isConditionalMerge(artifact) && condition != null) {
-				T choice = target.createChoiceDummy(condition, artifact);
-				assert (choice.isChoice());
-				target.addChild(choice);
-			} else {
-				LOG.fine("no conditions");
-				target.addChild((T) artifact.clone());
-			}
-		}
+            if (context.isConditionalMerge(artifact) && condition != null) {
+                T choice = target.createChoiceDummy(condition, artifact);
+                assert (choice.isChoice());
+                target.addChild(choice);
+            } else {
+                LOG.fine("no conditions");
+                target.addChild((T) artifact.clone());
+            }
+        }
 
-		if (context.hasStats()) {
-			Stats stats = context.getStats();
-			stats.incrementOperation(this);
-			StatsElement element = stats.getElement(artifact
-					.getStatsKey(context));
-			element.incrementAdded();
+        if (context.hasStats()) {
+            Stats stats = context.getStats();
+            stats.incrementOperation(this);
+            StatsElement element = stats.getElement(artifact
+                    .getStatsKey(context));
+            element.incrementAdded();
 
-			if (artifact instanceof FileArtifact) {
+            if (artifact instanceof FileArtifact) {
 
-				// analyze java files to get statistics
-				for (FileArtifact child : ((FileArtifact) artifact)
-						.getJavaFiles()) {
-					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-					ASTStats childStats = childAST.getStats(null,
-							LangElem.TOPLEVELNODE, false);
+                // analyze java files to get statistics
+                for (FileArtifact child : ((FileArtifact) artifact)
+                        .getJavaFiles()) {
+                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+                    ASTStats childStats = childAST.getStats(null,
+                            LangElem.TOPLEVELNODE, false);
 
-					LOG.fine(childStats::toString);
+                    LOG.fine(childStats::toString);
 
-					if (context.isConsecutive()) {
-						context.getStats().addRightStats(childStats);
-					} else {
-						context.getStats().addASTStats(childStats);
-					}
-				}
-			}
-		}
-	}
+                    if (context.isConsecutive()) {
+                        context.getStats().addRightStats(childStats);
+                    } else {
+                        context.getStats().addASTStats(childStats);
+                    }
+                }
+            }
+        }
+    }
 
-	@Override
-	public final String getName() {
-		return "ADD";
-	}
+    @Override
+    public final String getName() {
+        return "ADD";
+    }
 
-	/**
-	 * Returns the target <code>Artifact</code>
-	 * @return the target
-	 */
-	public final T getTarget() {
-		return target;
-	}
+    /**
+     * Returns the target <code>Artifact</code>
+     * @return the target
+     */
+    public final T getTarget() {
+        return target;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public final String toString() {
+        return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
+    }
 }

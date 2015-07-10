@@ -44,210 +44,210 @@ import de.fosd.jdime.stats.Stats;
  */
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(CombinedStrategy.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(CombinedStrategy.class.getCanonicalName());
 
-	/**
-	 * TODO: high-level documentation
-	 * @param operation the <code>MergeOperation</code> to perform
-	 * @param context the <code>MergeContext</code>
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
-		assert (operation != null);
-		assert (context != null);
+    /**
+     * TODO: high-level documentation
+     * @param operation the <code>MergeOperation</code> to perform
+     * @param context the <code>MergeContext</code>
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Override
+    public final void merge(final MergeOperation<FileArtifact> operation,
+            final MergeContext context) throws IOException,
+            InterruptedException {
+        assert (operation != null);
+        assert (context != null);
 
-		context.resetStreams();
+        context.resetStreams();
 
-		FileArtifact target = null;
+        FileArtifact target = null;
 
-		if (!context.isDiffOnly() && operation.getTarget() != null) {
-			assert (operation.getTarget() instanceof FileArtifact);
-			target = operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
-		}
-
-
-		LOG.fine(() -> {
-			MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-			String leftPath = triple.getLeft().getPath();
-			String basePath = triple.getBase().getPath();
-			String rightPath = triple.getRight().getPath();
-
-			return String.format("Merging: %s %s %s", leftPath, basePath, rightPath);
-		});
+        if (!context.isDiffOnly() && operation.getTarget() != null) {
+            assert (operation.getTarget() instanceof FileArtifact);
+            target = operation.getTarget();
+            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
+                    + target;
+        }
 
 
-		ArrayList<Long> runtimes = new ArrayList<>();
-		MergeContext subContext = null;
-		Stats substats = null;
+        LOG.fine(() -> {
+            MergeScenario<FileArtifact> triple = operation.getMergeScenario();
+            String leftPath = triple.getLeft().getPath();
+            String basePath = triple.getBase().getPath();
+            String rightPath = triple.getRight().getPath();
 
-		for (int i = 0; i < context.getBenchmarkRuns() + 1
-				&& (i == 0 || context.isBenchmark()); i++) {
-			long cmdStart = System.currentTimeMillis();
-			subContext = (MergeContext) context.clone();
-			subContext.setOutputFile(null);
+            return String.format("Merging: %s %s %s", leftPath, basePath, rightPath);
+        });
 
-			if (i == 0) {
-				LOG.fine("Trying linebased strategy.");
-			}
 
-			MergeStrategy<FileArtifact> s = new LinebasedStrategy();
-			subContext.setMergeStrategy(s);
-			subContext.setSaveStats(true);
-			s.merge(operation, subContext);
+        ArrayList<Long> runtimes = new ArrayList<>();
+        MergeContext subContext = null;
+        Stats substats = null;
 
-			int conflicts = subContext.getStats().getConflicts();
-			if (conflicts > 0) {
-				// merge not successful. we need another strategy.
-				if (i == 0) {
-					LOG.fine(() -> {
-						String noun = conflicts > 1 ? "conflicts" : "conflict";
-						return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
-					});
-				}
+        for (int i = 0; i < context.getBenchmarkRuns() + 1
+                && (i == 0 || context.isBenchmark()); i++) {
+            long cmdStart = System.currentTimeMillis();
+            subContext = (MergeContext) context.clone();
+            subContext.setOutputFile(null);
 
-				// clean target file
-				LOG.fine("Deleting: " + target);
+            if (i == 0) {
+                LOG.fine("Trying linebased strategy.");
+            }
 
-				if (target != null) {
-					boolean isLeaf = target.isLeaf();
-					boolean targetExists = target.exists();
-					String targetFileName = target.getFullPath();
+            MergeStrategy<FileArtifact> s = new LinebasedStrategy();
+            subContext.setMergeStrategy(s);
+            subContext.setSaveStats(true);
+            s.merge(operation, subContext);
 
-					target.remove();
-					target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
-				}
+            int conflicts = subContext.getStats().getConflicts();
+            if (conflicts > 0) {
+                // merge not successful. we need another strategy.
+                if (i == 0) {
+                    LOG.fine(() -> {
+                        String noun = conflicts > 1 ? "conflicts" : "conflict";
+                        return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
+                    });
+                }
 
-				subContext = (MergeContext) context.clone();
-				subContext.setOutputFile(null);
+                // clean target file
+                LOG.fine("Deleting: " + target);
 
-				s = new StructuredStrategy();
-				subContext.setMergeStrategy(s);
-				if (i == 0) {
-					subContext.setSaveStats(true);
-				} else {
-					subContext.setSaveStats(false);
-					subContext.setBenchmark(true);
-					subContext.setBenchmarkRuns(0);
-				}
-				s.merge(operation, subContext);
-			} else {
-				if (i == 0) {
-					LOG.fine("Linebased strategy worked fine.");
-				}
-			}
+                if (target != null) {
+                    boolean isLeaf = target.isLeaf();
+                    boolean targetExists = target.exists();
+                    String targetFileName = target.getFullPath();
 
-			if (i == 0) {
-				substats = subContext.getStats();
-			}
+                    target.remove();
+                    target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                }
 
-			long runtime = System.currentTimeMillis() - cmdStart;
-			runtimes.add(runtime);
+                subContext = (MergeContext) context.clone();
+                subContext.setOutputFile(null);
 
-			if (context.isBenchmark()) {
-				if (i == 0) {
-					LOG.fine(() -> "Initial run: " + runtime + " ms");
-				} else {
-					final int finalLogI = i;
-					LOG.fine(() -> String.format("Run %d of %d: %d ms", finalLogI, context.getBenchmarkRuns(), runtime));
-				}
-			}
-		}
+                s = new StructuredStrategy();
+                subContext.setMergeStrategy(s);
+                if (i == 0) {
+                    subContext.setSaveStats(true);
+                } else {
+                    subContext.setSaveStats(false);
+                    subContext.setBenchmark(true);
+                    subContext.setBenchmarkRuns(0);
+                }
+                s.merge(operation, subContext);
+            } else {
+                if (i == 0) {
+                    LOG.fine("Linebased strategy worked fine.");
+                }
+            }
 
-		if (context.isBenchmark() && runtimes.size() > 1) {
-			// remove first run as it took way longer due to all the counting
-			runtimes.remove(0);
-		}
+            if (i == 0) {
+                substats = subContext.getStats();
+            }
 
-		Long runtime = MergeContext.median(runtimes);
-		LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
+            long runtime = System.currentTimeMillis() - cmdStart;
+            runtimes.add(runtime);
 
-		assert (subContext != null);
+            if (context.isBenchmark()) {
+                if (i == 0) {
+                    LOG.fine(() -> "Initial run: " + runtime + " ms");
+                } else {
+                    final int finalLogI = i;
+                    LOG.fine(() -> String.format("Run %d of %d: %d ms", finalLogI, context.getBenchmarkRuns(), runtime));
+                }
+            }
+        }
 
-		if (subContext.hasOutput()) {
-			context.append(subContext.getStdIn());
-		}
+        if (context.isBenchmark() && runtimes.size() > 1) {
+            // remove first run as it took way longer due to all the counting
+            runtimes.remove(0);
+        }
 
-		if (subContext.hasErrors()) {
-			context.appendError(subContext.getStdErr());
-		}
+        Long runtime = MergeContext.median(runtimes);
+        LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
 
-		// write output
-		if (!context.isPretend() && target != null) {
-			assert (target.exists());
-			target.write(context.getStdIn());
-		}
+        assert (subContext != null);
 
-		// add statistical data to context
-		if (context.hasStats()) {
-			assert (substats != null);
+        if (subContext.hasOutput()) {
+            context.append(subContext.getStdIn());
+        }
 
-			Stats stats = context.getStats();
-			substats.setRuntime(runtime);
-			MergeTripleStats subscenariostats = substats.getScenariostats()
-					.remove(0);
-			assert (substats.getScenariostats().isEmpty());
+        if (subContext.hasErrors()) {
+            context.appendError(subContext.getStdErr());
+        }
 
-			if (subscenariostats.hasErrors()) {
-				stats.addScenarioStats(subscenariostats);
-			} else {
-				MergeTripleStats scenariostats = new MergeTripleStats(
-						subscenariostats.getTriple(),
-						subscenariostats.getConflicts(),
-						subscenariostats.getConflictingLines(),
-						subscenariostats.getLines(), runtime,
-						subscenariostats.getASTStats(),
-						subscenariostats.getLeftASTStats(),
-						subscenariostats.getRightASTStats());
-				stats.addScenarioStats(scenariostats);
-			}
+        // write output
+        if (!context.isPretend() && target != null) {
+            assert (target.exists());
+            target.write(context.getStdIn());
+        }
 
-			context.addStats(substats);
-		}
-		System.gc();
-	}
+        // add statistical data to context
+        if (context.hasStats()) {
+            assert (substats != null);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-	 */
-	@Override
-	public final String toString() {
-		return "combined";
-	}
+            Stats stats = context.getStats();
+            substats.setRuntime(runtime);
+            MergeTripleStats subscenariostats = substats.getScenariostats()
+                    .remove(0);
+            assert (substats.getScenariostats().isEmpty());
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.strategy.StatsInterface#createStats()
-	 */
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files", "lines",
-				"nodes" });
-	}
+            if (subscenariostats.hasErrors()) {
+                stats.addScenarioStats(subscenariostats);
+            } else {
+                MergeTripleStats scenariostats = new MergeTripleStats(
+                        subscenariostats.getTriple(),
+                        subscenariostats.getConflicts(),
+                        subscenariostats.getConflictingLines(),
+                        subscenariostats.getLines(), runtime,
+                        subscenariostats.getASTStats(),
+                        subscenariostats.getLeftASTStats(),
+                        subscenariostats.getRightASTStats());
+                stats.addScenarioStats(scenariostats);
+            }
 
-	@Override
-	public final String getStatsKey(final FileArtifact artifact) {
-		throw new NotYetImplementedException();
-	}
+            context.addStats(substats);
+        }
+        System.gc();
+    }
 
-	@Override
-	public final String dumpTree(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		return new StructuredStrategy().dumpTree(artifact, graphical);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.MergeStrategy#toString()
+     */
+    @Override
+    public final String toString() {
+        return "combined";
+    }
 
-	@Override
-	public String dumpFile(final FileArtifact artifact, final boolean graphical)
-			throws IOException {
-		return new LinebasedStrategy().dumpFile(artifact, graphical);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.fosd.jdime.strategy.StatsInterface#createStats()
+     */
+    @Override
+    public final Stats createStats() {
+        return new Stats(new String[] { "directories", "files", "lines",
+                "nodes" });
+    }
+
+    @Override
+    public final String getStatsKey(final FileArtifact artifact) {
+        throw new NotYetImplementedException();
+    }
+
+    @Override
+    public final String dumpTree(final FileArtifact artifact, final boolean graphical)
+            throws IOException {
+        return new StructuredStrategy().dumpTree(artifact, graphical);
+    }
+
+    @Override
+    public String dumpFile(final FileArtifact artifact, final boolean graphical)
+            throws IOException {
+        return new LinebasedStrategy().dumpFile(artifact, graphical);
+    }
 }

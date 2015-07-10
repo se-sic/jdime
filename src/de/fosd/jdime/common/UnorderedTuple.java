@@ -30,119 +30,119 @@ import java.util.Objects;
  * value equality.
  *
  * @param <X>
- * 		the type of the first object
+ *         the type of the first object
  * @param <Y>
- * 		the type of the second object
+ *         the type of the second object
  * @author Georg Seibt
  */
 public class UnorderedTuple<X, Y> implements Cloneable {
 
-	private X x;
-	private Y y;
+    private X x;
+    private Y y;
 
-	/**
-	 * Constructs an <code>UnorderedTuple</code> of the two given objects.
-	 *
-	 * @param x
-	 * 		the first object
-	 * @param y
-	 * 		the second object
-	 * @param <X>
-	 * 		the type of the first object
-	 * @param <Y>
-	 * 		the type of the second object
-	 * @return an <code>UnorderedTuple</code> containing <code>x</code> and <code>y</code>
-	 */
-	public static <X, Y> UnorderedTuple<X, Y> of(X x, Y y) {
-		return new UnorderedTuple<>(x, y);
-	}
+    /**
+     * Constructs an <code>UnorderedTuple</code> of the two given objects.
+     *
+     * @param x
+     *         the first object
+     * @param y
+     *         the second object
+     * @param <X>
+     *         the type of the first object
+     * @param <Y>
+     *         the type of the second object
+     * @return an <code>UnorderedTuple</code> containing <code>x</code> and <code>y</code>
+     */
+    public static <X, Y> UnorderedTuple<X, Y> of(X x, Y y) {
+        return new UnorderedTuple<>(x, y);
+    }
 
-	/**
-	 * Constructs a new <code>UnorderedTuple</code> containing the given objects.
-	 *
-	 * @param x
-	 * 		the first object
-	 * @param y
-	 * 		the second object
-	 */
-	private UnorderedTuple(X x, Y y) {
-		this.x = x;
-		this.y = y;
-	}
+    /**
+     * Constructs a new <code>UnorderedTuple</code> containing the given objects.
+     *
+     * @param x
+     *         the first object
+     * @param y
+     *         the second object
+     */
+    private UnorderedTuple(X x, Y y) {
+        this.x = x;
+        this.y = y;
+    }
 
-	/**
-	 * Returns the first object contained in the <code>UnorderedTuple</code>.
-	 *
-	 * @return the first object
-	 */
-	public X getX() {
-		return x;
-	}
+    /**
+     * Returns the first object contained in the <code>UnorderedTuple</code>.
+     *
+     * @return the first object
+     */
+    public X getX() {
+        return x;
+    }
 
-	/**
-	 * Sets the first object contained in the <code>UnorderedTuple</code> to the given value.
-	 *
-	 * @param x
-	 * 		the new first object
-	 */
-	public void setX(X x) {
-		this.x = x;
-	}
+    /**
+     * Sets the first object contained in the <code>UnorderedTuple</code> to the given value.
+     *
+     * @param x
+     *         the new first object
+     */
+    public void setX(X x) {
+        this.x = x;
+    }
 
-	/**
-	 * Returns the second object contained in the <code>UnorderedTuple</code>.
-	 *
-	 * @return the second object
-	 */
-	public Y getY() {
-		return y;
-	}
+    /**
+     * Returns the second object contained in the <code>UnorderedTuple</code>.
+     *
+     * @return the second object
+     */
+    public Y getY() {
+        return y;
+    }
 
-	/**
-	 * Sets the second object contained in the <code>UnorderedTuple</code> to the given value.
-	 *
-	 * @param y
-	 * 		the new second object
-	 */
-	public void setY(Y y) {
-		this.y = y;
-	}
+    /**
+     * Sets the second object contained in the <code>UnorderedTuple</code> to the given value.
+     *
+     * @param y
+     *         the new second object
+     */
+    public void setY(Y y) {
+        this.y = y;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
 
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-		UnorderedTuple<?, ?> tuple = (UnorderedTuple<?, ?>) o;
+        UnorderedTuple<?, ?> tuple = (UnorderedTuple<?, ?>) o;
 
-		if (Objects.equals(x, tuple.x) && Objects.equals(y, tuple.y)) {
-			return true;
-		}
+        if (Objects.equals(x, tuple.x) && Objects.equals(y, tuple.y)) {
+            return true;
+        }
 
-		return Objects.equals(x, tuple.y) && Objects.equals(y, tuple.x);
-	}
+        return Objects.equals(x, tuple.y) && Objects.equals(y, tuple.x);
+    }
 
-	@Override
-	public int hashCode() {
-		int hashX = x == null ? 0 : x.hashCode();
-		int hashY = y == null ? 0 : y.hashCode();
+    @Override
+    public int hashCode() {
+        int hashX = x == null ? 0 : x.hashCode();
+        int hashY = y == null ? 0 : y.hashCode();
 
-		return hashX ^ hashY;
-	}
+        return hashX ^ hashY;
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public UnorderedTuple<X, Y> clone() {
+    @Override
+    @SuppressWarnings("unchecked")
+    public UnorderedTuple<X, Y> clone() {
 
-		try {
-			return (UnorderedTuple<X, Y>) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            return (UnorderedTuple<X, Y>) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

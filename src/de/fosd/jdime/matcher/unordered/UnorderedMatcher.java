@@ -34,33 +34,33 @@ import de.fosd.jdime.matcher.Matchings;
  * <code>UnorderedMatcher</code>s ignore the order of the elements they match when comparing <code>Artifact</code>s.
  *
  * @param <T>
- * 		the type of the <code>Artifact</code>s
+ *         the type of the <code>Artifact</code>s
  * @author Olaf Lessenich
  */
 public abstract class UnorderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
+    protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
-	/**
-	 * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
-	 */
-	Matcher<T> matcher;
+    /**
+     * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
+     */
+    Matcher<T> matcher;
 
-	/**
-	 * Constructs a new <code>UnorderedMatcher</code> using the given <code>matcher</code> for recursive calls.
-	 *
-	 * @param matcher
-	 * 		the parent <code>Matcher</code>
-	 */
-	public UnorderedMatcher(final Matcher<T> matcher) {
-		this.matcher = matcher;
-	}
+    /**
+     * Constructs a new <code>UnorderedMatcher</code> using the given <code>matcher</code> for recursive calls.
+     *
+     * @param matcher
+     *         the parent <code>Matcher</code>
+     */
+    public UnorderedMatcher(final Matcher<T> matcher) {
+        this.matcher = matcher;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * Compares <code>left</code> and <code>right</code> while ignoring the order of the elements.
-	 */
-	@Override
-	public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Compares <code>left</code> and <code>right</code> while ignoring the order of the elements.
+     */
+    @Override
+    public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
 }

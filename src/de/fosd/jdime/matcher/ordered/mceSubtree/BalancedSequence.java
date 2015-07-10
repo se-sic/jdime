@@ -27,16 +27,16 @@ import de.fosd.jdime.common.Tuple;
  */
 public class BalancedSequence<T extends Artifact<T>> {
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     private static final BalancedSequence EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
 
-	private List<T> seq;
+    private List<T> seq;
 
     /**
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
      *
      * @param tree
-     * 		the tree of <code>Artifact</code>s
+     *         the tree of <code>Artifact</code>s
      */
     public BalancedSequence(T tree) {
         this.seq = new ArrayList<>(Collections.nCopies(tree.getTreeSize() * 2, null));
@@ -53,19 +53,19 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to consider
      */
     public BalancedSequence(T tree, int maxDepth) {
-		this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
-		initSeq(tree, maxDepth);
-	}
+        this.seq = new ArrayList<>(Collections.nCopies(getSize(tree, maxDepth) * 2, null));
+        initSeq(tree, maxDepth);
+    }
 
-	/**
-	 * Constructs a new <code>BalancedSequence</code> wrapping the given <code>seq</code>.
-	 *
-	 * @param seq
-	 * 		the sequence to wrap
-	 */
-	private BalancedSequence(List<T> seq) {
-		this.seq = seq;
-	}
+    /**
+     * Constructs a new <code>BalancedSequence</code> wrapping the given <code>seq</code>.
+     *
+     * @param seq
+     *         the sequence to wrap
+     */
+    private BalancedSequence(List<T> seq) {
+        this.seq = seq;
+    }
 
     /**
      * Returns the number of nodes in the tree that have at most the given <code>depth</code>.
@@ -100,9 +100,9 @@ public class BalancedSequence<T extends Artifact<T>> {
      *         the maximum depth of nodes to add
      */
     private void initSeq(T tree, int maxDepth) {
-		seq.set(0, tree);
-		initSeqRec(tree, 1, 0, maxDepth);
-	}
+        seq.set(0, tree);
+        initSeqRec(tree, 1, 0, maxDepth);
+    }
 
     /**
      * Initializes the <code>seq</code> array to the balanced sequence of the <code>tree</code>.
@@ -129,89 +129,89 @@ public class BalancedSequence<T extends Artifact<T>> {
         }
 
         return index;
-	}
+    }
 
-	/**
-	 * Partitions the balanced sequence into its head and tail. The head and tail of a balanced sequence <code>s</code>
-	 * are unique balanced sequences such that <code>s = 0 head(s) 1 tail(s)</code>.
-	 *
-	 * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
-	 */
-	public Tuple<BalancedSequence<T>, BalancedSequence<T>> partition() {
+    /**
+     * Partitions the balanced sequence into its head and tail. The head and tail of a balanced sequence <code>s</code>
+     * are unique balanced sequences such that <code>s = 0 head(s) 1 tail(s)</code>.
+     *
+     * @return a <code>Pair</code> of (<code>head(s), tail(s)</code>)
+     */
+    public Tuple<BalancedSequence<T>, BalancedSequence<T>> partition() {
 
-		if (seq.size() == 0 || seq.size() == 2) {
-			return Tuple.of(emptySeq(), emptySeq());
-		}
+        if (seq.size() == 0 || seq.size() == 2) {
+            return Tuple.of(emptySeq(), emptySeq());
+        }
 
-		int numZeros = 0;
-		int index = 0;
+        int numZeros = 0;
+        int index = 0;
 
-		do {
-			if (seq.get(index++) == null) {
-				numZeros--;
-			} else {
-				numZeros++;
-			}
-		} while (numZeros > 0);
+        do {
+            if (seq.get(index++) == null) {
+                numZeros--;
+            } else {
+                numZeros++;
+            }
+        } while (numZeros > 0);
 
-		BalancedSequence<T> head;
-		BalancedSequence<T> tail;
+        BalancedSequence<T> head;
+        BalancedSequence<T> tail;
 
-		int headLength = index - 2;
-		int tailLength = seq.size() - index;
+        int headLength = index - 2;
+        int tailLength = seq.size() - index;
 
-		if (headLength != 0) {
-			head = new BalancedSequence<>(seq.subList(1, 1 + headLength));
-		} else {
-			head = emptySeq();
-		}
+        if (headLength != 0) {
+            head = new BalancedSequence<>(seq.subList(1, 1 + headLength));
+        } else {
+            head = emptySeq();
+        }
 
-		if (tailLength != 0) {
-			tail = new BalancedSequence<>(seq.subList(index, index + tailLength));
-		} else {
-			tail = emptySeq();
-		}
+        if (tailLength != 0) {
+            tail = new BalancedSequence<>(seq.subList(index, index + tailLength));
+        } else {
+            tail = emptySeq();
+        }
 
-		return Tuple.of(head, tail);
-	}
+        return Tuple.of(head, tail);
+    }
 
-	/**
-	 * Returns an empty sequence.
-	 *
-	 * @param <T>
-	 * 		the type of the <code>Artifact</code>
-	 * @return an empty <code>BalancedSequence</code>
-	 */
-	@SuppressWarnings("unchecked")
-	private static <T extends Artifact<T>> BalancedSequence<T> emptySeq() {
+    /**
+     * Returns an empty sequence.
+     *
+     * @param <T>
+     *         the type of the <code>Artifact</code>
+     * @return an empty <code>BalancedSequence</code>
+     */
+    @SuppressWarnings("unchecked")
+    private static <T extends Artifact<T>> BalancedSequence<T> emptySeq() {
         return (BalancedSequence<T>) EMPTY_SEQ;
     }
 
     /**
-	 * Returns the decomposition of this balanced sequence. The decomposition of the empty balanced sequence is a set
-	 * containing only the empty balanced sequence. For all other sequences s the decomposition is the union of a
-	 * set containing s and the decompositions of head(s), tail(s) and the concatenation of head(s) and tail(s).
-	 *
-	 * @return the decomposition of this balanced sequence
-	 */
-	public Set<BalancedSequence<T>> decompose() {
+     * Returns the decomposition of this balanced sequence. The decomposition of the empty balanced sequence is a set
+     * containing only the empty balanced sequence. For all other sequences s the decomposition is the union of a
+     * set containing s and the decompositions of head(s), tail(s) and the concatenation of head(s) and tail(s).
+     *
+     * @return the decomposition of this balanced sequence
+     */
+    public Set<BalancedSequence<T>> decompose() {
 
-		if (isEmpty()) {
-			return Collections.singleton(emptySeq());
-		}
+        if (isEmpty()) {
+            return Collections.singleton(emptySeq());
+        }
 
-		Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
+        Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
 
-		Tuple<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
-		BalancedSequence<T> head = partition.getX();
-		BalancedSequence<T> tail = partition.getY();
+        Tuple<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
+        BalancedSequence<T> head = partition.getX();
+        BalancedSequence<T> tail = partition.getY();
 
-		decomposition.addAll(head.decompose());
-		decomposition.addAll(tail.decompose());
-		decomposition.addAll(concatenate(head, tail).decompose());
+        decomposition.addAll(head.decompose());
+        decomposition.addAll(tail.decompose());
+        decomposition.addAll(concatenate(head, tail).decompose());
 
-		return decomposition;
-	}
+        return decomposition;
+    }
 
     /**
      * Concatenates the two given <code>BalancedSequence</code>s.
@@ -226,18 +226,18 @@ public class BalancedSequence<T extends Artifact<T>> {
      * @return the concatenation result
      */
     private static <T extends Artifact<T>> BalancedSequence<T> concatenate(BalancedSequence<T> left, BalancedSequence<T> right) {
-		int length = left.seq.size() + right.seq.size();
+        int length = left.seq.size() + right.seq.size();
 
-		if (length == 0) {
-			return emptySeq();
-		}
+        if (length == 0) {
+            return emptySeq();
+        }
 
         List<T> result = new ArrayList<>(length);
         result.addAll(left.seq);
         result.addAll(right.seq);
 
-		return new BalancedSequence<>(result);
-	}
+        return new BalancedSequence<>(result);
+    }
 
     /**
      * Returns the length (being the number of nodes of the tree it represents) of the longest common balanced sequence
@@ -392,14 +392,14 @@ public class BalancedSequence<T extends Artifact<T>> {
         return a.compareTo(b) > 0 ? a : b;
     }
 
-	/**
-	 * Returns whether this <code>BalancedSequence</code> is empty.
-	 *
-	 * @return true iff the <code>BalancedSequence</code> is empty
-	 */
-	public boolean isEmpty() {
-		return seq.isEmpty();
-	}
+    /**
+     * Returns whether this <code>BalancedSequence</code> is empty.
+     *
+     * @return true iff the <code>BalancedSequence</code> is empty
+     */
+    public boolean isEmpty() {
+        return seq.isEmpty();
+    }
 
     /**
      * Returns the root of the tree of <code>Artifact</code>s this <code>BalancedSequence</code> represents.
@@ -432,7 +432,7 @@ public class BalancedSequence<T extends Artifact<T>> {
     }
 
     @Override
-	public String toString() {
-		return seq.stream().map(bit -> bit == null ? "1" : "0").reduce("", String::concat);
-	}
+    public String toString() {
+        return seq.stream().map(bit -> bit == null ? "1" : "0").reduce("", String::concat);
+    }
 }
