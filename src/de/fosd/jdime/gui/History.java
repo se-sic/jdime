@@ -91,8 +91,8 @@ public class History {
         BooleanProperty nextProperty = new SimpleBooleanProperty();
         nextProperty.bind(history.emptyProperty().or(index.greaterThanOrEqualTo(history.sizeProperty())).not());
 
-        this.hasPrevious = ReadOnlyBooleanProperty.readOnlyBooleanProperty(prevProperty);
-        this.hasNext = ReadOnlyBooleanProperty.readOnlyBooleanProperty(nextProperty);
+        this.hasPrevious = prevProperty;
+        this.hasNext = nextProperty;
     }
 
     /**
