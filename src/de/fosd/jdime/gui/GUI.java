@@ -42,7 +42,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import de.fosd.jdime.JDimeConfig;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 
 import static de.fosd.jdime.JDimeConfig.JDIME_ALLOW_INVALID_KEY;
@@ -52,6 +51,7 @@ import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_BASE_KEY;
 import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_LEFT_KEY;
 import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_RIGHT_KEY;
 import static de.fosd.jdime.JDimeConfig.JDIME_EXEC_KEY;
+import static de.fosd.jdime.JDimeConfig.getConfig;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -145,7 +145,7 @@ public final class GUI extends Application {
      * Loads the config values from the <code>JDimeConfig</code>.
      */
     private void loadConfig() {
-        Config config = JDimeConfig.getConfig();
+        Config config = getConfig();
 
         config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
         config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));

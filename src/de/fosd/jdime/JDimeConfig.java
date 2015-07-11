@@ -42,12 +42,16 @@ public final class JDimeConfig {
     public static final String JDIME_EXEC_KEY = "JDIME_EXEC";
     public static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
     public static final String JDIME_BUFFERED_LINES = "BUFFERED_LINES";
+    public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
     private Config config;
 
+    /**
+     * Private constructor to prevent outside instantiation.
+     */
     private JDimeConfig() {
         config = new Config();
-        config.addSource(new SysEnvConfigSource());
+        config.addSource(new SysEnvConfigSource(1));
         loadConfigFile();
     }
 
@@ -61,9 +65,9 @@ public final class JDimeConfig {
         if (configFile.exists()) {
 
             try {
-                config.addSource(new PropFileConfigSource(configFile));
+                config.addSource(new PropFileConfigSource(2, configFile));
             } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not load " + configFile);
+                LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + configFile.getAbsolutePath());
             }
         }
     }
