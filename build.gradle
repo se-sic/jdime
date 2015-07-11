@@ -56,18 +56,18 @@ dependencies {
     compile project(':KVConfig')
 }
 
-task config {
-    def config = file('JDime.properties')
-    def logging = file('JDimeLogging.properties')
+def configFile = file('JDime.properties')
+def loggingConfigFile = file('JDimeLogging.properties')
 
-    if (config.exists()) {
-        inputs.files(config)
-        outputs.files(config)
+task config {
+    if (configFile.exists()) {
+        inputs.files(configFile)
+        outputs.files(configFile)
     }
 
-    if (logging.exists()) {
-        inputs.files(logging)
-        outputs.files(logging)
+    if (loggingConfigFile.exists()) {
+        inputs.files(loggingConfigFile)
+        outputs.files(loggingConfigFile)
     }
 }
 
@@ -139,12 +139,13 @@ task natives {
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+    applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
 }
 
 task guiScripts(type: CreateStartScripts) {
     applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
+    applicationDefaultJvmArgs = ["-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
 }

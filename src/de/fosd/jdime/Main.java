@@ -74,35 +74,6 @@ public final class Main {
     private static final String TOOLNAME = "jdime";
     private static final String VERSION = "0.3.11-develop";
 
-    private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
-    private static final String CONFIG_FILE_NAME = "JDime.properties";
-    private static final File LOGGING_CONFIG_FILE = new File(LOGGING_CONFIG_FILE_NAME);
-    private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
-    public static final Config config;
-
-    static {
-        if (LOGGING_CONFIG_FILE.exists()) {
-
-            try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
-                LogManager.getLogManager().readConfiguration(is);
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not read logging configuration.");
-            }
-        }
-
-        config = new Config();
-        config.addSource(new SysEnvConfigSource(1));
-
-        if (CONFIG_FILE.exists()) {
-
-            try {
-                config.addSource(new PropFileConfigSource(2, CONFIG_FILE));
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + CONFIG_FILE.getAbsolutePath());
-            }
-        }
-    }
-
     /**
      * Perform a merge operation on the input files or directories.
      *
