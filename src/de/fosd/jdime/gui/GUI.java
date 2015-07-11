@@ -2,7 +2,6 @@ package de.fosd.jdime.gui;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -43,9 +42,16 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import de.fosd.jdime.JDimeConfig;
 import de.uni_passau.fim.seibt.kvconfig.Config;
-import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
-import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
+
+import static de.fosd.jdime.JDimeConfig.JDIME_ALLOW_INVALID_KEY;
+import static de.fosd.jdime.JDimeConfig.JDIME_BUFFERED_LINES;
+import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_ARGS_KEY;
+import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_BASE_KEY;
+import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_LEFT_KEY;
+import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_RIGHT_KEY;
+import static de.fosd.jdime.JDimeConfig.JDIME_EXEC_KEY;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -55,15 +61,6 @@ public final class GUI extends Application {
 
     private static final Logger LOG = Logger.getLogger(GUI.class.getCanonicalName());
     private static final String TITLE = "JDime";
-
-    private static final String JDIME_CONF_FILE = "JDime.properties";
-    private static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
-    private static final String JDIME_DEFAULT_LEFT_KEY = "DEFAULT_LEFT";
-    private static final String JDIME_DEFAULT_BASE_KEY = "DEFAULT_BASE";
-    private static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
-    private static final String JDIME_EXEC_KEY = "JDIME_EXEC";
-    private static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
-    private static final String JDIME_BUFFERED_LINES = "BUFFERED_LINES";
 
     private static final String JVM_DEBUG_PARAMS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005";
     private static final String STARTSCRIPT_JVM_ENV_VAR = "JAVA_OPTS";
@@ -97,7 +94,6 @@ public final class GUI extends Application {
     @FXML
     private Button historyNext;
 
-    private Config config;
     private int bufferedLines;
     private boolean allowInvalid;
 
@@ -129,9 +125,6 @@ public final class GUI extends Application {
 
         textFields = Arrays.asList(left, base, right, jDime, cmdArgs);
 
-        config = new Config();
-        config.addSource(new SysEnvConfigSource());
-        loadConfigFile();
         loadConfig();
 
         history = new History(this);
@@ -149,26 +142,11 @@ public final class GUI extends Application {
     }
 
     /**
-     * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so adds
-     * a <code>PropFileConfigSource</code> to <code>config</code>.
-     */
-    private void loadConfigFile() {
-        File configFile = new File(JDIME_CONF_FILE);
-
-        if (configFile.exists()) {
-
-            try {
-                config.addSource(new PropFileConfigSource(configFile));
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not load " + configFile);
-            }
-        }
-    }
-
-    /**
-     * Loads the config values from {@value #JDIME_CONF_FILE}.
+     * Loads the config values from the <code>JDimeConfig</code>.
      */
     private void loadConfig() {
+        Config config = JDimeConfig.getConfig();
+
         config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
         config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
         config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
@@ -297,7 +275,7 @@ public final class GUI extends Application {
             return new File(tf.getText()).exists();
         });
 
-        if (!valid && !config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false)) {
+        if (!valid && !allowInvalid) {
             return;
         }
 
