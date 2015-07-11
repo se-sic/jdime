@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
@@ -16,6 +17,51 @@ import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 public final class JDimeConfig {
 
     private static final Logger LOG = Logger.getLogger(JDimeConfig.class.getCanonicalName());
+
+    /**
+     * The file name of the JDime configuration file.
+     */
+    public static final String CONFIG_FILE_NAME = "JDime.properties";
+
+    /**
+     * The default value for the 'Args' text field in the GUI.
+     */
+    public static final String DEFAULT_ARGS = "DEFAULT_ARGS";
+
+    /**
+     * The default value for the 'Left' text field in the GUI.
+     */
+    public static final String DEFAULT_LEFT = "DEFAULT_LEFT";
+
+    /**
+     * The default value for the 'Base' text field in the GUI.
+     */
+    public static final String DEFAULT_BASE = "DEFAULT_BASE";
+
+    /**
+     * The default value for the 'Right' text field in the GUI.
+     */
+    public static final String DEFAULT_RIGHT = "DEFAULT_RIGHT";
+
+    /**
+     * The default value for the 'JDime' text field in the GUI.
+     */
+    public static final String DEFAULT_JDIME_EXECUTABLE = "JDIME_EXEC";
+
+    /**
+     * Whether to allow invalid values (such as non-existent files) for the text fields in the GUI.
+     */
+    public static final String ALLOW_INVALID = "ALLOW_INVALID";
+
+    /**
+     * How many lines of JDime output to buffer before adding them to the displayed lines in the GUI.
+     */
+    public static final String BUFFERED_LINES = "BUFFERED_LINES";
+
+    /**
+     * Whether to use the {@link MCESubtreeMatcher} when diffing.
+     */
+    public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
     /**
      * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
@@ -34,16 +80,6 @@ public final class JDimeConfig {
         return InstanceHolder.INSTANCE.config;
     }
 
-    public static final String JDIME_CONF_FILE = "JDime.properties";
-    public static final String JDIME_DEFAULT_ARGS_KEY = "DEFAULT_ARGS";
-    public static final String JDIME_DEFAULT_LEFT_KEY = "DEFAULT_LEFT";
-    public static final String JDIME_DEFAULT_BASE_KEY = "DEFAULT_BASE";
-    public static final String JDIME_DEFAULT_RIGHT_KEY = "DEFAULT_RIGHT";
-    public static final String JDIME_EXEC_KEY = "JDIME_EXEC";
-    public static final String JDIME_ALLOW_INVALID_KEY = "ALLOW_INVALID";
-    public static final String JDIME_BUFFERED_LINES = "BUFFERED_LINES";
-    public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
-
     private Config config;
 
     /**
@@ -56,11 +92,11 @@ public final class JDimeConfig {
     }
 
     /**
-     * Checks whether the current working directory contains a file called {@value #JDIME_CONF_FILE} and if so adds
+     * Checks whether the current working directory contains a file called {@value #CONFIG_FILE_NAME} and if so adds
      * a <code>PropFileConfigSource</code> to <code>config</code>.
      */
     private void loadConfigFile() {
-        File configFile = new File(JDIME_CONF_FILE);
+        File configFile = new File(CONFIG_FILE_NAME);
 
         if (configFile.exists()) {
 

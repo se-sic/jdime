@@ -44,13 +44,13 @@ import javafx.stage.Window;
 
 import de.uni_passau.fim.seibt.kvconfig.Config;
 
-import static de.fosd.jdime.JDimeConfig.JDIME_ALLOW_INVALID_KEY;
-import static de.fosd.jdime.JDimeConfig.JDIME_BUFFERED_LINES;
-import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_ARGS_KEY;
-import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_BASE_KEY;
-import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_LEFT_KEY;
-import static de.fosd.jdime.JDimeConfig.JDIME_DEFAULT_RIGHT_KEY;
-import static de.fosd.jdime.JDimeConfig.JDIME_EXEC_KEY;
+import static de.fosd.jdime.JDimeConfig.ALLOW_INVALID;
+import static de.fosd.jdime.JDimeConfig.BUFFERED_LINES;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXECUTABLE;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
 import static de.fosd.jdime.JDimeConfig.getConfig;
 
 /**
@@ -147,13 +147,13 @@ public final class GUI extends Application {
     private void loadConfig() {
         Config config = getConfig();
 
-        config.get(JDIME_EXEC_KEY).ifPresent(s -> jDime.setText(s.trim()));
-        config.get(JDIME_DEFAULT_ARGS_KEY).ifPresent(s -> cmdArgs.setText(s.trim()));
-        config.get(JDIME_DEFAULT_LEFT_KEY).ifPresent(left::setText);
-        config.get(JDIME_DEFAULT_BASE_KEY).ifPresent(base::setText);
-        config.get(JDIME_DEFAULT_RIGHT_KEY).ifPresent(right::setText);
-        bufferedLines = config.getInteger(JDIME_BUFFERED_LINES).orElse(100);
-        allowInvalid = config.getBoolean(JDIME_ALLOW_INVALID_KEY).orElse(false);
+        config.get(DEFAULT_JDIME_EXECUTABLE).ifPresent(s -> jDime.setText(s.trim()));
+        config.get(DEFAULT_ARGS).ifPresent(s -> cmdArgs.setText(s.trim()));
+        config.get(DEFAULT_LEFT).ifPresent(left::setText);
+        config.get(DEFAULT_BASE).ifPresent(base::setText);
+        config.get(DEFAULT_RIGHT).ifPresent(right::setText);
+        bufferedLines = config.getInteger(BUFFERED_LINES).orElse(100);
+        allowInvalid = config.getBoolean(ALLOW_INVALID).orElse(false);
     }
 
     /**
