@@ -21,7 +21,7 @@ public final class JDimeConfig {
     /**
      * The file name of the JDime configuration file.
      */
-    public static final String CONFIG_FILE_NAME = "JDime.properties";
+    private static final String CONFIG_FILE_NAME = "JDime.properties";
 
     /**
      * The default value for the 'Args' text field in the GUI.
@@ -49,17 +49,19 @@ public final class JDimeConfig {
     public static final String DEFAULT_JDIME_EXECUTABLE = "JDIME_EXEC";
 
     /**
-     * Whether to allow invalid values (such as non-existent files) for the text fields in the GUI.
+     * Whether to allow invalid values (such as non-existent files) for the text fields in the GUI. Must be either
+     * 'true' or 'false'.
      */
     public static final String ALLOW_INVALID = "ALLOW_INVALID";
 
     /**
-     * How many lines of JDime output to buffer before adding them to the displayed lines in the GUI.
+     * How many lines of JDime output to buffer before adding them to the displayed lines in the GUI. Must
+     * be a number parseable by {@link Integer#parseInt(String)}.
      */
     public static final String BUFFERED_LINES = "BUFFERED_LINES";
 
     /**
-     * Whether to use the {@link MCESubtreeMatcher} when diffing.
+     * Whether to use the {@link MCESubtreeMatcher} when diffing. Must be either 'true' or 'false'.
      */
     public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
