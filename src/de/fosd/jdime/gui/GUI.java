@@ -48,7 +48,7 @@ import static de.fosd.jdime.JDimeConfig.ALLOW_INVALID;
 import static de.fosd.jdime.JDimeConfig.BUFFERED_LINES;
 import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
 import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXECUTABLE;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXEC;
 import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
 import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
 import static de.fosd.jdime.JDimeConfig.getConfig;
@@ -147,7 +147,7 @@ public final class GUI extends Application {
     private void loadConfig() {
         Config config = getConfig();
 
-        config.get(DEFAULT_JDIME_EXECUTABLE).ifPresent(s -> jDime.setText(s.trim()));
+        config.get(DEFAULT_JDIME_EXEC).ifPresent(s -> jDime.setText(s.trim()));
         config.get(DEFAULT_ARGS).ifPresent(s -> cmdArgs.setText(s.trim()));
         config.get(DEFAULT_LEFT).ifPresent(left::setText);
         config.get(DEFAULT_BASE).ifPresent(base::setText);

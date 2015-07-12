@@ -46,7 +46,7 @@ public final class JDimeConfig {
     /**
      * The default value for the 'JDime' text field in the GUI.
      */
-    public static final String DEFAULT_JDIME_EXECUTABLE = "JDIME_EXEC";
+    public static final String DEFAULT_JDIME_EXEC = "DEFAULT_JDIME_EXEC";
 
     /**
      * Whether to allow invalid values (such as non-existent files) for the text fields in the GUI. Must be either
