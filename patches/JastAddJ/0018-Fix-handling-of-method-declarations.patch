@@ -1,0 +1,32 @@
+From f5163bbf8cc36f8d49c9b2a33b2961281b9b1622 Mon Sep 17 00:00:00 2001
+From: Olaf Lessenich <lessenic@fim.uni-passau.de>
+Date: Mon, 13 Jul 2015 15:50:51 +0200
+Subject: [PATCH] Fix handling of method declarations.
+
+Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
+---
+ java4/frontend/JDime.jadd | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
+index 4dee31d..ff8e7a2 100644
+--- a/java4/frontend/JDime.jadd
++++ b/java4/frontend/JDime.jadd
+@@ -117,6 +117,14 @@ aspect JDime {
+ 		return prettyPrint();
+ 	}
+ 
++	public String VariableDeclaration.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String MethodDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
+ 	public boolean ASTNode.matches(ASTNode other) {
+ 		return getClass().equals(other.getClass())
+ 		       && getMatchingRepresentation().equals(other.getMatchingRepresentation());
+-- 
+2.1.4
+
