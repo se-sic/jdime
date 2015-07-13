@@ -1,19 +1,19 @@
-From 295bbce59297a8c61e9a92e8cd5270197a3db4dd Mon Sep 17 00:00:00 2001
+From a998c32e1d41373e4073c365de37263c1bd71b69 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
-Date: Mon, 15 Jun 2015 14:31:05 +0200
-Subject: [PATCH 07/12] Add JDime extensions for variable parameters.
+Date: Mon, 15 Jun 2015 14:49:21 +0200
+Subject: [PATCH 14/18] Add additional JDime extensions for Java 7.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---
- java5/frontend/VariableArityParametersJDime.jadd | 29 ++++++++++++++++++++++++
+ java7/frontend/PrettyPrintJDime.jadd | 29 +++++++++++++++++++++++++++++
  1 file changed, 29 insertions(+)
- create mode 100644 java5/frontend/VariableArityParametersJDime.jadd
+ create mode 100644 java7/frontend/PrettyPrintJDime.jadd
 
-diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
+diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
 new file mode 100644
-index 0000000..f043480
+index 0000000..1ef2150
 --- /dev/null
-+++ b/java5/frontend/VariableArityParametersJDime.jadd
++++ b/java7/frontend/PrettyPrintJDime.jadd
 @@ -0,0 +1,29 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
@@ -38,8 +38,8 @@ index 0000000..f043480
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
 +
-+aspect VariableArityParametersJDime {
-+	refine VariableArityParameters public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
++aspect PrettyPrintJDime {
++	refine PrettyPrint public void ParseName.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}

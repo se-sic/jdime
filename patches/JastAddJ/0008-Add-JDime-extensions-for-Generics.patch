@@ -1,7 +1,7 @@
 From 8df398f36004a457d66bb61038863870b0b3c553 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
 Date: Mon, 15 Jun 2015 14:25:30 +0200
-Subject: [PATCH 05/12] Add JDime extensions for Generics.
+Subject: [PATCH 08/18] Add JDime extensions for Generics.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---

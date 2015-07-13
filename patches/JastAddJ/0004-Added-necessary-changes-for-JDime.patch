@@ -1,7 +1,7 @@
-From cda00ae9bd84df3c28af8da2d6c279b74272c29c Mon Sep 17 00:00:00 2001
+From 21841353f06c19be782b11c6c604dd44b17c77a1 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
 Date: Thu, 23 Apr 2015 16:21:14 +0200
-Subject: [PATCH 01/18] Added necessary changes for JDime.
+Subject: [PATCH 04/18] Added necessary changes for JDime.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---

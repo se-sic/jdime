@@ -1,19 +1,19 @@
-From 70e76842fecf781c3e19753f44d71fbeb995e413 Mon Sep 17 00:00:00 2001
+From 85fe2f94b2f6dfb14c7262171ca4e178216c783e Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
-Date: Mon, 15 Jun 2015 14:48:27 +0200
-Subject: [PATCH 09/12] Add JDime extensions for multi catch.
+Date: Mon, 15 Jun 2015 14:30:39 +0200
+Subject: [PATCH 09/18] Add JDime extensions for static imports.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---
- java7/frontend/MultiCatchJDime.jadd | 34 ++++++++++++++++++++++++++++++++++
+ java5/frontend/StaticImportsJDime.jadd | 34 ++++++++++++++++++++++++++++++++++
  1 file changed, 34 insertions(+)
- create mode 100644 java7/frontend/MultiCatchJDime.jadd
+ create mode 100644 java5/frontend/StaticImportsJDime.jadd
 
-diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
+diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
 new file mode 100644
-index 0000000..a5ce7c5
+index 0000000..99ad42b
 --- /dev/null
-+++ b/java7/frontend/MultiCatchJDime.jadd
++++ b/java5/frontend/StaticImportsJDime.jadd
 @@ -0,0 +1,34 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
@@ -38,13 +38,13 @@ index 0000000..a5ce7c5
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
 +
-+aspect MultiCatchJDime {
-+	refine MultiCatch public void MultiCatch.prettyPrint(StringBuffer sb) {
++aspect StaticImportsJDime {
++	refine StaticImports public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}
 +
-+	refine MultiCatch public void CatchParameterDeclaration.prettyPrint(StringBuffer sb) {
++	refine StaticImports public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}

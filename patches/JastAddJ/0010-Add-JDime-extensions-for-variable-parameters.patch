@@ -1,19 +1,19 @@
-From 7d768480781b60440cd5bd887783bb005a5033ba Mon Sep 17 00:00:00 2001
+From 295bbce59297a8c61e9a92e8cd5270197a3db4dd Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
-Date: Mon, 15 Jun 2015 14:48:51 +0200
-Subject: [PATCH 10/12] Add JDime extensions for try with resources.
+Date: Mon, 15 Jun 2015 14:31:05 +0200
+Subject: [PATCH 10/18] Add JDime extensions for variable parameters.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---
- java7/frontend/TryWithResourcesJDime.jadd | 29 +++++++++++++++++++++++++++++
+ java5/frontend/VariableArityParametersJDime.jadd | 29 ++++++++++++++++++++++++
  1 file changed, 29 insertions(+)
- create mode 100644 java7/frontend/TryWithResourcesJDime.jadd
+ create mode 100644 java5/frontend/VariableArityParametersJDime.jadd
 
-diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
+diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
 new file mode 100644
-index 0000000..7546df8
+index 0000000..f043480
 --- /dev/null
-+++ b/java7/frontend/TryWithResourcesJDime.jadd
++++ b/java5/frontend/VariableArityParametersJDime.jadd
 @@ -0,0 +1,29 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
@@ -38,8 +38,8 @@ index 0000000..7546df8
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
 +
-+aspect TryWithResourcesJDime {
-+	refine PrettyPrint public void TryWithResources.prettyPrint(StringBuffer sb) {
++aspect VariableArityParametersJDime {
++	refine VariableArityParameters public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}

@@ -1,0 +1,48 @@
+From e4f2124f31ae47952d230e15fd918a9ce86d5384 Mon Sep 17 00:00:00 2001
+From: Olaf Lessenich <lessenic@fim.uni-passau.de>
+Date: Tue, 26 May 2015 20:25:04 +0200
+Subject: [PATCH 03/18] Fixed output of ifdefs.
+
+---
+ java4/frontend/JDime.jadd | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
+index 9008ed7..9f24d42 100644
+--- a/java4/frontend/JDime.jadd
++++ b/java4/frontend/JDime.jadd
+@@ -74,15 +74,26 @@ aspect JDime {
+ 			s.append(">>>>>>> \n");
+ 			return true;
+ 		} else if (isChoice) {
+-			for (String condition : variants.keySet()) {
++			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
++			Collections.sort(sortedConditions);
++			Iterator<String> it = sortedConditions.iterator();
++			String condition = it.next();
++			s.append("\n");
++			s.append("// #ifdef " + condition);
++			s.append("\n");
++			s.append(variants.get(condition).prettyPrint());
++
++			while (it.hasNext()) {
++				condition = it.next();
+ 				s.append("\n");
+-				s.append("// #ifdef " + condition);
++				s.append("// #elif " + condition);
+ 				s.append("\n");
+ 				s.append(variants.get(condition).prettyPrint());
+-				s.append("\n");
+-				s.append("// #endif");
+ 			}
+-            s.append("\n");
++
++			s.append("\n");
++			s.append("// #endif");
++			s.append("\n");
+ 			return true;
+ 		}
+ 		return false;
+-- 
+2.1.4
+

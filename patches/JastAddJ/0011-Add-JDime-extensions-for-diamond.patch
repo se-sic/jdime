@@ -1,19 +1,19 @@
-From d61feef255ef73b98afef1d272ee73d8a9f4ed9a Mon Sep 17 00:00:00 2001
+From 128ae9514f90855b91d53dc9020666566acee155 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
-Date: Mon, 15 Jun 2015 14:24:48 +0200
-Subject: [PATCH 03/12] Add JDime extensions for EnhancedFor.
+Date: Mon, 15 Jun 2015 14:48:09 +0200
+Subject: [PATCH 11/18] Add JDime extensions for diamond.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---
- java5/frontend/EnhancedForJDime.jadd | 29 +++++++++++++++++++++++++++++
+ java7/frontend/DiamondJDime.jadd | 29 +++++++++++++++++++++++++++++
  1 file changed, 29 insertions(+)
- create mode 100644 java5/frontend/EnhancedForJDime.jadd
+ create mode 100644 java7/frontend/DiamondJDime.jadd
 
-diff --git a/java5/frontend/EnhancedForJDime.jadd b/java5/frontend/EnhancedForJDime.jadd
+diff --git a/java7/frontend/DiamondJDime.jadd b/java7/frontend/DiamondJDime.jadd
 new file mode 100644
-index 0000000..f854e83
+index 0000000..74f4c9e
 --- /dev/null
-+++ b/java5/frontend/EnhancedForJDime.jadd
++++ b/java7/frontend/DiamondJDime.jadd
 @@ -0,0 +1,29 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
@@ -38,8 +38,8 @@ index 0000000..f854e83
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
 +
-+aspect EnhancedForJDime {
-+	refine EnhancedFor public void EnhancedForStmt.prettyPrint(StringBuffer sb) {
++aspect DiamondJDime {
++	refine Diamond public void DiamondAccess.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}

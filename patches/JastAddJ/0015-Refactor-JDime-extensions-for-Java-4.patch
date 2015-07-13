@@ -1,7 +1,7 @@
 From 4fc390382b97f50cfb0d377a4603c99326989cd9 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
 Date: Mon, 15 Jun 2015 14:49:55 +0200
-Subject: [PATCH 12/12] Refactor JDime extensions for Java 4.
+Subject: [PATCH 15/18] Refactor JDime extensions for Java 4.
 
 Handle pretty-printing related stuff in its own aspect.
 

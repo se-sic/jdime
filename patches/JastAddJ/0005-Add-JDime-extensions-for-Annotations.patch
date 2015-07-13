@@ -1,7 +1,7 @@
 From c5457b583166fbd86905c9e4f32d7f426ad1c4be Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
 Date: Mon, 15 Jun 2015 14:24:23 +0200
-Subject: [PATCH 02/12] Add JDime extensions for Annotations.
+Subject: [PATCH 05/18] Add JDime extensions for Annotations.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---

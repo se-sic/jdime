@@ -409,26 +409,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         LOG.finest(() -> "match(" + getId() + ", " + other.getId() + ")");
 
-        if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) || Literal.class
-                .isAssignableFrom(astnode.getClass()))
-                && other.astnode.getClass().equals(astnode.getClass())) {
-
-            LOG.finest(() -> {
-                String prettyPrint = astnode.prettyPrint();
-                String otherPrettyPrint = other.astnode.prettyPrint();
-                return String.format("Try Matching (prettyPrint): {%s} and {%s}", prettyPrint, otherPrettyPrint);
-            });
-
-            return astnode.prettyPrint().equals(other.astnode.prettyPrint());
-        }
-
         LOG.finest(() -> {
-            String dumpString = astnode.dumpString();
-            String otherDumpString = other.astnode.dumpString();
-            return String.format("Try Matching (dumpString): {%s} and {%s}", dumpString, otherDumpString);
+            return String.format("Try Matching: {%s} and {%s}",
+                    astnode.getMatchingRepresentation(),
+                    other.astnode.getMatchingRepresentation());
         });
 
-        return astnode.dumpString().equals(other.astnode.dumpString());
+        return astnode.matches(other.astnode);
     }
 
     @Override

@@ -1,20 +1,20 @@
-From a998c32e1d41373e4073c365de37263c1bd71b69 Mon Sep 17 00:00:00 2001
+From ec9a3f4ba4966b9fbbdbf5b4fb457647cf111ea9 Mon Sep 17 00:00:00 2001
 From: Olaf Lessenich <lessenic@fim.uni-passau.de>
-Date: Mon, 15 Jun 2015 14:49:21 +0200
-Subject: [PATCH 11/12] Add additional JDime extensions for Java 7.
+Date: Mon, 15 Jun 2015 14:25:05 +0200
+Subject: [PATCH 07/18] Add JDime extensions for Enums.
 
 Signed-off-by: Olaf Lessenich <lessenic@fim.uni-passau.de>
 ---
- java7/frontend/PrettyPrintJDime.jadd | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
- create mode 100644 java7/frontend/PrettyPrintJDime.jadd
+ java5/frontend/EnumsJDime.jadd | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 java5/frontend/EnumsJDime.jadd
 
-diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
+diff --git a/java5/frontend/EnumsJDime.jadd b/java5/frontend/EnumsJDime.jadd
 new file mode 100644
-index 0000000..1ef2150
+index 0000000..e7ddb58
 --- /dev/null
-+++ b/java7/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,29 @@
++++ b/java5/frontend/EnumsJDime.jadd
+@@ -0,0 +1,34 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
 + * Copyright (C) 2014-2015 University of Passau, Germany
@@ -38,12 +38,17 @@ index 0000000..1ef2150
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
 +
-+aspect PrettyPrintJDime {
-+	refine PrettyPrint public void ParseName.prettyPrint(StringBuffer sb) {
++aspect EnumsJDime {
++	refine Enums public void EnumDecl.prettyPrint(StringBuffer sb) {
 +		if (printConflict(sb)) { return; }
 +		refined(sb);
 +	}
-+}
++
++	refine Enums public void EnumConstant.prettyPrint(StringBuffer sb) {
++		if (printConflict(sb)) { return; }
++		refined(sb);
++	}
++} 
 -- 
 2.1.4
 
