@@ -386,12 +386,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      */
     @Override
     public final boolean isOrdered() {
-        return !ConstructorDecl.class.isAssignableFrom(astnode.getClass())
-                && !MethodDecl.class.isAssignableFrom(astnode.getClass())
-                && !InterfaceDecl.class.isAssignableFrom(astnode.getClass())
-                && !FieldDecl.class.isAssignableFrom(astnode.getClass())
-                && !FieldDeclaration.class.isAssignableFrom(astnode.getClass())
-                && !ImportDecl.class.isAssignableFrom(astnode.getClass());
+        return astnode.isOrdered();
     }
 
     /**
