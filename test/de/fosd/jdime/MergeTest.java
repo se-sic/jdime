@@ -28,11 +28,11 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,96 +48,100 @@ import de.fosd.jdime.strategy.MergeStrategy;
  */
 public class MergeTest {
 
-	private MergeContext context;
-	private static final String[] STRATEGIES = { "linebased", "structured",
-			"combined" };
+    private MergeContext context;
+    private static final String[] STRATEGIES = { "linebased", "structured",
+            "combined" };
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		// initialize logger
-		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.WARN);
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    public void setUp() throws Exception {
+        // initialize logger
+        Logger root = Logger.getLogger(JDimeWrapper.class.getPackage().getName());
+        root.setLevel(Level.WARNING);
 
-		// initialize context
-		context = new MergeContext();
-		context.setQuiet(true);
+        for (Handler handler : root.getHandlers()) {
+            handler.setLevel(Level.WARNING);
+        }
 
-		// initialize temporary output file
-		File out = Files.createTempFile("jdime-tests", ".java").toFile();
-		context.setOutputFile(new FileArtifact(out));
-	}
+        // initialize context
+        context = new MergeContext();
+        context.setQuiet(true);
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-		context.getOutputFile().remove();
-	}
+        // initialize temporary output file
+        File out = Files.createTempFile("jdime-tests", ".java").toFile();
+        context.setOutputFile(new FileArtifact(out));
+    }
 
-	private final void runMerge(String filepath, boolean threeway) {
-		try {
-			// initialize input files
-			ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-			inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
-					+ filepath)));
-			if (threeway) {
-				inputArtifacts.add(new FileArtifact(new File("testfiles/base/"
-						+ filepath)));
-			}
-			inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
-					+ filepath)));
+    /**
+     * @throws java.lang.Exception
+     */
+    @After
+    public void tearDown() throws Exception {
+        context.getOutputFile().remove();
+    }
 
-			for (String strategy : STRATEGIES) {
+    private final void runMerge(String filepath, boolean threeway) {
+        try {
+            // initialize input files
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
+                    + filepath)));
+            if (threeway) {
+                inputArtifacts.add(new FileArtifact(new File("testfiles/base/"
+                        + filepath)));
+            }
+            inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
+                    + filepath)));
 
-				// setup context
-				context.setMergeStrategy(MergeStrategy.parse(strategy));
-				context.setInputFiles(inputArtifacts);
+            for (String strategy : STRATEGIES) {
 
-				// run
-				System.out.println("Running " + strategy + " strategy on "
-						+ filepath);
-				Main.merge(context);
-				
-				// check
-				File expected = new File("testfiles" + File.separator
-						+ strategy + File.separator + filepath);
-				System.out.println("----------Expected:-----------");
-				System.out.print(FileUtils.readFileToString(expected));
-				System.out.println("----------Received:-----------");
-				System.out.print(context.getOutputFile().getContent());
-				System.out.println("------------------------------");
-				assertTrue("Strategy " + strategy
-						+ " resulted in unexpected output",
-						FileUtils.contentEquals(context.getOutputFile()
-								.getFile(), expected));
-				System.out.println();
-			}
-		} catch (Exception e) {
-			fail(e.toString());
-		}
-	}
+                // setup context
+                context.setMergeStrategy(MergeStrategy.parse(strategy));
+                context.setInputFiles(inputArtifacts);
 
-	@Test
-	public final void testBag() {
-		runMerge("SimpleTests/Bag/Bag.java", true);
-	}
+                // run
+                System.out.println("Running " + strategy + " strategy on "
+                        + filepath);
+                Main.merge(context);
+                
+                // check
+                File expected = new File("testfiles" + File.separator
+                        + strategy + File.separator + filepath);
+                System.out.println("----------Expected:-----------");
+                System.out.print(FileUtils.readFileToString(expected));
+                System.out.println("----------Received:-----------");
+                System.out.print(context.getOutputFile().getContent());
+                System.out.println("------------------------------");
+                assertTrue("Strategy " + strategy
+                        + " resulted in unexpected output",
+                        FileUtils.contentEquals(context.getOutputFile()
+                                .getFile(), expected));
+                System.out.println();
+            }
+        } catch (Exception e) {
+            fail(e.toString());
+        }
+    }
 
-	@Test
-	public final void testBag2() {
-		runMerge("SimpleTests/Bag/Bag2.java", true);
-	}
+    @Test
+    public final void testBag() {
+        runMerge("SimpleTests/Bag/Bag.java", true);
+    }
 
-	@Test
-	public final void testBag3() {
-		runMerge("SimpleTests/Bag/Bag3.java", true);
-	}
-	
-	@Test
-	public final void testImportConflict () {
-		runMerge("SimpleTests/ImportMess.java", true);
-	}
+    @Test
+    public final void testBag2() {
+        runMerge("SimpleTests/Bag/Bag2.java", true);
+    }
+
+    @Test
+    public final void testBag3() {
+        runMerge("SimpleTests/Bag/Bag3.java", true);
+    }
+    
+    @Test
+    public final void testImportConflict () {
+        runMerge("SimpleTests/ImportMess.java", true);
+    }
 }

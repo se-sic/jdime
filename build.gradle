@@ -37,6 +37,11 @@ sourceSets {
             srcDir 'res'
         }
     }
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
 }
 
 repositories {
@@ -53,6 +58,7 @@ dependencies {
     compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile files('lib/JJ7.jar')
     compile project(':KVConfig')
+    testCompile 'junit:junit:4.12'
 }
 
 task config {
