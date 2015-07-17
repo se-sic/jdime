@@ -68,18 +68,7 @@ public class MergeTest {
         // initialize context
         context = new MergeContext();
         context.setQuiet(true);
-
-        // initialize temporary output file
-        File out = Files.createTempFile("jdime-tests", ".java").toFile();
-        context.setOutputFile(new FileArtifact(out));
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @After
-    public void tearDown() throws Exception {
-        context.getOutputFile().remove();
+        context.setPretend(false);
     }
 
     private final void runMerge(String filepath, boolean threeway) {
@@ -96,10 +85,12 @@ public class MergeTest {
                     + filepath)));
 
             for (String strategy : STRATEGIES) {
-
                 // setup context
                 context.setMergeStrategy(MergeStrategy.parse(strategy));
                 context.setInputFiles(inputArtifacts);
+                File out = Files.createTempFile("jdime-tests", ".java").toFile();
+                out.deleteOnExit();
+                context.setOutputFile(new FileArtifact(out));
 
                 // run
                 System.out.println("Running " + strategy + " strategy on "

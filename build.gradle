@@ -169,6 +169,20 @@ distributions {
             }
         }
     }
+    test {
+        contents.with {
+            def binDir = 'bin'
+
+            into(binDir) {
+                from(guiScripts)
+                fileMode = 0755
+            }
+            into(binDir) {
+                from(natives)
+                from(config)
+            }
+        }
+    }
 }
 
 run {
@@ -176,3 +190,8 @@ run {
         args System.getProperty("exec.args").split()
     }
 }
+
+test {
+    jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
+}
+
