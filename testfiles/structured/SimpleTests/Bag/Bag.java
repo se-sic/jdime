@@ -1,7 +1,6 @@
 class Bag {
   int[] values;
   Bag(int[] v) {
-    super();
     values = v;
   }
   int[] get() {
