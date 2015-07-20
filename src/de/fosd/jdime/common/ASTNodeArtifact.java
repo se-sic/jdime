@@ -556,8 +556,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     @Override
     public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
         ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.fullCopy())
-                : new ASTNodeArtifact(right.astnode.fullCopy());
+                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform())
+                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform());
 
         conflict.setRevision(new Revision("conflict"));
         conflict.setNumber(virtualcount++);
@@ -571,7 +571,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.fine("Creating choice node");
         ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.fullCopy());
+        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform());
         choice.setRevision(new Revision("choice"));
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);

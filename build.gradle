@@ -195,3 +195,12 @@ test {
     jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
 }
 
+allprojects {
+	gradle.projectsEvaluated {
+		tasks.withType(JavaCompile) {
+			// options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+			options.compilerArgs << "-Xlint:deprecation"
+		}
+	}
+}
+
