@@ -34,17 +34,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import AST.ASTNode;
-import AST.BytecodeParser;
-import AST.ClassDecl;
-import AST.ConstructorDecl;
-import AST.FieldDecl;
-import AST.FieldDeclaration;
-import AST.ImportDecl;
-import AST.InterfaceDecl;
-import AST.Literal;
-import AST.MethodDecl;
-import AST.Program;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
@@ -54,6 +43,15 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.jastadd.extendj.ast.ASTNode;
+import org.jastadd.extendj.ast.BytecodeParser;
+import org.jastadd.extendj.ast.ClassDecl;
+import org.jastadd.extendj.ast.ConstructorDecl;
+import org.jastadd.extendj.ast.ImportDecl;
+import org.jastadd.extendj.ast.Literal;
+import org.jastadd.extendj.ast.MethodDecl;
+import org.jastadd.extendj.ast.Program;
+import org.jastadd.extendj.parser.JavaParser;
 
 /**
  * @author Olaf Lessenich
@@ -70,7 +68,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            program
      */
     private static void initParser(Program p) {
-        p.initJavaParser((is, fileName) -> new parser.JavaParser().parse(is, fileName));
+        p.initJavaParser((is, fileName) -> new JavaParser().parse(is, fileName));
     }
 
     /**
