@@ -90,7 +90,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
      * @param context the <code>MergeContext</code>
      */
     @Override
-    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
+    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
 
         assert (operation != null);
         assert (context != null);
@@ -393,11 +393,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
         } catch (SecurityException e) {
             LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
+            context.addCrash(triple);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-            
+            context.addCrash(triple);
+
             if (!context.isKeepGoing()) {
-                throw new Error(t);
+                throw t;
             } else {
                 if (context.hasStats()) {
                     MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
