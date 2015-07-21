@@ -554,8 +554,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
         }
 
-        LOG.fine("Using strategy: " + strategy);
-        LOG.finest(() -> "merge: " + this);
+        LOG.config("Using strategy: " + strategy);
+        LOG.config(() -> "merge: " + this);
         
         strategy.merge(operation, context);
         

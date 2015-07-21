@@ -393,14 +393,16 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
         } catch (SecurityException e) {
             LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
-        } catch (IOException|InterruptedException e) {
-            LOG.log(Level.SEVERE, e, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
+            context.addCrash(triple);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
+            context.addCrash(triple);
 
             if (!context.isKeepGoing()) {
-                throw e;
+                throw t;
             } else {
                 if (context.hasStats()) {
-                    MergeTripleStats scenarioStats = new MergeTripleStats(triple, e.toString());
+                    MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
                     context.getStats().addScenarioStats(scenarioStats);
                 }
             }
