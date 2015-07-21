@@ -194,6 +194,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
+
+            ArtifactList<ASTNodeArtifact> cloneChildren =  new ArtifactList<>();
+            for (ASTNodeArtifact child : children) {
+                cloneChildren.add((ASTNodeArtifact) child.clone());
+            }
+            clone.setChildren(cloneChildren);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
@@ -211,7 +217,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         assert (child.exists());
 
         child.setParent(this);
-        child.initializeChildren();
         children.add(child);
 
         return child;
