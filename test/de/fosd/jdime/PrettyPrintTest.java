@@ -81,7 +81,7 @@ public class PrettyPrintTest {
             ASTNodeArtifact artifact = new ASTNodeArtifact(new FileArtifact(
                     new File("testfiles/left/SimpleTests/Bag/Bag2.java")));
             String prettyPrinted = artifact.prettyPrint();
-            String expected = "class Bag {\n  int[] values;\n  Bag(int[] v) {\n    super();\n    values = v;\n  }\n  int[] get() {\n    return values;\n  }\n}";
+            String expected = "class Bag {\n  int[] values;\n  Bag(int[] v) {\n    values = v;\n  }\n  int[] get() {\n    return values;\n  }\n}";
             assertEquals(expected, prettyPrinted);
         } catch (Exception e) {
             fail(e.toString());

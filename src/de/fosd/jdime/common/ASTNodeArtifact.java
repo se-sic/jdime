@@ -193,9 +193,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
 
-            ArtifactList<ASTNodeArtifact> cloneChildren =  new ArtifactList<>();
+            ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
             for (ASTNodeArtifact child : children) {
-                cloneChildren.add((ASTNodeArtifact) child.clone());
+                ASTNodeArtifact cloneChild = (ASTNodeArtifact) child.clone();
+                cloneChild.astnode.setParent(clone.astnode);
+                cloneChildren.add(cloneChild);
             }
             clone.setChildren(cloneChildren);
         } catch (CloneNotSupportedException e) {
@@ -250,6 +252,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         rebuildAST();
         astnode.flushCaches();
+        astnode.flushTreeCache();
 
         if (LOG.isLoggable(Level.FINEST)) {
             System.out.println(dumpTree());
@@ -507,6 +510,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * called at the root node
      */
     private void rebuildAST() {
+        LOG.finest(() -> String.format("%s.rebuildAST()", getId()));
+        int oldNumChildren = astnode.getNumChildNoTransform();
 
         if (isConflict()) {
             astnode.isConflict = true;
@@ -542,15 +547,21 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             newchildren[i] = child.astnode;
             newchildren[i].setParent(astnode);
             child.rebuildAST();
-
         }
+
         astnode.jdimeChanges = hasChanges();
         astnode.jdimeId = getId();
         astnode.setChildren(newchildren);
 
-        assert (isConflict() || getNumChildren() == astnode
-                .getNumChildNoTransform());
+        if (LOG.isLoggable(Level.FINEST)) {
+            LOG.finest(() -> String.format("before: %d, after: %d children", oldNumChildren,
+                    astnode.getNumChildNoTransform()));
+            if (oldNumChildren != astnode.getNumChildNoTransform()) {
+                LOG.finest("Number of children has changed");
+            }
+        }
 
+        assert (isConflict() || getNumChildren() == astnode.getNumChildNoTransform());
     }
 
     @Override
