@@ -15,7 +15,6 @@ class Bag {
     return res;
   }
   Bag(int[] v) {
-    super();
     values = v;
   }
 }
