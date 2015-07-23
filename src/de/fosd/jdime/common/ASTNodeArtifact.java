@@ -61,6 +61,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
 
+    private boolean initialized = false;
+
     /**
      * Initializes parser.
      *
@@ -101,7 +103,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             program = new Program();
         }
 
-        ASTNodeArtifact p = new ASTNodeArtifact(program);
+        ASTNodeArtifact p = new ASTNodeArtifact(program, null);
         p.deleteChildren();
 
         return p;
@@ -124,9 +126,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param astnode
      *            astnode
      */
-    private ASTNodeArtifact(final ASTNode<?> astnode) {
+    private ASTNodeArtifact(final ASTNode<?> astnode, Revision revision) {
         assert (astnode != null);
         this.astnode = astnode;
+        setRevision(revision);
         initializeChildren();
     }
 
@@ -134,16 +137,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
+                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i), getRevision());
                 child.setParent(this);
                 child.setRevision(getRevision());
                 children.add(child);
-                if (!isRoot()) {
+                if (!child.initialized) {
                     child.initializeChildren();
                 }
             }
         }
         setChildren(children);
+        initialized = true;
     }
 
     /**
@@ -189,7 +193,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone());
+            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone(), getRevision());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
@@ -555,8 +559,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         astnode.setChildren(newchildren);
 
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(() -> String.format("before: %d, after: %d children", oldNumChildren,
+            LOG.finest(() -> String.format("jdime: %d, astnode.before: %d, astnode.after: %d children", getNumChildren(), oldNumChildren,
                     astnode.getNumChildNoTransform()));
+            if (getNumChildren() != astnode.getNumChildNoTransform()) {
+                LOG.finest("mismatch between jdime and astnode for " + getId() + "(" + astnode.dumpString() + ")");
+            }
             if (oldNumChildren != astnode.getNumChildNoTransform()) {
                 LOG.finest("Number of children has changed");
             }
@@ -573,8 +580,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     @Override
     public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
         ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform())
-                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform());
+                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
+                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
 
         conflict.setRevision(new Revision("conflict"));
         conflict.setNumber(virtualcount++);
@@ -588,7 +595,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.fine("Creating choice node");
         ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform());
+        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
         choice.setRevision(new Revision("choice"));
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);
