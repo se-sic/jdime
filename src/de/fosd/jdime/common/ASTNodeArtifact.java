@@ -127,19 +127,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private ASTNodeArtifact(final ASTNode<?> astnode) {
         assert (astnode != null);
         this.astnode = astnode;
-
-        this.initializeChildren();
+        initializeChildren();
     }
 
     private void initializeChildren() {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
-        for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
+        for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
                 ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
                 child.setParent(this);
                 child.setRevision(getRevision());
                 children.add(child);
-                child.initializeChildren();
+                if (!isRoot()) {
+                    child.initializeChildren();
+                }
             }
         }
         setChildren(children);
@@ -166,7 +167,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         this.astnode = astnode;
-        this.initializeChildren();
+        initializeChildren();
         renumberTree();
 
         LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
