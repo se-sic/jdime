@@ -393,10 +393,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
         } catch (SecurityException e) {
             LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
-            context.addCrash(triple);
+            context.addCrash(triple, e);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-            context.addCrash(triple);
+            context.addCrash(triple, t);
 
             if (!context.isKeepGoing()) {
                 throw t;
