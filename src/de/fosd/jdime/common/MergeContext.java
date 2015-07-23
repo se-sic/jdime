@@ -214,7 +214,7 @@ public class MergeContext implements Cloneable {
      */
     public static final int LOOKAHEAD_OFF = 0;
 
-    private List<MergeScenario> crashes = new ArrayList<>();
+    private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
 
     /**
      * Class constructor.
@@ -797,7 +797,7 @@ public class MergeContext implements Cloneable {
      *
      * @return list of merge scenarios that crashed
      */
-    public List<MergeScenario> getCrashes() {
+    public HashMap<MergeScenario, Throwable> getCrashes() {
         return crashes;
     }
 
@@ -806,7 +806,7 @@ public class MergeContext implements Cloneable {
      *
      * @param scenario <code>MergeScenario</code> which crashed
      */
-    public void addCrash(MergeScenario scenario) {
-        crashes.add(scenario);
+    public void addCrash(MergeScenario scenario, Throwable t) {
+        crashes.put(scenario, t);
     }
 }

@@ -167,11 +167,13 @@ public final class Main {
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
-            List<MergeScenario> crashes = context.getCrashes();
+            HashMap<MergeScenario, Throwable> crashes = context.getCrashes();
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
-            for (MergeScenario scenario : crashes) {
-                sb.append(scenario.toString() + "\n");
+            for (MergeScenario scenario : crashes.keySet()) {
+                Throwable t = crashes.get(scenario);
+                sb.append("* " + t.toString() + "\n");
+                sb.append("    " + scenario.toString().replace(" ", "\n    ") + "\n");
             }
             LOG.config(sb.toString());
         }
