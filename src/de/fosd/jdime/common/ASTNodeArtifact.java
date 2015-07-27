@@ -450,6 +450,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         if (!isRoot() && numChildNoTransform > 0) {
 
             // this language element has a fixed number of children, we need to be careful with this one
+            // as it might cause lots of issues while being pretty-printed
             boolean leftChanges = left.isChange();
             boolean rightChanges = right.isChange();
 
@@ -462,25 +463,39 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
 
             if (leftChanges && rightChanges) {
+                // this one might be trouble
 
-                LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
-                LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
-                LOG.finest(() -> "We will report a conflict instead of performing the merge.");
+                if (left.getNumChildren() == right.getNumChildren()) {
+                    // so far so good
 
-                safeMerge = false;
+                    for (int i = 0; i < left.getNumChildren(); i++) {
+                        if (!left.getChild(i).astnode.getClass().getName().equals(right.getChild(i).astnode.getClass().getName())) {
+                            // no good, this might get us some ClassCastExceptions
+                            safeMerge = false;
+                        }
+                    }
+                } else {
+                    // no way ;)
+                    safeMerge = false;
+                }
 
-                // to be safe, we will report a conflict instead of merging
-                ASTNodeArtifact targetParent = target.getParent();
-                targetParent.removeChild(target);
-                
-                Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
-                        left.getRevision().getName(), right.getRevision().getName());
-                conflictOp.apply(context);
             }
         }
 
         if (safeMerge) {
             astNodeStrategy.merge(operation, context);
+        } else {
+            LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
+            LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
+            LOG.finest(() -> "We are scared of this node and report a conflict instead of performing the merge.");
+
+            // to be safe, we will report a conflict instead of merging
+            ASTNodeArtifact targetParent = target.getParent();
+            targetParent.removeChild(target);
+
+            Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
+                    left.getRevision().getName(), right.getRevision().getName());
+            conflictOp.apply(context);
         }
 
         if (!context.isQuiet() && context.hasOutput()) {
