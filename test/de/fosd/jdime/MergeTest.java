@@ -135,4 +135,9 @@ public class MergeTest {
     public final void testImportConflict () {
         runMerge("SimpleTests/ImportMess.java", true);
     }
+
+    @Test
+    public final void testExprTest () {
+        runMerge("SimpleTests/ExprTest.java", true);
+    }
 }
