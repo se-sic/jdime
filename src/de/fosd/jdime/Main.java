@@ -582,7 +582,7 @@ public final class Main {
      *            merge context
      *
      */
-    private static void bugfixing(final MergeContext context) {
+    private static void bugfixing(final MergeContext context) throws IOException {
         context.setPretend(true);
         context.setQuiet(false);
         setLogLevel("FINEST");

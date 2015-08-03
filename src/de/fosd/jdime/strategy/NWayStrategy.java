@@ -67,7 +67,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
      * @param context
      */
     @Override
-    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
+    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException {
 
         assert (operation != null);
         assert (context != null);
