@@ -159,7 +159,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param artifact
      *            file artifact
      */
-    public ASTNodeArtifact(final FileArtifact artifact) throws IOException {
+    public ASTNodeArtifact(final FileArtifact artifact) {
         assert (artifact != null);
 
         setRevision(artifact.getRevision());
@@ -169,7 +169,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             astnode = new ASTNode<>();
         } else {
             Program p = initProgram();
-            p.addSourceFile(artifact.getPath());
+
+            try {
+                p.addSourceFile(artifact.getPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             astnode = p;
         }
 

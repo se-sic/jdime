@@ -397,7 +397,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             context.addCrash(triple, t);
 
             if (!context.isKeepGoing()) {
-                throw t;
+                throw new RuntimeException(t);
             } else {
                 if (context.hasStats()) {
                     MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
