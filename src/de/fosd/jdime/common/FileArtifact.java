@@ -581,8 +581,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
         }
 
-        LOG.fine("Using strategy: " + strategy);
-        LOG.finest(() -> "merge: " + this);
+        LOG.config("Using strategy: " + strategy);
+        LOG.config(() -> "merge: " + this);
         
         strategy.merge(operation, context);
         
@@ -596,7 +596,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * Removes the artifact's file.
      */
     public void remove() {
-        assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
+        if (!exists()) {
+            return;
+        }
 
         try {
             if (isDirectory()) {
@@ -611,8 +613,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        assert (!exists());
     }
 
     @Override

@@ -23,6 +23,7 @@
 
 package de.fosd.jdime;
 
+import static de.fosd.jdime.InternalTests.runEnvironmentTest;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
@@ -33,13 +34,13 @@ import org.junit.Test;
  */
 public class EnvironmentTest {
 
-	@Test
-	public final void test() {
-		try {
-			InternalTests.runEnvironmentTest();
-		} catch (Exception e ) {
-			fail("Internal tests failed. Check your setup!");
-		}
-	}
+    @Test
+    public final void test() {
+        try {
+            runEnvironmentTest();
+        } catch (Exception e ) {
+            fail("Internal tests failed. Check your setup!");
+        }
+    }
 
 }

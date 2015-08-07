@@ -180,6 +180,8 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
             } catch (Throwable t) {
                 LOG.severe("Exception while merging:");
+                context.addCrash(scenario, t);
+
                 for (Revision rev : variants.keySet()) {
                     LOG.severe(String.format("%s: %s", rev, variants.get(rev).getPath()));
                 }

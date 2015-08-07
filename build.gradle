@@ -37,6 +37,11 @@ sourceSets {
             srcDir 'res'
         }
     }
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
 }
 
 repositories {
@@ -53,6 +58,7 @@ dependencies {
     compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile files('lib/JJ7.jar')
     compile project(':KVConfig')
+    testCompile 'junit:junit:4.12'
 }
 
 task config {
@@ -163,6 +169,20 @@ distributions {
             }
         }
     }
+    test {
+        contents.with {
+            def binDir = 'bin'
+
+            into(binDir) {
+                from(guiScripts)
+                fileMode = 0755
+            }
+            into(binDir) {
+                from(natives)
+                from(config)
+            }
+        }
+    }
 }
 
 run {
@@ -170,3 +190,17 @@ run {
         args System.getProperty("exec.args").split()
     }
 }
+
+test {
+    jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
+}
+
+allprojects {
+	gradle.projectsEvaluated {
+		tasks.withType(JavaCompile) {
+			// options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+			options.compilerArgs << "-Xlint:deprecation"
+		}
+	}
+}
+

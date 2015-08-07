@@ -56,6 +56,25 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
     private static final String CONFLICT_DELIM = "=======";
     private static final String CONFLICT_END = ">>>>>>>";
 
+    private SecurityManager systemSecurityManager = System.getSecurityManager();
+    private SecurityManager noExitManager = new SecurityManager() {
+            @Override
+            public void checkPermission(Permission perm) {
+                // allow anything.
+            }
+
+            @Override
+            public void checkPermission(Permission perm, Object context) {
+                // allow anything.
+            }
+
+            @Override
+            public void checkExit(int status) {
+                super.checkExit(status);
+                throw new SecurityException("Captured attempt to exit JVM.");
+            }
+        };
+
     /**
      * The source <code>FileArtifacts</code> are extracted from the
      * <code>MergeOperation</code>, parsed by the <code>JastAddJ</code> parser
@@ -114,25 +133,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         LOG.fine(() -> String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 
-        SecurityManager systemSecurityManager = System.getSecurityManager();
-        System.setSecurityManager(new SecurityManager() {
-            @Override
-            public void checkPermission(Permission perm) {
-                // allow anything.
-            }
+        System.setSecurityManager(noExitManager);
 
-            @Override
-            public void checkPermission(Permission perm, Object context) {
-                // allow anything.
-            }
-
-            @Override
-            public void checkExit(int status) {
-                super.checkExit(status);
-                throw new SecurityException("Captured attempt to exit JVM.");
-            }
-        });
-        
         try {
             for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
                 if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
@@ -389,20 +391,22 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
         } catch (SecurityException e) {
             LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
+            context.addCrash(triple, e);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-            
+            context.addCrash(triple, t);
+
             if (!context.isKeepGoing()) {
-                throw new Error(t);
+                throw t;
             } else {
                 if (context.hasStats()) {
                     MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
                     context.getStats().addScenarioStats(scenarioStats);
                 }
             }
+        } finally {
+            System.setSecurityManager(systemSecurityManager);
         }
-
-        System.setSecurityManager(systemSecurityManager);
     }
 
     private static void printConflict(MergeContext mergeContext, String lPath, String rPath, StringBuffer leftlines,
@@ -439,6 +443,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
     @Override
     public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-        return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
+        System.setSecurityManager(noExitManager);
+        try {
+            return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
+        } catch (SecurityException e) {
+            return e.toString();
+        } finally {
+            System.setSecurityManager(systemSecurityManager);
+        }
     }
 }

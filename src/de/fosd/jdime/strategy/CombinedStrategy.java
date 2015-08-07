@@ -116,7 +116,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                     String targetFileName = target.getFullPath();
 
                     try {
-                        target.remove();
+                        if (target.exists()) {
+                            target.remove();
+                        }
                         target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
                     } catch (IOException e) {
                         throw new RuntimeException(e);

@@ -12,18 +12,18 @@ The full license text is distributed with this software. See the `LICENSE` file.
 ## Tools Used:
 JDime uses these tools/libraries:
 
-* JastAddJ (https://bitbucket.org/jastadd/jastaddj)
-> Commit [c0017e0](https://bitbucket.org/jastadd/jastaddj/src/c0017e0)  
+* ExtendJ (https://bitbucket.org/jastadd/jastaddj)
+> Commit [724964](https://bitbucket.org/extendj/extendj/src/724964)  
 > Copyright (c) 2005-2008, Torbjörn Ekman  
-> Copyright (c) 2005-2013, JastAddJ Committers  
-> JastAddJ is covered by the Modified BSD License.  
+> Copyright (c) 2005-2015, ExtendJ Committers  
+> ExtendJ is covered by the Modified BSD License.  
 > The full license text is distributed with this software.  
-> See the file licenses/JastAddJ-BSD.
+> See the file licenses/ExtendJ-BSD.
 
-The changes that were made to JastAddJ are shipped with this software  
+The changes that were made to ExtendJ are shipped with this software  
 and covered by the Modified BSD License.  
-See patches/JastAddJ.patch for the changes,  
-and patches/LICENSE for the license text.
+See patches/ExtendJ for the changes,  
+and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
 * gradle (http://www.gradle.org/) __>=2.2__
