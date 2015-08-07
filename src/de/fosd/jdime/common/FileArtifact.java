@@ -554,8 +554,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
         }
 
-        LOG.fine("Using strategy: " + strategy);
-        LOG.finest(() -> "merge: " + this);
+        LOG.config("Using strategy: " + strategy);
+        LOG.config(() -> "merge: " + this);
         
         strategy.merge(operation, context);
         
@@ -572,7 +572,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *             If an input output exception occurs
      */
     public final void remove() throws IOException {
-        assert (exists() && !isEmpty()) : "Tried to remove non-existing file: " + getFullPath();
+        if (!exists()) {
+            return;
+        }
 
         if (isDirectory()) {
             LOG.fine(() -> "Deleting directory recursively: " + file);
@@ -583,8 +585,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         } else {
             throw new UnsupportedOperationException("Only files and directories can be removed at the moment");
         }
-
-        assert (!exists());
     }
 
     @Override
