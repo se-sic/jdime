@@ -44,6 +44,7 @@ import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.Tuple;
@@ -163,6 +164,18 @@ public final class Main {
 
         if (context.hasStats()) {
             StatsPrinter.print(context);
+        }
+
+        if (LOG.isLoggable(Level.CONFIG)) {
+            HashMap<MergeScenario, Throwable> crashes = context.getCrashes();
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
+            for (MergeScenario scenario : crashes.keySet()) {
+                Throwable t = crashes.get(scenario);
+                sb.append("* " + t.toString() + "\n");
+                sb.append("    " + scenario.toString().replace(" ", "\n    ") + "\n");
+            }
+            LOG.config(sb.toString());
         }
 
         System.exit(0);
@@ -569,7 +582,7 @@ public final class Main {
      *            merge context
      *
      */
-    private static void bugfixing(final MergeContext context) {
+    private static void bugfixing(final MergeContext context) throws IOException {
         context.setPretend(true);
         context.setQuiet(false);
         setLogLevel("FINEST");

@@ -1,0 +1,1101 @@
+diff --git a/build.xml b/build.xml
+index 5381cdd..1a1dcde 100644
+--- a/build.xml
++++ b/build.xml
+@@ -158,6 +158,9 @@ Build a standard release:
+ 			<fileset dir="${bin.dir}">
+ 				<include name="**/*"/>
+ 			</fileset>
++			<fileset dir="${src.dir}">
++				<include name="**/*"/>
++			</fileset>
+ 		</jar>
+ 	</target>
+ 
+diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
+new file mode 100644
+index 0000000..189fb3b
+--- /dev/null
++++ b/java4/frontend/JDime.jadd
+@@ -0,0 +1,160 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect JDime {
++	/**
++	 * Replaces the children of the <code>ASTNode</code>.
++	 * 
++	 * @param newchildren child nodes that should replace the current ones
++	 */
++	public void ASTNode.setChildren(ASTNode[] newchildren) {
++		this.init$Children();
++
++		for (int i = 0; i < newchildren.length; i++) {
++			setChild(newchildren[i], i);
++		}
++	}
++
++	/**
++	 * Deletes all children of the <code>ASTNode</code>.
++	 */
++	public void ASTNode.removeChildren() {
++		children = null;
++		numChildren = 0;
++	}
++
++	public String ASTNode.jdimeId = "";
++
++	public boolean ASTNode.jdimeChanges = false;
++
++	public boolean ASTNode.isConflict = false;
++	public boolean ASTNode.isChoice = false;
++
++	public ASTNode<?> ASTNode.left;
++	public ASTNode<?> ASTNode.right;
++	public LinkedHashMap<String, ASTNode<?>> ASTNode.variants;
++
++	/**
++	 * If the <code>ASTNode</code> represents a merge conflict, both conflicting alternatives
++	 * are appended to the <code>StringBuffer</code> in a patch-compatible format.
++	 * If the <code>ASTNode</code> does not represent a merge conflict, nothing is appended.
++	 *
++	 * @param s <code>StringBuffer</code> that is appended by potential alternatives
++	 * @return true if this node represents a conflict
++	 */
++	public boolean ASTNode.printVirtualNode(StringBuffer s) {
++		if (isConflict) {
++			s.append("\n<<<<<<< \n");
++			if (left != null) {
++				s.append(left.prettyPrint());
++				s.append("\n");
++			}
++			s.append("======= \n");
++			if (right != null) {
++				s.append(right.prettyPrint());
++				s.append("\n");
++			}
++			s.append(">>>>>>> \n");
++			return true;
++		} else if (isChoice) {
++			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
++			Collections.sort(sortedConditions);
++			Iterator<String> it = sortedConditions.iterator();
++			String condition = it.next();
++			s.append("\n");
++			s.append("// #ifdef " + condition);
++			s.append("\n");
++			s.append(variants.get(condition).prettyPrint());
++
++			while (it.hasNext()) {
++				condition = it.next();
++				s.append("\n");
++				s.append("// #elif " + condition);
++				s.append("\n");
++				s.append(variants.get(condition).prettyPrint());
++			}
++
++			s.append("\n");
++			s.append("// #endif");
++			s.append("\n");
++			return true;
++		}
++		return false;
++	}
++
++	refine FlushCaches public void ASTNode.flushCaches() {
++		refined();
++		if (left != null) { left.flushCaches(); }
++		if (right != null) { right.flushCaches(); }
++	}
++
++	public String ASTNode.getMatchingRepresentation() {
++		return dumpString();
++	}
++
++	public String ImportDecl.getMatchingRepresentation() {
++		return prettyPrint();
++	}
++
++	public String Literal.getMatchingRepresentation() {
++		return prettyPrint();
++	}
++
++	public String VariableDeclaration.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String MethodDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public boolean ASTNode.matches(ASTNode other) {
++		return getClass().equals(other.getClass())
++		       && getMatchingRepresentation().equals(other.getMatchingRepresentation());
++	}
++
++	public boolean ASTNode.isOrdered() {
++		return true;
++	}
++
++	public boolean BodyDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean InterfaceDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean ImportDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean Modifier.isOrdered() {
++		return false;
++	}
++
++	public boolean TypeAccess.isOrdered() {
++		// TODO: assert
++		return !(getParent() instanceof List);
++	}
++}
+diff --git a/java4/frontend/PrettyPrintJDime.jadd b/java4/frontend/PrettyPrintJDime.jadd
+new file mode 100644
+index 0000000..0ffad31
+--- /dev/null
++++ b/java4/frontend/PrettyPrintJDime.jadd
+@@ -0,0 +1,409 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect PrettyPrintJDime {
++	refine PrettyPrint public void Program.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CompilationUnit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SingleTypeImportDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint protected void TypeDecl.ppBodyDecls(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InstanceInitializer.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void StaticInitializer.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstructorDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void FieldDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VariableDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MemberClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MemberInterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void EmptyType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayInit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AssignExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Literal.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void StringLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CharacterLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void LongLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void FloatingPointLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void DoubleLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ParExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassInstanceExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayCreationExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Unary.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CastExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Binary.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InstanceOfExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConditionalExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Modifiers.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Modifier.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AbstractDot.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VarAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MethodAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayTypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayTypeWithSizeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ThisAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SuperAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void PackageAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Block.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void EmptyStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LabeledStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SwitchStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstCase.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DefaultCase.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IfStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void WhileStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DoStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ForStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BreakStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ContinueStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ReturnStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ThrowStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SynchronizedStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TryStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BasicCatch.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AssertStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LocalClassDeclStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BooleanType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ByteType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ShortType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IntType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LongType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CharType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void FloatType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DoubleType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void NullType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VoidType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/AnnotationsJDime.jadd b/java5/frontend/AnnotationsJDime.jadd
+new file mode 100644
+index 0000000..98d3c59
+--- /dev/null
++++ b/java5/frontend/AnnotationsJDime.jadd
+@@ -0,0 +1,64 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect AnnotationsJDime {
++	refine AnnotationPrettyPrinting public void AnnotatedCompilationUnit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void AnnotationDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void AnnotationMethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void Annotation.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementValuePair.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementConstantValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementAnnotationValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementArrayValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/EnhancedForJDime.jadd b/java5/frontend/EnhancedForJDime.jadd
+new file mode 100644
+index 0000000..ba84ec6
+--- /dev/null
++++ b/java5/frontend/EnhancedForJDime.jadd
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect EnhancedForJDime {
++	refine EnhancedFor public void EnhancedForStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/EnumsJDime.jadd b/java5/frontend/EnumsJDime.jadd
+new file mode 100644
+index 0000000..b59b5b9
+--- /dev/null
++++ b/java5/frontend/EnumsJDime.jadd
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect EnumsJDime {
++	refine Enums public void EnumDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Enums public void EnumConstant.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++} 
+diff --git a/java5/frontend/GenericMethodsJDime.jadd b/java5/frontend/GenericMethodsJDime.jadd
+new file mode 100644
+index 0000000..9bc5e45
+--- /dev/null
++++ b/java5/frontend/GenericMethodsJDime.jadd
+@@ -0,0 +1,59 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect GenericMethodsJDime {
++	refine GenericMethodsPrettyPrint public void ParMethodAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParSuperConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParClassInstanceExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint private void GenericMethodDecl.ppTypeParameters(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void GenericMethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void GenericConstructorDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/GenericsJDime.jadd b/java5/frontend/GenericsJDime.jadd
+new file mode 100644
+index 0000000..23018ba
+--- /dev/null
++++ b/java5/frontend/GenericsJDime.jadd
+@@ -0,0 +1,70 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect GenericsJDime {
++	refine GenericsPrettyPrint public void TypeVariable.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void ParTypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void ParClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint private void GenericClassDecl.ppTypeParameters(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void GenericClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void GenericInterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void Wildcard.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void WildcardExtends.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void WildcardSuper.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++}
+diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
+new file mode 100644
+index 0000000..4061b20
+--- /dev/null
++++ b/java5/frontend/StaticImportsJDime.jadd
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect StaticImportsJDime {
++	refine StaticImports public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine StaticImports public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
+new file mode 100644
+index 0000000..c1ebdae
+--- /dev/null
++++ b/java5/frontend/VariableArityParametersJDime.jadd
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect VariableArityParametersJDime {
++	refine VariableArityParameters public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/DiamondJDime.jadd b/java7/frontend/DiamondJDime.jadd
+new file mode 100644
+index 0000000..ed857ac
+--- /dev/null
++++ b/java7/frontend/DiamondJDime.jadd
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect DiamondJDime {
++	refine Diamond public void DiamondAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
+new file mode 100644
+index 0000000..4970774
+--- /dev/null
++++ b/java7/frontend/MultiCatchJDime.jadd
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect MultiCatchJDime {
++	refine MultiCatch public void MultiCatch.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine MultiCatch public void CatchParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
+new file mode 100644
+index 0000000..7d6090f
+--- /dev/null
++++ b/java7/frontend/PrettyPrintJDime.jadd
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect PrettyPrintJDime {
++	refine PrettyPrint public void ParseName.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
+new file mode 100644
+index 0000000..c7f0371
+--- /dev/null
++++ b/java7/frontend/TryWithResourcesJDime.jadd
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (C) 2013-2014 Olaf Lessenich
++ * Copyright (C) 2014-2015 University of Passau, Germany
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301  USA
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect TryWithResourcesJDime {
++	refine PrettyPrint public void TryWithResources.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}

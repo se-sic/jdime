@@ -214,6 +214,8 @@ public class MergeContext implements Cloneable {
      */
     public static final int LOOKAHEAD_OFF = 0;
 
+    private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
+
     /**
      * Class constructor.
      */
@@ -788,5 +790,23 @@ public class MergeContext implements Cloneable {
      */
     public void setConditionalOutsideMethods(boolean conditionalOutsideMethods) {
         this.conditionalOutsideMethods = conditionalOutsideMethods;
+    }
+
+    /**
+     * Returns the list of <code>MergeScenario</code>s on which JDime crashed.
+     *
+     * @return list of merge scenarios that crashed
+     */
+    public HashMap<MergeScenario, Throwable> getCrashes() {
+        return crashes;
+    }
+
+    /**
+     * Add a <code>MergeScenario</code> to the list of crashed scenarios.
+     *
+     * @param scenario <code>MergeScenario</code> which crashed
+     */
+    public void addCrash(MergeScenario scenario, Throwable t) {
+        crashes.put(scenario, t);
     }
 }

@@ -26,6 +26,7 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,17 +35,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import AST.ASTNode;
-import AST.BytecodeParser;
-import AST.ClassDecl;
-import AST.ConstructorDecl;
-import AST.FieldDecl;
-import AST.FieldDeclaration;
-import AST.ImportDecl;
-import AST.InterfaceDecl;
-import AST.Literal;
-import AST.MethodDecl;
-import AST.Program;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
@@ -54,6 +44,17 @@ import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.jastadd.extendj.ast.ASTNode;
+import org.jastadd.extendj.ast.BytecodeParser;
+import org.jastadd.extendj.ast.BytecodeReader;
+import org.jastadd.extendj.ast.JavaParser;
+import org.jastadd.extendj.ast.ClassDecl;
+import org.jastadd.extendj.ast.CompilationUnit;
+import org.jastadd.extendj.ast.ConstructorDecl;
+import org.jastadd.extendj.ast.ImportDecl;
+import org.jastadd.extendj.ast.Literal;
+import org.jastadd.extendj.ast.MethodDecl;
+import org.jastadd.extendj.ast.Program;
 
 /**
  * @author Olaf Lessenich
@@ -63,6 +64,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
 
+    private boolean initialized = false;
+
     /**
      * Initializes parser.
      *
@@ -70,7 +73,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            program
      */
     private static void initParser(Program p) {
-        p.initJavaParser((is, fileName) -> new parser.JavaParser().parse(is, fileName));
+        JavaParser parser = new JavaParser() {
+            @Override
+            public CompilationUnit parse(InputStream is, String fileName) throws IOException,
+                    beaver.Parser.Exception {
+                return new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
+            }
+        };
+        BytecodeReader bytecodeParser = new BytecodeReader() {
+            @Override
+            public CompilationUnit read(InputStream is, String fullName, Program p)
+                    throws FileNotFoundException, IOException {
+                return new BytecodeParser(is, fullName).parse(null, null, p);
+            }
+        };
+
+        p.initJavaParser(parser);
+        p.initBytecodeReader(bytecodeParser);
     }
 
     /**
@@ -81,7 +100,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private static Program initProgram() {
         Program program = new Program();
         program.state().reset();
-        program.initBytecodeReader(new BytecodeParser());
         initParser(program);
         return program;
     }
@@ -103,7 +121,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             program = new Program();
         }
 
-        ASTNodeArtifact p = new ASTNodeArtifact(program);
+        ASTNodeArtifact p = new ASTNodeArtifact(program, null);
         p.deleteChildren();
 
         return p;
@@ -126,25 +144,28 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param astnode
      *            astnode
      */
-    private ASTNodeArtifact(final ASTNode<?> astnode) {
+    private ASTNodeArtifact(final ASTNode<?> astnode, Revision revision) {
         assert (astnode != null);
         this.astnode = astnode;
-
-        this.initializeChildren();
+        setRevision(revision);
+        initializeChildren();
     }
 
     private void initializeChildren() {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
-        for (int i = 0; i < astnode.getNumChildNoTransform(); i++) {
+        for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i));
+                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i), getRevision());
                 child.setParent(this);
                 child.setRevision(getRevision());
                 children.add(child);
-                child.initializeChildren();
+                if (!child.initialized) {
+                    child.initializeChildren();
+                }
             }
         }
         setChildren(children);
+        initialized = true;
     }
 
     /**
@@ -153,7 +174,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param artifact
      *            file artifact
      */
-    public ASTNodeArtifact(final FileArtifact artifact) {
+    public ASTNodeArtifact(final FileArtifact artifact) throws IOException {
         assert (artifact != null);
 
         setRevision(artifact.getRevision());
@@ -168,7 +189,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         this.astnode = astnode;
-        this.initializeChildren();
+        initializeChildren();
         renumberTree();
 
         LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
@@ -190,10 +211,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone());
+            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone(), getRevision());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
+
+            ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
+            for (ASTNodeArtifact child : children) {
+                ASTNodeArtifact cloneChild = (ASTNodeArtifact) child.clone();
+                cloneChild.astnode.setParent(clone.astnode);
+                cloneChildren.add(cloneChild);
+            }
+            clone.setChildren(cloneChildren);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
@@ -211,7 +240,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         assert (child.exists());
 
         child.setParent(this);
-        child.initializeChildren();
         children.add(child);
 
         return child;
@@ -247,6 +275,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         rebuildAST();
         astnode.flushCaches();
+        astnode.flushTreeCache();
 
         if (LOG.isLoggable(Level.FINEST)) {
             System.out.println(dumpTree());
@@ -386,12 +415,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      */
     @Override
     public final boolean isOrdered() {
-        return !ConstructorDecl.class.isAssignableFrom(astnode.getClass())
-                && !MethodDecl.class.isAssignableFrom(astnode.getClass())
-                && !InterfaceDecl.class.isAssignableFrom(astnode.getClass())
-                && !FieldDecl.class.isAssignableFrom(astnode.getClass())
-                && !FieldDeclaration.class.isAssignableFrom(astnode.getClass())
-                && !ImportDecl.class.isAssignableFrom(astnode.getClass());
+        return astnode.isOrdered();
     }
 
     /**
@@ -409,26 +433,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         LOG.finest(() -> "match(" + getId() + ", " + other.getId() + ")");
 
-        if ((ImportDecl.class.isAssignableFrom(astnode.getClass()) || Literal.class
-                .isAssignableFrom(astnode.getClass()))
-                && other.astnode.getClass().equals(astnode.getClass())) {
-
-            LOG.finest(() -> {
-                String prettyPrint = astnode.prettyPrint();
-                String otherPrettyPrint = other.astnode.prettyPrint();
-                return String.format("Try Matching (prettyPrint): {%s} and {%s}", prettyPrint, otherPrettyPrint);
-            });
-
-            return astnode.prettyPrint().equals(other.astnode.prettyPrint());
-        }
-
         LOG.finest(() -> {
-            String dumpString = astnode.dumpString();
-            String otherDumpString = other.astnode.dumpString();
-            return String.format("Try Matching (dumpString): {%s} and {%s}", dumpString, otherDumpString);
+            return String.format("Try Matching: {%s} and {%s}",
+                    astnode.getMatchingRepresentation(),
+                    other.astnode.getMatchingRepresentation());
         });
 
-        return astnode.dumpString().equals(other.astnode.dumpString());
+        return astnode.matches(other.astnode);
     }
 
     @Override
@@ -457,6 +468,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         if (!isRoot() && numChildNoTransform > 0) {
 
             // this language element has a fixed number of children, we need to be careful with this one
+            // as it might cause lots of issues while being pretty-printed
             boolean leftChanges = left.isChange();
             boolean rightChanges = right.isChange();
 
@@ -469,25 +481,39 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
 
             if (leftChanges && rightChanges) {
+                // this one might be trouble
 
-                LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
-                LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
-                LOG.finest(() -> "We will report a conflict instead of performing the merge.");
+                if (left.getNumChildren() == right.getNumChildren()) {
+                    // so far so good
 
-                safeMerge = false;
+                    for (int i = 0; i < left.getNumChildren(); i++) {
+                        if (!left.getChild(i).astnode.getClass().getName().equals(right.getChild(i).astnode.getClass().getName())) {
+                            // no good, this might get us some ClassCastExceptions
+                            safeMerge = false;
+                        }
+                    }
+                } else {
+                    // no way ;)
+                    safeMerge = false;
+                }
 
-                // to be safe, we will report a conflict instead of merging
-                ASTNodeArtifact targetParent = target.getParent();
-                targetParent.removeChild(target);
-                
-                Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
-                        left.getRevision().getName(), right.getRevision().getName());
-                conflictOp.apply(context);
             }
         }
 
         if (safeMerge) {
             astNodeStrategy.merge(operation, context);
+        } else {
+            LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
+            LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
+            LOG.finest(() -> "We are scared of this node and report a conflict instead of performing the merge.");
+
+            // to be safe, we will report a conflict instead of merging
+            ASTNodeArtifact targetParent = target.getParent();
+            targetParent.removeChild(target);
+
+            Operation<ASTNodeArtifact> conflictOp = new ConflictOperation<>(left, right, targetParent,
+                    left.getRevision().getName(), right.getRevision().getName());
+            conflictOp.apply(context);
         }
 
         if (!context.isQuiet() && context.hasOutput()) {
@@ -522,6 +548,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * called at the root node
      */
     private void rebuildAST() {
+        LOG.finest(() -> String.format("%s.rebuildAST()", getId()));
+        int oldNumChildren = astnode.getNumChildNoTransform();
 
         if (isConflict()) {
             astnode.isConflict = true;
@@ -557,15 +585,24 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             newchildren[i] = child.astnode;
             newchildren[i].setParent(astnode);
             child.rebuildAST();
-
         }
+
         astnode.jdimeChanges = hasChanges();
         astnode.jdimeId = getId();
         astnode.setChildren(newchildren);
 
-        assert (isConflict() || getNumChildren() == astnode
-                .getNumChildNoTransform());
+        if (LOG.isLoggable(Level.FINEST)) {
+            LOG.finest(() -> String.format("jdime: %d, astnode.before: %d, astnode.after: %d children", getNumChildren(), oldNumChildren,
+                    astnode.getNumChildNoTransform()));
+            if (getNumChildren() != astnode.getNumChildNoTransform()) {
+                LOG.finest("mismatch between jdime and astnode for " + getId() + "(" + astnode.dumpString() + ")");
+            }
+            if (oldNumChildren != astnode.getNumChildNoTransform()) {
+                LOG.finest("Number of children has changed");
+            }
+        }
 
+        assert (isConflict() || getNumChildren() == astnode.getNumChildNoTransform());
     }
 
     @Override
@@ -576,8 +613,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     @Override
     public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
         ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.fullCopy())
-                : new ASTNodeArtifact(right.astnode.fullCopy());
+                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
+                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
 
         conflict.setRevision(new Revision("conflict"));
         conflict.setNumber(virtualcount++);
@@ -591,7 +628,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.fine("Creating choice node");
         ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.fullCopy());
+        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
         choice.setRevision(new Revision("choice"));
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);

@@ -4,10 +4,9 @@ class Bag {
 <<<<<<< testfiles/left/SimpleTests/Bag/Bag.java
   int[] get() {
     return values;
-  }
 =======
   int size() {
     return values.length;
-  }
 >>>>>>> testfiles/right/SimpleTests/Bag/Bag.java
+  }
 }
