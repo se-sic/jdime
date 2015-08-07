@@ -25,7 +25,6 @@
 package de.fosd.jdime.common;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,11 +45,10 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
-import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.ClassDecl;
-import org.jastadd.extendj.ast.CompilationUnit;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
+import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
@@ -72,20 +70,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            program
      */
     private static void initParser(Program p) {
-        JavaParser parser = new JavaParser() {
-            @Override
-            public CompilationUnit parse(InputStream is, String fileName) throws IOException,
-                    beaver.Parser.Exception {
-                return new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
-            }
-        };
-        BytecodeReader bytecodeParser = new BytecodeReader() {
-            @Override
-            public CompilationUnit read(InputStream is, String fullName, Program p)
-                    throws FileNotFoundException, IOException {
-                return new BytecodeParser(is, fullName).parse(null, null, p);
-            }
-        };
+        JavaParser parser = (is, fileName) -> new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
+        BytecodeReader bytecodeParser = (is, fullName, program) -> new BytecodeParser(is, fullName).parse(null, null, program);
 
         p.initJavaParser(parser);
         p.initBytecodeReader(bytecodeParser);
