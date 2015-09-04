@@ -23,6 +23,14 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,14 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
 
 /**
  * Performs an unstructured, line based merge.
@@ -136,7 +136,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             long cmdStart = System.currentTimeMillis();
             Process pr = pb.start();
 
-            if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+            if (i == 0 && (!context.isBenchmark() || context.hasStatistics())) {
                 // process input stream
                 BufferedReader buf = new BufferedReader(new InputStreamReader(
                         pr.getInputStream()));
@@ -148,7 +148,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
                 while ((line = buf.readLine()) != null) {
                     context.appendLine(line);
 
-                    if (context.hasStats()) {
+                    if (context.hasStatistics()) {
                         if (line.matches("^$") || line.matches("^\\s*$")
                                 || line.matches("^\\s*//.*$")) {
                             // skip empty lines and single line comments
@@ -199,7 +199,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
                         pr.getErrorStream()));
                 while ((line = buf.readLine()) != null) {
                     if (i == 0
-                            && (!context.isBenchmark() || context.hasStats())) {
+                            && (!context.isBenchmark() || context.hasStatistics())) {
                         context.appendErrorLine(line);
                     }
                 }
@@ -215,7 +215,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             long runtime = System.currentTimeMillis() - cmdStart;
             runtimes.add(runtime);
 
-            if (context.isBenchmark() && context.hasStats()) {
+            if (context.isBenchmark() && context.hasStatistics()) {
                 if (i == 0) {
                     LOG.fine(() -> String.format("Initial run: %d ms", runtime));
                 } else {
@@ -244,10 +244,10 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         // add statistical data to context
-        if (context.hasStats()) {
+        if (context.hasStatistics()) {
             assert (cloc <= loc);
 
-            Stats stats = context.getStats();
+            Stats stats = context.getStatistics();
             StatsElement linesElement = stats.getElement("lines");
             assert (linesElement != null);
             StatsElement newElement = new StatsElement();

@@ -22,19 +22,15 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -99,10 +95,10 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
             MergeStrategy<FileArtifact> s = new LinebasedStrategy();
             subContext.setMergeStrategy(s);
-            subContext.setSaveStats(true);
+            subContext.collectStatistics(true);
             s.merge(operation, subContext);
 
-            int conflicts = subContext.getStats().getConflicts();
+            int conflicts = subContext.getStatistics().getConflicts();
             if (conflicts > 0) {
                 // merge not successful. we need another strategy.
                 if (i == 0) {
@@ -131,9 +127,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 s = new StructuredStrategy();
                 subContext.setMergeStrategy(s);
                 if (i == 0) {
-                    subContext.setSaveStats(true);
+                    subContext.collectStatistics(true);
                 } else {
-                    subContext.setSaveStats(false);
+                    subContext.collectStatistics(false);
                     subContext.setBenchmark(true);
                     subContext.setBenchmarkRuns(0);
                 }
@@ -145,7 +141,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             }
 
             if (i == 0) {
-                substats = subContext.getStats();
+                substats = subContext.getStatistics();
             }
 
             long runtime = System.currentTimeMillis() - cmdStart;
@@ -186,10 +182,10 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         // add statistical data to context
-        if (context.hasStats()) {
+        if (context.hasStatistics()) {
             assert (substats != null);
 
-            Stats stats = context.getStats();
+            Stats stats = context.getStatistics();
             substats.setRuntime(runtime);
             MergeTripleStats subscenariostats = substats.getScenariostats()
                     .remove(0);

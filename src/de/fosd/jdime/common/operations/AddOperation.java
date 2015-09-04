@@ -22,17 +22,13 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.*;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -105,8 +101,8 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
             }
         }
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
+        if (context.hasStatistics()) {
+            Stats stats = context.getStatistics();
             stats.incrementOperation(this);
             StatsElement element = stats.getElement(artifact
                     .getStatsKey(context));
@@ -124,9 +120,9 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
                     LOG.fine(childStats::toString);
 
                     if (context.isConsecutive()) {
-                        context.getStats().addRightStats(childStats);
+                        context.getStatistics().addRightStats(childStats);
                     } else {
-                        context.getStats().addASTStats(childStats);
+                        context.getStatistics().addASTStats(childStats);
                     }
                 }
             }

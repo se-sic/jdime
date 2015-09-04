@@ -22,7 +22,7 @@
  */
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
@@ -160,15 +160,8 @@ public class MergeContext implements Cloneable {
      */
     private int runs = BENCHMARKRUNS;
 
-    /**
-     * Save statistical data.
-     */
-    private boolean saveStats = false;
-
-    /**
-     * Statistical data are stored in a stats object.
-     */
-    private Stats stats = null;
+    private boolean collectStatistics = false;
+    private Statistics statistics = null;
 
     /**
      * StdOut of a merge operation.
@@ -209,18 +202,6 @@ public class MergeContext implements Cloneable {
      */
     public MergeContext() {
         programStart = System.currentTimeMillis();
-    }
-
-    /**
-     * Adds statistical data to already collected data.
-     *
-     * @param other
-     *            statistical data to add
-     */
-    public final void addStats(final Stats other) {
-        assert (stats != null);
-        assert (other != null);
-        stats.add(other);
     }
 
     /**
@@ -287,7 +268,7 @@ public class MergeContext implements Cloneable {
         clone.outputFile = outputFile;
         clone.quiet = quiet;
         clone.recursive = recursive;
-        clone.saveStats = saveStats;
+        clone.collectStatistics = collectStatistics;
         clone.keepGoing = keepGoing;
         clone.diffOnly = diffOnly;
         clone.lookAhead = lookAhead;
@@ -334,12 +315,13 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Retrieves the statistical data.
+     * Returns the <code>Statistics</code> object used to collect statistical data. This method <u>may</u> return
+     * <code>null</code> if {@link #hasStatistics()} returns <code>false</code>.
      *
-     * @return statistical data
+     * @return the <code>Statistics</code> object currently in use
      */
-    public final Stats getStats() {
-        return stats;
+    public Statistics getStatistics() {
+        return statistics;
     }
 
     /**
@@ -381,10 +363,13 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return the saveStats
+     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
+     * {@link #getStatistics()}.
+     *
+     * @return whether statistical data should be collected
      */
-    public final boolean hasStats() {
-        return saveStats;
+    public boolean hasStatistics() {
+        return collectStatistics;
     }
 
     /**
@@ -618,14 +603,15 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @param saveStats
-     *            the saveStats to set
+     * Sets whether statistical data should be collected during the next run using this <code>MergeContext</code>
+     *
+     * @param collectStatistics whether to collect statistical data
      */
-    public final void setSaveStats(final boolean saveStats) {
-        this.saveStats = saveStats;
+    public void collectStatistics(boolean collectStatistics) {
+        this.collectStatistics = collectStatistics;
 
-        if (saveStats) {
-            stats = mergeStrategy.createStats();
+        if (collectStatistics && statistics == null) {
+            statistics = new Statistics();
         }
     }
 

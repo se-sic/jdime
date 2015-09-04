@@ -22,13 +22,13 @@
  */
 package de.fosd.jdime.stats;
 
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.strategy.LinebasedStrategy;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.strategy.LinebasedStrategy;
 
 /**
  * @author Olaf Lessenich
@@ -48,7 +48,7 @@ public final class StatsPrinter {
     public static void print(final MergeContext context) {
         assert (context != null);
 
-        Stats stats = context.getStats();
+        Stats stats = context.getStatistics();
         assert (stats != null);
 
         if (LOG.isLoggable(Level.FINE)) {

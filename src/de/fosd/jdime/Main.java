@@ -140,7 +140,7 @@ public final class Main {
             merge(context);
         }
 
-        if (context.hasStats()) {
+        if (context.hasStatistics()) {
             StatsPrinter.print(context);
         }
 
@@ -328,7 +328,7 @@ public final class Main {
                 LOG.finest(() -> "Lookahead = " + context.getLookAhead());
             }
 
-            context.setSaveStats(cmd.hasOption("stats")
+            context.collectStatistics(cmd.hasOption("stats")
                     || cmd.hasOption("benchmark"));
             context.setBenchmark(cmd.hasOption("benchmark"));
             context.setForceOverwriting(cmd.hasOption("f"));

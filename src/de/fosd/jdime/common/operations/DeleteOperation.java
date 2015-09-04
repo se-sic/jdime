@@ -22,17 +22,13 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.*;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
+
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -106,8 +102,8 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
             // which then calls deleteChildren() on the created Program.
         }
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
+        if (context.hasStatistics()) {
+            Stats stats = context.getStatistics();
             stats.incrementOperation(this);
             StatsElement element = stats.getElement(artifact
                     .getStatsKey(context));
@@ -128,9 +124,9 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
                     childStats.resetAdditions();
 
                     if (context.isConsecutive()) {
-                        context.getStats().addRightStats(childStats);
+                        context.getStatistics().addRightStats(childStats);
                     } else {
-                        context.getStats().addASTStats(childStats);
+                        context.getStatistics().addASTStats(childStats);
                     }
                 }
             }

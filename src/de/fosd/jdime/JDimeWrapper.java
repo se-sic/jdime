@@ -1,13 +1,5 @@
 package de.fosd.jdime;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -18,6 +10,13 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import org.apache.commons.io.FilenameUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JDimeWrapper {
     private static final Logger LOG = Logger.getLogger(JDimeWrapper.class.getCanonicalName());
@@ -61,14 +60,14 @@ public class JDimeWrapper {
 
         // run the merge first with structured strategy to see whether there are conflicts
         context.setMergeStrategy(structured);
-        context.setSaveStats(true);
+        context.collectStatistics(true);
         Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
         merge.apply(context);
 
         // if there are no conflicts, run the conditional strategy
-        if (context.getStats().getConflicts() == 0) {
+        if (context.getStatistics().getConflicts() == 0) {
             context = (MergeContext) context.clone();
-            context.setSaveStats(false);
+            context.collectStatistics(false);
             context.setMergeStrategy(conditional);
             // use regular merging outside of methods
             context.setConditionalOutsideMethods(false);

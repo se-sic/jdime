@@ -134,11 +134,11 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         try {
             for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
-                if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+                if (i == 0 && (!context.isBenchmark() || context.hasStatistics())) {
                     mergeContext = context;
                 } else {
                     mergeContext = (MergeContext) context.clone();
-                    mergeContext.setSaveStats(false);
+                    mergeContext.collectStatistics(false);
                     mergeContext.setOutputFile(null);
                 }
 
@@ -167,7 +167,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 LOG.finest("MergeOperation<ASTNodeArtifact>.apply(context)");
                 astMergeOp.apply(mergeContext);
 
-                if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
+                if (i == 0 && (!context.isBenchmark() || context.hasStatistics())) {
                     if (LOG.isLoggable(Level.FINEST)) {
                         LOG.finest("Structured merge finished.");
 
@@ -288,7 +288,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 astStats = ASTStats.add(leftStats, rightStats);
                 astStats.setConflicts(targetStats);
 
-                if (LOG.isLoggable(Level.FINE) && context.hasStats()) {
+                if (LOG.isLoggable(Level.FINE) && context.hasStatistics()) {
                     System.out.println("---------- left ----------");
                     System.out.println(leftStats);
                     System.out.println("---------- right ----------");
@@ -315,14 +315,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     }
                 }
 
-                if (context.hasStats()) {
-                    Stats stats = context.getStats();
+                if (context.hasStatistics()) {
+                    Stats stats = context.getStatistics();
                     stats.addASTStats(astStats);
                     stats.addLeftStats(leftStats);
                     stats.addRightStats(rightStats);
                 }
 
-                if (context.isBenchmark() && context.hasStats()) {
+                if (context.isBenchmark() && context.hasStatistics()) {
                     if (i == 0) {
                         LOG.fine(() -> "Initial run: " + runtime + " ms");
                     } else {
@@ -350,10 +350,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 target.write(context.getStdIn());
             }
             // add statistical data to context
-            if (context.hasStats()) {
+            if (context.hasStatistics()) {
                 assert (cloc <= loc);
 
-                Stats stats = context.getStats();
+                Stats stats = context.getStatistics();
                 StatsElement linesElement = stats.getElement("lines");
                 assert (linesElement != null);
                 StatsElement newElement = new StatsElement();
@@ -390,9 +390,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             if (!context.isKeepGoing()) {
                 throw t;
             } else {
-                if (context.hasStats()) {
+                if (context.hasStatistics()) {
                     MergeTripleStats scenarioStats = new MergeTripleStats(triple, t.toString());
-                    context.getStats().addScenarioStats(scenarioStats);
+                    context.getStatistics().addScenarioStats(scenarioStats);
                 }
             }
         } finally {
