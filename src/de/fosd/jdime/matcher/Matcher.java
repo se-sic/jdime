@@ -22,14 +22,6 @@
  */
 package de.fosd.jdime.matcher;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -39,6 +31,9 @@ import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
+
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -210,22 +205,14 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
                 T left = matching.getLeft();
                 T right = matching.getRight();
 
-                // TODO: collect statistical data about matching scores per language element and look-ahead setting
                 if (left.matches(right)) {
                     // regular top-down matching where the compared nodes do match
                     matching.setHighlightColor(color);
                     left.addMatching(matching);
                     right.addMatching(matching);
-
-                    // just for statistics
-                    context.matchedElement(left);
-                    context.matchedElement(right);
                 } else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
                     // the compared nodes do not match but look-ahead is active and found matchings in the subtree
-
-                    // just for statistics
-                    context.skippedLeftElement(left, matching.getScore());
-                    context.skippedRightElement(left, matching.getScore());
+                    // TODO: collect statistical data about matching scores per language element and look-ahead setting
                 } else {
                     // the compared nodes do not match and look-ahead is inactive: this is a serious bug!
                     String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";

@@ -23,6 +23,13 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.ASTStats;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
+
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,18 +38,6 @@ import java.security.Permission;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -152,12 +147,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 left = new ASTNodeArtifact(leftFile);
                 base = new ASTNodeArtifact(baseFile);
                 right = new ASTNodeArtifact(rightFile);
-
-                context.addElements(left);
-                if (!baseFile.isEmpty()) {
-                    context.addElements(base);
-                }
-                context.addElements(right);
 
                 ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
                 targetNode.setRevision(left.getRevision());
