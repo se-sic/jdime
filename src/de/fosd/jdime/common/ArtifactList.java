@@ -24,10 +24,10 @@
 package de.fosd.jdime.common;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
- * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
+ * An <code>ArrayList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
  * {@link Artifact#getId()} to represent its contents.
  *
  * @param <E>
@@ -56,18 +56,6 @@ public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
      * @return a string representation of this collection
      */
     private String toString(String separator) {
-        assert (separator != null);
-
-        StringBuilder sb = new StringBuilder("");
-        
-        for (Iterator<E> it = this.iterator(); it.hasNext();) {
-            sb.append(it.next().getId());
-            
-            if (it.hasNext()) {
-                sb.append(separator);
-            }
-        }
-        
-        return sb.toString();
+        return String.join(separator, stream().map(Artifact::getId).collect(Collectors.toList()));
     }
 }
