@@ -15,4 +15,12 @@ public class ElementStatistics {
         this.numChanged = 0;
         this.numOccurInConflict = 0;
     }
+
+    public void add(ElementStatistics other) {
+        total += other.total;
+        numAdded += other.numAdded;
+        numDeleted += other.numDeleted;
+        numChanged += other.numChanged;
+        numOccurInConflict += other.numOccurInConflict;
+    }
 }
