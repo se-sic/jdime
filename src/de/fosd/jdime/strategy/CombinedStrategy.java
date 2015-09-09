@@ -210,21 +210,11 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         System.gc();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.strategy.MergeStrategy#toString()
-     */
     @Override
     public final String toString() {
         return "combined";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.strategy.StatsInterface#createStats()
-     */
     @Override
     public final Stats createStats() {
         return new Stats(new String[] { "directories", "files", "lines",

@@ -138,11 +138,6 @@ public class MergeTripleStats {
         return runtime;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public final String toString() {
         return triple.toString() + ": " + conflicts + " conflicts, "

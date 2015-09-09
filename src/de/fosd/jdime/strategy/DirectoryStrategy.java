@@ -22,9 +22,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
@@ -32,6 +29,9 @@ import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.Stats;
+
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * @author Olaf Lessenich
@@ -87,11 +87,6 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
         merge.merge(operation, context);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public final Stats createStats() {
         return new Stats(new String[] { "directories", "files" });

@@ -22,10 +22,10 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+
+import java.io.IOException;
 
 /**
  * This class represents an operation that is applied to <code>Artifact</code>s.
@@ -85,11 +85,6 @@ public abstract class Operation<T extends Artifact<T>> {
      */
     public abstract String getName();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public abstract String toString();
 

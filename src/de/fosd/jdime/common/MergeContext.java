@@ -254,11 +254,6 @@ public class MergeContext implements Cloneable {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#clone()
-     */
     @Override
     public final Object clone() {
         MergeContext clone = new MergeContext();

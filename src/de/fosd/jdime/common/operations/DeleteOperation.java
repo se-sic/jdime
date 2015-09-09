@@ -71,11 +71,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#apply()
-     */
     @Override
     public final void apply(final MergeContext context) throws IOException {
         assert (artifact != null);
@@ -138,11 +133,6 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
         return "DELETE";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public final String toString() {
         return getId() + ": " + getName() + " " + artifact;
