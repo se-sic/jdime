@@ -11,7 +11,9 @@ public final class Parser {
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern lineComment = Pattern.compile("\\s*//.*");
-    private static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*\\*/\\s*");
+    private static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
+    private static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
+    private static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
 
     private Parser() {}
 
@@ -26,26 +28,49 @@ public final class Parser {
         Scanner s = new Scanner(code);
 
         ParseResult res = new ParseResult();
+
         int mergedLinesOfCode = 0;
         int conflicts = 0;
         int conflictingLinesOfCode = 0;
+        int clocBeforeConflict = 0;
 
         boolean inConflict = false;
+        boolean inLeft = true;
         boolean inComment = false;
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
+            boolean wasConflictMarker = false;
 
-            if (emptyLine.matcher(line).matches()) {
-                continue;
-            }
+            if (matches(emptyLine, line) || matches(lineComment, line)) {
+                // we ignore empty lines and line comments
+            } else if (matches(blockCommentStart, line)) {
 
-            if (conflictStart.matcher(line).matches()) {
-                conflicts++;
+                if (!matches(blockComment1Line, line)) {
+                    inComment = true;
+                }
+            } else if (matches(blockCommentEnd, line)) {
+
+                inComment = false;
+            } else if (matches(conflictStart, line)) {
+
+                wasConflictMarker = true;
                 inConflict = true;
-            } else if (conflictEnd.matcher(line).matches()) {
+                inLeft = true;
+                clocBeforeConflict = conflictingLinesOfCode;
+                conflicts++;
+            } else if (matches(conflictSep, line)) {
+
+                wasConflictMarker = true;
+                inLeft = false;
+            } else if (matches(conflictEnd, line)) {
+
+                wasConflictMarker = true;
                 inConflict = false;
-            } else if (!conflictSep.matcher(line).matches()){
+                if (clocBeforeConflict == conflictingLinesOfCode) {
+                    conflicts--; // the conflict only contained empty lines and comments
+                }
+            } else {
 
                 if (!inComment) {
                     if (inConflict) {
@@ -54,8 +79,14 @@ public final class Parser {
                         mergedLinesOfCode++;
                     }
                 }
+            }
 
-
+            if (!wasConflictMarker) {
+                if (inConflict) {
+                    res.addConflictingLine(line, inLeft);
+                } else {
+                    res.addMergedLine(line);
+                }
             }
         }
 
@@ -64,5 +95,9 @@ public final class Parser {
         res.setConflictingLinesOfCode(conflictingLinesOfCode);
 
         return res;
+    }
+
+    public static boolean matches(Pattern p, String line) {
+        return p.matcher(line).matches();
     }
 }

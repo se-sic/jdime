@@ -5,14 +5,12 @@ import java.util.List;
 
 public abstract class Content {
 
-    public enum Type {CONFLICT, MERGED}
-
     public static class Merged extends Content {
 
         private List<String> lines;
 
         public Merged() {
-            super(Type.MERGED);
+            super(false);
             this.lines = new ArrayList<>();
         }
 
@@ -36,7 +34,7 @@ public abstract class Content {
         private List<String> rightLines;
 
         public Conflict() {
-            super(Type.CONFLICT);
+            super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
         }
@@ -68,14 +66,14 @@ public abstract class Content {
         }
     }
 
-    protected Type type;
+    protected boolean isConflict;
 
-    public Content(Type type) {
-        this.type = type;
+    public Content(boolean isConflict) {
+        this.isConflict = isConflict;
     }
 
-    public Type getType() {
-        return type;
+    public boolean isConflict() {
+        return isConflict;
     }
 
     @Override
