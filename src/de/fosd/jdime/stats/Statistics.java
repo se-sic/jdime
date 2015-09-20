@@ -1,6 +1,8 @@
 package de.fosd.jdime.stats;
 
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.stats.parser.Parser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +12,11 @@ public class Statistics {
     private Map<Revision, Map<KeyEnums.LEVEL, ElementStatistics>> levelStats;
     private Map<Revision, Map<KeyEnums.TYPE, ElementStatistics>> typeStats;
     private Map<Revision, MergeStatistics> mergeStats;
+
+    // These numbers are obtained from the output produced after a merge is completed.
+    private int mergedLinesOfCode;
+    private int conflicts;
+    private int conflictingLinesOfCode;
 
     public Statistics() {
         this.levelStats = new HashMap<>();
@@ -52,5 +59,25 @@ public class Statistics {
         for (Map.Entry<Revision, MergeStatistics> entry : other.mergeStats.entrySet()) {
             getMergeStatistics(entry.getKey()).add(entry.getValue());
         }
+    }
+
+    public ParseResult addLineStatistics(String mergeResult) {
+        ParseResult result = Parser.parse(mergeResult);
+
+        mergedLinesOfCode += result.getMergedLinesOfCode();
+        conflicts += result.getConflicts();
+        conflictingLinesOfCode += result.getConflictingLinesOfCode();
+
+        return result;
+    }
+
+    public ParseResult setLineStatistics(String mergeResult) {
+        ParseResult result = Parser.parse(mergeResult);
+
+        mergedLinesOfCode = result.getMergedLinesOfCode();
+        conflicts = result.getConflicts();
+        conflictingLinesOfCode = result.getConflictingLinesOfCode();
+
+        return result;
     }
 }
