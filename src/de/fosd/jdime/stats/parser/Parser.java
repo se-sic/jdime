@@ -42,41 +42,41 @@ public final class Parser {
             String line = s.nextLine();
             boolean wasConflictMarker = false;
 
-            if (matches(emptyLine, line) || matches(lineComment, line)) {
-                // we ignore empty lines and line comments
-            } else if (matches(blockCommentStart, line)) {
+            if (!matches(emptyLine, line) && !matches(lineComment, line)) {
+                if (matches(blockCommentStart, line)) {
 
-                if (!matches(blockComment1Line, line)) {
-                    inComment = true;
-                }
-            } else if (matches(blockCommentEnd, line)) {
+                    if (!matches(blockComment1Line, line)) {
+                        inComment = true;
+                    }
+                } else if (matches(blockCommentEnd, line)) {
 
-                inComment = false;
-            } else if (matches(conflictStart, line)) {
+                    inComment = false;
+                } else if (matches(conflictStart, line)) {
 
-                wasConflictMarker = true;
-                inConflict = true;
-                inLeft = true;
-                clocBeforeConflict = conflictingLinesOfCode;
-                conflicts++;
-            } else if (matches(conflictSep, line)) {
+                    wasConflictMarker = true;
+                    inConflict = true;
+                    inLeft = true;
+                    clocBeforeConflict = conflictingLinesOfCode;
+                    conflicts++;
+                } else if (matches(conflictSep, line)) {
 
-                wasConflictMarker = true;
-                inLeft = false;
-            } else if (matches(conflictEnd, line)) {
+                    wasConflictMarker = true;
+                    inLeft = false;
+                } else if (matches(conflictEnd, line)) {
 
-                wasConflictMarker = true;
-                inConflict = false;
-                if (clocBeforeConflict == conflictingLinesOfCode) {
-                    conflicts--; // the conflict only contained empty lines and comments
-                }
-            } else {
+                    wasConflictMarker = true;
+                    inConflict = false;
+                    if (clocBeforeConflict == conflictingLinesOfCode) {
+                        conflicts--; // the conflict only contained empty lines and comments
+                    }
+                } else {
 
-                if (!inComment) {
-                    if (inConflict) {
-                        conflictingLinesOfCode++;
-                    } else {
-                        mergedLinesOfCode++;
+                    if (!inComment) {
+                        if (inConflict) {
+                            conflictingLinesOfCode++;
+                        } else {
+                            mergedLinesOfCode++;
+                        }
                     }
                 }
             }
