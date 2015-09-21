@@ -12,7 +12,8 @@ public final class KeyEnums {
 
     /**
      * <code>Artifact</code>s in a tree to be merged (be it an AST or a directory tree) are of one of the types in this
-     * enum.
+     * enum. <code>FILE</code>, <code>DIRECTORY</code> and <code>LINE</code> are used to address corresponding
+     * statistics container in the <code>Statistics</code> class.
      */
     public enum TYPE {
 
@@ -25,6 +26,11 @@ public final class KeyEnums {
          * A <code>FileArtifact</code> representing a directory.
          */
         DIRECTORY,
+
+        /**
+         * A line in the output of JDime.
+         */
+        LINE,
 
         /**
          * Any AST node.
