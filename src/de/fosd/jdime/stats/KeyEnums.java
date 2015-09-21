@@ -15,7 +15,7 @@ public final class KeyEnums {
      * enum. <code>FILE</code>, <code>DIRECTORY</code> and <code>LINE</code> are used to address corresponding
      * statistics container in the <code>Statistics</code> class.
      */
-    public enum TYPE {
+    public enum Type {
 
         /**
          * A <code>FileArtifact</code> representing a file (not a directory).
@@ -51,7 +51,7 @@ public final class KeyEnums {
     /**
      * AST nodes occur on one of the levels represented by this enum.
      */
-    public enum LEVEL {
+    public enum Level {
 
         /**
          * Everything above class declaration, e.g. import statements.

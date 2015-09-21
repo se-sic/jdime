@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class Statistics {
 
-    private Map<Revision, Map<KeyEnums.LEVEL, ElementStatistics>> levelStats;
-    private Map<Revision, Map<KeyEnums.TYPE, ElementStatistics>> typeStats;
+    private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStats;
+    private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStats;
     private Map<Revision, MergeStatistics> mergeStats;
 
     private ElementStatistics lineStats;
@@ -37,7 +37,7 @@ public class Statistics {
      * @param level the <code>LEVEL</code> in the <code>Revision</code>
      * @return the corresponding <code>ElementStatistics</code>
      */
-    public ElementStatistics getLevelStatistics(Revision rev, KeyEnums.LEVEL level) {
+    public ElementStatistics getLevelStatistics(Revision rev, KeyEnums.Level level) {
         return levelStats.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(level, l -> new ElementStatistics());
     }
 
@@ -50,7 +50,7 @@ public class Statistics {
      * @param type the <code>TYPE</code> in the <code>Revision</code>
      * @return the corresponding <code>ElementStatistics</code>
      */
-    public ElementStatistics getTypeStatistics(Revision rev, KeyEnums.TYPE type) {
+    public ElementStatistics getTypeStatistics(Revision rev, KeyEnums.Type type) {
 
         switch (type) {
 
@@ -75,20 +75,20 @@ public class Statistics {
 
     public void add(Statistics other) {
 
-        for (Map.Entry<Revision, Map<KeyEnums.LEVEL, ElementStatistics>> entry : other.levelStats.entrySet()) {
+        for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : other.levelStats.entrySet()) {
             Revision rev = entry.getKey();
 
-            for (Map.Entry<KeyEnums.LEVEL, ElementStatistics> subEntry : entry.getValue().entrySet()) {
-                KeyEnums.LEVEL level = subEntry.getKey();
+            for (Map.Entry<KeyEnums.Level, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                KeyEnums.Level level = subEntry.getKey();
                 getLevelStatistics(rev, level).add(subEntry.getValue());
             }
         }
 
-        for (Map.Entry<Revision, Map<KeyEnums.TYPE, ElementStatistics>> entry : other.typeStats.entrySet()) {
+        for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : other.typeStats.entrySet()) {
             Revision rev = entry.getKey();
 
-            for (Map.Entry<KeyEnums.TYPE, ElementStatistics> subEntry : entry.getValue().entrySet()) {
-                KeyEnums.TYPE type = subEntry.getKey();
+            for (Map.Entry<KeyEnums.Type, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                KeyEnums.Type type = subEntry.getKey();
                 getTypeStatistics(rev, type).add(subEntry.getValue());
             }
         }
