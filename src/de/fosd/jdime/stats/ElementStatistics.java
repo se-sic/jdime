@@ -23,4 +23,84 @@ public class ElementStatistics {
         numChanged += other.numChanged;
         numOccurInConflict += other.numOccurInConflict;
     }
+
+    public void incrementTotal(int by) {
+        total += by;
+    }
+
+    public void incrementNumAdded(int by) {
+        numAdded += by;
+    }
+
+    public void incrementNumDeleted(int by) {
+        numDeleted += by;
+    }
+
+    public void incrementNumChanged(int by) {
+        numChanged += by;
+    }
+
+    public void incrementNumOccurInConflic(int by) {
+        numOccurInConflict += by;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void incrementTotal() {
+        incrementTotal(1);
+    }
+
+    public void incrementNumAdded() {
+        incrementNumAdded(1);
+    }
+
+    public void incrementNumDeleted() {
+        incrementNumDeleted(1);
+    }
+
+    public void incrementNumChanged() {
+        incrementNumChanged(1);
+    }
+
+    public void incrementNumOccurInConflic() {
+        incrementNumOccurInConflic(1);
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getNumAdded() {
+        return numAdded;
+    }
+
+    public void setNumAdded(int numAdded) {
+        this.numAdded = numAdded;
+    }
+
+    public int getNumDeleted() {
+        return numDeleted;
+    }
+
+    public void setNumDeleted(int numDeleted) {
+        this.numDeleted = numDeleted;
+    }
+
+    public int getNumChanged() {
+        return numChanged;
+    }
+
+    public void setNumChanged(int numChanged) {
+        this.numChanged = numChanged;
+    }
+
+    public int getNumOccurInConflict() {
+        return numOccurInConflict;
+    }
+
+    public void setNumOccurInConflict(int numOccurInConflict) {
+        this.numOccurInConflict = numOccurInConflict;
+    }
 }
