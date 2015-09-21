@@ -5,16 +5,16 @@ import java.util.stream.Collectors;
 
 public class ParseResult extends ArrayList<Content> {
 
-    private int mergedLinesOfCode;
+    private int linesOfCode;
     private int conflicts;
     private int conflictingLinesOfCode;
 
-    public int getMergedLinesOfCode() {
-        return mergedLinesOfCode;
+    public int getLinesOfCode() {
+        return linesOfCode;
     }
 
-    public void setMergedLinesOfCode(int mergedLinesOfCode) {
-        this.mergedLinesOfCode = mergedLinesOfCode;
+    public void setLinesOfCode(int mergedLinesOfCode) {
+        this.linesOfCode = mergedLinesOfCode;
     }
 
     public int getConflicts() {

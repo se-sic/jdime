@@ -26,13 +26,12 @@ public final class Parser {
      */
     public static ParseResult parse(String code) {
         Scanner s = new Scanner(code);
-
         ParseResult res = new ParseResult();
 
-        int mergedLinesOfCode = 0;
+        int linesOfCode = 0;
         int conflicts = 0;
         int conflictingLinesOfCode = 0;
-        int clocBeforeConflict = 0;
+        int clocBeforeConflict = 0; // cloc = conflicting lines of code
 
         boolean inConflict = false;
         boolean inLeft = true;
@@ -72,10 +71,10 @@ public final class Parser {
                 } else {
 
                     if (!inComment) {
+                        linesOfCode++;
+
                         if (inConflict) {
                             conflictingLinesOfCode++;
-                        } else {
-                            mergedLinesOfCode++;
                         }
                     }
                 }
@@ -90,7 +89,7 @@ public final class Parser {
             }
         }
 
-        res.setMergedLinesOfCode(mergedLinesOfCode);
+        res.setLinesOfCode(linesOfCode);
         res.setConflicts(conflicts);
         res.setConflictingLinesOfCode(conflictingLinesOfCode);
 
