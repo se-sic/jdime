@@ -27,9 +27,10 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.stats.parser.ParseResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     /**
      * The arguments for <code>BASECMD</code>.
      */
-    private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
+    private static final List<String> BASEARGS = Arrays.asList("merge-file", "-q", "-p");
 
     /**
      * This line-based <code>merge</code> method uses the merging routine of
@@ -86,36 +87,23 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<FileArtifact> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
-
-        assert (operation != null);
-        assert (context != null);
-
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-        assert (triple != null);
-        assert (triple.isValid()) : "The merge triple is not valid!";
-        assert (triple.getLeft() instanceof FileArtifact);
-        assert (triple.getBase() instanceof FileArtifact);
-        assert (triple.getRight() instanceof FileArtifact);
-        assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-        assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple.getBase().isEmpty());
-        assert (triple.getRight().exists() && !triple.getRight().isDirectory());
-
-        context.resetStreams();
         FileArtifact target = null;
 
+        context.resetStreams();
+
         if (operation.getTarget() != null) {
-            assert (operation.getTarget() instanceof FileArtifact);
             target = operation.getTarget();
-            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-                    + target;
+
+            if (target.exists() && !target.isEmpty()) {
+                throw new AssertionError(String.format("Would be overwritten: %s", target));
+            }
         }
 
         List<String> cmd = new ArrayList<>();
         cmd.add(BASECMD);
-        cmd.addAll(Arrays.asList(BASEARGS));
+        cmd.addAll(BASEARGS);
 
         for (FileArtifact file : triple.getList()) {
             cmd.add(file.getPath());
@@ -123,99 +111,67 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         ArrayList<Long> runtimes = new ArrayList<>();
-        int conflicts = 0;
-        int loc = 0;
-        int cloc = 0;
 
-        // launch the merge process by invoking GNU merge (rcs has to be
-        // installed)
         LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
 
-        for (int i = 0; i < context.getBenchmarkRuns() + 1
-                && (i == 0 || context.isBenchmark()); i++) {
+        for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
             long cmdStart = System.currentTimeMillis();
             Process pr = pb.start();
 
             if (i == 0 && (!context.isBenchmark() || context.hasStatistics())) {
-                // process input stream
-                BufferedReader buf = new BufferedReader(new InputStreamReader(
-                        pr.getInputStream()));
-                boolean conflict = false;
-                boolean comment = false;
+                StringBuilder processOutput = new StringBuilder();
+                StringBuilder processErrorOutput = new StringBuilder();
+                String ls = System.lineSeparator();
 
-                int tmp = 0;
-                String line;
-                while ((line = buf.readLine()) != null) {
-                    context.appendLine(line);
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+                    String line;
 
-                    if (context.hasStatistics()) {
-                        if (line.matches("^$") || line.matches("^\\s*$")
-                                || line.matches("^\\s*//.*$")) {
-                            // skip empty lines and single line comments
-                            continue;
-                        } else if (line.matches("^\\s*/\\*.*")) {
-                            if (line.matches("^\\s*/\\*.*?\\*/")) {
-                                // one line comment
-                                continue;
-                            } else {
-                                // starting block comment
-                                comment = true;
-                                continue;
-                            }
-                        } else if (line.matches("^.*?\\*/")) {
-                            // ending block comment
-                            comment = false;
-                            continue;
-                        }
-                        if (line.matches("^\\s*<<<<<<<.*")) {
-                            LOG.fine(() -> "CONFLICT in " + triple);
-
-                            conflict = true;
-                            comment = false;
-                            tmp = cloc;
-                            conflicts++;
-                        } else if (line.matches("^\\s*=======.*")) {
-                            comment = false;
-                        } else if (line.matches("^\\s*>>>>>>>.*")) {
-                            conflict = false;
-                            comment = false;
-                            if (tmp == cloc) {
-                                // only conflicting comments or empty lines
-                                conflicts--;
-                            }
-                        } else {
-                            loc++;
-                            if (conflict && !comment) {
-                                cloc++;
-                            }
-                        }
+                    while ((line = r.readLine()) != null) {
+                        processOutput.append(line).append(ls);
                     }
                 }
 
-                buf.close();
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+                    String line;
 
-                // process error stream
-                buf = new BufferedReader(new InputStreamReader(
-                        pr.getErrorStream()));
-                while ((line = buf.readLine()) != null) {
-                    if (i == 0
-                            && (!context.isBenchmark() || context.hasStatistics())) {
-                        context.appendErrorLine(line);
+                    while ((line = r.readLine()) != null) {
+                        processErrorOutput.append(line).append(ls);
                     }
                 }
 
-                buf.close();
+                context.append(processOutput.toString());
+                context.append(processErrorOutput.toString());
+
+                pr.waitFor();
+
+                long runtime = System.currentTimeMillis() - cmdStart;
+                runtimes.add(runtime);
+
+                // add statistical data to context
+                if (context.hasStatistics()) {
+                    Statistics statistics = context.getStatistics();
+                    ParseResult res = statistics.addLineStatistics(processOutput.toString());
+
+                    if (res.getConflicts() > 0) {
+                        statistics.getTypeStatistics(null, KeyEnums.Type.FILE).incrementNumOccurInConflic();
+                    }
+
+// TODO remove after Statistics integration is complete
+//                    stats.increaseRuntime(runtime);
+//
+//                    MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, null, null, null);
+//                    stats.addScenarioStats(scenariostats);
+                }
+            } else {
+                pr.waitFor();
+
+                long runtime = System.currentTimeMillis() - cmdStart;
+                runtimes.add(runtime);
             }
-            pr.getInputStream().close();
-            pr.getErrorStream().close();
-            pr.getOutputStream().close();
-
-            pr.waitFor();
-
-            long runtime = System.currentTimeMillis() - cmdStart;
-            runtimes.add(runtime);
 
             if (context.isBenchmark() && context.hasStatistics()) {
+                long runtime = runtimes.get(runtimes.size() - 1);
+
                 if (i == 0) {
                     LOG.fine(() -> String.format("Initial run: %d ms", runtime));
                 } else {
@@ -233,43 +189,12 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         LOG.fine(() -> String.format("Linebased merge time was %d ms.", runtime));
 
         if (context.hasErrors()) {
-            LOG.severe(() -> "Errors occurred while calling '" + cmd + "')");
+            LOG.severe(() -> String.format("Errors occurred while calling '%s'", String.join(" ", cmd)));
             System.err.println(context.getStdErr());
         }
 
-        // write output
         if (!context.isPretend() && target != null) {
-            assert (target.exists());
             target.write(context.getStdIn());
-        }
-
-        // add statistical data to context
-        if (context.hasStatistics()) {
-            assert (cloc <= loc);
-
-            Stats stats = context.getStatistics();
-            StatsElement linesElement = stats.getElement("lines");
-            assert (linesElement != null);
-            StatsElement newElement = new StatsElement();
-            newElement.setMerged(loc);
-            newElement.setConflicting(cloc);
-            linesElement.addStatsElement(newElement);
-
-            if (conflicts > 0) {
-                assert (cloc > 0);
-                stats.addConflicts(conflicts);
-                StatsElement filesElement = stats.getElement("files");
-                assert (filesElement != null);
-                filesElement.incrementConflicting();
-            } else {
-                assert (cloc == 0);
-            }
-
-            stats.increaseRuntime(runtime);
-
-            MergeTripleStats scenariostats = new MergeTripleStats(triple,
-                    conflicts, cloc, loc, runtime, null, null, null);
-            stats.addScenarioStats(scenariostats);
         }
     }
 
