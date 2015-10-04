@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.uni_passau.fim.seibt.kvconfig.Config;
-import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
-import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
+import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
 
 /**
  * Contains the singleton <code>Config</code> instance containing the configuration options for JDime. All
