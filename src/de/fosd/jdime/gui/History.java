@@ -34,7 +34,9 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
 /**
  * A history of GUI <code>State</code>s. The <code>History</code> stores an index into the list of stored
- * <code>State</code>s it represents. The <code>applyX</code> methods advance/regress the index by one and apply
+ * <code>State</code>s it represents. One additional <code>State</code> is stored representing the state of the GUI
+ * before a state from the <code>History</code> was loaded. This <code>State</code> can be thought of as being at the
+ * index returned by {@link #getSize()}. The <code>applyX</code> methods advance/regress the index by one and apply
  * the <code>State</code> at the new index to the <code>GUI</code>.
  */
 public class History {
@@ -221,34 +223,76 @@ public class History {
         serializer.toXML(history.get(), stream);
     }
 
+    /**
+     * Returns the number of saved <code>State</code>s. This does not include the 'in Progress' state of the GUI.
+     *
+     * @return the size of the <code>History</code>
+     */
     public int getSize() {
         return history.size();
     }
 
+    /**
+     * Returns the size property.
+     *
+     * @return the size property
+     */
     public ReadOnlyIntegerProperty sizeProperty() {
         return history.sizeProperty();
     }
 
+    /**
+     * Returns the current index. If this method returns {@link #getSize()} the index is pointing to the 'in Progress'
+     * state of the GUI.
+     *
+     * @return the current index
+     */
     public int getIndex() {
         return index.get();
     }
 
+    /**
+     * Returns the index property.
+     *
+     * @return the index property
+     */
     public IntegerProperty indexProperty() {
         return index;
     }
 
+    /**
+     * Returns whether there is a <code>State</code> before the one currently pointed at by the index.
+     *
+     * @return whether there is a previous <code>State</code>
+     */
     public boolean hasPrevious() {
         return hasPrevious.get();
     }
 
+    /**
+     * Returns the previous property.
+     *
+     * @return the previous property
+     */
     public ReadOnlyBooleanProperty hasPreviousProperty() {
         return hasPrevious;
     }
 
+    /**
+     * Returns whether there is a <code>State</code> (including the 'in Progress' state) after the one currently
+     * pointed at by the index.
+     *
+     * @return whether there is a next <code>State</code>
+     */
     public boolean hasNext() {
         return hasNext.get();
     }
 
+    /**
+     * Returns the next property.
+     *
+     * @return the next property
+     */
     public ReadOnlyBooleanProperty hasNextProperty() {
         return hasNext;
     }
