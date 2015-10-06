@@ -2,12 +2,14 @@ package de.fosd.jdime.gui;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -22,7 +24,10 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
@@ -39,6 +44,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -100,6 +106,7 @@ public final class GUI extends Application {
     private File lastChooseDir;
     private List<TextField> textFields;
 
+    private long histHashLastSave;
     private History history;
 
     private Task<Void> jDimeExec;
@@ -128,17 +135,13 @@ public final class GUI extends Application {
         loadConfig();
 
         history = new History();
+        histHashLastSave = history.storeHash();
         historyNext.disableProperty().bind(history.hasNextProperty().not());
         historyPrevious.disableProperty().bind(history.hasPreviousProperty().not());
 
         primaryStage.setTitle(TITLE);
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    @Override
-    public void stop() throws Exception {
-        history.store(new File(System.currentTimeMillis() + "_history.txt"));
     }
 
     /**
@@ -248,6 +251,90 @@ public final class GUI extends Application {
      */
     public void historyPrevious() {
         history.applyPrevious(this);
+    }
+
+    /**
+     * Called when the history 'Save' button is clicked.
+     */
+    public void saveClicked(ActionEvent event) {
+        Window owner = ((Node) event.getTarget()).getScene().getWindow();
+        FileChooser chooser = new FileChooser();
+
+        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("History File", ".xml"));
+        chooser.setInitialFileName("History");
+
+        File file = chooser.showSaveDialog(owner);
+
+        if (file != null) {
+            try {
+                history.store(file);
+                histHashLastSave = history.storeHash();
+                showAlert("Save successful!", Alert.AlertType.INFORMATION);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not store the history in " + file.getAbsolutePath());
+                showAlert("Save failed. See the log for more info.", Alert.AlertType.WARNING);
+            }
+        }
+    }
+
+    /**
+     * Called when the history 'Load' button is clicked.
+     */
+    public void loadClicked(ActionEvent event) {
+        Window owner = ((Node) event.getTarget()).getScene().getWindow();
+
+        if (histHashLastSave != history.storeHash()) {
+            Optional<ButtonType> res = showYesNoDialog("Save the current history before overwriting it?", owner);
+
+            if (res.isPresent() && res.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                saveClicked(event);
+            } else {
+                return;
+            }
+        }
+
+        FileChooser chooser = new FileChooser();
+        File file = chooser.showOpenDialog(owner);
+
+        if (file != null) {
+            try {
+                Optional<History> loadedHistory = History.load(file);
+
+                if (loadedHistory.isPresent()) {
+                    history = loadedHistory.get();
+                    histHashLastSave = history.storeHash();
+                    historyNext.disableProperty().bind(history.hasNextProperty().not());
+                    historyPrevious.disableProperty().bind(history.hasPreviousProperty().not());
+                    showAlert("Load successful!", Alert.AlertType.INFORMATION);
+                }
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not load the history from " + file.getAbsolutePath());
+                showAlert("Load failed. See the log for more info.", Alert.AlertType.WARNING);
+            }
+        }
+    }
+
+    private void showAlert(String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+
+        alert.setContentText(content);
+        alert.show();
+    }
+
+    private Optional<ButtonType> showYesNoDialog(String content, Window owner) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        ButtonType yesType = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        ButtonType noType = new ButtonType("No", ButtonBar.ButtonData.NO);
+        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.setContentText(content);
+        alert.setHeaderText(null);
+
+        alert.getButtonTypes().setAll(yesType, noType, cancel);
+        alert.initOwner(owner);
+        alert.initModality(Modality.WINDOW_MODAL);
+
+        return alert.showAndWait();
     }
 
     /**
