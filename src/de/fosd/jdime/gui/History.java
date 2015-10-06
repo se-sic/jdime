@@ -199,7 +199,7 @@ public class History {
 
     /**
      * Stores this <code>History</code> in serialized form in the given <code>File</code>. If <code>file</code> exists
-     * it will be overridden.
+     * it will be overwritten.
      *
      * @param file
      *         the <code>File</code> to store this <code>History</code> in
@@ -295,5 +295,21 @@ public class History {
      */
     public ReadOnlyBooleanProperty hasNextProperty() {
         return hasNext;
+    }
+
+    /**
+     * Returns a hash of the fields that are included in the output of {@link #store(File)} or
+     * {@link #store(OutputStream)}.
+     *
+     * @return the hash code
+     */
+    public int storeHash() {
+        int hashCode = 1;
+
+        for (State state : history) {
+            hashCode = 31 * hashCode + (state == null ? 0 : state.storeHash());
+        }
+
+        return hashCode;
     }
 }

@@ -1,5 +1,7 @@
 package de.fosd.jdime.gui;
 
+import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -102,6 +104,16 @@ final class State {
     @Override
     public int hashCode() {
         return Objects.hash(treeViewTabs, output, left, base, right, jDime, cmdArgs, debugMode);
+    }
+
+    /**
+     * Returns a hash of the fields that are included in the output of {@link History#store(File)} or
+     * {@link History#store(OutputStream)}.
+     *
+     * @return the hash code
+     */
+    public int storeHash() {
+        return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
     }
 
     /**
