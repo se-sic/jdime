@@ -127,7 +127,7 @@ public final class GUI extends Application {
 
         loadConfig();
 
-        history = new History(this);
+        history = new History();
         historyNext.disableProperty().bind(history.hasNextProperty().not());
         historyPrevious.disableProperty().bind(history.hasPreviousProperty().not());
 
@@ -240,14 +240,14 @@ public final class GUI extends Application {
      * Called when the '{@literal >}' button for the history is clicked.
      */
     public void historyNext() {
-        history.applyNext();
+        history.applyNext(this);
     }
 
     /**
      * Called when the '{@literal <}' button for the history is clicked.
      */
     public void historyPrevious() {
-        history.applyPrevious();
+        history.applyPrevious(this);
     }
 
     /**
@@ -412,7 +412,7 @@ public final class GUI extends Application {
      * Saves the current state of the GUI to the history and then reactivates the user controls.
      */
     private void reactivate() {
-        history.storeCurrent();
+        history.storeCurrent(this);
         cancelPane.setVisible(false);
         controlsPane.setDisable(false);
     }

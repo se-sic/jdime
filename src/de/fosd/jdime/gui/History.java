@@ -66,8 +66,6 @@ public class History {
         serializer.alias("state", State.class);
     }
 
-    private GUI gui;
-
     private IntegerProperty index;
     private SimpleListProperty<State> history;
     private State inProgress;
@@ -76,12 +74,9 @@ public class History {
     private ReadOnlyBooleanProperty hasNext;
 
     /**
-     * Constructs a new <code>History</code> for the <code>State</code>s of the given <code>GUI</code>.
-     *
-     * @param gui the <code>GUI</code> whose <code>State</code>s are to be saved
+     * Constructs a new <code>History</code>.
      */
-    public History(GUI gui) {
-        this.gui = gui;
+    public History() {
         this.index = new SimpleIntegerProperty(0);
         this.history = new SimpleListProperty<>(FXCollections.observableArrayList());
 
@@ -99,8 +94,11 @@ public class History {
      * If possible, advances the index by one and applies the new <code>State</code> to the <code>GUI</code>.
      * If the new index is the size of the list the previously stored in-progress <code>State</code> of the
      * <code>GUI</code> is applied.
+     *
+     * @param gui
+     *         the <code>GUI</code> to which the <code>State</code> is to be applied
      */
-    public void applyNext() {
+    public void applyNext(GUI gui) {
         if (getIndex() == getSize()) {
             return;
         }
@@ -118,8 +116,11 @@ public class History {
      * If possible, regresses the index by one and applies the new <code>State</code> to the <code>GUI</code>.
      * If the index was the size of the list (indicating that the current <code>State</code> of the <code>GUI</code>
      * if not one of the archived states) the current <code>State</code> is stored.
+     *
+     * @param gui
+     *         the <code>GUI</code> to which the <code>State</code> is to be applied
      */
-    public void applyPrevious() {
+    public void applyPrevious(GUI gui) {
         if (getIndex() == 0) {
             return;
         }
@@ -135,8 +136,11 @@ public class History {
     /**
      * Adds the current state of the <code>GUI</code> to the <code>History</code> and sets the index to the size of the
      * list (indicating that the current state of the GUI is not one of the archived states).
+     *
+     * @param gui
+     *         the <code>GUI</code> whose <code>State</code>s are to be saved
      */
-    public void storeCurrent() {
+    public void storeCurrent(GUI gui) {
         State currentState = State.of(gui);
 
         if (history.isEmpty() || !history.get(getSize() - 1).equals(currentState)) {
@@ -145,14 +149,14 @@ public class History {
         }
     }
 
-    public static History load(GUI gui, File file) throws IOException {
+    public static History load(File file) throws IOException {
         try (InputStream is = new BufferedInputStream(new FileInputStream(file))) {
-            return load(gui, is);
+            return load(is);
         }
     }
 
-    public static History load(GUI gui, InputStream stream) {
-        History history = new History(gui);
+    public static History load(InputStream stream) {
+        History history = new History();
         history.history.setAll((Collection<? extends State>) serializer.fromXML(stream));
         history.history.forEach(state -> {
             GraphvizParser p = new GraphvizParser(state.getOutput());
