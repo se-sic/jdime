@@ -195,6 +195,15 @@ public class History {
         return Optional.of(history);
     }
 
+    /**
+     * Stores this <code>History</code> in serialized form in the given <code>File</code>. If <code>file</code> exists
+     * it will be overridden.
+     *
+     * @param file
+     *         the <code>File</code> to store this <code>History</code> in
+     * @throws IOException
+     *         if an <code>IOException</code> occurs accessing the file
+     */
     public void store(File file) throws IOException {
 
         try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
@@ -202,6 +211,12 @@ public class History {
         }
     }
 
+    /**
+     * Writes this <code>History</code> in serialized form to the given <code>OutputStream</code>.
+     *
+     * @param stream
+     *         the <code>OutputStream</code> to write to
+     */
     public void store(OutputStream stream) {
         serializer.toXML(history.get(), stream);
     }
