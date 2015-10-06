@@ -10,6 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -22,6 +25,7 @@ import javafx.collections.FXCollections;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -35,6 +39,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
  */
 public class History {
 
+    private static final Logger LOG = Logger.getLogger(History.class.getCanonicalName());
     private static XStream serializer;
 
     static {
@@ -149,21 +154,45 @@ public class History {
         }
     }
 
-    public static History load(File file) throws IOException {
+    /**
+     * Optionally (if the deserialization is successful) loads a <code>History</code> from the given <code>File</code>.
+     *
+     * @param file
+     *         the <code>File</code> to load the <code>History</code> from
+     * @return optionally the loaded <code>History</code>
+     * @throws IOException
+     *         if there is an <code>IOException</code> accessing the <code>file</code>
+     */
+    public static Optional<History> load(File file) throws IOException {
         try (InputStream is = new BufferedInputStream(new FileInputStream(file))) {
             return load(is);
         }
     }
 
-    public static History load(InputStream stream) {
-        History history = new History();
-        history.history.setAll((Collection<? extends State>) serializer.fromXML(stream));
-        history.history.forEach(state -> {
-            GraphvizParser p = new GraphvizParser(state.getOutput());
-            state.setTreeViewTabs(p.call().stream().map(GUI::getTreeTableViewTab).collect(Collectors.toList()));
-        });
+    /**
+     * Optionally (if the deserialization is successful) loads a <code>History</code> from the given
+     * <code>InputStream</code>.
+     *
+     * @param stream
+     *         the <code>InputStream</code> to load the <code>History</code> from
+     * @return optionally the loaded <code>History</code>
+     */
+    public static Optional<History> load(InputStream stream) {
+        History history;
 
-        return history;
+        try {
+            history = new History();
+            history.history.setAll((Collection<? extends State>) serializer.fromXML(stream));
+            history.history.forEach(state -> {
+                GraphvizParser p = new GraphvizParser(state.getOutput());
+                state.setTreeViewTabs(p.call().stream().map(GUI::getTreeTableViewTab).collect(Collectors.toList()));
+            });
+        } catch (XStreamException | ClassCastException e) {
+            LOG.log(Level.WARNING, e, () -> "History deserialization failed.");
+            return Optional.empty();
+        }
+
+        return Optional.of(history);
     }
 
     public void store(File file) throws IOException {
