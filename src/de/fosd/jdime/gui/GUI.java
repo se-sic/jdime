@@ -460,10 +460,9 @@ public final class GUI extends Application {
         });
 
         jDimeExec.setOnSucceeded(event -> {
-            boolean dumpGraph = DUMP_GRAPH.matcher(cmdArgs.getText()).matches();
             tabPane.getTabs().retainAll(outputTab);
 
-            if (dumpGraph) {
+            if (isDumpGraph(cmdArgs.getText())) {
                 GraphvizParser parser = new GraphvizParser(output.getItems());
                 parser.setOnSucceeded(roots -> {
                     addTabs(parser.getValue());
@@ -479,9 +478,7 @@ public final class GUI extends Application {
             }
         });
 
-        jDimeExec.setOnCancelled(event -> {
-            reactivate();
-        });
+        jDimeExec.setOnCancelled(event -> reactivate());
 
         jDimeExec.setOnFailed(event -> {
             LOG.log(Level.WARNING, event.getSource().getException(), () -> "JDime execution failed.");
@@ -513,6 +510,18 @@ public final class GUI extends Application {
      */
     private void addTabs(List<TreeItem<TreeDumpNode>> roots) {
         roots.forEach(root -> tabPane.getTabs().add(getTreeTableViewTab(root)));
+    }
+
+    /**
+     * Returns whether the given JDime command line arguments contain the parameters necessary to activate graph
+     * dump mode.
+     *
+     * @param cmdArgs
+     *         the JDime command line arguments
+     * @return true iff JDime starts in dump graph mode with the given command line arguments
+     */
+    static boolean isDumpGraph(String cmdArgs) {
+        return DUMP_GRAPH.matcher(cmdArgs).matches();
     }
 
     /**
