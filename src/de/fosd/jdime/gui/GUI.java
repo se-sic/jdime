@@ -260,7 +260,7 @@ public final class GUI extends Application {
         Window owner = ((Node) event.getTarget()).getScene().getWindow();
         FileChooser chooser = new FileChooser();
 
-        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("History File", ".xml"));
+        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("History File", "*.xml"));
         chooser.setInitialFileName("History");
 
         File file = chooser.showSaveDialog(owner);
@@ -294,6 +294,8 @@ public final class GUI extends Application {
         }
 
         FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("History File", "*.xml"));
+
         File file = chooser.showOpenDialog(owner);
 
         if (file != null) {
@@ -314,25 +316,48 @@ public final class GUI extends Application {
         }
     }
 
+    /**
+     * Shows a simple <code>Alert</code> of the given <code>type</code>.
+     *
+     * @param content
+     *         the content <code>String</code> for the <code>Alert</code>
+     * @param type
+     *         the type of the <code>Alert</code>
+     */
     private void showAlert(String content, Alert.AlertType type) {
         Alert alert = new Alert(type);
 
+        alert.setHeaderText(null);
         alert.setContentText(content);
         alert.show();
     }
 
+    /**
+     * Shows a blocking Yes/No/Cancel dialog and returns a <code>ButtonType</code> whose <code>ButtonData</code> is one
+     * of the corresponding enum values ({@link ButtonBar.ButtonData#YES}, {@link ButtonBar.ButtonData#NO},
+     * {@link ButtonBar.ButtonData#CANCEL_CLOSE}).
+     *
+     * @param content
+     *         the content <code>String</code> for the <code>Alert</code>
+     * @param owner
+     *         the owner <code>Window</code> for the dialog, may be null in which case the dialog will be non-modal
+     * @return the optional <code>ButtonType</code> returned from {@link Alert#showAndWait()}
+     */
     private Optional<ButtonType> showYesNoDialog(String content, Window owner) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         ButtonType yesType = new ButtonType("Yes", ButtonBar.ButtonData.YES);
         ButtonType noType = new ButtonType("No", ButtonBar.ButtonData.NO);
         ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        alert.setContentText(content);
         alert.setHeaderText(null);
+        alert.setContentText(content);
 
         alert.getButtonTypes().setAll(yesType, noType, cancel);
-        alert.initOwner(owner);
-        alert.initModality(Modality.WINDOW_MODAL);
+
+        if (owner != null) {
+            alert.initOwner(owner);
+            alert.initModality(Modality.WINDOW_MODAL);
+        }
 
         return alert.showAndWait();
     }
