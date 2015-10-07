@@ -113,6 +113,7 @@ public class History {
     private History(ObservableList<State> history) {
         this.index = new SimpleIntegerProperty(0);
         this.history = new SimpleListProperty<>(history);
+        this.inProgress = State.defaultState();
 
         BooleanProperty prevProperty = new SimpleBooleanProperty();
         prevProperty.bind(this.history.emptyProperty().or(index.isEqualTo(0)).not());
@@ -122,6 +123,33 @@ public class History {
 
         this.hasPrevious = prevProperty;
         this.hasNext = nextProperty;
+    }
+
+    /**
+     * Applies the <code>State</code> at the given index to the <code>GUI</code> and sets the index pointer to
+     * <code>index</code>. The <code>index</code> must be non-negative and smaller than or equal to {@link #getSize()}.
+     * If <code>index</code> is equal to {@link #getSize()} the 'in Progress' <code>State</code> will be applied to the
+     * <code>GUI</code>.
+     *
+     * @param gui
+     *         the <code>GUI</code> to which the <code>State</code> is to be applied
+     * @param index
+     *         the new <code>index</code>
+     */
+    public void apply(GUI gui, int index) {
+
+        if (!(0 <= index && index <= getSize())) {
+            LOG.warning(() -> String.format("Invalid history index %d", index));
+            return;
+        }
+
+        indexProperty().set(index);
+
+        if (getIndex() == getSize()) {
+            inProgress.applyTo(gui);
+        } else {
+            history.get(getIndex()).applyTo(gui);
+        }
     }
 
     /**
