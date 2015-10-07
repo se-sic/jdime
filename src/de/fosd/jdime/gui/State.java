@@ -2,7 +2,6 @@ package de.fosd.jdime.gui;
 
 import java.io.File;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -79,6 +78,30 @@ final class State {
         return output;
     }
 
+    public String getLeft() {
+        return left;
+    }
+
+    public String getBase() {
+        return base;
+    }
+
+    public String getRight() {
+        return right;
+    }
+
+    public String getjDime() {
+        return jDime;
+    }
+
+    public String getCmdArgs() {
+        return cmdArgs;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -114,21 +137,5 @@ final class State {
      */
     public int storeHash() {
         return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
-    }
-
-    /**
-     * This method will be called by the JVM after deserialization. In it we ensure that the 'treeViewTabs' list
-     * (which is implicitly represented in the XML) is not null (but rather empty) if it was empty at the time of
-     * serialization.
-     *
-     * @return <code>this</code>
-     */
-    private Object readResolve() {
-
-        if (treeViewTabs == null) {
-            treeViewTabs = new ArrayList<>();
-        }
-
-        return this;
     }
 }
