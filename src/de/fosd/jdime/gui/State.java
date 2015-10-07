@@ -2,11 +2,22 @@ package de.fosd.jdime.gui;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
+
+import de.fosd.jdime.JDimeConfig;
+import de.uni_passau.fim.seibt.kvconfig.Config;
+
+import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXEC;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
 
 /**
  * A Bean encapsulating the state of the gui at one point.
@@ -23,6 +34,30 @@ final class State {
     private boolean debugMode;
 
     private State() {}
+
+    /**
+     * Returns a <code>State</code> with (where possible) the values initialized to the defaults specified using the
+     * {@link JDimeConfig}.
+     *
+     * @return the default <code>State</code>
+     */
+    public static State defaultState() {
+        State state = new State();
+        Config config = JDimeConfig.getConfig();
+
+        state.treeViewTabs = new ArrayList<>();
+        state.output = FXCollections.observableArrayList();
+
+        state.left = config.get(DEFAULT_LEFT).orElse("");
+        state.base = config.get(DEFAULT_BASE).orElse("");
+        state.right = config.get(DEFAULT_RIGHT).orElse("");
+        state.jDime = config.get(DEFAULT_JDIME_EXEC).orElse("");
+        state.cmdArgs = config.get(DEFAULT_ARGS).orElse("");
+
+        state.debugMode = false;
+
+        return state;
+    }
 
     /**
      * Returns a <code>State</code> instance containing the current state of the given <code>GUI</code>.
@@ -137,5 +172,21 @@ final class State {
      */
     public int storeHash() {
         return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
+    }
+
+    /**
+     * This method will be called by the JVM after deserialization. In it we ensure that the 'treeViewTabs' list
+     * (which is implicitly represented in the XML) is not null (but rather empty) if it was empty at the time of
+     * serialization.
+     *
+     * @return <code>this</code>
+     */
+    private Object readResolve() {
+
+        if (treeViewTabs == null) {
+            treeViewTabs = new ArrayList<>();
+        }
+
+        return this;
     }
 }
