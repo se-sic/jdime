@@ -22,8 +22,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
-import com.sun.javafx.collections.ObservableListWrapper;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.converters.Converter;
@@ -48,28 +48,45 @@ public class History {
         serializer = new XStream();
         serializer.registerConverter(new Converter() {
 
-            private Converter c = serializer.getConverterLookup().lookupConverterForType(ArrayList.class);
-
             @Override
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-                c.marshal(new ArrayList<>((Collection<?>) source), writer, context);
+                context.convertAnother(((History) source).history.get());
             }
 
             @Override
             public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-                return FXCollections.observableArrayList((Collection<?>) c.unmarshal(reader, context));
+                return new History((ObservableList<State>) context.convertAnother(reader, ObservableList.class));
             }
 
             @Override
             public boolean canConvert(Class type) {
-                return type.equals(ObservableListWrapper.class);
+                return type.equals(History.class);
             }
         });
 
-        serializer.alias("root", ObservableListWrapper.class);
+        serializer.registerConverter(new Converter() {
+
+            private Converter listConverter = serializer.getConverterLookup().lookupConverterForType(ArrayList.class);
+
+            @Override
+            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+                listConverter.marshal(new ArrayList<>((ObservableList<?>) source), writer, context);
+            }
+
+            @Override
+            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+                return FXCollections.observableArrayList((Collection<?>) context.convertAnother(reader, ArrayList.class));
+            }
+
+            @Override
+            public boolean canConvert(Class type) {
+                return ObservableList.class.isAssignableFrom(type);
+            }
+        });
+
+        serializer.alias("history", History.class);
 
         serializer.omitField(State.class, "treeViewTabs");
-        serializer.addImplicitCollection(State.class, "output");
         serializer.alias("state", State.class);
     }
 
@@ -84,14 +101,24 @@ public class History {
      * Constructs a new <code>History</code>.
      */
     public History() {
+        this(FXCollections.observableArrayList());
+    }
+
+    /**
+     * Private constructor used for deserialization purposes.
+     *
+     * @param history
+     *         the <code>ObservableList</code> to use as the history
+     */
+    private History(ObservableList<State> history) {
         this.index = new SimpleIntegerProperty(0);
-        this.history = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.history = new SimpleListProperty<>(history);
 
         BooleanProperty prevProperty = new SimpleBooleanProperty();
-        prevProperty.bind(history.emptyProperty().or(index.isEqualTo(0)).not());
+        prevProperty.bind(this.history.emptyProperty().or(index.isEqualTo(0)).not());
 
         BooleanProperty nextProperty = new SimpleBooleanProperty();
-        nextProperty.bind(history.emptyProperty().or(index.greaterThanOrEqualTo(history.sizeProperty())).not());
+        nextProperty.bind(this.history.emptyProperty().or(index.greaterThanOrEqualTo(this.history.sizeProperty())).not());
 
         this.hasPrevious = prevProperty;
         this.hasNext = nextProperty;
@@ -183,9 +210,8 @@ public class History {
         History history;
 
         try {
-            history = new History();
-            history.history.setAll((Collection<? extends State>) serializer.fromXML(stream));
-            history.history.forEach(state -> {
+            history = (History) serializer.fromXML(stream);
+            history.history.stream().filter(state -> GUI.isDumpGraph(state.getCmdArgs())).forEach(state -> {
                 GraphvizParser p = new GraphvizParser(state.getOutput());
                 state.setTreeViewTabs(p.call().stream().map(GUI::getTreeTableViewTab).collect(Collectors.toList()));
             });
@@ -207,7 +233,6 @@ public class History {
      *         if an <code>IOException</code> occurs accessing the file
      */
     public void store(File file) throws IOException {
-
         try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
             store(os);
         }
@@ -220,7 +245,7 @@ public class History {
      *         the <code>OutputStream</code> to write to
      */
     public void store(OutputStream stream) {
-        serializer.toXML(history.get(), stream);
+        serializer.toXML(this, stream);
     }
 
     /**
