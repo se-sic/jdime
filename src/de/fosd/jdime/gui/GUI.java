@@ -141,6 +141,23 @@ public final class GUI extends Application {
 
         primaryStage.setTitle(TITLE);
         primaryStage.setScene(scene);
+
+        primaryStage.setOnCloseRequest(event -> {
+            if (histHashLastSave != history.storeHash()) {
+                Optional<ButtonType> res = showYesNoDialog("Unsaved changes to the history. Save now?", primaryStage.getOwner());
+
+                if (res.isPresent()) {
+                    if (res.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                        saveClicked(new ActionEvent(primaryStage, event.getTarget()));
+                    } else if (res.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                        event.consume();
+                    }
+                } else {
+                    event.consume();
+                }
+            }
+        });
+
         primaryStage.show();
     }
 
