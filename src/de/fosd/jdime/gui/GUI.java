@@ -324,6 +324,7 @@ public final class GUI extends Application {
                     histHashLastSave = history.storeHash();
                     historyNext.disableProperty().bind(history.hasNextProperty().not());
                     historyPrevious.disableProperty().bind(history.hasPreviousProperty().not());
+                    history.apply(this, history.getSize());
                     showAlert("Load successful!", Alert.AlertType.INFORMATION);
                 }
             } catch (IOException e) {
