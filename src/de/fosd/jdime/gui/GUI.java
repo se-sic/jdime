@@ -303,8 +303,12 @@ public final class GUI extends Application {
         if (histHashLastSave != history.storeHash()) {
             Optional<ButtonType> res = showYesNoDialog("Save the current history before overwriting it?", owner);
 
-            if (res.isPresent() && res.get().getButtonData() == ButtonBar.ButtonData.YES) {
-                saveClicked(event);
+            if (res.isPresent()) {
+                if (res.get().getButtonData() == ButtonBar.ButtonData.YES) {
+                    saveClicked(event);
+                } else if (res.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) {
+                    return;
+                }
             } else {
                 return;
             }
