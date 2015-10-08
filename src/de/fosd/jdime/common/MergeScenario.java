@@ -27,16 +27,18 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
- * This class represents a merge scenario.
+ * A <code>MergeScenario</code> collects the <code>Artifact</code>s that are participating in the merge and stores its
+ * <code>MergeType</code>.
  *
- * @param <T> type of artifact
+ * @param <T>
+ *         the type of the <code>Artifact</code>s being merged
  * @author Olaf Lessenich
+ * @author Georg Seibt
  */
 public class MergeScenario<T extends Artifact<T>> {
 
@@ -112,81 +114,96 @@ public class MergeScenario<T extends Artifact<T>> {
         LOG.finest(() -> String.format("Adding %s to the MergeScenario.", artifact.getId()));
     }
 
-    private final T get(int position) {
-        int i = 0;
-
-        if (LOG.isLoggable(Level.FINEST)) {
-            i++;
-            LOG.finest("Mergescenario.artifacts:");
-
-            for (Revision rev : artifacts.keySet()) {
-                LOG.finest(String.format("[%d] %s", i, artifacts.get(rev).getId()));
-            }
-
-            i = 0;
-        }
-
-        for (Revision rev : artifacts.keySet()) {
-            i++;
-            if (i == position) {
-                return artifacts.get(rev);
-            }
-        }
-
-        return null;
-    }
-
     /**
-     * Returns the baseRev artifact.
+     * Returns the <code>MergeType</code> of this <code>MergeScenario</code>.
      *
-     * @return the baseRev
+     * @return the <code>MergeType</code>
      */
-    public final T getBase() {
-        try {
-            T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-            LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
-            return base;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Returns the leftRev artifact.
-     *
-     * @return the leftRev
-     */
-    public final T getLeft() {
-        T left = get(1);
-        LOG.finest(() -> String.format("scenario.getLeft() returns %s", left.getId()));
-        return left;
-    }
-
-    /**
-     * Returns the type of merge.
-     *
-     * @return type of merge
-     */
-    public final MergeType getMergeType() {
+    public MergeType getMergeType() {
         return mergeType;
     }
 
     /**
-     * Returns the rightRev artifact.
+     * Returns the n-th <code>Artifact</code> that was added to this <code>MergeScenario</code>. Will return
+     * <code>null</code> if <code>n</code> is invalid (not smaller than the number of artifacts in the scenario).
      *
-     * @return the rightRev
+     * @param n the number of the artifact to return
+     * @return the n-th <code>Artifact</code> of this <code>MergeScenario</code> by insertion order
      */
-    public final T getRight() {
-        T right = artifacts.size() == 3 ? get(3) : get(2);
-        LOG.finest(() -> String.format("scenario.getRight() returns %s", right.getId()));
-        return right;
+    public T get(int n) {
+        int i = 0;
+        T artifact = null;
+
+        for (Map.Entry<Revision, T> entry : artifacts.entrySet()) {
+
+            if (i == n) {
+                artifact = entry.getValue();
+            }
+
+            i++;
+        }
+
+        return artifact;
+    }
+
+    /**
+     * Returns the left <code>Artifact</code>.
+     *
+     * @return the left <code>Artifact</code>
+     */
+    public T getLeft() {
+        return artifacts.get(LEFT);
+    }
+
+    /**
+     * Sets the left <code>Artifact</code> to the new value.
+     *
+     * @param left the new left <code>Artifact</code>
+     */
+    public void setLeft(T left) {
+        artifacts.put(LEFT, left);
+    }
+
+    /**
+     * Returns the base <code>Artifact</code>.
+     *
+     * @return the base <code>Artifact</code>
+     */
+    public T getBase() {
+        return artifacts.get(BASE);
+    }
+
+    /**
+     * Sets the base <code>Artifact</code> to the new value.
+     *
+     * @param base the new base <code>Artifact</code>
+     */
+    public void setBase(T base) {
+        artifacts.put(BASE, base);
+    }
+
+    /**
+     * Returns the right <code>Artifact</code>.
+     *
+     * @return the right <code>Artifact</code>
+     */
+    public T getRight() {
+        return artifacts.get(RIGHT);
+    }
+
+    /**
+     * Sets the right <code>Artifact</code> to the new value.
+     *
+     * @param right the new right <code>Artifact</code>
+     */
+    public void setRight(T right) {
+        artifacts.put(RIGHT, right);
     }
 
     /**
      * Returns whether this is a valid merge scenario.
      *
-     * @return true if the merge scenario is valid.
+     * @return true iff the merge scenario is valid
      */
     public final boolean isValid() {
         // FIXME: this needs to be reimplemented
@@ -205,33 +222,6 @@ public class MergeScenario<T extends Artifact<T>> {
         // FIXME: I think this could be done easier. It's just too fucking ugly.
         //        We need the first element that was inserted and run the merge on it.
         artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
-    }
-
-    /**
-     * Sets the baseRev artifact.
-     *
-     * @param base the baseRev to set
-     */
-    public final void setBase(final T base) {
-        artifacts.put(BASE, base);
-    }
-
-    /**
-     * Sets the leftRev artifact.
-     *
-     * @param left the leftRev to set
-     */
-    public final void setLeft(final T left) {
-        artifacts.put(LEFT, left);
-    }
-
-    /**
-     * Sets the rightRev artifact.
-     *
-     * @param right the rightRev to set
-     */
-    public final void setRight(final T right) {
-        artifacts.put(RIGHT, right);
     }
 
     /**
