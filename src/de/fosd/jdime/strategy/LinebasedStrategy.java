@@ -23,15 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.parser.ParseResult;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,6 +32,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.Statistics;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.parser.ParseResult;
 
 /**
  * Performs an unstructured, line based merge.

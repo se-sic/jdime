@@ -1,11 +1,11 @@
 package de.fosd.jdime.stats;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Statistics {
 

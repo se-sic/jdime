@@ -22,11 +22,11 @@
  */
 package de.fosd.jdime.common.operations;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-
 import java.io.IOException;
 import java.util.logging.Logger;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 
 /**
  * @author Olaf Lessenich

@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;

@@ -22,15 +22,15 @@
  */
 package de.fosd.jdime.common;
 
-import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.strategy.LinebasedStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.NWayStrategy;
-
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+
+import de.fosd.jdime.stats.Statistics;
+import de.fosd.jdime.strategy.LinebasedStrategy;
+import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.NWayStrategy;
 
 /**
  * @author Olaf Lessenich

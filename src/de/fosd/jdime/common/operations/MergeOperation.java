@@ -23,13 +23,17 @@
  */
 package de.fosd.jdime.common.operations;
 
-import de.fosd.jdime.common.*;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Logger;
+
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.MergeType;
+import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.StatsElement;
 
 /**
  * The operation merges <code>Artifact</code>s.

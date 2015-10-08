@@ -22,13 +22,13 @@
  */
 package de.fosd.jdime.stats;
 
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.strategy.LinebasedStrategy;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.strategy.LinebasedStrategy;
 
 /**
  * @author Olaf Lessenich
