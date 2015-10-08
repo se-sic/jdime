@@ -24,6 +24,7 @@
 package de.fosd.jdime.common;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -214,76 +215,72 @@ public class MergeScenario<T extends Artifact<T>> {
      *
      * @return true iff the merge scenario is valid
      */
-    public final boolean isValid() {
-        // FIXME: this needs to be reimplemented
+    public boolean isValid() {
+        // TODO: this needs to be reimplemented considering the possibility of an n-way merge
         return true;
     }
 
     /**
-     * Run the merge scenario.
+     * Returns an <code>ArtifactList</code> containing the <code>Artifact</code>s in this <code>MergeScenario</code>
+     * in the order of their insertion.
      *
-     * @param mergeOperation merge operation
-     * @param context merge context
-     * @throws IOException
-     * @throws InterruptedException
+     * @return the <code>ArtifactList</code>
      */
-    public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
-        // FIXME: I think this could be done easier. It's just too fucking ugly.
-        //        We need the first element that was inserted and run the merge on it.
-        artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
+    public ArtifactList<T> asList() {
+        return artifacts.entrySet().stream().map(Map.Entry::getValue).collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
     }
 
     /**
-     * Returns a String representing the MergeScenario separated by whitespace.
+     * Executes the merge of this <code>MergeScenario</code>.
      *
-     * @return String representation
+     * @param mergeOperation
+     *         the <code>MergeOperation</code> to be performed
+     * @param context
+     *         the <code>MergeContext</code> for the merge
+     * @throws IOException
+     * @throws InterruptedException
      */
+    public void run(MergeOperation<T> mergeOperation, MergeContext context) throws IOException, InterruptedException {
+        // FIXME: I think this could be done easier. It's just too fucking ugly.
+        get(0).merge(mergeOperation, context);
+    }
+
     @Override
-    public final String toString() {
+    public String toString() {
         return toString(" ", false);
     }
 
     /**
-     * Returns a String representing the MergeScenario separated by whitespace,
-     * omitting empty dummy files.
+     * Returns a <code>String</code> representing the <code>MergeScenario</code> separated by a whitespace.
      *
-     * @param humanReadable do not print dummy files if true
-     * @return String representation
+     * @param humanReadable
+     *         whether to omit empty dummy <code>Artifact</code>s
+     * @return the <code>String</code> representing this <code>MergeScenario</code>
      */
-    public final String toString(final boolean humanReadable) {
+    public String toString(boolean humanReadable) {
         return toString(" ", humanReadable);
     }
 
     /**
-     * Returns a String representing the MergeScenario.
+     * Returns a <code>String</code> representing the <code>MergeScenario</code>.
      *
-     * @param sep           separator
-     * @param humanReadable do not print dummy files if true
-     * @return String representation
+     * @param sep
+     *         the separator to use between the representations of the <code>Artifact</code>s
+     * @param humanReadable
+     *         whether to omit empty dummy <code>Artifact</code>s
+     * @return the <code>String</code> representing this <code>MergeScenario</code>
      */
-    public final String toString(final String sep, final boolean humanReadable) {
-        StringBuilder sb = new StringBuilder("");
+    public String toString(String sep, boolean humanReadable) {
+        StringBuilder sb = new StringBuilder();
 
-        for (Revision rev : artifacts.keySet()) {
-            T artifact = artifacts.get(rev);
+        for (Map.Entry<Revision, T> entry : artifacts.entrySet()) {
+            T artifact = entry.getValue();
+
             if (!humanReadable || !artifact.isEmpty()) {
                 sb.append(artifact.getId()).append(sep);
             }
         }
-        return sb.toString();
-    }
 
-    /**
-     * Returns a list containing all three revisions. Empty dummies for baseRev are
-     * included.
-     *
-     * @return list of artifacts
-     */
-    public final ArtifactList<T> getList() {
-        ArtifactList<T> list = new ArtifactList<>();
-        list.add(getLeft());
-        list.add(getBase());
-        list.add(getRight());
-        return list;
+        return sb.toString();
     }
 }

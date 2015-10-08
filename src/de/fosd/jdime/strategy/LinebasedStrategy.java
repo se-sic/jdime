@@ -105,7 +105,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         cmd.add(BASECMD);
         cmd.addAll(BASEARGS);
 
-        for (FileArtifact file : triple.getList()) {
+        for (FileArtifact file : triple.asList()) {
             cmd.add(file.getPath());
         }
 
