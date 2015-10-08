@@ -221,8 +221,7 @@ final class State {
 
     /**
      * This method will be called by the JVM after deserialization. In it we ensure that the 'treeViewTabs' list
-     * (which is implicitly represented in the XML) is not null (but rather empty) if it was empty at the time of
-     * serialization.
+     * (which is omitted in the XML) is not null (but rather empty).
      *
      * @return <code>this</code>
      */
