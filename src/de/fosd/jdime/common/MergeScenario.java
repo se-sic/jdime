@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -282,5 +283,26 @@ public class MergeScenario<T extends Artifact<T>> {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MergeScenario<?> that = (MergeScenario<?>) o;
+
+        return Objects.equals(mergeType, that.mergeType) &&
+                Objects.equals(artifacts, that.artifacts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mergeType, artifacts);
     }
 }
