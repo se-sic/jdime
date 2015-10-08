@@ -124,6 +124,15 @@ public class MergeScenario<T extends Artifact<T>> {
     }
 
     /**
+     * Returns the <code>Map</code> used to store the <code>Artifact</code>s in this <code>MergeScenario</code>.
+     *
+     * @return the <code>Artifact</code>s in this <code>MergeScenario</code>
+     */
+    public Map<Revision, T> getArtifacts() {
+        return artifacts;
+    }
+
+    /**
      * Returns the n-th <code>Artifact</code> that was added to this <code>MergeScenario</code>. Will return
      * <code>null</code> if <code>n</code> is invalid (not smaller than the number of artifacts in the scenario).
      *
@@ -276,9 +285,5 @@ public class MergeScenario<T extends Artifact<T>> {
         list.add(getBase());
         list.add(getRight());
         return list;
-    }
-
-    public Map<Revision, T> getArtifacts() {
-        return artifacts;
     }
 }
