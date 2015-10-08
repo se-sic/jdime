@@ -25,6 +25,7 @@ package de.fosd.jdime.common;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,16 +41,12 @@ public class MergeScenario<T extends Artifact<T>> {
 
     private static final Logger LOG = Logger.getLogger(MergeScenario.class.getCanonicalName());
 
-    /**
-     * Type of merge.
-     */
+    public static final Revision LEFT = new Revision("left");
+    public static final Revision BASE = new Revision("base");
+    public static final Revision RIGHT = new Revision("right");
+
     private MergeType mergeType;
-
-    private LinkedHashMap<Revision, T> artifacts;
-
-    private Revision leftRev = new Revision("left");
-    private Revision baseRev = new Revision("base");
-    private Revision rightRev = new Revision("right");
+    private Map<Revision, T> artifacts;
 
     /**
      * Creates a new merge scenario.
@@ -64,13 +61,13 @@ public class MergeScenario<T extends Artifact<T>> {
         this.mergeType = mergeType;
 
         if (left.getRevision() == null) {
-            left.setRevision(leftRev, true);
+            left.setRevision(LEFT, true);
         }
 
-        base.setRevision(baseRev, true);
+        base.setRevision(BASE, true);
 
         if (right.getRevision() == null) {
-            right.setRevision(rightRev, true);
+            right.setRevision(RIGHT, true);
         }
 
         LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
@@ -199,7 +196,7 @@ public class MergeScenario<T extends Artifact<T>> {
      * @param base the baseRev to set
      */
     public final void setBase(final T base) {
-        artifacts.put(baseRev, base);
+        artifacts.put(BASE, base);
     }
 
     /**
@@ -208,7 +205,7 @@ public class MergeScenario<T extends Artifact<T>> {
      * @param left the leftRev to set
      */
     public final void setLeft(final T left) {
-        artifacts.put(leftRev, left);
+        artifacts.put(LEFT, left);
     }
 
     /**
@@ -217,7 +214,7 @@ public class MergeScenario<T extends Artifact<T>> {
      * @param right the rightRev to set
      */
     public final void setRight(final T right) {
-        artifacts.put(rightRev, right);
+        artifacts.put(RIGHT, right);
     }
 
     /**
@@ -274,7 +271,7 @@ public class MergeScenario<T extends Artifact<T>> {
         return list;
     }
 
-    public LinkedHashMap<Revision, T> getArtifacts() {
+    public Map<Revision, T> getArtifacts() {
         return artifacts;
     }
 }
