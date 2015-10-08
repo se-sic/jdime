@@ -26,14 +26,12 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
 
-mainClassName = 'de.fosd.jdime.gui.GUI'
-
 sourceSets {
     main {
         java {
             srcDir 'src'
         }
-        resources  {
+        resources {
             srcDir 'res'
         }
     }
@@ -56,23 +54,24 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-cli:commons-cli:1.2'
     compile 'org.gnu.glpk:glpk-java:1.0.37'
+    compile 'com.thoughtworks.xstream:xstream:1.4.8'
+    compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
-    compile project(':KVConfig')
     testCompile 'junit:junit:4.12'
 }
 
-task config {
-    def config = file('JDime.properties')
-    def logging = file('JDimeLogging.properties')
+def configFile = file('JDime.properties')
+def loggingConfigFile = file('JDimeLogging.properties')
 
-    if (config.exists()) {
-        inputs.files(config)
-        outputs.files(config)
+task config {
+    if (configFile.exists()) {
+        inputs.files(configFile)
+        outputs.files(configFile)
     }
 
-    if (logging.exists()) {
-        inputs.files(logging)
-        outputs.files(logging)
+    if (loggingConfigFile.exists()) {
+        inputs.files(loggingConfigFile)
+        outputs.files(loggingConfigFile)
     }
 }
 
@@ -144,12 +143,13 @@ task natives {
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    applicationDefaultJvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=."]
+    defaultJvmOpts = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
 }
 
 task guiScripts(type: CreateStartScripts) {
     applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
+    defaultJvmOpts = ["-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
 }
@@ -186,6 +186,8 @@ distributions {
 }
 
 run {
+    main = 'de.fosd.jdime.Main'
+
     if (System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
     }
@@ -196,11 +198,10 @@ test {
 }
 
 allprojects {
-	gradle.projectsEvaluated {
-		tasks.withType(JavaCompile) {
-			// options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-			options.compilerArgs << "-Xlint:deprecation"
-		}
-	}
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            // options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            options.compilerArgs << "-Xlint:deprecation"
+        }
+    }
 }
-
