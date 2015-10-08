@@ -101,38 +101,83 @@ final class State {
         gui.debugMode.setSelected(debugMode);
     }
 
+    /**
+     * Returns the list of <code>Tab</code>s this <code>State</code> stores.
+     *
+     * @return the list of <code>Tab</code>s
+     */
     public List<Tab> getTreeViewTabs() {
         return treeViewTabs;
     }
 
+    /**
+     * Sets the list of <code>Tab</code>s this <code>State</code> stores to the new value.
+     *
+     * @param treeViewTabs the new <code>Tab</code>s to store
+     */
     public void setTreeViewTabs(List<Tab> treeViewTabs) {
         this.treeViewTabs = treeViewTabs;
     }
 
+    /**
+     * Returns the JDime output lines this <code>State</code> stores.
+     *
+     * @return the JDime output
+     */
     public ObservableList<String> getOutput() {
         return output;
     }
 
+    /**
+     * Returns the left path this <code>State</code> stores.
+     *
+     * @return the left path
+     */
     public String getLeft() {
         return left;
     }
 
+    /**
+     * Returns the base path this <code>State</code> stores.
+     *
+     * @return the base path
+     */
     public String getBase() {
         return base;
     }
 
+    /**
+     * Returns the right path this <code>State</code> stores.
+     *
+     * @return the right path
+     */
     public String getRight() {
         return right;
     }
 
+    /**
+     * Returns the JDime executable path this <code>State</code> stores.
+     *
+     * @return the JDime executable path
+     */
     public String getjDime() {
         return jDime;
     }
 
+    /**
+     * Returns the command line arguments this <code>State</code> stores.
+     *
+     * @return the command line arguments
+     */
     public String getCmdArgs() {
         return cmdArgs;
     }
 
+    /**
+     * Returns the debug mode state this <code>State</code> stores.
+     *
+     * @return the debug mode state
+     */
     public boolean isDebugMode() {
         return debugMode;
     }
