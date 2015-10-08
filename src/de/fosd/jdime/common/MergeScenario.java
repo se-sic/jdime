@@ -25,6 +25,7 @@ package de.fosd.jdime.common;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,50 +50,66 @@ public class MergeScenario<T extends Artifact<T>> {
     private Map<Revision, T> artifacts;
 
     /**
-     * Creates a new merge scenario.
+     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario. For all
+     * <code>Artifact</code>s the <code>Revision</code> will be (recursively) set to the appropriate static constant
+     * defined in this class.
      *
-     * @param mergeType type of merge
-     * @param left      artifact
-     * @param base      artifact
-     * @param right     artifact
+     * @param mergeType
+     *         the <code>MergeType</code> for this <code>MergeScenario</code>
+     * @param left
+     *         the <code>Artifact</code> for the {@link #LEFT} <code>Revision</code>
+     * @param base
+     *         the <code>Artifact</code> for the {@link #BASE} <code>Revision</code>
+     * @param right
+     *         the <code>Artifact</code> for the {@link #RIGHT} <code>Revision</code>
      */
-    public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
+    public MergeScenario(MergeType mergeType, T left, T base, T right) {
+
+        if (mergeType != MergeType.TWOWAY && mergeType != MergeType.THREEWAY) {
+            LOG.warning(() -> String.format("Constructing a %s MergeScenario using the Left/Base/Right constructor.", mergeType));
+        }
+
         this.artifacts = new LinkedHashMap<>();
         this.mergeType = mergeType;
 
-        if (left.getRevision() == null) {
-            left.setRevision(LEFT, true);
-        }
-
+        left.setRevision(LEFT, true);
         base.setRevision(BASE, true);
-
-        if (right.getRevision() == null) {
-            right.setRevision(RIGHT, true);
-        }
-
-        LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
-        LOG.finest(() -> String.format("artifacts.put(%s)", base.getId()));
-        LOG.finest(() -> String.format("artifacts.put(%s)", right.getId()));
+        right.setRevision(RIGHT, true);
 
         this.artifacts.put(left.getRevision(), left);
+        logAddition(left);
+
         this.artifacts.put(base.getRevision(), base);
+        logAddition(base);
+
         this.artifacts.put(right.getRevision(), right);
+        logAddition(right);
     }
 
     /**
-     * Creates a new merge scenario.
+     * Constructs a {@link MergeType#NWAY} <code>MergeScenario</code> from the given <code>Artifact</code>s.
      *
-     * @param mergeType      type of merge
-     * @param inputArtifacts artifacts to merge
+     * @param inputArtifacts
+     *         the <code>Artifact</code>s participating in the merge
      */
-    public MergeScenario(final MergeType mergeType, ArtifactList<T> inputArtifacts) {
+    public MergeScenario(List<T> inputArtifacts) {
         this.artifacts = new LinkedHashMap<>();
-        this.mergeType = mergeType;
+        this.mergeType = MergeType.NWAY;
 
         for (T artifact : inputArtifacts) {
-            LOG.finest(() -> String.format("artifacts.put(%s)", artifact.getId()));
             artifacts.put(artifact.getRevision(), artifact);
+            logAddition(artifact);
         }
+    }
+
+    /**
+     * Logs the addition of the given <code>artifact</code> to this <code>MergeScenario</code>.
+     *
+     * @param artifact
+     *         the added artifact
+     */
+    private void logAddition(T artifact) {
+        LOG.finest(() -> String.format("Adding %s to the MergeScenario.", artifact.getId()));
     }
 
     private final T get(int position) {

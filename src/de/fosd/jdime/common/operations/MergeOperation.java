@@ -102,8 +102,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         if (nway) {
-            mergeType = MergeType.NWAY;
-            this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
+            this.mergeScenario = new MergeScenario<>(inputArtifacts);
             LOG.finest("Created N-way scenario");
         } else {
 
