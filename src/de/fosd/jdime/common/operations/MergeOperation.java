@@ -181,7 +181,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
             assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
         }
 
-        mergeScenario.run(this, context);
+        // FIXME: I think this could be done easier. It's just too fucking ugly.
+        mergeScenario.get(0).merge(this, context);
 
         if (context.hasStatistics()) {
             Stats stats = context.getStatistics();

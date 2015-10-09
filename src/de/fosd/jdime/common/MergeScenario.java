@@ -23,15 +23,13 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.operations.MergeOperation;
 
 /**
  * A <code>MergeScenario</code> collects the <code>Artifact</code>s that are participating in the merge and stores its
@@ -126,12 +124,13 @@ public class MergeScenario<T extends Artifact<T>> {
     }
 
     /**
-     * Returns the <code>Map</code> used to store the <code>Artifact</code>s in this <code>MergeScenario</code>.
+     * Returns an unmodifiable view of the <code>Map</code> used to store the <code>Artifact</code>s in this
+     * <code>MergeScenario</code>.
      *
      * @return the <code>Artifact</code>s in this <code>MergeScenario</code>
      */
     public Map<Revision, T> getArtifacts() {
-        return artifacts;
+        return Collections.unmodifiableMap(artifacts);
     }
 
     /**
@@ -229,21 +228,6 @@ public class MergeScenario<T extends Artifact<T>> {
      */
     public ArtifactList<T> asList() {
         return artifacts.entrySet().stream().map(Map.Entry::getValue).collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
-    }
-
-    /**
-     * Executes the merge of this <code>MergeScenario</code>.
-     *
-     * @param mergeOperation
-     *         the <code>MergeOperation</code> to be performed
-     * @param context
-     *         the <code>MergeContext</code> for the merge
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public void run(MergeOperation<T> mergeOperation, MergeContext context) throws IOException, InterruptedException {
-        // FIXME: I think this could be done easier. It's just too fucking ugly.
-        get(0).merge(mergeOperation, context);
     }
 
     @Override
