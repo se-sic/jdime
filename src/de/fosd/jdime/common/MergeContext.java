@@ -163,7 +163,7 @@ public class MergeContext implements Cloneable {
      *         list of values for which to compute the median
      * @return median
      */
-    public static long median(final ArrayList<Long> values) {
+    public static long median(ArrayList<Long> values) {
         Collections.sort(values);
 
         if (values.size() % 2 == 1) {
@@ -182,7 +182,7 @@ public class MergeContext implements Cloneable {
      * @param s
      *         String to append
      */
-    public final void append(final String s) {
+    public void append(String s) {
         if (stdIn != null) {
             stdIn.append(s);
         }
@@ -194,7 +194,7 @@ public class MergeContext implements Cloneable {
      * @param s
      *         String to append
      */
-    public final void appendError(final String s) {
+    public void appendError(String s) {
         if (stdErr != null) {
             stdErr.append(s);
         }
@@ -206,7 +206,7 @@ public class MergeContext implements Cloneable {
      * @param line
      *         to be appended
      */
-    public final void appendErrorLine(final String line) {
+    public void appendErrorLine(String line) {
         if (stdErr != null) {
             stdErr.append(line);
             stdErr.append(System.getProperty("line.separator"));
@@ -219,7 +219,7 @@ public class MergeContext implements Cloneable {
      * @param line
      *         to be appended
      */
-    public final void appendLine(final String line) {
+    public void appendLine(String line) {
         if (stdIn != null) {
             stdIn.append(line);
             stdIn.append(System.lineSeparator());
@@ -231,7 +231,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the number of benchmark runs
      */
-    public final int getBenchmarkRuns() {
+    public int getBenchmarkRuns() {
         return runs;
     }
 
@@ -241,14 +241,14 @@ public class MergeContext implements Cloneable {
      * @param runs
      *         number of benchmark runs
      */
-    public final void setBenchmarkRuns(final int runs) {
+    public void setBenchmarkRuns(int runs) {
         this.runs = runs;
     }
 
     /**
      * @return the inputFiles
      */
-    public final ArtifactList<FileArtifact> getInputFiles() {
+    public ArtifactList<FileArtifact> getInputFiles() {
         return inputFiles;
     }
 
@@ -256,7 +256,7 @@ public class MergeContext implements Cloneable {
      * @param inputFiles
      *         the inputFiles to set
      */
-    public final void setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
+    public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
     }
 
@@ -265,7 +265,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the merge strategy
      */
-    public final MergeStrategy<?> getMergeStrategy() {
+    public MergeStrategy<?> getMergeStrategy() {
         return mergeStrategy;
     }
 
@@ -275,7 +275,7 @@ public class MergeContext implements Cloneable {
      * @param mergeStrategy
      *         merge strategy
      */
-    public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
+    public void setMergeStrategy(MergeStrategy<?> mergeStrategy) {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {
@@ -286,7 +286,7 @@ public class MergeContext implements Cloneable {
     /**
      * @return the outputFile
      */
-    public final FileArtifact getOutputFile() {
+    public FileArtifact getOutputFile() {
         return outputFile;
     }
 
@@ -294,14 +294,14 @@ public class MergeContext implements Cloneable {
      * @param outputFile
      *         the outputFile to set
      */
-    public final void setOutputFile(final FileArtifact outputFile) {
+    public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
     }
 
     /**
      * @return timestamp of program start
      */
-    public final long getProgramStart() {
+    public long getProgramStart() {
         return programStart;
     }
 
@@ -320,7 +320,7 @@ public class MergeContext implements Cloneable {
      *
      * @return stderr
      */
-    public final String getStdErr() {
+    public String getStdErr() {
         assert (stdErr != null);
         return stdErr.toString();
     }
@@ -330,7 +330,7 @@ public class MergeContext implements Cloneable {
      *
      * @return stdin
      */
-    public final String getStdIn() {
+    public String getStdIn() {
         assert (stdErr != null);
         return stdIn.toString();
     }
@@ -340,7 +340,7 @@ public class MergeContext implements Cloneable {
      *
      * @return true if stderr is not empty
      */
-    public final boolean hasErrors() {
+    public boolean hasErrors() {
         return stdErr != null && stdErr.toString().length() != 0;
     }
 
@@ -349,7 +349,7 @@ public class MergeContext implements Cloneable {
      *
      * @return true if stdin is not empty
      */
-    public final boolean hasOutput() {
+    public boolean hasOutput() {
         return stdIn != null && stdIn.toString().length() != 0;
     }
 
@@ -366,7 +366,7 @@ public class MergeContext implements Cloneable {
     /**
      * @return the benchmark
      */
-    public final boolean isBenchmark() {
+    public boolean isBenchmark() {
         return benchmark;
     }
 
@@ -374,7 +374,7 @@ public class MergeContext implements Cloneable {
      * @param benchmark
      *         the benchmark to set
      */
-    public final void setBenchmark(final boolean benchmark) {
+    public void setBenchmark(boolean benchmark) {
         this.benchmark = benchmark;
     }
 
@@ -383,14 +383,14 @@ public class MergeContext implements Cloneable {
      *
      * @return true if bugfixing mode is enabled
      */
-    public final boolean isBugfixing() {
+    public boolean isBugfixing() {
         return bugfixing;
     }
 
     /**
      * @return the diffOnly
      */
-    public final boolean isDiffOnly() {
+    public boolean isDiffOnly() {
         return diffOnly;
     }
 
@@ -398,21 +398,21 @@ public class MergeContext implements Cloneable {
      * @param diffOnly
      *         whether to run only diff
      */
-    public final void setDiffOnly(final boolean diffOnly) {
+    public void setDiffOnly(boolean diffOnly) {
         this.diffOnly = diffOnly;
     }
 
     /**
      * @return the dumpFiles
      */
-    public final boolean isDumpFile() {
+    public boolean isDumpFile() {
         return dumpFiles;
     }
 
     /**
      * @return the dumpTree
      */
-    public final boolean isDumpTree() {
+    public boolean isDumpTree() {
         return dumpTree;
     }
 
@@ -420,7 +420,7 @@ public class MergeContext implements Cloneable {
      * @param dumpTree
      *         the dumpTree to set
      */
-    public final void setDumpTree(final boolean dumpTree) {
+    public void setDumpTree(boolean dumpTree) {
         this.dumpTree = dumpTree;
     }
 
@@ -429,7 +429,7 @@ public class MergeContext implements Cloneable {
      *
      * @return whether overwriting of output files is forced
      */
-    public final boolean isForceOverwriting() {
+    public boolean isForceOverwriting() {
         return forceOverwriting;
     }
 
@@ -439,14 +439,14 @@ public class MergeContext implements Cloneable {
      * @param forceOverwriting
      *         overwrite files in the output directory
      */
-    public final void setForceOverwriting(final boolean forceOverwriting) {
+    public void setForceOverwriting(boolean forceOverwriting) {
         this.forceOverwriting = forceOverwriting;
     }
 
     /**
      * @return the guiDump
      */
-    public final boolean isGuiDump() {
+    public boolean isGuiDump() {
         return guiDump;
     }
 
@@ -454,14 +454,14 @@ public class MergeContext implements Cloneable {
      * @param guiDump
      *         the guiDump to set
      */
-    public final void setGuiDump(final boolean guiDump) {
+    public void setGuiDump(boolean guiDump) {
         this.guiDump = guiDump;
     }
 
     /**
      * @return the keepGoing
      */
-    public final boolean isKeepGoing() {
+    public boolean isKeepGoing() {
         return keepGoing;
     }
 
@@ -469,7 +469,7 @@ public class MergeContext implements Cloneable {
      * @param keepGoing
      *         the keepGoing to set
      */
-    public final void setKeepGoing(final boolean keepGoing) {
+    public void setKeepGoing(boolean keepGoing) {
         this.keepGoing = keepGoing;
     }
 
@@ -478,7 +478,7 @@ public class MergeContext implements Cloneable {
      *
      * @return if output is quiet
      */
-    public final boolean isQuiet() {
+    public boolean isQuiet() {
         return quiet;
     }
 
@@ -488,7 +488,7 @@ public class MergeContext implements Cloneable {
      * @param quiet
      *         do not print merge results to stdout
      */
-    public final void setQuiet(final boolean quiet) {
+    public void setQuiet(boolean quiet) {
         this.quiet = quiet;
     }
 
@@ -497,7 +497,7 @@ public class MergeContext implements Cloneable {
      *
      * @return true, if the merge is only simulated but not written to an output file.
      */
-    public final boolean isPretend() {
+    public boolean isPretend() {
         return pretend;
     }
 
@@ -507,7 +507,7 @@ public class MergeContext implements Cloneable {
      * @param pretend
      *         do not write the merge result to an output file
      */
-    public final void setPretend(final boolean pretend) {
+    public void setPretend(boolean pretend) {
         this.pretend = pretend;
     }
 
@@ -516,7 +516,7 @@ public class MergeContext implements Cloneable {
      *
      * @return true, if directories are merged recursively
      */
-    public final boolean isRecursive() {
+    public boolean isRecursive() {
         return recursive;
     }
 
@@ -526,14 +526,14 @@ public class MergeContext implements Cloneable {
      * @param recursive
      *         directories are merged recursively
      */
-    public final void setRecursive(final boolean recursive) {
+    public void setRecursive(boolean recursive) {
         this.recursive = recursive;
     }
 
     /**
      * Resets the input streams.
      */
-    public final void resetStreams() {
+    public void resetStreams() {
         stdIn = new StringWriter();
         stdErr = new StringWriter();
     }
@@ -541,7 +541,7 @@ public class MergeContext implements Cloneable {
     /**
      * Enables bugfixing mode.
      */
-    public final void setBugfixing() {
+    public void setBugfixing() {
         bugfixing = true;
     }
 
@@ -549,7 +549,7 @@ public class MergeContext implements Cloneable {
      * @param dumpFiles
      *         the dumpFiles to set
      */
-    public final void setDumpFiles(boolean dumpFiles) {
+    public void setDumpFiles(boolean dumpFiles) {
         this.dumpFiles = dumpFiles;
     }
 
@@ -570,7 +570,7 @@ public class MergeContext implements Cloneable {
     /**
      * @return whether consecutive diffing
      */
-    public final boolean isConsecutive() {
+    public boolean isConsecutive() {
         return consecutive;
     }
 
@@ -578,7 +578,7 @@ public class MergeContext implements Cloneable {
      * @param consecutive
      *         consecutive diffing
      */
-    public final void setConsecutive(final boolean consecutive) {
+    public void setConsecutive(boolean consecutive) {
         this.consecutive = consecutive;
     }
 
@@ -676,7 +676,7 @@ public class MergeContext implements Cloneable {
     }
 
     @Override
-    public final Object clone() {
+    public Object clone() {
         MergeContext clone = new MergeContext();
         clone.forceOverwriting = forceOverwriting;
         clone.mergeStrategy = mergeStrategy;
