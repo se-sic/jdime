@@ -38,9 +38,123 @@ import de.fosd.jdime.strategy.NWayStrategy;
 public class MergeContext implements Cloneable {
 
     /**
+     * Do look at all nodes in the subtree even if the compared nodes are not
+     * equal.
+     */
+    public static final int LOOKAHEAD_FULL = -1;
+    /**
+     * Stop looking for subtree matches if the two nodes compared are not equal.
+     */
+    public static final int LOOKAHEAD_OFF = 0;
+    /**
      * Default value of benchmark runs.
      */
     private static final int BENCHMARKRUNS = 10;
+    /**
+     * Performs benchmarks with several runs per file to get average runtimes.
+     */
+    private boolean benchmark = false;
+    /**
+     * Whether we are in bug-fixing mode.
+     */
+    private boolean bugfixing = false;
+    /**
+     * Whether merge inserts choice nodes instead of direct merging.
+     */
+    private boolean conditionalMerge = false;
+    /**
+     * Whether conditional merge should be performed outside of methods.
+     */
+    private boolean conditionalOutsideMethods = true;
+    /**
+     * Whether to run only the diff.
+     */
+    private boolean diffOnly = false;
+    /**
+     * Whether to treat two input versions as consecutive versions in the
+     * revision history.
+     */
+    private boolean consecutive = false;
+    /**
+     * Whether to dump files instead of merging.
+     */
+    private boolean dumpFiles = false;
+    /**
+     * Whether to dump ASTs instead of merging.
+     */
+    private boolean dumpTree = false;
+    /**
+     * Force overwriting of existing output files.
+     */
+    private boolean forceOverwriting = false;
+    /**
+     * Whether to use graphical output while dumping.
+     */
+    private boolean guiDump = false;
+    /**
+     * Input Files.
+     */
+    private ArtifactList<FileArtifact> inputFiles;
+    /**
+     * If true, merging will be continued after exceptions.
+     */
+    private boolean keepGoing = false;
+    /**
+     * Strategy to apply for the merge.
+     */
+    private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+    /**
+     * Output file.
+     */
+    private FileArtifact outputFile;
+    /**
+     * Timestamp of program start.
+     */
+    private long programStart;
+    /**
+     * If true, the output is quiet.
+     */
+    private boolean quiet = false;
+    /**
+     * If true, output is not written to an output file.
+     */
+    private boolean pretend = true;
+    /**
+     * Merge directories recursively. Can be set with the '-r' argument.
+     */
+    private boolean recursive = false;
+    /**
+     * Number of runs to perform for each file.
+     */
+    private int runs = BENCHMARKRUNS;
+    private boolean collectStatistics = false;
+    private Statistics statistics = null;
+    /**
+     * StdOut of a merge operation.
+     */
+    private StringWriter stdErr = new StringWriter();
+    /**
+     * StdIn of a merge operation.
+     */
+    private StringWriter stdIn = new StringWriter();
+    /**
+     * How many levels to keep searching for matches in the subtree if the
+     * currently compared nodes are not equal. If there are no matches within
+     * the specified number of levels, do not look for matches deeper in the
+     * subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop looking
+     * for subtree matches if two nodes do not match. If this is set to
+     * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
+     * The default ist to do no look-ahead matching.
+     */
+    private int lookAhead = MergeContext.LOOKAHEAD_OFF;
+    private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
+
+    /**
+     * Class constructor.
+     */
+    public MergeContext() {
+        programStart = System.currentTimeMillis();
+    }
 
     /**
      * Returns the median of a list of long values.
@@ -60,147 +174,6 @@ public class MergeContext implements Cloneable {
 
             return Math.round((lower + upper) / 2.0);
         }
-    }
-
-    /**
-     * Performs benchmarks with several runs per file to get average runtimes.
-     */
-
-    private boolean benchmark = false;
-
-    /**
-     * Whether we are in bug-fixing mode.
-     */
-    private boolean bugfixing = false;
-
-    /**
-     * Whether merge inserts choice nodes instead of direct merging.
-     */
-    private boolean conditionalMerge = false;
-
-    /**
-     * Whether conditional merge should be performed outside of methods.
-     */
-    private boolean conditionalOutsideMethods = true;
-
-    /**
-     * Whether to run only the diff.
-     */
-    private boolean diffOnly = false;
-
-    /**
-     * Whether to treat two input versions as consecutive versions in the
-     * revision history.
-     */
-    private boolean consecutive = false;
-
-    /**
-     * Whether to dump files instead of merging.
-     */
-    private boolean dumpFiles = false;
-
-    /**
-     * Whether to dump ASTs instead of merging.
-     */
-    private boolean dumpTree = false;
-
-    /**
-     * Force overwriting of existing output files.
-     */
-    private boolean forceOverwriting = false;
-
-    /**
-     * Whether to use graphical output while dumping.
-     */
-    private boolean guiDump = false;
-
-    /**
-     * Input Files.
-     */
-    private ArtifactList<FileArtifact> inputFiles;
-
-    /**
-     * If true, merging will be continued after exceptions.
-     */
-    private boolean keepGoing = false;
-
-    /**
-     * Strategy to apply for the merge.
-     */
-    private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
-
-    /**
-     * Output file.
-     */
-    private FileArtifact outputFile;
-
-    /**
-     * Timestamp of program start.
-     */
-    private long programStart;
-
-    /**
-     * If true, the output is quiet.
-     */
-    private boolean quiet = false;
-
-    /**
-     * If true, output is not written to an output file.
-     */
-    private boolean pretend = true;
-
-    /**
-     * Merge directories recursively. Can be set with the '-r' argument.
-     */
-    private boolean recursive = false;
-
-    /**
-     * Number of runs to perform for each file.
-     */
-    private int runs = BENCHMARKRUNS;
-
-    private boolean collectStatistics = false;
-    private Statistics statistics = null;
-
-    /**
-     * StdOut of a merge operation.
-     */
-    private StringWriter stdErr = new StringWriter();
-
-    /**
-     * StdIn of a merge operation.
-     */
-    private StringWriter stdIn = new StringWriter();
-
-    /**
-     * How many levels to keep searching for matches in the subtree if the
-     * currently compared nodes are not equal. If there are no matches within
-     * the specified number of levels, do not look for matches deeper in the
-     * subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop looking
-     * for subtree matches if two nodes do not match. If this is set to
-     * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
-     * The default ist to do no look-ahead matching.
-     */
-    private int lookAhead = MergeContext.LOOKAHEAD_OFF;
-
-    /**
-     * Do look at all nodes in the subtree even if the compared nodes are not
-     * equal.
-     */
-    public static final int LOOKAHEAD_FULL = -1;
-
-    /**
-     * Stop looking for subtree matches if the two nodes compared are not equal.
-     */
-    public static final int LOOKAHEAD_OFF = 0;
-
-    private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
-
-    /**
-     * Class constructor.
-     */
-    public MergeContext() {
-        programStart = System.currentTimeMillis();
     }
 
     /**
@@ -253,22 +226,6 @@ public class MergeContext implements Cloneable {
         }
     }
 
-    @Override
-    public final Object clone() {
-        MergeContext clone = new MergeContext();
-        clone.forceOverwriting = forceOverwriting;
-        clone.mergeStrategy = mergeStrategy;
-        clone.inputFiles = inputFiles;
-        clone.outputFile = outputFile;
-        clone.quiet = quiet;
-        clone.recursive = recursive;
-        clone.collectStatistics = collectStatistics;
-        clone.keepGoing = keepGoing;
-        clone.diffOnly = diffOnly;
-        clone.lookAhead = lookAhead;
-        return clone;
-    }
-
     /**
      * Returns the number of benchmark runs.
      *
@@ -279,10 +236,28 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Sets the number of benchmark runs.
+     *
+     * @param runs
+     *         number of benchmark runs
+     */
+    public final void setBenchmarkRuns(final int runs) {
+        this.runs = runs;
+    }
+
+    /**
      * @return the inputFiles
      */
     public final ArtifactList<FileArtifact> getInputFiles() {
         return inputFiles;
+    }
+
+    /**
+     * @param inputFiles
+     *         the inputFiles to set
+     */
+    public final void setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
+        this.inputFiles = inputFiles;
     }
 
     /**
@@ -295,10 +270,32 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Sets the merge strategy.
+     *
+     * @param mergeStrategy
+     *         merge strategy
+     */
+    public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
+        this.mergeStrategy = mergeStrategy;
+
+        if (mergeStrategy instanceof NWayStrategy) {
+            conditionalMerge = true;
+        }
+    }
+
+    /**
      * @return the outputFile
      */
     public final FileArtifact getOutputFile() {
         return outputFile;
+    }
+
+    /**
+     * @param outputFile
+     *         the outputFile to set
+     */
+    public final void setOutputFile(final FileArtifact outputFile) {
+        this.outputFile = outputFile;
     }
 
     /**
@@ -374,6 +371,14 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * @param benchmark
+     *         the benchmark to set
+     */
+    public final void setBenchmark(final boolean benchmark) {
+        this.benchmark = benchmark;
+    }
+
+    /**
      * Returns whether bugfixing mode is enabled.
      *
      * @return true if bugfixing mode is enabled
@@ -387,6 +392,14 @@ public class MergeContext implements Cloneable {
      */
     public final boolean isDiffOnly() {
         return diffOnly;
+    }
+
+    /**
+     * @param diffOnly
+     *         whether to run only diff
+     */
+    public final void setDiffOnly(final boolean diffOnly) {
+        this.diffOnly = diffOnly;
     }
 
     /**
@@ -404,110 +417,20 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * @param dumpTree
+     *         the dumpTree to set
+     */
+    public final void setDumpTree(final boolean dumpTree) {
+        this.dumpTree = dumpTree;
+    }
+
+    /**
      * Returns true if overwriting of files in the output directory is forced.
      *
      * @return whether overwriting of output files is forced
      */
     public final boolean isForceOverwriting() {
         return forceOverwriting;
-    }
-
-    /**
-     * @return the guiDump
-     */
-    public final boolean isGuiDump() {
-        return guiDump;
-    }
-
-    /**
-     * @return the keepGoing
-     */
-    public final boolean isKeepGoing() {
-        return keepGoing;
-    }
-
-    /**
-     * Returns true if the output is quiet.
-     *
-     * @return if output is quiet
-     */
-    public final boolean isQuiet() {
-        return quiet;
-    }
-
-    /**
-     * Returns true if the merge is only simulated but not written to an output file.
-     *
-     * @return true, if the merge is only simulated but not written to an output file.
-     */
-    public final boolean isPretend() {
-        return pretend;
-    }
-
-    /**
-     * Returns whether directories are merged recursively.
-     *
-     * @return true, if directories are merged recursively
-     */
-    public final boolean isRecursive() {
-        return recursive;
-    }
-
-    /**
-     * Resets the input streams.
-     */
-    public final void resetStreams() {
-        stdIn = new StringWriter();
-        stdErr = new StringWriter();
-    }
-
-    /**
-     * @param benchmark
-     *         the benchmark to set
-     */
-    public final void setBenchmark(final boolean benchmark) {
-        this.benchmark = benchmark;
-    }
-
-    /**
-     * Sets the number of benchmark runs.
-     *
-     * @param runs
-     *         number of benchmark runs
-     */
-    public final void setBenchmarkRuns(final int runs) {
-        this.runs = runs;
-    }
-
-    /**
-     * Enables bugfixing mode.
-     */
-    public final void setBugfixing() {
-        bugfixing = true;
-    }
-
-    /**
-     * @param diffOnly
-     *         whether to run only diff
-     */
-    public final void setDiffOnly(final boolean diffOnly) {
-        this.diffOnly = diffOnly;
-    }
-
-    /**
-     * @param dumpFiles
-     *         the dumpFiles to set
-     */
-    public final void setDumpFiles(boolean dumpFiles) {
-        this.dumpFiles = dumpFiles;
-    }
-
-    /**
-     * @param dumpTree
-     *         the dumpTree to set
-     */
-    public final void setDumpTree(final boolean dumpTree) {
-        this.dumpTree = dumpTree;
     }
 
     /**
@@ -521,6 +444,13 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * @return the guiDump
+     */
+    public final boolean isGuiDump() {
+        return guiDump;
+    }
+
+    /**
      * @param guiDump
      *         the guiDump to set
      */
@@ -529,12 +459,10 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @param inputFiles
-     *         the inputFiles to set
+     * @return the keepGoing
      */
-    public final void
-    setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
-        this.inputFiles = inputFiles;
+    public final boolean isKeepGoing() {
+        return keepGoing;
     }
 
     /**
@@ -546,25 +474,12 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Sets the merge strategy.
+     * Returns true if the output is quiet.
      *
-     * @param mergeStrategy
-     *         merge strategy
+     * @return if output is quiet
      */
-    public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
-        this.mergeStrategy = mergeStrategy;
-
-        if (mergeStrategy instanceof NWayStrategy) {
-            conditionalMerge = true;
-        }
-    }
-
-    /**
-     * @param outputFile
-     *         the outputFile to set
-     */
-    public final void setOutputFile(final FileArtifact outputFile) {
-        this.outputFile = outputFile;
+    public final boolean isQuiet() {
+        return quiet;
     }
 
     /**
@@ -578,6 +493,15 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns true if the merge is only simulated but not written to an output file.
+     *
+     * @return true, if the merge is only simulated but not written to an output file.
+     */
+    public final boolean isPretend() {
+        return pretend;
+    }
+
+    /**
      * Sets whether the merge is only simulated and not written to an output file.
      *
      * @param pretend
@@ -588,6 +512,15 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns whether directories are merged recursively.
+     *
+     * @return true, if directories are merged recursively
+     */
+    public final boolean isRecursive() {
+        return recursive;
+    }
+
+    /**
      * Set whether directories are merged recursively.
      *
      * @param recursive
@@ -595,6 +528,29 @@ public class MergeContext implements Cloneable {
      */
     public final void setRecursive(final boolean recursive) {
         this.recursive = recursive;
+    }
+
+    /**
+     * Resets the input streams.
+     */
+    public final void resetStreams() {
+        stdIn = new StringWriter();
+        stdErr = new StringWriter();
+    }
+
+    /**
+     * Enables bugfixing mode.
+     */
+    public final void setBugfixing() {
+        bugfixing = true;
+    }
+
+    /**
+     * @param dumpFiles
+     *         the dumpFiles to set
+     */
+    public final void setDumpFiles(boolean dumpFiles) {
+        this.dumpFiles = dumpFiles;
     }
 
     /**
@@ -660,6 +616,10 @@ public class MergeContext implements Cloneable {
         return lookAhead;
     }
 
+    public boolean isLookAhead() {
+        return lookAhead != MergeContext.LOOKAHEAD_OFF;
+    }
+
     /**
      * Sets how many levels to keep searching for matches in the subtree if
      * the currently compared nodes are not equal. If there are no matches
@@ -675,10 +635,6 @@ public class MergeContext implements Cloneable {
      */
     public void setLookAhead(int lookAhead) {
         this.lookAhead = lookAhead;
-    }
-
-    public boolean isLookAhead() {
-        return lookAhead != MergeContext.LOOKAHEAD_OFF;
     }
 
     /**
@@ -717,5 +673,21 @@ public class MergeContext implements Cloneable {
      */
     public void addCrash(MergeScenario scenario, Throwable t) {
         crashes.put(scenario, t);
+    }
+
+    @Override
+    public final Object clone() {
+        MergeContext clone = new MergeContext();
+        clone.forceOverwriting = forceOverwriting;
+        clone.mergeStrategy = mergeStrategy;
+        clone.inputFiles = inputFiles;
+        clone.outputFile = outputFile;
+        clone.quiet = quiet;
+        clone.recursive = recursive;
+        clone.collectStatistics = collectStatistics;
+        clone.keepGoing = keepGoing;
+        clone.diffOnly = diffOnly;
+        clone.lookAhead = lookAhead;
+        return clone;
     }
 }
