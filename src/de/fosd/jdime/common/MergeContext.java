@@ -34,7 +34,6 @@ import de.fosd.jdime.strategy.NWayStrategy;
 
 /**
  * @author Olaf Lessenich
- *
  */
 public class MergeContext implements Cloneable {
 
@@ -47,7 +46,7 @@ public class MergeContext implements Cloneable {
      * Returns the median of a list of long values.
      *
      * @param values
-     *            list of values for which to compute the median
+     *         list of values for which to compute the median
      * @return median
      */
     public static long median(final ArrayList<Long> values) {
@@ -208,7 +207,7 @@ public class MergeContext implements Cloneable {
      * Append a String to stdIN.
      *
      * @param s
-     *            String to append
+     *         String to append
      */
     public final void append(final String s) {
         if (stdIn != null) {
@@ -220,7 +219,7 @@ public class MergeContext implements Cloneable {
      * Append a String to stdERR.
      *
      * @param s
-     *            String to append
+     *         String to append
      */
     public final void appendError(final String s) {
         if (stdErr != null) {
@@ -232,7 +231,7 @@ public class MergeContext implements Cloneable {
      * Appends a line to the saved stderr buffer.
      *
      * @param line
-     *            to be appended
+     *         to be appended
      */
     public final void appendErrorLine(final String line) {
         if (stdErr != null) {
@@ -245,7 +244,7 @@ public class MergeContext implements Cloneable {
      * Appends a line to the saved stdin buffer.
      *
      * @param line
-     *            to be appended
+     *         to be appended
      */
     public final void appendLine(final String line) {
         if (stdIn != null) {
@@ -464,7 +463,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param benchmark
-     *            the benchmark to set
+     *         the benchmark to set
      */
     public final void setBenchmark(final boolean benchmark) {
         this.benchmark = benchmark;
@@ -474,7 +473,7 @@ public class MergeContext implements Cloneable {
      * Sets the number of benchmark runs.
      *
      * @param runs
-     *            number of benchmark runs
+     *         number of benchmark runs
      */
     public final void setBenchmarkRuns(final int runs) {
         this.runs = runs;
@@ -489,7 +488,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param diffOnly
-     *            whether to run only diff
+     *         whether to run only diff
      */
     public final void setDiffOnly(final boolean diffOnly) {
         this.diffOnly = diffOnly;
@@ -497,7 +496,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param dumpFiles
-     *            the dumpFiles to set
+     *         the dumpFiles to set
      */
     public final void setDumpFiles(boolean dumpFiles) {
         this.dumpFiles = dumpFiles;
@@ -505,7 +504,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param dumpTree
-     *            the dumpTree to set
+     *         the dumpTree to set
      */
     public final void setDumpTree(final boolean dumpTree) {
         this.dumpTree = dumpTree;
@@ -515,7 +514,7 @@ public class MergeContext implements Cloneable {
      * Sets whether overwriting of files in the output directory is forced.
      *
      * @param forceOverwriting
-     *            overwrite files in the output directory
+     *         overwrite files in the output directory
      */
     public final void setForceOverwriting(final boolean forceOverwriting) {
         this.forceOverwriting = forceOverwriting;
@@ -523,7 +522,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param guiDump
-     *            the guiDump to set
+     *         the guiDump to set
      */
     public final void setGuiDump(final boolean guiDump) {
         this.guiDump = guiDump;
@@ -531,16 +530,16 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param inputFiles
-     *            the inputFiles to set
+     *         the inputFiles to set
      */
     public final void
-            setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
+    setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
     }
 
     /**
      * @param keepGoing
-     *            the keepGoing to set
+     *         the keepGoing to set
      */
     public final void setKeepGoing(final boolean keepGoing) {
         this.keepGoing = keepGoing;
@@ -550,7 +549,7 @@ public class MergeContext implements Cloneable {
      * Sets the merge strategy.
      *
      * @param mergeStrategy
-     *            merge strategy
+     *         merge strategy
      */
     public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
         this.mergeStrategy = mergeStrategy;
@@ -562,7 +561,7 @@ public class MergeContext implements Cloneable {
 
     /**
      * @param outputFile
-     *            the outputFile to set
+     *         the outputFile to set
      */
     public final void setOutputFile(final FileArtifact outputFile) {
         this.outputFile = outputFile;
@@ -572,7 +571,7 @@ public class MergeContext implements Cloneable {
      * Sets whether the output is quiet or not.
      *
      * @param quiet
-     *            do not print merge results to stdout
+     *         do not print merge results to stdout
      */
     public final void setQuiet(final boolean quiet) {
         this.quiet = quiet;
@@ -581,7 +580,8 @@ public class MergeContext implements Cloneable {
     /**
      * Sets whether the merge is only simulated and not written to an output file.
      *
-     * @param pretend do not write the merge result to an output file
+     * @param pretend
+     *         do not write the merge result to an output file
      */
     public final void setPretend(final boolean pretend) {
         this.pretend = pretend;
@@ -591,7 +591,7 @@ public class MergeContext implements Cloneable {
      * Set whether directories are merged recursively.
      *
      * @param recursive
-     *            directories are merged recursively
+     *         directories are merged recursively
      */
     public final void setRecursive(final boolean recursive) {
         this.recursive = recursive;
@@ -600,7 +600,8 @@ public class MergeContext implements Cloneable {
     /**
      * Sets whether statistical data should be collected during the next run using this <code>MergeContext</code>
      *
-     * @param collectStatistics whether to collect statistical data
+     * @param collectStatistics
+     *         whether to collect statistical data
      */
     public void collectStatistics(boolean collectStatistics) {
         this.collectStatistics = collectStatistics;
@@ -618,7 +619,8 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @param consecutive consecutive diffing
+     * @param consecutive
+     *         consecutive diffing
      */
     public final void setConsecutive(final boolean consecutive) {
         this.consecutive = consecutive;
@@ -654,7 +656,9 @@ public class MergeContext implements Cloneable {
      * @return number of levels to look down for subtree matches if the
      * currently compared nodes do not match
      */
-    public int getLookAhead() { return lookAhead; }
+    public int getLookAhead() {
+        return lookAhead;
+    }
 
     /**
      * Sets how many levels to keep searching for matches in the subtree if
@@ -665,8 +669,9 @@ public class MergeContext implements Cloneable {
      * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
      * ist to do no look-ahead matching.
      *
-     * @param lookAhead number of levels to look down for subtree matches if the
-     * currently compared nodes do not match
+     * @param lookAhead
+     *         number of levels to look down for subtree matches if the
+     *         currently compared nodes do not match
      */
     public void setLookAhead(int lookAhead) {
         this.lookAhead = lookAhead;
@@ -688,7 +693,8 @@ public class MergeContext implements Cloneable {
     /**
      * Sets whether conditional merging is used outside of methods.
      *
-     * @param conditionalOutsideMethods use conditional merging outside of methods
+     * @param conditionalOutsideMethods
+     *         use conditional merging outside of methods
      */
     public void setConditionalOutsideMethods(boolean conditionalOutsideMethods) {
         this.conditionalOutsideMethods = conditionalOutsideMethods;
@@ -706,7 +712,8 @@ public class MergeContext implements Cloneable {
     /**
      * Add a <code>MergeScenario</code> to the list of crashed scenarios.
      *
-     * @param scenario <code>MergeScenario</code> which crashed
+     * @param scenario
+     *         <code>MergeScenario</code> which crashed
      */
     public void addCrash(MergeScenario scenario, Throwable t) {
         crashes.put(scenario, t);
