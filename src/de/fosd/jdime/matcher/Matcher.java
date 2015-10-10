@@ -39,6 +39,9 @@ import de.fosd.jdime.matcher.unordered.LPMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
+import static de.fosd.jdime.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static de.fosd.jdime.JDimeConfig.getConfig;
+
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
  * compute and store <code>Matching</code>s.
