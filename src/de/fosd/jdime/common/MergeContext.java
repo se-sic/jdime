@@ -42,101 +42,125 @@ public class MergeContext implements Cloneable {
      * equal.
      */
     public static final int LOOKAHEAD_FULL = -1;
+
     /**
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
+
     /**
      * Default value of benchmark runs.
      */
     private static final int BENCHMARKRUNS = 10;
+
     /**
      * Performs benchmarks with several runs per file to get average runtimes.
      */
     private boolean benchmark = false;
+
     /**
      * Whether we are in bug-fixing mode.
      */
     private boolean bugfixing = false;
+
     /**
      * Whether merge inserts choice nodes instead of direct merging.
      */
     private boolean conditionalMerge = false;
+
     /**
      * Whether conditional merge should be performed outside of methods.
      */
     private boolean conditionalOutsideMethods = true;
+
     /**
      * Whether to run only the diff.
      */
     private boolean diffOnly = false;
+
     /**
      * Whether to treat two input versions as consecutive versions in the
      * revision history.
      */
     private boolean consecutive = false;
+
     /**
      * Whether to dump files instead of merging.
      */
     private boolean dumpFiles = false;
+
     /**
      * Whether to dump ASTs instead of merging.
      */
     private boolean dumpTree = false;
+
     /**
      * Force overwriting of existing output files.
      */
     private boolean forceOverwriting = false;
+
     /**
      * Whether to use graphical output while dumping.
      */
     private boolean guiDump = false;
+
     /**
      * Input Files.
      */
     private ArtifactList<FileArtifact> inputFiles;
+
     /**
      * If true, merging will be continued after exceptions.
      */
     private boolean keepGoing = false;
+
     /**
      * Strategy to apply for the merge.
      */
     private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+
     /**
      * Output file.
      */
     private FileArtifact outputFile;
+
     /**
      * Timestamp of program start.
      */
     private long programStart;
+
     /**
      * If true, the output is quiet.
      */
     private boolean quiet = false;
+
     /**
      * If true, output is not written to an output file.
      */
     private boolean pretend = true;
+
     /**
      * Merge directories recursively. Can be set with the '-r' argument.
      */
     private boolean recursive = false;
+
     /**
      * Number of runs to perform for each file.
      */
     private int runs = BENCHMARKRUNS;
     private boolean collectStatistics = false;
     private Statistics statistics = null;
+
     /**
      * StdOut of a merge operation.
      */
     private StringWriter stdErr = new StringWriter();
+
     /**
      * StdIn of a merge operation.
      */
     private StringWriter stdIn = new StringWriter();
+
     /**
      * How many levels to keep searching for matches in the subtree if the
      * currently compared nodes are not equal. If there are no matches within
