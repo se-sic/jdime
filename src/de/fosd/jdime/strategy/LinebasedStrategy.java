@@ -110,82 +110,55 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
-        ArrayList<Long> runtimes = new ArrayList<>();
 
         LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
+        long runtime, startTime = System.currentTimeMillis();
+        Process pr = pb.start();
 
-        for (int i = 0; i < context.getBenchmarkRuns() + 1 && (i == 0 || context.isBenchmark()); i++) {
-            long cmdStart = System.currentTimeMillis();
-            Process pr = pb.start();
+        if (context.hasStatistics()) {
+            StringBuilder processOutput = new StringBuilder();
+            StringBuilder processErrorOutput = new StringBuilder();
+            String ls = System.lineSeparator();
 
-            if (i == 0 && (!context.isBenchmark() || context.hasStatistics())) {
-                StringBuilder processOutput = new StringBuilder();
-                StringBuilder processErrorOutput = new StringBuilder();
-                String ls = System.lineSeparator();
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+                String line;
 
-                try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
-                    String line;
-
-                    while ((line = r.readLine()) != null) {
-                        processOutput.append(line).append(ls);
-                    }
+                while ((line = r.readLine()) != null) {
+                    processOutput.append(line).append(ls);
                 }
+            }
 
-                try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
-                    String line;
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+                String line;
 
-                    while ((line = r.readLine()) != null) {
-                        processErrorOutput.append(line).append(ls);
-                    }
+                while ((line = r.readLine()) != null) {
+                    processErrorOutput.append(line).append(ls);
                 }
+            }
 
-                context.append(processOutput.toString());
-                context.append(processErrorOutput.toString());
+            context.append(processOutput.toString());
+            context.append(processErrorOutput.toString());
 
-                pr.waitFor();
+            pr.waitFor();
+            runtime = System.currentTimeMillis() - startTime;
 
-                long runtime = System.currentTimeMillis() - cmdStart;
-                runtimes.add(runtime);
+            Statistics statistics = context.getStatistics();
+            ParseResult res = statistics.addLineStatistics(processOutput.toString());
 
-                // add statistical data to context
-                if (context.hasStatistics()) {
-                    Statistics statistics = context.getStatistics();
-                    ParseResult res = statistics.addLineStatistics(processOutput.toString());
-
-                    if (res.getConflicts() > 0) {
-                        statistics.getTypeStatistics(null, KeyEnums.Type.FILE).incrementNumOccurInConflic();
-                    }
+            if (res.getConflicts() > 0) {
+                statistics.getTypeStatistics(null, KeyEnums.Type.FILE).incrementNumOccurInConflic();
+            }
 
 // TODO remove after Statistics integration is complete
-//                    stats.increaseRuntime(runtime);
+//          stats.increaseRuntime(runtime);
 //
-//                    MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, null, null, null);
-//                    stats.addScenarioStats(scenariostats);
-                }
-            } else {
-                pr.waitFor();
-
-                long runtime = System.currentTimeMillis() - cmdStart;
-                runtimes.add(runtime);
-            }
-
-            if (context.isBenchmark() && context.hasStatistics()) {
-                long runtime = runtimes.get(runtimes.size() - 1);
-
-                if (i == 0) {
-                    LOG.fine(() -> String.format("Initial run: %d ms", runtime));
-                } else {
-                    LOG.fine(String.format("Run %d of %d: %d ms", i, context.getBenchmarkRuns(), runtime));
-                }
-            }
+//          MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, null, null, null);
+//          stats.addScenarioStats(scenariostats);
+        } else {
+            pr.waitFor();
+            runtime = System.currentTimeMillis() - startTime;
         }
 
-        if (context.isBenchmark() && runtimes.size() > 1) {
-            // remove first run as it took way longer due to all the counting
-            runtimes.remove(0);
-        }
-
-        Long runtime = MergeContext.median(runtimes);
         LOG.fine(() -> String.format("Linebased merge time was %d ms.", runtime));
 
         if (context.hasErrors()) {

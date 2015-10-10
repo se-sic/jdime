@@ -49,16 +49,6 @@ public class MergeContext implements Cloneable {
     public static final int LOOKAHEAD_OFF = 0;
 
     /**
-     * Default value of benchmark runs.
-     */
-    private static final int BENCHMARKRUNS = 10;
-
-    /**
-     * Performs benchmarks with several runs per file to get average runtimes.
-     */
-    private boolean benchmark = false;
-
-    /**
      * Whether we are in bug-fixing mode.
      */
     private boolean bugfixing = false;
@@ -144,10 +134,6 @@ public class MergeContext implements Cloneable {
      */
     private boolean recursive = false;
 
-    /**
-     * Number of runs to perform for each file.
-     */
-    private int runs = BENCHMARKRUNS;
     private boolean collectStatistics = false;
     private Statistics statistics = null;
 
@@ -248,25 +234,6 @@ public class MergeContext implements Cloneable {
             stdIn.append(line);
             stdIn.append(System.lineSeparator());
         }
-    }
-
-    /**
-     * Returns the number of benchmark runs.
-     *
-     * @return the number of benchmark runs
-     */
-    public int getBenchmarkRuns() {
-        return runs;
-    }
-
-    /**
-     * Sets the number of benchmark runs.
-     *
-     * @param runs
-     *         number of benchmark runs
-     */
-    public void setBenchmarkRuns(int runs) {
-        this.runs = runs;
     }
 
     /**
@@ -385,21 +352,6 @@ public class MergeContext implements Cloneable {
      */
     public boolean hasStatistics() {
         return collectStatistics;
-    }
-
-    /**
-     * @return the benchmark
-     */
-    public boolean isBenchmark() {
-        return benchmark;
-    }
-
-    /**
-     * @param benchmark
-     *         the benchmark to set
-     */
-    public void setBenchmark(boolean benchmark) {
-        this.benchmark = benchmark;
     }
 
     /**

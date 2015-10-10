@@ -162,9 +162,6 @@ public final class Main {
         boolean continueRun = true;
 
         Options options = new Options();
-        options.addOption("benchmark", false,
-                "benchmark with " + context.getBenchmarkRuns()
-                        + " runs per file");
         options.addOption("debug", true, "set debug level"
                 + " (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)");
         options.addOption("consecutive", false,
@@ -311,9 +308,7 @@ public final class Main {
                 LOG.finest(() -> "Lookahead = " + context.getLookAhead());
             }
 
-            context.collectStatistics(cmd.hasOption("stats")
-                    || cmd.hasOption("benchmark"));
-            context.setBenchmark(cmd.hasOption("benchmark"));
+            context.collectStatistics(cmd.hasOption("stats"));
             context.setForceOverwriting(cmd.hasOption("f"));
             context.setRecursive(cmd.hasOption("r"));
             
