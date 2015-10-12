@@ -92,8 +92,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
         FileArtifact target = null;
 
-        context.resetStreams();
-
         if (operation.getTarget() != null) {
             target = operation.getTarget();
 
@@ -101,6 +99,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
                 throw new AssertionError(String.format("Would be overwritten: %s", target));
             }
         }
+
+        context.resetStreams();
 
         List<String> cmd = new ArrayList<>();
         cmd.add(BASECMD);
