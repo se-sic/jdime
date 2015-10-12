@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -104,10 +105,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         List<String> cmd = new ArrayList<>();
         cmd.add(BASECMD);
         cmd.addAll(BASEARGS);
-
-        for (FileArtifact file : triple.asList()) {
-            cmd.add(file.getPath());
-        }
+        cmd.addAll(triple.asList().stream().limit(3).map(FileArtifact::getPath).collect(Collectors.toList()));
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
 
