@@ -143,19 +143,15 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             targetNode.setRevision(left.getRevision());
             targetNode.renumberTree();
 
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest("target.dumpTree():");
-                System.out.println(targetNode.dumpTree());
-            }
-
+            String lCond = left.getRevision().getName();
+            String rCond = right.getRevision().getName();
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
+            MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode, lCond, rCond);
 
-            LOG.finest(nodeTriple.toString());
+            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dumpTree()));
+            LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
+            LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
-            MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode,
-                    left.getRevision().getName(), right.getRevision().getName());
-
-            LOG.finest("MergeOperation<ASTNodeArtifact>.apply(context)");
             astMergeOp.apply(context);
 
             long runtime = System.currentTimeMillis() - startTime;
