@@ -115,33 +115,44 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         long runtime, startTime = System.currentTimeMillis();
         Process pr = pb.start();
 
+        StringBuilder processOutput = new StringBuilder();
+        StringBuilder processErrorOutput = new StringBuilder();
+        String ls = System.lineSeparator();
+
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+            String line;
+
+            while ((line = r.readLine()) != null) {
+                processOutput.append(line).append(ls);
+            }
+        }
+
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+            String line;
+
+            while ((line = r.readLine()) != null) {
+                processErrorOutput.append(line).append(ls);
+            }
+        }
+
+        context.append(processOutput.toString());
+        context.append(processErrorOutput.toString());
+
+        pr.waitFor();
+        runtime = System.currentTimeMillis() - startTime;
+
+        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
+
+        if (context.hasErrors()) {
+            LOG.severe(() -> String.format("Errors occurred while calling '%s'", String.join(" ", cmd)));
+            System.err.println(context.getStdErr());
+        }
+
+        if (!context.isPretend() && target != null) {
+            target.write(context.getStdIn());
+        }
+
         if (context.hasStatistics()) {
-            StringBuilder processOutput = new StringBuilder();
-            StringBuilder processErrorOutput = new StringBuilder();
-            String ls = System.lineSeparator();
-
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
-                String line;
-
-                while ((line = r.readLine()) != null) {
-                    processOutput.append(line).append(ls);
-                }
-            }
-
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
-                String line;
-
-                while ((line = r.readLine()) != null) {
-                    processErrorOutput.append(line).append(ls);
-                }
-            }
-
-            context.append(processOutput.toString());
-            context.append(processErrorOutput.toString());
-
-            pr.waitFor();
-            runtime = System.currentTimeMillis() - startTime;
-
             Statistics statistics = context.getStatistics();
             ParseResult res = statistics.addLineStatistics(processOutput.toString());
 
@@ -154,20 +165,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 //
 //          MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, null, null, null);
 //          stats.addScenarioStats(scenariostats);
-        } else {
-            pr.waitFor();
-            runtime = System.currentTimeMillis() - startTime;
-        }
-
-        LOG.fine(() -> String.format("Linebased merge time was %d ms.", runtime));
-
-        if (context.hasErrors()) {
-            LOG.severe(() -> String.format("Errors occurred while calling '%s'", String.join(" ", cmd)));
-            System.err.println(context.getStdErr());
-        }
-
-        if (!context.isPretend() && target != null) {
-            target.write(context.getStdIn());
         }
     }
 
