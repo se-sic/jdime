@@ -90,42 +90,40 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
-
-        assert (operation != null);
-        assert (context != null);
+        /**
+         * The method creates ASTNodeArtifacts from the input files. An ASTNodeStrategy is then applied.
+         * The result is pretty printed and possibly written to the output file.
+         */
 
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-
-        assert (triple != null);
-        assert (triple.isValid()) : "The merge triple is not valid!";
 
         FileArtifact leftFile = triple.getLeft();
         FileArtifact rightFile = triple.getRight();
         FileArtifact baseFile = triple.getBase();
+        FileArtifact target = null;
+
         String lPath = leftFile.getPath();
         String bPath = baseFile.getPath();
         String rPath = rightFile.getPath();
-        
-        assert (leftFile.exists() && !leftFile.isDirectory());
-        assert ((baseFile.exists() && !baseFile.isDirectory()) || baseFile.isEmpty());
-        assert (rightFile.exists() && !rightFile.isDirectory());
+
+        if (operation.getTarget() != null) {
+            target = operation.getTarget();
+
+            if (target.exists() && !target.isEmpty()) {
+                throw new AssertionError(String.format("Would be overwritten: %s", target));
+            }
+        }
 
         context.resetStreams();
 
-        FileArtifact target = operation.getTarget();
+        ASTNodeArtifact left;
+        ASTNodeArtifact base;
+        ASTNodeArtifact right;
 
-        if (!context.isDiffOnly() && target != null) {
-            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
-        }
-        
-        /* ASTNodeArtifacts are created from the input files.
-         * Then, a ASTNodeStrategy can be applied.
-         * The result is pretty printed and can be written into the output file.
-         */
-        ASTNodeArtifact left, base, right;
         int conflicts = 0;
         int loc = 0;
         int cloc = 0;
+
         ASTStats astStats = null;
         ASTStats leftStats = null;
         ASTStats rightStats = null;
