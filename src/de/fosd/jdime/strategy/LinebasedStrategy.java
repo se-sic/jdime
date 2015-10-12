@@ -134,7 +134,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         context.append(processOutput.toString());
-        context.append(processErrorOutput.toString());
+        context.appendError(processErrorOutput.toString());
 
         pr.waitFor();
         runtime = System.currentTimeMillis() - startTime;
