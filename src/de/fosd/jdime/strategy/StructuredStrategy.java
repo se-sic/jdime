@@ -156,26 +156,20 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
             long runtime = System.currentTimeMillis() - startTime;
 
+            LOG.finest("Structured merge finished.");
+
+            if (!context.isDiffOnly()) {
+                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dumpTree()));
+            }
+
+            LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
+            LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
+
+            if (!context.isDiffOnly()) {
+                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", targetNode.prettyPrint()));
+            }
+
             if (context.hasStatistics()) {
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest("Structured merge finished.");
-
-                    if (!context.isDiffOnly()) {
-                        LOG.finest("target.dumpTree():");
-                        System.out.println(targetNode.dumpTree());
-                    }
-
-                    LOG.finest("Pretty-printing left:");
-                    System.out.println(left.prettyPrint());
-                    LOG.finest("Pretty-printing right:");
-                    System.out.println(right.prettyPrint());
-
-                    if (!context.isDiffOnly()) {
-                        LOG.finest("Pretty-printing merge:");
-                        System.out.print(targetNode.prettyPrint());
-                    }
-                }
-
                 if (!context.isDiffOnly()) {
                     try (BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
                         boolean conflict = false;
