@@ -81,4 +81,19 @@ public class ParseResult extends ArrayList<Content> {
     public String toString() {
         return String.join(System.lineSeparator(), stream().map(Content::toString).collect(Collectors.toList()));
     }
+
+    /**
+     * Returns a <code>String</code> representation of this <code>ParseResult</code>. The identifiers will
+     * be used by the <code>Content</code> implementations to identify their parts (for example <code>Conflict</code>
+     * will use the first two identifiers for marking the two sides of the conflict).
+     *
+     * @param fstId
+     *         the first identifier to use
+     * @param ids
+     *         the other identifiers to use
+     * @return a <code>String</code> representing this <code>ParseResult</code>
+     */
+    public String toString(String fstId, String... ids) {
+        return String.join(System.lineSeparator(), stream().map(c -> c.toString(fstId, ids)).collect(Collectors.toList()));
+    }
 }
