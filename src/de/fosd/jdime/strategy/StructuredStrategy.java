@@ -115,29 +115,16 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         }
 
         context.resetStreams();
-
-        ASTNodeArtifact left;
-        ASTNodeArtifact base;
-        ASTNodeArtifact right;
-
-        int conflicts = 0;
-        int loc = 0;
-        int cloc = 0;
-
-        ASTStats astStats = null;
-        ASTStats leftStats = null;
-        ASTStats rightStats = null;
+        System.setSecurityManager(noExitManager);
 
         LOG.fine(() -> String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-
-        System.setSecurityManager(noExitManager);
 
         try {
             long startTime = System.currentTimeMillis();
 
-            left = new ASTNodeArtifact(leftFile);
-            base = new ASTNodeArtifact(baseFile);
-            right = new ASTNodeArtifact(rightFile);
+            ASTNodeArtifact left = new ASTNodeArtifact(leftFile);
+            ASTNodeArtifact base = new ASTNodeArtifact(baseFile);
+            ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
             targetNode.setRevision(left.getRevision());
@@ -156,7 +143,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
             long runtime = System.currentTimeMillis() - startTime;
 
-            LOG.finest("Structured merge finished.");
+            LOG.fine("Structured merge finished.");
 
             if (!context.isDiffOnly()) {
                 LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dumpTree()));
@@ -165,11 +152,31 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
             LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
 
+            String prettyPrint = "";
+
             if (!context.isDiffOnly()) {
-                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", targetNode.prettyPrint()));
+                prettyPrint = targetNode.prettyPrint();
+
+                final String finalPrettyPrint = prettyPrint;
+                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", finalPrettyPrint));
+            }
+
+            LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
+
+            if (context.hasErrors()) {
+                LOG.severe(() -> String.format("Errors occurred while merging structurally.%n%s", context.getStdErr()));
+            }
+
+            if (!context.isPretend() && target != null) {
+                LOG.fine("Writing output to: " + target.getFullPath());
+                target.write(prettyPrint);
             }
 
             if (context.hasStatistics()) {
+                int conflicts = 0;
+                int loc = 0;
+                int cloc = 0;
+
                 if (!context.isDiffOnly()) {
                     try (BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
                         boolean conflict = false;
@@ -254,15 +261,15 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 }
 
                 // collect stats
-                leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
-                rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
+                ASTStats leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
+                ASTStats rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
                 ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
 
                 assert (leftStats.getDiffStats(LangElem.NODE.toString()).getMatches() == rightStats
                         .getDiffStats(LangElem.NODE.toString()).getMatches()) :
                         "Number of matches should be equal in left and " + "right revision.";
 
-                astStats = ASTStats.add(leftStats, rightStats);
+                ASTStats astStats = ASTStats.add(leftStats, rightStats);
                 astStats.setConflicts(targetStats);
 
                 if (LOG.isLoggable(Level.FINE) && context.hasStatistics()) {
@@ -292,37 +299,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     }
                 }
 
-                if (context.hasStatistics()) {
-                    Stats stats = context.getStatistics();
-                    stats.addASTStats(astStats);
-                    stats.addLeftStats(leftStats);
-                    stats.addRightStats(rightStats);
-                }
-
-                if (context.hasStatistics()) {
-                    LOG.fine(() -> String.format("Runtime: %d ms.", runtime));
-                }
-            }
-
-            LOG.fine(() -> "Structured merge time was " + runtime + " ms.");
-
-            if (context.hasErrors()) {
-                System.err.println(context.getStdErr());
-            }
-
-            // write output
-            if (!context.isPretend() && target != null) {
-                LOG.finest(() -> "Write output to file: " + target.getFullPath());
-                assert (target.exists());
-                target.write(context.getStdIn());
-            }
-            // add statistical data to context
-            if (context.hasStatistics()) {
-                assert (cloc <= loc);
-
                 Stats stats = context.getStatistics();
+                stats.addASTStats(astStats);
+                stats.addLeftStats(leftStats);
+                stats.addRightStats(rightStats);
+
                 StatsElement linesElement = stats.getElement("lines");
-                assert (linesElement != null);
                 StatsElement newElement = new StatsElement();
                 newElement.setMerged(loc);
                 newElement.setConflicting(cloc);
