@@ -146,6 +146,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         if (!context.isPretend() && target != null) {
+            LOG.fine("Writing output to: " + target.getFullPath());
             target.write(context.getStdIn());
         }
 
