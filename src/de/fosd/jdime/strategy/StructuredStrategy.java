@@ -37,8 +37,7 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.parser.ParseResult;
@@ -182,40 +181,28 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     }
                 }
 
-                // collect stats
-                ASTStats leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
-                ASTStats rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
-                ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
-
-                ASTStats astStats = ASTStats.add(leftStats, rightStats);
-                astStats.setConflicts(targetStats);
-
-                Stats stats = context.getStatistics();
-                stats.addASTStats(astStats);
-                stats.addLeftStats(leftStats);
-                stats.addRightStats(rightStats);
-
-                stats.increaseRuntime(runtime);
-
-                int conflicts = 0;
-                int linesOfCode = 0;
-                int conflictingLinesOfCode = 0;
+                Statistics statistics = context.getStatistics();
+                MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 
                 if (!context.isDiffOnly()) {
-                    Statistics statistics = context.getStatistics();
-                    ParseResult parseResult = statistics.addLineStatistics(prettyPrint);
+                    ParseResult parseResult = scenarioStatistics.setLineStatistics(prettyPrint);
 
-                    conflicts = parseResult.getConflicts();
-                    linesOfCode = parseResult.getLinesOfCode();
-                    conflictingLinesOfCode = parseResult.getConflictingLinesOfCode();
-
-                    if (conflicts > 0) {
-                        statistics.getTypeStatistics(null, KeyEnums.Type.FILE).incrementNumOccurInConflic();
+                    if (parseResult.getConflicts() > 0) {
+                        statistics.getFileStatistics().incrementNumOccurInConflic();
                     }
                 }
 
-                MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, astStats, leftStats, rightStats);
-                stats.addScenarioStats(scenariostats);
+                { // TODO replace with new Statistics methods
+                    ASTStats leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
+                    ASTStats rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
+                    ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
+
+                    ASTStats astStats = ASTStats.add(leftStats, rightStats);
+                    astStats.setConflicts(targetStats);
+                }
+
+                scenarioStatistics.setRuntime(runtime);
+                statistics.addScenarioStatistics(scenarioStatistics);
             }
         } catch (SecurityException e) {
             LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");

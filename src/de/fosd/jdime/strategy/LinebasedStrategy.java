@@ -38,7 +38,7 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.parser.ParseResult;
@@ -152,17 +152,15 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
-            ParseResult res = statistics.addLineStatistics(processOutput.toString());
+            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
+            ParseResult res = scenarioStatistics.addLineStatistics(processOutput.toString());
 
             if (res.getConflicts() > 0) {
-                statistics.getTypeStatistics(null, KeyEnums.Type.FILE).incrementNumOccurInConflic();
+                statistics.getFileStatistics().incrementNumOccurInConflic();
             }
 
-// TODO remove after Statistics integration is complete
-//          stats.increaseRuntime(runtime);
-//
-//          MergeTripleStats scenariostats = new MergeTripleStats(triple, conflicts, cloc, loc, runtime, null, null, null);
-//          stats.addScenarioStats(scenariostats);
+            scenarioStatistics.setRuntime(runtime);
+            statistics.addScenarioStatistics(scenarioStatistics);
         }
     }
 
