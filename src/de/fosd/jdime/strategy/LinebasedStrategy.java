@@ -142,8 +142,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
         if (context.hasErrors()) {
-            LOG.severe(() -> String.format("Errors occurred while calling '%s'", String.join(" ", cmd)));
-            System.err.println(context.getStdErr());
+            LOG.severe(() -> String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), context.getStdErr()));
         }
 
         if (!context.isPretend() && target != null) {
