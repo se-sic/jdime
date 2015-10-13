@@ -20,6 +20,8 @@ public class MergeScenarioStatistics {
     private ElementStatistics lineStatistics;
     private int conflicts;
 
+    private long runtime;
+
     public MergeScenarioStatistics(MergeScenario<FileArtifact> mergeScenario) {
         this.mergeScenario = mergeScenario;
         this.levelStatistics = new HashMap<>();
@@ -27,6 +29,7 @@ public class MergeScenarioStatistics {
         this.mergeStatistics = new HashMap<>();
         this.lineStatistics = new ElementStatistics();
         this.conflicts = 0;
+        this.runtime = 0;
     }
 
     /**
@@ -87,5 +90,13 @@ public class MergeScenarioStatistics {
 
     public int getConflicts() {
         return conflicts;
+    }
+
+    public long getRuntime() {
+        return runtime;
+    }
+
+    public void setRuntime(long runtime) {
+        this.runtime = runtime;
     }
 }

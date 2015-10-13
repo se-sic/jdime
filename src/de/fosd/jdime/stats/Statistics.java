@@ -19,6 +19,10 @@ public class Statistics {
         return scenarioStatistics;
     }
 
+    public void addScenarioStatistics(MergeScenarioStatistics statistics) {
+        scenarioStatistics.add(statistics);
+    }
+
     public ElementStatistics getFileStatistics() {
         return fileStatistics;
     }
