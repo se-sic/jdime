@@ -307,41 +307,39 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Returns the saved stderr buffer.
+     * Returns the saved standard error buffer as a <code>String</code>.
      *
-     * @return stderr
+     * @return the stdErr buffer as a <code>String</code>
      */
     public String getStdErr() {
-        assert (stdErr != null);
         return stdErr.toString();
     }
 
     /**
-     * Returns the saved stdin buffer.
+     * Returns the saved standard input buffer as a <code>String</code>.
      *
-     * @return stdin
+     * @return the stdIn buffer as a <code>String</code>
      */
     public String getStdIn() {
-        assert (stdErr != null);
         return stdIn.toString();
     }
 
     /**
-     * Returns true if stderr is not empty.
+     * Returns true if stdErr is not empty.
      *
-     * @return true if stderr is not empty
+     * @return true if stdErr is not empty
      */
     public boolean hasErrors() {
-        return stdErr != null && stdErr.toString().length() != 0;
+        return stdErr != null && stdErr.getBuffer().length() != 0;
     }
 
     /**
-     * Returns true if stdin is not empty.
+     * Returns true if stdIn is not empty.
      *
-     * @return true if stdin is not empty
+     * @return true if stdIn is not empty
      */
     public boolean hasOutput() {
-        return stdIn != null && stdIn.toString().length() != 0;
+        return stdIn != null && stdIn.getBuffer().length() != 0;
     }
 
     /**
