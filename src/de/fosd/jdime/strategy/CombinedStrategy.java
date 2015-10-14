@@ -22,19 +22,15 @@
  */
 package de.fosd.jdime.strategy;
 
+import de.fosd.jdime.common.*;
+import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.Stats;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -55,23 +51,18 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<FileArtifact> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
-        assert (operation != null);
-        assert (context != null);
-
-        context.resetStreams();
-
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
         FileArtifact target = null;
 
         if (!context.isDiffOnly() && operation.getTarget() != null) {
-            assert (operation.getTarget() instanceof FileArtifact);
             target = operation.getTarget();
-            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-                    + target;
+
+            if (target.exists() && !target.isEmpty()) {
+                throw new AssertionError(String.format("Would be overwritten: %s", target));
+            }
         }
 
+        context.resetStreams();
 
         LOG.fine(() -> {
             MergeScenario<FileArtifact> triple = operation.getMergeScenario();
@@ -79,9 +70,8 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             String basePath = triple.getBase().getPath();
             String rightPath = triple.getRight().getPath();
 
-            return String.format("Merging: %s %s %s", leftPath, basePath, rightPath);
+            return String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", leftPath, basePath, rightPath);
         });
-
 
         ArrayList<Long> runtimes = new ArrayList<>();
         MergeContext subContext = null;
