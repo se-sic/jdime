@@ -40,4 +40,10 @@ public class Statistics {
     public boolean hasConflicts() {
         return scenarioStatistics.stream().anyMatch(s -> s.getConflicts() > 0);
     }
+
+    public void add(Statistics other) {
+        scenarioStatistics.addAll(other.scenarioStatistics);
+        fileStatistics.add(other.fileStatistics);
+        directoryStatistics.add(other.directoryStatistics);
+    }
 }
