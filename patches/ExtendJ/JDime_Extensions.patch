@@ -1,8 +1,8 @@
 diff --git a/build.xml b/build.xml
-index 5381cdd..1a1dcde 100644
+index 83488da..20a5ef4 100644
 --- a/build.xml
 +++ b/build.xml
-@@ -158,6 +158,9 @@ Build a standard release:
+@@ -188,6 +188,9 @@ Build a standard release:
  			<fileset dir="${bin.dir}">
  				<include name="**/*"/>
  			</fileset>
@@ -14,7 +14,7 @@ index 5381cdd..1a1dcde 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..189fb3b
+index 0000000..63a53e8
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
 @@ -0,0 +1,160 @@
@@ -84,7 +84,7 @@ index 0000000..189fb3b
 +	 */
 +	public boolean ASTNode.printVirtualNode(StringBuffer s) {
 +		if (isConflict) {
-+			s.append("\n<<<<<<< \n");
++			s.append("\n<<<<<<< " + left.sourceFile() + "\n");
 +			if (left != null) {
 +				s.append(left.prettyPrint());
 +				s.append("\n");
@@ -94,7 +94,7 @@ index 0000000..189fb3b
 +				s.append(right.prettyPrint());
 +				s.append("\n");
 +			}
-+			s.append(">>>>>>> \n");
++			s.append(">>>>>>> " + right.sourceFile() + "\n");
 +			return true;
 +		} else if (isChoice) {
 +			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
