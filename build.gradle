@@ -77,7 +77,7 @@ task config {
 
 task natives {
     def fail = false;
-    def glpk_version = "4_55"
+    def glpk_version = "4_56"
     def glpk_java_prop_name = "glpkJava"
     def glpk_prop_name = "glpk"
     def glpk_java_name
