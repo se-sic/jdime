@@ -22,15 +22,18 @@
  */
 package de.fosd.jdime.strategy;
 
-import de.fosd.jdime.common.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Logger;
+
+import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.logging.Logger;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -73,93 +76,54 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             return String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", leftPath, basePath, rightPath);
         });
 
-        ArrayList<Long> runtimes = new ArrayList<>();
-        MergeContext subContext = null;
-        Stats substats = null;
+        long startTime = System.currentTimeMillis();
 
-        for (int i = 0; i < context.getBenchmarkRuns() + 1
-                && (i == 0 || context.isBenchmark()); i++) {
-            long cmdStart = System.currentTimeMillis();
-            subContext = (MergeContext) context.clone();
-            subContext.setOutputFile(null);
+        MergeContext subContext = (MergeContext) context.clone();
+        MergeStrategy<FileArtifact> strategy = new LinebasedStrategy();
 
-            if (i == 0) {
-                LOG.fine("Trying linebased strategy.");
-            }
+        subContext.setOutputFile(null);
+        subContext.setMergeStrategy(strategy);
+        subContext.collectStatistics(true);
 
-            MergeStrategy<FileArtifact> s = new LinebasedStrategy();
-            subContext.setMergeStrategy(s);
-            subContext.collectStatistics(true);
-            s.merge(operation, subContext);
+        LOG.fine("Trying line based strategy.");
 
-            int conflicts = subContext.getStatistics().getConflicts();
-            if (conflicts > 0) {
-                // merge not successful. we need another strategy.
-                if (i == 0) {
-                    LOG.fine(() -> {
-                        String noun = conflicts > 1 ? "conflicts" : "conflict";
-                        return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
-                    });
-                }
+        strategy.merge(operation, subContext);
 
-                // clean target file
+        if (subContext.getStatistics().hasConflicts()) {
+            long conflicts = subContext.getStatistics().getConflictStatistics().getSum();
+
+            LOG.fine(() -> {
+                String noun = conflicts > 1 ? "conflicts" : "conflict";
+                return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
+            });
+
+            if (target != null) {
                 LOG.fine("Deleting: " + target);
 
-                if (target != null) {
-                    boolean isLeaf = target.isLeaf();
-                    boolean targetExists = target.exists();
-                    String targetFileName = target.getFullPath();
-                    if (target.exists()) {
-                        target.remove();
-                    }
-                    target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                boolean isLeaf = target.isLeaf();
+                boolean targetExists = target.exists();
+                String targetFileName = target.getFullPath();
+
+                if (target.exists()) {
+                    target.remove();
                 }
 
-                subContext = (MergeContext) context.clone();
-                subContext.setOutputFile(null);
-
-                s = new StructuredStrategy();
-                subContext.setMergeStrategy(s);
-                if (i == 0) {
-                    subContext.collectStatistics(true);
-                } else {
-                    subContext.collectStatistics(false);
-                    subContext.setBenchmark(true);
-                    subContext.setBenchmarkRuns(0);
-                }
-                s.merge(operation, subContext);
-            } else {
-                if (i == 0) {
-                    LOG.fine("Linebased strategy worked fine.");
-                }
+                target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
             }
 
-            if (i == 0) {
-                substats = subContext.getStatistics();
-            }
+            subContext = (MergeContext) context.clone();
+            strategy = new StructuredStrategy();
+            subContext.setOutputFile(null);
+            subContext.setMergeStrategy(strategy);
+            subContext.collectStatistics(true);
 
-            long runtime = System.currentTimeMillis() - cmdStart;
-            runtimes.add(runtime);
-
-            if (context.isBenchmark()) {
-                if (i == 0) {
-                    LOG.fine(() -> "Initial run: " + runtime + " ms");
-                } else {
-                    final int finalLogI = i;
-                    LOG.fine(() -> String.format("Run %d of %d: %d ms", finalLogI, context.getBenchmarkRuns(), runtime));
-                }
-            }
+            strategy.merge(operation, subContext);
+        } else {
+            LOG.fine("Line based strategy worked fine.");
         }
 
-        if (context.isBenchmark() && runtimes.size() > 1) {
-            // remove first run as it took way longer due to all the counting
-            runtimes.remove(0);
-        }
-
-        Long runtime = MergeContext.median(runtimes);
+        long runtime = System.currentTimeMillis() - startTime;
         LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
-
-        assert (subContext != null);
 
         if (subContext.hasOutput()) {
             context.append(subContext.getStdIn());
@@ -171,14 +135,11 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
         // write output
         if (!context.isPretend() && target != null) {
-            assert (target.exists());
             target.write(context.getStdIn());
         }
 
-        // add statistical data to context
         if (context.hasStatistics()) {
-            assert (substats != null);
-
+            Stats substats = subContext.getStatistics();
             Stats stats = context.getStatistics();
             substats.setRuntime(runtime);
             MergeTripleStats subscenariostats = substats.getScenariostats()
@@ -201,7 +162,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
             context.addStats(substats);
         }
-        System.gc();
     }
 
     @Override
