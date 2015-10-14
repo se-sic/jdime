@@ -92,7 +92,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
         FileArtifact target = null;
 
-        if (operation.getTarget() != null) {
+        if (!context.isDiffOnly() && operation.getTarget() != null) {
             target = operation.getTarget();
 
             if (target.exists() && !target.isEmpty()) {

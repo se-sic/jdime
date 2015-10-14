@@ -105,7 +105,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         String bPath = baseFile.getPath();
         String rPath = rightFile.getPath();
 
-        if (operation.getTarget() != null) {
+        if (!context.isDiffOnly() && operation.getTarget() != null) {
             target = operation.getTarget();
 
             if (target.exists() && !target.isEmpty()) {
