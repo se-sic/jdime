@@ -65,7 +65,7 @@ public class JDimeWrapper {
         merge.apply(context);
 
         // if there are no conflicts, run the conditional strategy
-        if (context.getStatistics().getConflicts() == 0) {
+        if (context.getStatistics().hasConflicts()) {
             context = (MergeContext) context.clone();
             context.collectStatistics(false);
             context.setMergeStrategy(conditional);
