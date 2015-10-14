@@ -1,7 +1,9 @@
 package de.fosd.jdime.stats;
 
 import java.util.ArrayList;
+import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Statistics {
 
@@ -29,5 +31,13 @@ public class Statistics {
 
     public ElementStatistics getDirectoryStatistics() {
         return directoryStatistics;
+    }
+
+    public IntSummaryStatistics getConflictStatistics() {
+        return scenarioStatistics.stream().collect(Collectors.summarizingInt(MergeScenarioStatistics::getConflicts));
+    }
+
+    public boolean hasConflicts() {
+        return scenarioStatistics.stream().anyMatch(s -> s.getConflicts() > 0);
     }
 }
