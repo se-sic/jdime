@@ -32,7 +32,8 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -133,34 +134,17 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             context.appendError(subContext.getStdErr());
         }
 
-        // write output
         if (!context.isPretend() && target != null) {
             target.write(context.getStdIn());
         }
 
         if (context.hasStatistics()) {
-            Stats substats = subContext.getStatistics();
-            Stats stats = context.getStatistics();
-            substats.setRuntime(runtime);
-            MergeTripleStats subscenariostats = substats.getScenariostats()
-                    .remove(0);
-            assert (substats.getScenariostats().isEmpty());
+            Statistics statistics = context.getStatistics();
+            Statistics subStatistics = subContext.getStatistics();
+            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics().get(0);
 
-            if (subscenariostats.hasErrors()) {
-                stats.addScenarioStats(subscenariostats);
-            } else {
-                MergeTripleStats scenariostats = new MergeTripleStats(
-                        subscenariostats.getTriple(),
-                        subscenariostats.getConflicts(),
-                        subscenariostats.getConflictingLines(),
-                        subscenariostats.getLines(), runtime,
-                        subscenariostats.getASTStats(),
-                        subscenariostats.getLeftASTStats(),
-                        subscenariostats.getRightASTStats());
-                stats.addScenarioStats(scenariostats);
-            }
-
-            context.addStats(substats);
+            scenarioStats.setRuntime(runtime);
+            statistics.add(subStatistics);
         }
     }
 
