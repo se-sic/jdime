@@ -47,7 +47,7 @@ Precompiled binaries (including the required .dll files for glpk and glpk-java) 
 (http://sourceforge.net/projects/winglpk/)
 
 ## Installation:
-Clone the repository using `git clone --recursive $URL`. If you forgot the `--recursive` switch, you have to change into the cloned directory and run `git submodule update --init` afterwards to initialize the submodule dependencies.
+Clone the repository using `git clone $URL`.
 
 JDime uses gradle as a build system.
 To avoid version mismatches with already installed instances of gradle, you can use the supplied gradle wrapper `gradlew` that bootstraps the right version of gradle automatically.
