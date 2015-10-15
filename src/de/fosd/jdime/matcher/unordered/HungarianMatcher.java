@@ -46,7 +46,7 @@ import blogspot.software_and_algorithms.stern_library.optimization.HungarianAlgo
  *         type of artifact
  * @author Olaf Lessenich
  */
-public class HungarianMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
+public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMatcher<T> {
 
     private String id = getClass().getSimpleName();
 
@@ -60,91 +60,12 @@ public class HungarianMatcher<T extends Artifact<T>> extends UnorderedMatcher<T>
         super(matcher);
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-        int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
-                /*
-                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
-                 * subtrees and return early to save time.
-                 */
-
-                LOG.finest(() -> {
-                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-                    return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
-                });
-
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
-                m.get(left, right).get().setAlgorithm(id);
-
-                return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
-            }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
-        }
-
-        // number of first-level subtrees of t1
-        int m = left.getNumChildren();
-
-        // number of first-level subtrees of t2
-        int n = right.getNumChildren();
-
-        if (m == 0 || n == 0) {
-            Matchings<T> matchings = Matchings.of(left, right, rootMatching);
-            matchings.get(left, right).get().setAlgorithm(id);
-
-            return matchings;
-        }
-
-        @SuppressWarnings("unchecked")
-        Tuple<Integer, Matchings<T>>[][] matchings = new Tuple[m][n];
-
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                matchings[i][j] = Tuple.of(0, new Matchings<T>());
-            }
-        }
-
-        T childT1;
-        T childT2;
-
-        for (int i = 0; i < m; i++) {
-            childT1 = left.getChild(i);
-            for (int j = 0; j < n; j++) {
-                childT2 = right.getChild(j);
-                Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
-                Matching<T> matching = w.get(childT1, childT2).get();
-                matchings[i][j] = Tuple.of(matching.getScore(), w);
-            }
-        }
-
-        return solve(left, right, matchings, rootMatching);
-    }
-
-    /**
-     * Solves the assignment problem using the hungarian method.
-     *
-     * The implementation of the hungarian algorithm has been taken from
-     * https://github.com/KevinStern/software-and-algorithms
-     * which uses the MIT license. It implements the O(n^3) version of the
-     * hungarian algorithm.
-     *
-     * @param left
-     *            left artifact
-     * @param right
-     *            right artifact
-     * @param childrenMatching
-     *            matrix of matchings
-     * @return matching of root nodes
-     */
-    private Matchings<T> solve(T left, T right, Tuple<Integer, Matchings<T>>[][] childrenMatching, int rootMatching) {
+    protected Matchings<T> solveAssignmentProblem(T left, T right, Tuple<Integer, Matchings<T>>[][] childrenMatching, int rootMatching) {
         int m = childrenMatching.length;
         int n = childrenMatching[0].length;
         double[][] matrix = new double[m][n];
