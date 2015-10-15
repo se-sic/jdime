@@ -68,12 +68,12 @@ public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMa
     protected Matchings<T> solveAssignmentProblem(T left, T right, Tuple<Integer, Matchings<T>>[][] childrenMatching, int rootMatching) {
         int m = childrenMatching.length;
         int n = childrenMatching[0].length;
-        double[][] matrix = new double[m][n];
+        int[][] matrix = new int[m][n];
 
         /* We want to solve the assignment problem for maximum values,
          * therefore we have to adjust the matrix by subtracting each value
          * from the maximum value. */
-        double max = 0;
+        int max = 0;
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {

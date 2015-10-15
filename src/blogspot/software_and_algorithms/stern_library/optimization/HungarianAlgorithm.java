@@ -48,11 +48,11 @@ import java.util.Arrays;
  * @author Kevin L. Stern
  */
 public class HungarianAlgorithm {
-  private final double[][] costMatrix;
+  private final int[][] costMatrix;
   private final int rows, cols, dim;
-  private final double[] labelByWorker, labelByJob;
+  private final int[] labelByWorker, labelByJob;
   private final int[] minSlackWorkerByJob;
-  private final double[] minSlackValueByJob;
+  private final int[] minSlackValueByJob;
   private final int[] matchJobByWorker, matchWorkerByJob;
   private final int[] parentWorkerByCommittedJob;
   private final boolean[] committedWorkers;
@@ -65,11 +65,11 @@ public class HungarianAlgorithm {
    *          worker i to job j, for all i, j. The cost matrix must not be
    *          irregular in the sense that all rows must be the same length.
    */
-  public HungarianAlgorithm(double[][] costMatrix) {
+  public HungarianAlgorithm(int[][] costMatrix) {
     this.dim = Math.max(costMatrix.length, costMatrix[0].length);
     this.rows = costMatrix.length;
     this.cols = costMatrix[0].length;
-    this.costMatrix = new double[this.dim][this.dim];
+    this.costMatrix = new int[this.dim][this.dim];
     for (int w = 0; w < this.dim; w++) {
       if (w < costMatrix.length) {
         if (costMatrix[w].length != this.cols) {
@@ -77,13 +77,13 @@ public class HungarianAlgorithm {
         }
         this.costMatrix[w] = Arrays.copyOf(costMatrix[w], this.dim);
       } else {
-        this.costMatrix[w] = new double[this.dim];
+        this.costMatrix[w] = new int[this.dim];
       }
     }
-    labelByWorker = new double[this.dim];
-    labelByJob = new double[this.dim];
+    labelByWorker = new int[this.dim];
+    labelByJob = new int[this.dim];
     minSlackWorkerByJob = new int[this.dim];
-    minSlackValueByJob = new double[this.dim];
+    minSlackValueByJob = new int[this.dim];
     committedWorkers = new boolean[this.dim];
     parentWorkerByCommittedJob = new int[this.dim];
     matchJobByWorker = new int[this.dim];
@@ -99,7 +99,7 @@ public class HungarianAlgorithm {
    */
   protected void computeInitialFeasibleSolution() {
     for (int j = 0; j < dim; j++) {
-      labelByJob[j] = Double.POSITIVE_INFINITY;
+      labelByJob[j] = Integer.MAX_VALUE;
     }
     for (int w = 0; w < dim; w++) {
       for (int j = 0; j < dim; j++) {
@@ -163,7 +163,7 @@ public class HungarianAlgorithm {
   protected void executePhase() {
     while (true) {
       int minSlackWorker = -1, minSlackJob = -1;
-      double minSlackValue = Double.POSITIVE_INFINITY;
+      int minSlackValue = Integer.MAX_VALUE;
       for (int j = 0; j < dim; j++) {
         if (parentWorkerByCommittedJob[j] == -1) {
           if (minSlackValueByJob[j] < minSlackValue) {
@@ -202,7 +202,7 @@ public class HungarianAlgorithm {
         committedWorkers[worker] = true;
         for (int j = 0; j < dim; j++) {
           if (parentWorkerByCommittedJob[j] == -1) {
-            double slack = costMatrix[worker][j] - labelByWorker[worker]
+            int slack = costMatrix[worker][j] - labelByWorker[worker]
                 - labelByJob[j];
             if (minSlackValueByJob[j] > slack) {
               minSlackValueByJob[j] = slack;
@@ -278,7 +278,7 @@ public class HungarianAlgorithm {
    */
   protected void reduce() {
     for (int w = 0; w < dim; w++) {
-      double min = Double.POSITIVE_INFINITY;
+      int min = Integer.MAX_VALUE;
       for (int j = 0; j < dim; j++) {
         if (costMatrix[w][j] < min) {
           min = costMatrix[w][j];
@@ -288,9 +288,9 @@ public class HungarianAlgorithm {
         costMatrix[w][j] -= min;
       }
     }
-    double[] min = new double[dim];
+    int[] min = new int[dim];
     for (int j = 0; j < dim; j++) {
-      min[j] = Double.POSITIVE_INFINITY;
+      min[j] = Integer.MAX_VALUE;
     }
     for (int w = 0; w < dim; w++) {
       for (int j = 0; j < dim; j++) {
@@ -311,7 +311,7 @@ public class HungarianAlgorithm {
    * committed workers and by subtracting the slack value for committed jobs. In
    * addition, update the minimum slack values appropriately.
    */
-  protected void updateLabeling(double slack) {
+  protected void updateLabeling(int slack) {
     for (int w = 0; w < dim; w++) {
       if (committedWorkers[w]) {
         labelByWorker[w] += slack;
