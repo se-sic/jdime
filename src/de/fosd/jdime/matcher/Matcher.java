@@ -85,8 +85,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      * Constructs a new <code>Matcher</code>.
      */
     public Matcher() {
-        unorderedMatcher = new LPMatcher<>(this);
-        //unorderedMatcher = new HungarianMatcher<>(this);
+        //unorderedMatcher = new LPMatcher<>(this);
+        unorderedMatcher = new HungarianMatcher<>(this);
         unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
         orderedMatcher = new SimpleTreeMatcher<>(this);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
