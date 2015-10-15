@@ -1,19 +1,31 @@
 package de.fosd.jdime.gui;
 
-import java.io.Serializable;
+import java.io.File;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
+
+import de.fosd.jdime.JDimeConfig;
+import de.uni_passau.fim.seibt.kvconfig.Config;
+
+import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXEC;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
+import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
 
 /**
  * A Bean encapsulating the state of the gui at one point.
  */
-final class State implements Serializable {
+final class State {
 
     private List<Tab> treeViewTabs;
-    private transient ObservableList<String> output;
+    private ObservableList<String> output;
     private String left;
     private String base;
     private String right;
@@ -21,8 +33,30 @@ final class State implements Serializable {
     private String cmdArgs;
     private boolean debugMode;
 
-    private State() {
+    private State() {}
 
+    /**
+     * Returns a <code>State</code> with (where possible) the values initialized to the defaults specified using the
+     * {@link JDimeConfig}.
+     *
+     * @return the default <code>State</code>
+     */
+    public static State defaultState() {
+        State state = new State();
+        Config config = JDimeConfig.getConfig();
+
+        state.treeViewTabs = new ArrayList<>();
+        state.output = FXCollections.observableArrayList();
+
+        state.left = config.get(DEFAULT_LEFT).orElse("");
+        state.base = config.get(DEFAULT_BASE).orElse("");
+        state.right = config.get(DEFAULT_RIGHT).orElse("");
+        state.jDime = config.get(DEFAULT_JDIME_EXEC).orElse("");
+        state.cmdArgs = config.get(DEFAULT_ARGS).orElse("");
+
+        state.debugMode = false;
+
+        return state;
     }
 
     /**
@@ -67,6 +101,87 @@ final class State implements Serializable {
         gui.debugMode.setSelected(debugMode);
     }
 
+    /**
+     * Returns the list of <code>Tab</code>s this <code>State</code> stores.
+     *
+     * @return the list of <code>Tab</code>s
+     */
+    public List<Tab> getTreeViewTabs() {
+        return treeViewTabs;
+    }
+
+    /**
+     * Sets the list of <code>Tab</code>s this <code>State</code> stores to the new value.
+     *
+     * @param treeViewTabs the new <code>Tab</code>s to store
+     */
+    public void setTreeViewTabs(List<Tab> treeViewTabs) {
+        this.treeViewTabs = treeViewTabs;
+    }
+
+    /**
+     * Returns the JDime output lines this <code>State</code> stores.
+     *
+     * @return the JDime output
+     */
+    public ObservableList<String> getOutput() {
+        return output;
+    }
+
+    /**
+     * Returns the left path this <code>State</code> stores.
+     *
+     * @return the left path
+     */
+    public String getLeft() {
+        return left;
+    }
+
+    /**
+     * Returns the base path this <code>State</code> stores.
+     *
+     * @return the base path
+     */
+    public String getBase() {
+        return base;
+    }
+
+    /**
+     * Returns the right path this <code>State</code> stores.
+     *
+     * @return the right path
+     */
+    public String getRight() {
+        return right;
+    }
+
+    /**
+     * Returns the JDime executable path this <code>State</code> stores.
+     *
+     * @return the JDime executable path
+     */
+    public String getjDime() {
+        return jDime;
+    }
+
+    /**
+     * Returns the command line arguments this <code>State</code> stores.
+     *
+     * @return the command line arguments
+     */
+    public String getCmdArgs() {
+        return cmdArgs;
+    }
+
+    /**
+     * Returns the debug mode state this <code>State</code> stores.
+     *
+     * @return the debug mode state
+     */
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -92,5 +207,30 @@ final class State implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(treeViewTabs, output, left, base, right, jDime, cmdArgs, debugMode);
+    }
+
+    /**
+     * Returns a hash of the fields that are included in the output of {@link History#store(File)} or
+     * {@link History#store(OutputStream)}.
+     *
+     * @return the hash code
+     */
+    public int storeHash() {
+        return Objects.hash(output, left, base, right, jDime, cmdArgs, debugMode);
+    }
+
+    /**
+     * This method will be called by the JVM after deserialization. In it we ensure that the 'treeViewTabs' list
+     * (which is omitted in the XML) is not null (but rather empty).
+     *
+     * @return <code>this</code>
+     */
+    private Object readResolve() {
+
+        if (treeViewTabs == null) {
+            treeViewTabs = new ArrayList<>();
+        }
+
+        return this;
     }
 }

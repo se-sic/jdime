@@ -25,10 +25,8 @@ package de.fosd.jdime;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,9 +52,6 @@ import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strategy.StructuredStrategy;
-import de.uni_passau.fim.seibt.kvconfig.Config;
-import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
-import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -74,35 +69,6 @@ public final class Main {
 
     private static final String TOOLNAME = "jdime";
     private static final String VERSION = "0.3.11-develop";
-
-    private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
-    private static final String CONFIG_FILE_NAME = "JDime.properties";
-    private static final File LOGGING_CONFIG_FILE = new File(LOGGING_CONFIG_FILE_NAME);
-    private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
-    public static final Config config;
-
-    static {
-        if (LOGGING_CONFIG_FILE.exists()) {
-
-            try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
-                LogManager.getLogManager().readConfiguration(is);
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not read logging configuration.");
-            }
-        }
-
-        config = new Config();
-        config.addSource(new SysEnvConfigSource(1));
-
-        if (CONFIG_FILE.exists()) {
-
-            try {
-                config.addSource(new PropFileConfigSource(2, CONFIG_FILE));
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + CONFIG_FILE.getAbsolutePath());
-            }
-        }
-    }
 
     /**
      * Perform a merge operation on the input files or directories.

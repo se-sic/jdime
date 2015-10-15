@@ -421,7 +421,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
     /**
      * Returns the parent <code>Artifact</code>.
      *
-     * @return the parent <code>Artifact></code>
+     * @return the parent <code>Artifact</code>
      */
     public T getParent() {
         return parent;

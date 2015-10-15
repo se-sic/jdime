@@ -15,6 +15,5 @@
 /.classpath
 gradle.properties
 *.swp
-/lib/glpk-4.55/
-JDime.properties
+/lib/glpk-4.56/
 workbench.xmi
