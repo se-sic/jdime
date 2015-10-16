@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -512,12 +513,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
             return false;
         }
 
-        return getId().equals(((T) o).getId());
+        Artifact<?> artifact = (Artifact<?>) o;
+
+        return Objects.equals(getId(), artifact.getId());
     }
 
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return Objects.hash(getId());
     }
 
     /**
