@@ -41,6 +41,7 @@ import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ASTStats;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -51,6 +52,7 @@ import org.jastadd.extendj.ast.ClassDecl;
 import org.jastadd.extendj.ast.CompilationUnit;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
+import org.jastadd.extendj.ast.InterfaceDecl;
 import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
@@ -387,8 +389,60 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final String getStatsKey(final MergeContext context) {
-        return "nodes";
+    public KeyEnums.Type getType() {
+        if (isMethod()) {
+            return KeyEnums.Type.METHOD;
+        } else if (isClass()) {
+            return KeyEnums.Type.CLASS;
+        } else {
+            return KeyEnums.Type.NODE;
+        }
+    }
+
+    @Override
+    public KeyEnums.Level getLevel() {
+        KeyEnums.Type type = getType();
+
+        if (type == KeyEnums.Type.METHOD) {
+            return KeyEnums.Level.METHOD;
+        } else if (type == KeyEnums.Type.CLASS) {
+            return KeyEnums.Level.CLASS;
+        } else {
+
+            if (getParent() == null) {
+                return KeyEnums.Level.TOP;
+            } else {
+                return getParent().getLevel();
+            }
+        }
+    }
+
+    /**
+     * Returns whether this <code>ASTNodeArtifact</code> represents a method declaration.
+     *
+     * @return true iff this is a method declaration
+     */
+    private boolean isMethod() {
+        return astnode instanceof MethodDecl;
+    }
+
+    /**
+     * Returns whether the <code>ASTNodeArtifact</code> is within a method.
+     *
+     * @return true iff the <code>ASTNodeArtifact</code> is within a method
+     */
+    public boolean isWithinMethod() {
+        ASTNodeArtifact parent = getParent();
+        return parent != null && (parent.isMethod() || parent.isWithinMethod());
+    }
+
+    /**
+     * Returns whether this <code>ASTNodeArtifact</code> represents a class or interface declaration.
+     *
+     * @return true iff this is a class or method declaration
+     */
+    private boolean isClass() {
+        return astnode instanceof ClassDecl || astnode instanceof InterfaceDecl;
     }
 
     @Override
@@ -803,23 +857,5 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         return elements;
-    }
-
-    /**
-     * Returns whether the <code>ASTNodeArtifact</code> is a method declaration.
-     * @return true if the <code>ASTNodeArtifact</code> is a method declaration
-     */
-    private boolean isMethod() {
-        return astnode instanceof MethodDecl;
-    }
-
-    /**
-     * Returns whether the <code>ASTNodeArtifact</code> is within a method.
-     * @return true if the <code>ASTNodeArtifact</code> is within a method
-     */
-    public boolean isWithinMethod() {
-        ASTNodeArtifact parent = getParent();
-        LOG.finest(getId());
-        return parent != null && (parent.isMethod() || parent.isWithinMethod());
     }
 }

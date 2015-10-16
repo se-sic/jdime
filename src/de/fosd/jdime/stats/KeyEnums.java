@@ -54,6 +54,12 @@ public final class KeyEnums {
     public enum Level {
 
         /**
+         * <code>Artifact</code>s like <code>FileArtifact</code>s have no level as they do not represent a piece of
+         * code.
+         */
+        NONE,
+
+        /**
          * Everything above class declaration, e.g. import statements.
          */
         TOP,

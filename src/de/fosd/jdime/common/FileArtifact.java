@@ -41,6 +41,7 @@ import javax.activation.MimetypesFileTypeMap;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
@@ -453,16 +454,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final String getStatsKey(final MergeContext context) {
-        assert (context != null);
+    public KeyEnums.Type getType() {
+        return isDirectory() ? KeyEnums.Type.DIRECTORY : KeyEnums.Type.FILE;
+    }
 
-        // MergeStrategy<FileArtifact> strategy
-        // = (MergeStrategy<FileArtifact>) (isDirectory()
-        // ? new DirectoryStrategy() : context.getMergeStrategy());
-        // assert (strategy != null);
-        //
-        // return strategy.getStatsKey(this);
-        return isDirectory() ? "directories" : "files";
+    @Override
+    public KeyEnums.Level getLevel() {
+        return KeyEnums.Level.NONE;
     }
 
     @Override
