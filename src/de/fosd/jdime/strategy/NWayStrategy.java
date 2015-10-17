@@ -40,7 +40,6 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
 import de.fosd.jdime.stats.Stats;
 
 /**
@@ -193,11 +192,6 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
 
                 if (!context.isKeepGoing()) {
                     throw new Error(t);
-                } else {
-                    if (context.hasStatistics()) {
-                        MergeTripleStats scenarioStats = new MergeTripleStats(scenario, t.toString());
-                        context.getStatistics().addScenarioStats(scenarioStats);
-                    }
                 }
             }
         }
