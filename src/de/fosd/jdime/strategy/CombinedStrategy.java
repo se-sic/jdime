@@ -29,12 +29,10 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -151,17 +149,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String toString() {
         return "combined";
-    }
-
-    @Override
-    public final Stats createStats() {
-        return new Stats(new String[] { "directories", "files", "lines",
-                "nodes" });
-    }
-
-    @Override
-    public final String getStatsKey(final FileArtifact artifact) {
-        throw new NotYetImplementedException();
     }
 
     @Override

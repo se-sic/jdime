@@ -37,10 +37,8 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -200,17 +198,6 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String toString() {
         return "nway";
-    }
-
-    @Override
-    public final Stats createStats() {
-        return new Stats(new String[]{"directories", "files", "lines", "nodes"});
-    }
-
-    @Override
-    public final String getStatsKey(FileArtifact artifact) {
-        // FIXME: remove me when implementation is complete!
-        throw new NotYetImplementedException("StructuredStrategy: Implement me!");
     }
 
     @Override

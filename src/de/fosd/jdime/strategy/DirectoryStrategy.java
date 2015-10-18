@@ -31,7 +31,6 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * @author Olaf Lessenich
@@ -88,18 +87,8 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
     }
 
     @Override
-    public final Stats createStats() {
-        return new Stats(new String[] { "directories", "files" });
-    }
-
-    @Override
     public final String toString() {
         return "directory";
-    }
-
-    @Override
-    public final String getStatsKey(final FileArtifact artifact) {
-        return artifact.isDirectory() ? "directories" : "files";
     }
 
     @Override

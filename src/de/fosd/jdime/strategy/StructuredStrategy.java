@@ -34,12 +34,10 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.parser.ParseResult;
 
 /**
@@ -222,17 +220,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String toString() {
         return "structured";
-    }
-
-    @Override
-    public final Stats createStats() {
-        return new Stats(new String[] {"directories", "files", "lines", "nodes"});
-    }
-
-    @Override
-    public final String getStatsKey(FileArtifact artifact) {
-        // FIXME: remove me when implementation is complete!
-        throw new NotYetImplementedException("StructuredStrategy: Implement me!");
     }
 
     @Override

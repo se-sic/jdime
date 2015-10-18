@@ -40,7 +40,6 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.parser.ParseResult;
 
 /**
@@ -165,18 +164,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     }
 
     @Override
-    public final Stats createStats() {
-        return new Stats(new String[] { "directories", "files", "lines" });
-    }
-
-    @Override
     public final String toString() {
         return "linebased";
-    }
-
-    @Override
-    public final String getStatsKey(FileArtifact artifact) {
-        return "lines";
     }
 
     /**
