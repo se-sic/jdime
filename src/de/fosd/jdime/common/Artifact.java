@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.strategy.StatisticsInterface;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -44,7 +44,7 @@ import de.fosd.jdime.stats.KeyEnums;
  * @param <T>
  *            type of artifact
  */
-public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
+public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface<T> {
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
@@ -437,20 +437,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
     public Revision getRevision() {
         return revision;
     }
-
-    /**
-     * Returns the <code>KeyEnums.Type</code> matching this <code>Artifact</code>.
-     *
-     * @return the type of this <code>Artifact</code>
-     */
-    public abstract KeyEnums.Type getType();
-
-    /**
-     * Returns the <code>KeyEnums.Level</code> matching this <code>Artifact</code>.
-     *
-     * @return the level of this <code>Artifact</code>
-     */
-    public abstract KeyEnums.Level getLevel();
 
     /**
      * Returns the size of the subtree. The <code>Artifact</code> itself is not included.

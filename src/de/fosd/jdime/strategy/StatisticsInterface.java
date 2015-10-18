@@ -23,7 +23,21 @@
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.stats.KeyEnums;
 
-public interface StatsInterface<T extends Artifact<T>> {
+public interface StatisticsInterface<T extends Artifact<T>> {
 
+    /**
+     * Returns the <code>KeyEnums.Type</code> matching this <code>Artifact</code>.
+     *
+     * @return the type of this <code>Artifact</code>
+     */
+    KeyEnums.Type getType();
+
+    /**
+     * Returns the <code>KeyEnums.Level</code> matching this <code>Artifact</code>.
+     *
+     * @return the level of this <code>Artifact</code>
+     */
+    KeyEnums.Level getLevel();
 }
