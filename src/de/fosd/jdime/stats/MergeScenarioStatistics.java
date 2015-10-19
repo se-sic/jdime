@@ -3,7 +3,6 @@ package de.fosd.jdime.stats;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.parser.ParseResult;
@@ -11,7 +10,7 @@ import de.fosd.jdime.stats.parser.Parser;
 
 public class MergeScenarioStatistics {
 
-    private MergeScenario<FileArtifact> mergeScenario;
+    private MergeScenario<?> mergeScenario;
 
     private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
     private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
@@ -22,7 +21,7 @@ public class MergeScenarioStatistics {
 
     private long runtime;
 
-    public MergeScenarioStatistics(MergeScenario<FileArtifact> mergeScenario) {
+    public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
@@ -30,6 +29,10 @@ public class MergeScenarioStatistics {
         this.lineStatistics = new ElementStatistics();
         this.conflicts = 0;
         this.runtime = 0;
+    }
+
+    public MergeScenario<?> getMergeScenario() {
+        return mergeScenario;
     }
 
     /**
@@ -98,5 +101,34 @@ public class MergeScenarioStatistics {
 
     public void setRuntime(long runtime) {
         this.runtime = runtime;
+    }
+
+    public void add(MergeScenarioStatistics other) {
+
+        for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : other.levelStatistics.entrySet()) {
+            Revision rev = entry.getKey();
+
+            for (Map.Entry<KeyEnums.Level, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                KeyEnums.Level level = subEntry.getKey();
+                getLevelStatistics(rev, level).add(subEntry.getValue());
+            }
+        }
+
+        for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : other.typeStatistics.entrySet()) {
+            Revision rev = entry.getKey();
+
+            for (Map.Entry<KeyEnums.Type, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                KeyEnums.Type type = subEntry.getKey();
+                getTypeStatistics(rev, type).add(subEntry.getValue());
+            }
+        }
+
+        for (Map.Entry<Revision, MergeStatistics> entry : other.mergeStatistics.entrySet()) {
+            getMergeStatistics(entry.getKey()).add(entry.getValue());
+        }
+
+        lineStatistics.add(other.lineStatistics);
+        conflicts += other.conflicts;
+        runtime += other.runtime;
     }
 }
