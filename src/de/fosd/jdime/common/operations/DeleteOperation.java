@@ -30,6 +30,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
@@ -53,22 +54,29 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     private T artifact;
 
     /**
-     * Output Artifact.
+     * The output <code>Artifact</code>.
      */
     private T target;
 
+    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
-     * Class constructor.
-     * @param artifact that is added by the operation
-     * @param target output artifact
-     * @param condition condition under which the node is NOT deleted
+     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from <code>target</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to be deleted
+     * @param target
+     *         the <code>Artifact</code> to delete from
+     * @param mergeScenario
+     *         the current <code>MergeScenario</code>
+     * @param condition
+     *         the condition under which the node is NOT deleted
      */
-    public DeleteOperation(final T artifact, final T target, String condition) {
-        super();
+    public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
         this.artifact = artifact;
         this.target = target;
+        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
@@ -76,7 +84,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final void apply(final MergeContext context) throws IOException {
+    public void apply(MergeContext context) throws IOException {
         assert (artifact != null);
         assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
@@ -133,12 +141,12 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final String getName() {
+    public String getName() {
         return "DELETE";
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return getId() + ": " + getName() + " " + artifact;
     }
 }

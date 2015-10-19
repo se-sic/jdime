@@ -30,6 +30,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.Stats;
 import de.fosd.jdime.stats.StatsElement;
@@ -57,18 +58,25 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      */
     private T target;
 
+    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
-     * Class constructor.
-     * @param artifact that is added by the operation
-     * @param target output artifact
-     * @param condition presence condition
+     * Constructs a new <code>AddOperation</code> adding the given <code>artifact</code> to <code>target</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to be added
+     * @param target
+     *         the <code>Artifact</code> to add to
+     * @param mergeScenario
+     *         the current <code>MergeScenario</code>
+     * @param condition
+     *         the presence condition for <code>artifact</code> or <code>null</code>
      */
-    public AddOperation(final T artifact, final T target, String condition) {
-        super();
+    public AddOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
         this.artifact = artifact;
         this.target = target;
+        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
@@ -76,7 +84,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final void apply(final MergeContext context) throws IOException {
+    public void apply(MergeContext context) throws IOException {
         assert (artifact != null);
         assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
@@ -129,7 +137,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final String getName() {
+    public String getName() {
         return "ADD";
     }
 
@@ -137,12 +145,12 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      * Returns the target <code>Artifact</code>
      * @return the target
      */
-    public final T getTarget() {
+    public T getTarget() {
         return target;
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
     }
 }
