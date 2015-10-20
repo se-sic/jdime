@@ -1,5 +1,6 @@
-# use container-based infrastructure
-sudo: false
+sudo: required
+
+dist: trusty
 
 language: java
 
@@ -9,6 +10,7 @@ jdk:
 addons:
     apt:
         packages:
+        - oracle-java8-installer
         - git
         - libglpk-dev
         - libglpk-java

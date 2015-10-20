@@ -143,13 +143,13 @@ task natives {
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    defaultJvmOpts = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
 }
 
 task guiScripts(type: CreateStartScripts) {
     applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
-    defaultJvmOpts = ["-Djava.util.loggingConfigFile.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = ["-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
 }
@@ -196,6 +196,8 @@ run {
 test {
     jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
 }
+
+test.dependsOn installDist
 
 allprojects {
     gradle.projectsEvaluated {
