@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
@@ -41,6 +42,7 @@ import javax.activation.MimetypesFileTypeMap;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.strategy.DirectoryStrategy;
@@ -466,27 +468,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        forAllJavaFiles(astNodeArtifact -> {
+            astNodeArtifact.getStats(); // TODO replace with correct stats method
 
-        for (FileArtifact child : getJavaFiles()) {
-            ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-            ASTStats childStats = childAST.getStats(null,
-                    LangElem.TOPLEVELNODE, false);
-
-            LOG.fine(childStats::toString);
-
-            if (context.isConsecutive()) {
-                context.getStatistics().addRightStats(childStats);
+            if (mergeContext.isConsecutive()) {
+                mergeContext.getStatistics().addRightStats(childStats);
             } else {
-                context.getStatistics().addASTStats(childStats);
+                mergeContext.getStatistics().addASTStats(childStats);
             }
-        }
+        });
     }
 
     @Override
     public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
-
-        for (FileArtifact child : getJavaFiles()) {
-            ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+        forAllJavaFiles(astNodeArtifact -> {
             ASTStats childStats = childAST.getStats(null,
                     LangElem.TOPLEVELNODE, false);
 
@@ -500,12 +495,48 @@ public class FileArtifact extends Artifact<FileArtifact> {
             } else {
                 context.getStatistics().addASTStats(childStats);
             }
-        }
+        });
     }
 
-    @Override
-    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+    /**
+     * Uses {@link #getJavaFiles()} and applies the given <code>Consumer</code> to every resulting
+     * <code>FileArtifact</code> after it being parsed to an <code>ASTNodeArtifact</code>. If an
+     * <code>IOException</code> occurs getting the files the method will immediately return. If an
+     * <code>IOException</code> occurs parsing a file to an <code>ASTNodeArtifact</code> it will be skipped.
+     *
+     * @param cons
+     *         the <code>Consumer</code> to apply
+     */
+    private void forAllJavaFiles(Consumer<ASTNodeArtifact> cons) {
+        ArtifactList<FileArtifact> javaFiles;
 
+        try {
+            javaFiles = getJavaFiles();
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, e, () -> {
+                String format = "Could not get the Java files from %s. No statistics will be collected for them.";
+                return String.format(format, file.getAbsolutePath());
+            });
+
+            return;
+        }
+
+        for (FileArtifact child : javaFiles) {
+            ASTNodeArtifact childAST;
+
+            try {
+                childAST = new ASTNodeArtifact(child);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> {
+                    String format = "Could not construct an ASTNodeArtifact from %s. No statistics will be collected for it.";
+                    return String.format(format, child);
+                });
+
+                continue;
+            }
+
+            cons.accept(childAST);
+        }
     }
 
     @Override
