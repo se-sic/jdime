@@ -23,7 +23,9 @@
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 
 public interface StatisticsInterface<T extends Artifact<T>> {
 
@@ -40,4 +42,49 @@ public interface StatisticsInterface<T extends Artifact<T>> {
      * @return the level of this <code>Artifact</code>
      */
     KeyEnums.Level getLevel();
+
+    /**
+     * Called by the <code>AddOperation</code> on the <code>Artifact</code> being added. The default implementation
+     * does nothing and is intended to be overridden by <code>Artifact</code> implementations wishing to record custom
+     * statistics after being added.
+     *
+     * @param mScenarioStatistics
+     *         the <code>MergeScenarioStatistics</code> for the current
+     *         <code>MergeScenarioStatistics</code>
+     * @param mergeContext
+     *         the <code>MergeContext</code> of the current run
+     */
+    default void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
+    }
+
+    /**
+     * Called by the <code>DeleteOperation</code> on the <code>Artifact</code> being deleted. The default implementation
+     * does nothing and is intended to be overridden by <code>Artifact</code> implementations wishing to record custom
+     * statistics after being deleted.
+     *
+     * @param mScenarioStatistics
+     *         the <code>MergeScenarioStatistics</code> for the current
+     *         <code>MergeScenarioStatistics</code>
+     * @param mergeContext
+     *         the <code>MergeContext</code> of the current run
+     */
+    default void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
+    }
+
+    /**
+     * Called by the <code>MergeOperation</code> on the first <code>Artifact</code> that was added to the
+     * <code>MergeScenario</code> being merged. The default implementation does nothing and is intended to be
+     * overridden by <code>Artifact</code> implementations wishing to record custom statistics after being merged.
+     *
+     * @param mScenarioStatistics
+     *         the <code>MergeScenarioStatistics</code> for the current
+     *         <code>MergeScenarioStatistics</code>
+     * @param mergeContext
+     *         the <code>MergeContext</code> of the current run
+     */
+    default void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
+    }
 }

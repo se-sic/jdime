@@ -25,15 +25,12 @@ package de.fosd.jdime.common.operations;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -109,30 +106,12 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         if (context.hasStatistics()) {
-            Stats stats = context.getStatistics();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(artifact
-                    .getStatsKey(context));
-            element.incrementAdded();
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            if (artifact instanceof FileArtifact) {
-
-                // analyze java files to get statistics
-                for (FileArtifact child : ((FileArtifact) artifact)
-                        .getJavaFiles()) {
-                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-                    ASTStats childStats = childAST.getStats(null,
-                            LangElem.TOPLEVELNODE, false);
-
-                    LOG.fine(childStats::toString);
-
-                    if (context.isConsecutive()) {
-                        context.getStatistics().addRightStats(childStats);
-                    } else {
-                        context.getStatistics().addASTStats(childStats);
-                    }
-                }
-            }
+            element.incrementNumAdded();
+            artifact.addOpStatistics(mScenarioStatistics, context);
         }
     }
 

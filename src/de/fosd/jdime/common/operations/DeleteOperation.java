@@ -25,15 +25,12 @@ package de.fosd.jdime.common.operations;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -110,33 +107,12 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         if (context.hasStatistics()) {
-            Stats stats = context.getStatistics();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(artifact
-                    .getStatsKey(context));
-            element.incrementDeleted();
-            
-            if (artifact instanceof FileArtifact) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-                // analyze java files to get statistics
-                for (FileArtifact child : ((FileArtifact) artifact)
-                        .getJavaFiles()) {
-                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-                    ASTStats childStats = childAST.getStats(null,
-                            LangElem.TOPLEVELNODE, false);
-
-                    LOG.fine(childStats::toString);
-
-                    childStats.setRemovalsfromAdditions(childStats);
-                    childStats.resetAdditions();
-
-                    if (context.isConsecutive()) {
-                        context.getStatistics().addRightStats(childStats);
-                    } else {
-                        context.getStatistics().addASTStats(childStats);
-                    }
-                }
-            }
+            element.incrementNumDeleted();
+            artifact.deleteOpStatistics(mScenarioStatistics, context);
         }
     }
 

@@ -32,8 +32,9 @@ import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -182,15 +183,16 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         // FIXME: I think this could be done easier. It's just too fucking ugly.
-        mergeScenario.get(0).merge(this, context);
+        T artifact = mergeScenario.get(0);
+        artifact.merge(this, context);
 
         if (context.hasStatistics()) {
-            Stats stats = context.getStatistics();
-            if (stats != null) {
-                stats.incrementOperation(this);
-                StatsElement element = stats.getElement(mergeScenario.getLeft().getStatsKey(context));
-                element.incrementMerged();
-            }
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
+
+            element.incrementNumMerged();
+            artifact.mergeOpStatistics(mScenarioStatistics, context);
         }
     }
 

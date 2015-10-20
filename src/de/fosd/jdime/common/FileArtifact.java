@@ -42,6 +42,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
@@ -461,6 +462,50 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public KeyEnums.Level getLevel() {
         return KeyEnums.Level.NONE;
+    }
+
+    @Override
+    public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
+        for (FileArtifact child : getJavaFiles()) {
+            ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+            ASTStats childStats = childAST.getStats(null,
+                    LangElem.TOPLEVELNODE, false);
+
+            LOG.fine(childStats::toString);
+
+            if (context.isConsecutive()) {
+                context.getStatistics().addRightStats(childStats);
+            } else {
+                context.getStatistics().addASTStats(childStats);
+            }
+        }
+    }
+
+    @Override
+    public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
+        for (FileArtifact child : getJavaFiles()) {
+            ASTNodeArtifact childAST = new ASTNodeArtifact(child);
+            ASTStats childStats = childAST.getStats(null,
+                    LangElem.TOPLEVELNODE, false);
+
+            LOG.fine(childStats::toString);
+
+            childStats.setRemovalsfromAdditions(childStats);
+            childStats.resetAdditions();
+
+            if (context.isConsecutive()) {
+                context.getStatistics().addRightStats(childStats);
+            } else {
+                context.getStatistics().addASTStats(childStats);
+            }
+        }
+    }
+
+    @Override
+    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+
     }
 
     @Override
