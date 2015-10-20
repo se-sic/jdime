@@ -1,6 +1,8 @@
 # use container-based infrastructure
 sudo: false
 
+dist: trusty
+
 language: java
 
 jdk:
