@@ -197,6 +197,8 @@ test {
     jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
 }
 
+test.dependsOn installDist
+
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
