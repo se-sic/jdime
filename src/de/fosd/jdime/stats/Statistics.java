@@ -11,13 +11,9 @@ import de.fosd.jdime.common.MergeScenario;
 public class Statistics {
 
     private Map<MergeScenario<?>, MergeScenarioStatistics> scenarioStatistics;
-    private ElementStatistics fileStatistics;
-    private ElementStatistics directoryStatistics;
 
     public Statistics() {
         this.scenarioStatistics = new HashMap<>();
-        this.fileStatistics = new ElementStatistics();
-        this.directoryStatistics = new ElementStatistics();
     }
 
     public MergeScenarioStatistics getScenarioStatistics(MergeScenario<?> mergeScenario) {
@@ -32,14 +28,6 @@ public class Statistics {
         scenarioStatistics.put(statistics.getMergeScenario(), statistics);
     }
 
-    public ElementStatistics getFileStatistics() {
-        return fileStatistics;
-    }
-
-    public ElementStatistics getDirectoryStatistics() {
-        return directoryStatistics;
-    }
-
     public IntSummaryStatistics getConflictStatistics() {
         return scenarioStatistics.values().stream().collect(Collectors.summarizingInt(MergeScenarioStatistics::getConflicts));
     }
@@ -52,8 +40,5 @@ public class Statistics {
         for (Map.Entry<MergeScenario<?>, MergeScenarioStatistics> entry : other.scenarioStatistics.entrySet()) {
             getScenarioStatistics(entry.getKey()).add(entry.getValue());
         }
-
-        fileStatistics.add(other.fileStatistics);
-        directoryStatistics.add(other.directoryStatistics);
     }
 }

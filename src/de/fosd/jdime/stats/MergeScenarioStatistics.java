@@ -17,6 +17,8 @@ public class MergeScenarioStatistics {
     private Map<Revision, MergeStatistics> mergeStatistics;
 
     private ElementStatistics lineStatistics;
+    private ElementStatistics fileStatistics;
+    private ElementStatistics directoryStatistics;
     private int conflicts;
 
     private long runtime;
@@ -27,6 +29,8 @@ public class MergeScenarioStatistics {
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
         this.lineStatistics = new ElementStatistics();
+        this.fileStatistics = new ElementStatistics();
+        this.directoryStatistics = new ElementStatistics();
         this.conflicts = 0;
         this.runtime = 0;
     }
@@ -51,7 +55,9 @@ public class MergeScenarioStatistics {
 
     /**
      * Returns the <code>ElementStatistics</code> for the given <code>Revision</code> and <code>TYPE</code>.
-     * Creates and registers a new <code>ElementStatistics</code> object if necessary.
+     * Creates and registers a new <code>ElementStatistics</code> object if necessary. If <code>type</code> is
+     * one of <code>LINE, FILE or DIRECTORY</code> the <code>Revision</code> is ignored the appropriate
+     * <code>getXStatistics</code> method is used.
      *
      * @param rev
      *         the <code>Revision</code> to look up
@@ -60,6 +66,17 @@ public class MergeScenarioStatistics {
      * @return the corresponding <code>ElementStatistics</code>
      */
     public ElementStatistics getTypeStatistics(Revision rev, KeyEnums.Type type) {
+
+        switch (type) {
+
+            case LINE:
+                return lineStatistics;
+            case FILE:
+                return fileStatistics;
+            case DIRECTORY:
+                return directoryStatistics;
+        }
+
         return typeStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(type, l -> new ElementStatistics());
     }
 
@@ -89,6 +106,14 @@ public class MergeScenarioStatistics {
         conflicts = result.getConflicts();
 
         return result;
+    }
+
+    public ElementStatistics getFileStatistics() {
+        return fileStatistics;
+    }
+
+    public ElementStatistics getDirectoryStatistics() {
+        return directoryStatistics;
     }
 
     public int getConflicts() {
@@ -128,6 +153,8 @@ public class MergeScenarioStatistics {
         }
 
         lineStatistics.add(other.lineStatistics);
+        fileStatistics.add(other.fileStatistics);
+        directoryStatistics.add(other.directoryStatistics);
         conflicts += other.conflicts;
         runtime += other.runtime;
     }

@@ -155,7 +155,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             ParseResult res = scenarioStatistics.addLineStatistics(processOutput.toString());
 
             if (res.getConflicts() > 0) {
-                statistics.getFileStatistics().incrementNumOccurInConflic();
+                scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
             }
 
             scenarioStatistics.setRuntime(runtime);
