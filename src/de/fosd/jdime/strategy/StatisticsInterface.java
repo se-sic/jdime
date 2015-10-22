@@ -22,8 +22,16 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 
@@ -86,5 +94,55 @@ public interface StatisticsInterface<T extends Artifact<T>> {
      */
     default void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
 
+    }
+
+    static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev, boolean isFragment) {
+        MergeScenarioStatistics statistics = new MergeScenarioStatistics(null);
+        List<ElementStatistics> elementStats = new ArrayList<>();
+        List<Artifact<?>> preOrder = new ArrayList<>();
+
+        {
+            Deque<Artifact<?>> q = new ArrayDeque<>(Collections.singleton(artifact));
+
+            while (!q.isEmpty()) {
+                Artifact<?> curr = q.removeFirst();
+
+                preOrder.add(curr);
+                curr.getChildren().forEach(q::addFirst);
+            }
+        }
+
+        for (Artifact<?> current : preOrder) {
+            elementStats.clear();
+
+            KeyEnums.Type type = current.getType();
+            KeyEnums.Level level = current.getLevel();
+
+            elementStats.add(statistics.getTypeStatistics(current.getRevision(), type));
+
+            if (level != KeyEnums.Level.NONE) {
+                elementStats.add(statistics.getLevelStatistics(current.getRevision(), level));
+            }
+
+            elementStats.forEach(ElementStatistics::incrementTotal);
+
+            if (current.isConflict()) {
+                elementStats.forEach(ElementStatistics::incrementNumChanged);
+                elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
+            } else if ((otherRev == null && current.hasMatches()) || current.hasMatching(otherRev)) {
+                elementStats.forEach(ElementStatistics::getNumMatched);
+            } else {
+                elementStats.forEach(ElementStatistics::incrementNumChanged);
+
+                // added or deleted?
+                if (current.hasMatches()) {
+                    elementStats.forEach(ElementStatistics::incrementNumDeleted);
+                } else {
+                    elementStats.forEach(ElementStatistics::incrementNumAdded);
+                }
+            }
+        }
+
+        return statistics;
     }
 }
