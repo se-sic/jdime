@@ -5,6 +5,7 @@ public class ElementStatistics {
     private int total;
     private int numAdded;
     private int numMerged;
+    private int numMatched;
     private int numDeleted;
     private int numChanged;
     private int numOccurInConflict;
@@ -13,6 +14,7 @@ public class ElementStatistics {
         this.total = 0;
         this.numAdded = 0;
         this.numMerged = 0;
+        this.numMatched = 0;
         this.numDeleted = 0;
         this.numChanged = 0;
         this.numOccurInConflict = 0;
@@ -22,6 +24,7 @@ public class ElementStatistics {
         total += other.total;
         numAdded += other.numAdded;
         numMerged += other.numMerged;
+        numMatched += other.numMatched;
         numDeleted += other.numDeleted;
         numChanged += other.numChanged;
         numOccurInConflict += other.numOccurInConflict;
@@ -37,6 +40,10 @@ public class ElementStatistics {
 
     public void incrementNumMerged(int by) {
         numMerged += by;
+    }
+
+    public void incrementNumMatched(int by) {
+        numMatched += by;
     }
 
     public void incrementNumDeleted(int by) {
@@ -61,6 +68,10 @@ public class ElementStatistics {
 
     public void incrementNumMerged() {
         incrementNumMerged(1);
+    }
+
+    public void incrementNumMatched() {
+        incrementNumMatched(1);
     }
 
     public void incrementNumDeleted() {
@@ -97,6 +108,14 @@ public class ElementStatistics {
 
     public void setNumMerged(int numMerged) {
         this.numMerged = numMerged;
+    }
+
+    public int getNumMatched() {
+        return numMatched;
+    }
+
+    public void setNumMatched(int numMatched) {
+        this.numMatched = numMatched;
     }
 
     public int getNumDeleted() {
