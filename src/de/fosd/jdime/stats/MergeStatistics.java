@@ -15,6 +15,45 @@ public class MergeStatistics {
      */
     private int maxNumChildren;
 
+    public MergeStatistics() {
+        this.numChunks = 0;
+        this.avgChunkSize = 0;
+        this.maxASTDepth = 0;
+        this.maxNumChildren = 0;
+    }
+
+    public int getNumChunks() {
+        return numChunks;
+    }
+
+    public void setNumChunks(int numChunks) {
+        this.numChunks = numChunks;
+    }
+
+    public float getAvgChunkSize() {
+        return avgChunkSize;
+    }
+
+    public void setAvgChunkSize(float avgChunkSize) {
+        this.avgChunkSize = avgChunkSize;
+    }
+
+    public int getMaxASTDepth() {
+        return maxASTDepth;
+    }
+
+    public void setMaxASTDepth(int maxASTDepth) {
+        this.maxASTDepth = maxASTDepth;
+    }
+
+    public int getMaxNumChildren() {
+        return maxNumChildren;
+    }
+
+    public void setMaxNumChildren(int maxNumChildren) {
+        this.maxNumChildren = maxNumChildren;
+    }
+
     public void add(MergeStatistics other) {
         float combinedSumSize = avgChunkSize * numChunks + other.avgChunkSize * other.numChunks;
 
