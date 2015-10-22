@@ -423,7 +423,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @return true iff this is a method declaration
      */
     private boolean isMethod() {
-        return astnode instanceof MethodDecl;
+        return astnode instanceof MethodDecl || astnode instanceof ConstructorDecl;
     }
 
     /**
