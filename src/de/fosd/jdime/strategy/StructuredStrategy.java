@@ -31,11 +31,9 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
@@ -190,14 +188,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     }
                 }
 
-                { // TODO replace with new Statistics methods
-                    ASTStats leftStats = left.getStats(right.getRevision(), LangElem.TOPLEVELNODE, false);
-                    ASTStats rightStats = right.getStats(left.getRevision(), LangElem.TOPLEVELNODE, false);
-                    ASTStats targetStats = targetNode.getStats(null, LangElem.TOPLEVELNODE, false);
-
-                    ASTStats astStats = ASTStats.add(leftStats, rightStats);
-                    astStats.setConflicts(targetStats);
-                }
+                scenarioStatistics.add(StatisticsInterface.getASTStatistics(left, right.getRevision()));
+                scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
+                scenarioStatistics.add(StatisticsInterface.getASTStatistics(target, null));
 
                 scenarioStatistics.setRuntime(runtime);
                 statistics.addScenarioStatistics(scenarioStatistics);

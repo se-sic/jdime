@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -42,11 +43,12 @@ import javax.activation.MimetypesFileTypeMap;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.stats.ASTStats;
+import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.StatisticsInterface;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -469,32 +471,50 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
         forAllJavaFiles(astNodeArtifact -> {
-            astNodeArtifact.getStats(); // TODO replace with correct stats method
+            mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
 
-            if (mergeContext.isConsecutive()) {
-                mergeContext.getStatistics().addRightStats(childStats);
-            } else {
-                mergeContext.getStatistics().addASTStats(childStats);
-            }
+            // TODO do we need this with the way the new MergeScenarioStatistics work?
+//            if (mergeContext.isConsecutive()) {
+//                mergeContext.getStatistics().addRightStats(childStats);
+//            } else {
+//                mergeContext.getStatistics().addASTStats(childStats);
+//            }
         });
     }
 
     @Override
     public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
         forAllJavaFiles(astNodeArtifact -> {
-            ASTStats childStats = childAST.getStats(null,
-                    LangElem.TOPLEVELNODE, false);
+            MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
+            Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
+            Map<Revision, Map<KeyEnums.Type, ElementStatistics>> tStats = delStats.getTypeStatistics();
 
-            LOG.fine(childStats::toString);
+            for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : lStats.entrySet()) {
+                for (Map.Entry<KeyEnums.Level, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                    ElementStatistics eStats = sEntry.getValue();
 
-            childStats.setRemovalsfromAdditions(childStats);
-            childStats.resetAdditions();
-
-            if (context.isConsecutive()) {
-                context.getStatistics().addRightStats(childStats);
-            } else {
-                context.getStatistics().addASTStats(childStats);
+                    eStats.setNumDeleted(eStats.getNumAdded());
+                    eStats.setNumAdded(0);
+                }
             }
+
+            for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : tStats.entrySet()) {
+                for (Map.Entry<KeyEnums.Type, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                    ElementStatistics eStats = sEntry.getValue();
+
+                    eStats.setNumDeleted(eStats.getNumAdded());
+                    eStats.setNumAdded(0);
+                }
+            }
+
+            mScenarioStatistics.add(delStats);
+
+            // TODO do we need this with the way the new MergeScenarioStatistics work?
+//            if (mergeContext.isConsecutive()) {
+//                mergeContext.getStatistics().addRightStats(childStats);
+//            } else {
+//                mergeContext.getStatistics().addASTStats(childStats);
+//            }
         });
     }
 
