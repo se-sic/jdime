@@ -1,5 +1,6 @@
 package de.fosd.jdime.stats;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -169,5 +170,42 @@ public class MergeScenarioStatistics {
         directoryStatistics.add(other.directoryStatistics);
         conflicts += other.conflicts;
         runtime += other.runtime;
+    }
+
+    public void print(PrintStream os) {
+        String indent = "    ";
+
+        os.printf("%s for %s:%n", MergeScenarioStatistics.class.getSimpleName(), MergeScenario.class.getSimpleName());
+        mergeScenario.asList().forEach(artifact -> os.printf("%s%s%n", indent, artifact.getId()));
+        os.println("General:");
+        os.printf("%sConflicts: %s%n", indent, conflicts);
+        os.printf("%sRuntime: %dms%n", indent, runtime);
+
+        if (!levelStatistics.isEmpty()) os.println("Level Statistics");
+        levelStatistics.forEach((rev, map) -> map.forEach((level, stats) -> {
+            os.printf("%s %s %s %s%n", Revision.class.getSimpleName(), rev, KeyEnums.Level.class.getSimpleName(), level);
+            stats.print(os, indent);
+        }));
+
+        if (!typeStatistics.isEmpty()) os.println("Type Statistics");
+        typeStatistics.forEach((rev, map) -> map.forEach((type, stats) -> {
+            os.printf("%s %s %s %s%n", Revision.class.getSimpleName(), rev, KeyEnums.Type.class.getSimpleName(), type);
+            stats.print(os, indent);
+        }));
+
+        if (!mergeStatistics.isEmpty()) os.println("Merge Statistics");
+        mergeStatistics.forEach((rev, stats) -> {
+            os.println(Revision.class.getSimpleName());
+            stats.print(os, indent);
+        });
+
+        os.println("Line Statistics");
+        lineStatistics.print(os, indent);
+
+        os.println("File Statistics");
+        fileStatistics.print(os, indent);
+
+        os.println("Directory Statistics");
+        directoryStatistics.print(os, indent);
     }
 }

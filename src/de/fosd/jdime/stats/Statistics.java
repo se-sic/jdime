@@ -1,5 +1,9 @@
 package de.fosd.jdime.stats;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
@@ -40,5 +44,19 @@ public class Statistics {
         for (Map.Entry<MergeScenario<?>, MergeScenarioStatistics> entry : other.scenarioStatistics.entrySet()) {
             getScenarioStatistics(entry.getKey()).add(entry.getValue());
         }
+    }
+
+    public void printCSV(File file) throws IOException {
+        try (PrintStream os = new PrintStream(new FileOutputStream(file))) {
+            printCSV(os);
+        }
+    }
+
+    public void printCSV(PrintStream os) {
+
+    }
+
+    public void print(PrintStream os) {
+        getScenarioStatistics().forEach(statistics -> statistics.print(os));
     }
 }

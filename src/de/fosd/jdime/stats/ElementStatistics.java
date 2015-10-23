@@ -1,5 +1,7 @@
 package de.fosd.jdime.stats;
 
+import java.io.PrintStream;
+
 public class ElementStatistics {
 
     private int total;
@@ -140,5 +142,15 @@ public class ElementStatistics {
 
     public void setNumOccurInConflict(int numOccurInConflict) {
         this.numOccurInConflict = numOccurInConflict;
+    }
+
+    public void print(PrintStream os, String indent) {
+        os.print(indent); os.print("Total:      "); os.println(total);
+        os.print(indent); os.print("Added:      "); os.println(numAdded);
+        os.print(indent); os.print("Merged:     "); os.println(numMerged);
+        os.print(indent); os.print("Matched:    "); os.println(numMatched);
+        os.print(indent); os.print("Deleted:    "); os.println(numDeleted);
+        os.print(indent); os.print("Changed:    "); os.println(numChanged);
+        os.print(indent); os.print("InConflict: "); os.println(numOccurInConflict);
     }
 }

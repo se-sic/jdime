@@ -1,5 +1,7 @@
 package de.fosd.jdime.stats;
 
+import java.io.PrintStream;
+
 public class MergeStatistics {
 
     /**
@@ -62,5 +64,12 @@ public class MergeStatistics {
 
         maxASTDepth = Math.max(maxASTDepth, other.maxASTDepth);
         maxNumChildren = Math.max(maxNumChildren, other.maxNumChildren);
+    }
+
+    public void print(PrintStream os, String indent) {
+        os.print(indent); os.print("Chunks:                  "); os.println(numChunks);
+        os.print(indent); os.print("Avg. Chunk Size:         "); os.println(avgChunkSize);
+        os.print(indent); os.print("Max. Tree Depth:         "); os.println(maxASTDepth);
+        os.print(indent); os.print("Max. Number of Children: "); os.println(maxNumChildren);
     }
 }

@@ -44,7 +44,6 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.stats.StatsPrinter;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import org.apache.commons.cli.CommandLine;
@@ -124,7 +123,7 @@ public final class Main {
         }
 
         if (context.hasStatistics()) {
-            StatsPrinter.print(context);
+            context.getStatistics().print(System.out);
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
