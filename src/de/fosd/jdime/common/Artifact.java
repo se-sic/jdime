@@ -439,6 +439,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Returns the maximum depth of any node in the tree.
+     *
+     * @return the maximum depth
+     */
+    public int getMaxDepth() {
+        return 1 + children.parallelStream().map(Artifact::getMaxDepth).max(Integer::compare).orElse(0);
+    }
+
+    /**
      * Returns the size of the subtree. The <code>Artifact</code> itself is not included.
      *
      * @return size of subtree

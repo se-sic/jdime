@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -34,6 +35,7 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.MergeStatistics;
 
 public interface StatisticsInterface<T extends Artifact<T>> {
 
@@ -142,6 +144,15 @@ public interface StatisticsInterface<T extends Artifact<T>> {
                 }
             }
         }
+
+        MergeStatistics mergeStatistics = statistics.getMergeStatistics(artifact.getRevision());
+
+        Optional<Artifact<?>> max = preOrder.stream().max((o1, o2) -> Integer.compare(o1.getNumChildren(), o2.getNumChildren()));
+        max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
+
+        mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
+
+        // TODO collect info about chunks
 
         return statistics;
     }
