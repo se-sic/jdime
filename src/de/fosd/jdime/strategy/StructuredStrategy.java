@@ -190,7 +190,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(left, right.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
-                scenarioStatistics.add(StatisticsInterface.getASTStatistics(target, null));
+
+                if (target != null) {
+                    scenarioStatistics.add(StatisticsInterface.getASTStatistics(target, null));
+                }
 
                 scenarioStatistics.setRuntime(runtime);
                 statistics.addScenarioStatistics(scenarioStatistics);
