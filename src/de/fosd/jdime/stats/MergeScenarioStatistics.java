@@ -39,6 +39,10 @@ public class MergeScenarioStatistics {
         return mergeScenario;
     }
 
+    public Map<Revision, Map<KeyEnums.Level, ElementStatistics>> getLevelStatistics() {
+        return levelStatistics;
+    }
+
     /**
      * Returns the <code>ElementStatistics</code> for the given <code>Revision</code> and <code>LEVEL</code>.
      * Creates and registers a new <code>ElementStatistics</code> object if necessary.
@@ -51,6 +55,10 @@ public class MergeScenarioStatistics {
      */
     public ElementStatistics getLevelStatistics(Revision rev, KeyEnums.Level level) {
         return levelStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(level, l -> new ElementStatistics());
+    }
+
+    public Map<Revision, Map<KeyEnums.Type, ElementStatistics>> getTypeStatistics() {
+        return typeStatistics;
     }
 
     /**
@@ -78,6 +86,10 @@ public class MergeScenarioStatistics {
         }
 
         return typeStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(type, l -> new ElementStatistics());
+    }
+
+    public Map<Revision, MergeStatistics> getMergeStatistics() {
+        return mergeStatistics;
     }
 
     public MergeStatistics getMergeStatistics(Revision rev) {
