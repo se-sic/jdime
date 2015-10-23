@@ -98,7 +98,7 @@ public interface StatisticsInterface<T extends Artifact<T>> {
 
     }
 
-    static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev, boolean isFragment) {
+    static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev) {
         MergeScenarioStatistics statistics = new MergeScenarioStatistics(null);
         List<ElementStatistics> elementStats = new ArrayList<>();
         List<Artifact<?>> preOrder = new ArrayList<>();
