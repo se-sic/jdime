@@ -248,9 +248,6 @@ public final class Main {
                     case "test":
                         InternalTests.run();
                         return false;
-                    case "testenvironment":
-                        InternalTests.runEnvironmentTest();
-                        return false;
                     case "dumptree":
                         // User only wants to display the ASTs
                         context.setMergeStrategy(MergeStrategy

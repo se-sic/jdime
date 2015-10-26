@@ -29,7 +29,6 @@ import java.util.Random;
 import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.StatsElement;
-import org.gnu.glpk.GLPK;
 
 /**
  * Contains static methods testing the functionality of various aspects of the program.
@@ -51,33 +50,7 @@ public final class InternalTests {
      * Runs all internal tests.
      */
     public static void run() {
-        runEnvironmentTest();
         runASTStatsTests();
-    }
-
-    /**
-     * Checks whether the environment for the program is correctly configured. Particularly this verifies that
-     * the native libraries are working. 
-     */
-    public static void runEnvironmentTest() {
-        
-        try {
-            System.out.println("Library search path: ");
-
-            String[] split = System.getProperty("java.library.path").split(";");
-            for (int i = 0; i < split.length; i++) {
-                System.out.println(i + ": " + split[i]);
-            }
-            System.out.println();
-            
-            System.out.println("GLPK " + GLPK.glp_version() +  " is working.");
-            System.out.println(InternalTests.class.getCanonicalName() + " : OK");
-        } catch (Throwable t) {
-            System.out.println(t);
-            System.out.println(InternalTests.class.getCanonicalName() + " : FAILED");
-            
-            throw t;
-        }
     }
 
     /**
