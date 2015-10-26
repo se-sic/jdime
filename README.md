@@ -1,6 +1,6 @@
 # JDime  -  Structured Merge with Auto-Tuning
 
-[![Build Status](https://travis-ci.org/xai/jdime.svg?branch=develop)](https://travis-ci.org/xai/jdime)
+[![Build Status](https://travis-ci.org/xai/jdime.svg?branch=feature%2Fno-glpk)](https://travis-ci.org/xai/jdime)
 
 ## License & Copyright
 * Copyright (C) 2013-2014 Olaf Lessenich  
