@@ -123,6 +123,7 @@ public final class Main {
         }
 
         if (context.hasStatistics()) {
+            context.getStatistics().storeXML(new File("Statistics.xml"));
             context.getStatistics().print(System.out);
         }
 
@@ -533,10 +534,10 @@ public final class Main {
             // System.out.println(ast.prettyPrint());
             System.out.println(ast.dumpTree());
             System.out.println("--");
-            int[] s = ast.getStats();
-            System.out.println("Number of nodes: " + s[0]);
-            System.out.println("Tree Depth: " + s[1]);
-            System.out.println("MaxChildren: " + s[2]);
+            //int[] s = ast.getStats();
+            //System.out.println("Number of nodes: " + s[0]);
+            //System.out.println("Tree Depth: " + s[1]);
+            //System.out.println("MaxChildren: " + s[2]);
             System.out.println("--------------------------------------------");
         }
     }
