@@ -73,10 +73,6 @@ public class MergeScenario<T extends Artifact<T>> {
             right.setRevision(rightRev, true);
         }
 
-        LOG.finest(() -> String.format("artifacts.put(%s)", left.getId()));
-        LOG.finest(() -> String.format("artifacts.put(%s)", base.getId()));
-        LOG.finest(() -> String.format("artifacts.put(%s)", right.getId()));
-
         this.artifacts.put(left.getRevision(), left);
         this.artifacts.put(base.getRevision(), base);
         this.artifacts.put(right.getRevision(), right);
@@ -93,24 +89,12 @@ public class MergeScenario<T extends Artifact<T>> {
         this.mergeType = mergeType;
 
         for (T artifact : inputArtifacts) {
-            LOG.finest(() -> String.format("artifacts.put(%s)", artifact.getId()));
             artifacts.put(artifact.getRevision(), artifact);
         }
     }
 
     private final T get(int position) {
         int i = 0;
-
-        if (LOG.isLoggable(Level.FINEST)) {
-            i++;
-            LOG.finest("Mergescenario.artifacts:");
-
-            for (Revision rev : artifacts.keySet()) {
-                LOG.finest(String.format("[%d] %s", i, artifacts.get(rev).getId()));
-            }
-
-            i = 0;
-        }
 
         for (Revision rev : artifacts.keySet()) {
             i++;
@@ -130,7 +114,6 @@ public class MergeScenario<T extends Artifact<T>> {
     public final T getBase() {
         try {
             T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-            LOG.finest(() -> ("scenario.getBase() returns " + base.getId()));
             return base;
         } catch (IOException e) {
             e.printStackTrace();
@@ -145,7 +128,6 @@ public class MergeScenario<T extends Artifact<T>> {
      */
     public final T getLeft() {
         T left = get(1);
-        LOG.finest(() -> String.format("scenario.getLeft() returns %s", left.getId()));
         return left;
     }
 
@@ -165,7 +147,6 @@ public class MergeScenario<T extends Artifact<T>> {
      */
     public final T getRight() {
         T right = artifacts.size() == 3 ? get(3) : get(2);
-        LOG.finest(() -> String.format("scenario.getRight() returns %s", right.getId()));
         return right;
     }
 
