@@ -383,7 +383,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     @Override
     public final String getId() {
-        return getRevision() + "-" + getNumber();
+        return getRevision() + ":" + getNumber();
     }
 
     @Override
