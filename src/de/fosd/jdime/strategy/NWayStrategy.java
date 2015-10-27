@@ -216,7 +216,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String getStatsKey(FileArtifact artifact) {
         // FIXME: remove me when implementation is complete!
-        throw new NotYetImplementedException("StructuredStrategy: Implement me!");
+        throw new NotYetImplementedException(this.getClass().getSimpleName() + ".getStatsKey()");
     }
 
     @Override
