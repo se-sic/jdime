@@ -27,7 +27,6 @@ package de.fosd.jdime.common;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -40,9 +39,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.stats.ASTStats;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.StatsElement;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.jastadd.extendj.ast.ASTNode;
@@ -687,175 +684,5 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);
         return choice;
-    }
-
-    /**
-     * Returns statistical data of the tree. stats[0]: number of nodes stats[1]:
-     * tree depth stats[2]: maximum number of children
-     *
-     * @return statistics
-     */
-    public final int[] getStats() {
-        // 0: number of nodes, 1: tree depth, 2: max children
-        int[] mystats = new int[3];
-        mystats[0] = 1;
-        mystats[1] = 0;
-        mystats[2] = getNumChildren();
-
-        for (int i = 0; i < getNumChildren(); i++) {
-            int[] childstats = getChild(i).getStats();
-            mystats[0] += childstats[0];
-            if (childstats[1] + 1 > mystats[1]) {
-                mystats[1] = childstats[1] + 1;
-            }
-            if (childstats[2] > mystats[2]) {
-                mystats[2] = childstats[2];
-            }
-        }
-
-        return mystats;
-    }
-
-    public final ASTStats getStats(Revision revision, LangElem level,
-            boolean isFragment) {
-        StatsElement nodeStats = new StatsElement();
-        StatsElement toplevelnodeStats = new StatsElement();
-        StatsElement classlevelnodeStats = new StatsElement();
-        StatsElement methodlevelnodeStats = new StatsElement();
-        StatsElement classStats = new StatsElement();
-        StatsElement methodStats = new StatsElement();
-
-        // clearly, this is a node
-        nodeStats.incrementElements();
-
-        if (isConflict()) {
-            nodeStats.incrementChanges();
-            nodeStats.incrementConflicting();
-        } else if ((revision == null && hasMatches()) || hasMatching(revision)) {
-            nodeStats.incrementMatches();
-        } else {
-            nodeStats.incrementChanges();
-            // added or deleted?
-            if (hasMatches()) {
-                // was deleted
-                nodeStats.incrementDeleted();
-            } else {
-                // was added
-                nodeStats.incrementAdded();
-            }
-        }
-
-        StatsElement myStats = null;
-        switch (level) {
-        case TOPLEVELNODE:
-            myStats = toplevelnodeStats;
-            break;
-        case CLASSLEVELNODE:
-            myStats = classlevelnodeStats;
-            break;
-        case METHODLEVELNODE:
-            myStats = methodlevelnodeStats;
-            break;
-        default:
-            throw new NotYetImplementedException();
-        }
-
-        assert (myStats != null);
-
-        nodeStats.copy(myStats);
-        assert myStats.getElements() != 0;
-
-        // find out level for child nodes and adjust class and method counter
-        if (astnode instanceof ClassDecl) {
-            level = LangElem.CLASSLEVELNODE;
-            myStats.copy(classStats);
-        } else if (astnode instanceof MethodDecl
-                || astnode instanceof ConstructorDecl) {
-            level = LangElem.METHODLEVELNODE;
-            myStats.copy(methodStats);
-        }
-
-        HashMap<String, StatsElement> diffstats = new HashMap<>();
-        diffstats.put(LangElem.NODE.toString(), nodeStats);
-        diffstats.put(LangElem.TOPLEVELNODE.toString(), toplevelnodeStats);
-        diffstats.put(LangElem.CLASSLEVELNODE.toString(), classlevelnodeStats);
-        diffstats
-                .put(LangElem.METHODLEVELNODE.toString(), methodlevelnodeStats);
-        diffstats.put(LangElem.CLASS.toString(), classStats);
-        diffstats.put(LangElem.METHOD.toString(), methodStats);
-        ASTStats stats = new ASTStats(1, 1, getNumChildren(), diffstats,
-                myStats.getChanges() != 0);
-        boolean hasSubtreeChanges = stats.hasChanges();
-
-        if (!hasSubtreeChanges) {
-            isFragment = false;
-        } else if (!isFragment) {
-            isFragment = true;
-            stats.incrementFragments();
-        }
-
-        /*
-        This is a rather mean hack.
-
-        Basically the loop does sanity checks.
-        While benchmarking, I switch asserts off and the code will not be executed to save time.
-        */
-        boolean assertsEnabled = false;
-        assert assertsEnabled = true;
-        if (assertsEnabled) {
-            for (String key : diffstats.keySet()) {
-                StatsElement e = diffstats.get(key);
-                assert (e.getElements() == e.getMatches() + e.getAdded()
-                        + e.getDeleted() + e.getConflicting());
-                assert (e.getChanges() == e.getAdded() + e.getDeleted()
-                        + e.getConflicting());
-            }
-
-        }
-
-        for (int i = 0; i < getNumChildren(); i++) {
-            stats.add(getChild(i).getStats(revision, level, isFragment));
-
-            if (!hasSubtreeChanges && stats.hasChanges()) {
-                hasSubtreeChanges = true;
-                if (astnode instanceof ClassDecl) {
-                    stats.getDiffStats(LangElem.CLASS.toString())
-                            .incrementChanges();
-                } else if (astnode instanceof MethodDecl
-                        || astnode instanceof ConstructorDecl) {
-                    stats.getDiffStats(LangElem.METHOD.toString())
-                            .incrementChanges();
-                }
-            }
-
-            if (assertsEnabled) {
-                for (String key : diffstats.keySet()) {
-                    StatsElement e = diffstats.get(key);
-                    assert (e.getElements() == e.getMatches() + e.getAdded()
-                            + e.getDeleted() + e.getConflicting());
-                }
-            }
-        }
-
-        return stats;
-    }
-
-    public HashMap<String, Integer> getLanguageElementStatistics() {
-        HashMap<String, Integer> elements = new HashMap<>();
-
-        String key = this.toString().split(" ")[0];
-        key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
-        elements.put(key, new Integer(1));
-
-        for (int i = 0; i < getNumChildren(); i++) {
-            HashMap<String, Integer> childElements = getChild(i).getLanguageElementStatistics();
-            for (String childKey : childElements.keySet()) {
-                Integer value = elements.get(childKey);
-                value = value == null ? childElements.get(childKey) : value + childElements.get(childKey);
-                elements.put(childKey, value);
-            }
-        }
-
-        return elements;
     }
 }
