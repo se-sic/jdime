@@ -214,7 +214,7 @@ public class Statistics {
     }
 
     /**
-     * Prints a human readable representation of the collected statistics to the given <code>PrintStream</code>.
+     * Writes a human readable representation of the collected statistics to the given <code>PrintStream</code>.
      *
      * @param ps
      *         the <code>PrintStream</code> to write to

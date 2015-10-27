@@ -9,6 +9,9 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 
+/**
+ * A collection of statistics values about a <code>MergeScenario</code>.
+ */
 public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
@@ -24,6 +27,12 @@ public class MergeScenarioStatistics {
 
     private long runtime;
 
+    /**
+     * Constructs a new <code>MergeScenarioStatistics</code> object for the given <code>MergeScenario</code>.
+     *
+     * @param mergeScenario
+     *         the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for
+     */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
         this.levelStatistics = new HashMap<>();
@@ -36,10 +45,21 @@ public class MergeScenarioStatistics {
         this.runtime = 0;
     }
 
+    /**
+     * Returns the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for.
+     *
+     * @return the <code>MergeScenario</code>
+     */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
     }
 
+    /**
+     * Returns the statistics container for the different <code>KeyEnums.Level</code> values.
+     *
+     * @return the <code>Map</code> from the <code>Revision</code>s of the <code>MergeScenario</code> to the statistics
+     *         collected for different <code>KeyEnums.Level</code>s
+     */
     public Map<Revision, Map<KeyEnums.Level, ElementStatistics>> getLevelStatistics() {
         return levelStatistics;
     }
@@ -58,6 +78,12 @@ public class MergeScenarioStatistics {
         return levelStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(level, l -> new ElementStatistics());
     }
 
+    /**
+     * Returns the statistics container for the different <code>KeyEnums.Type</code> values.
+     *
+     * @return the <code>Map</code> from the <code>Revision</code>s of the <code>MergeScenario</code> to the statistics
+     *         collected for different <code>KeyEnums.Type</code>s
+     */
     public Map<Revision, Map<KeyEnums.Type, ElementStatistics>> getTypeStatistics() {
         return typeStatistics;
     }
@@ -89,18 +115,46 @@ public class MergeScenarioStatistics {
         return typeStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(type, l -> new ElementStatistics());
     }
 
+    /**
+     * Returns the statistics container for the <code>MergeStatistics</code> of the <code>Revision</code>s of the
+     * <code>MergeScenario</code>.
+     *
+     * @return the <code>Map</code> from the <code>Revision</code>s of the <code>MergeScenario</code> to the
+     *         <code>MergeStatistics</code> collected for them
+     */
     public Map<Revision, MergeStatistics> getMergeStatistics() {
         return mergeStatistics;
     }
 
+    /**
+     * Returns the <code>MergeStatistics</code> collected for the given <code>Revision</code>. A new
+     * <code>MergeStatistics</code> object will be created of necessary.
+     *
+     * @param rev
+     *         the <code>Revision</code> to get the <code>MergeStatistics</code> for
+     * @return the corresponding <code>MergeStatistics</code>
+     */
     public MergeStatistics getMergeStatistics(Revision rev) {
         return mergeStatistics.computeIfAbsent(rev, r -> new MergeStatistics());
     }
 
+    /**
+     * Returns statistics for {@link KeyEnums.Type#LINE}.
+     *
+     * @return the line statistics
+     */
     public ElementStatistics getLineStatistics() {
         return lineStatistics;
     }
 
+    /**
+     * Parses the given <code>mergeResult</code> using {@link Parser#parse(String)} and adds the resulting statistics
+     * to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param mergeResult
+     *         the code to parse
+     * @return the <code>ParseResult</code> from {@link Parser#parse(String)}
+     */
     public ParseResult addLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
 
@@ -111,6 +165,14 @@ public class MergeScenarioStatistics {
         return result;
     }
 
+    /**
+     * Parses the given <code>mergeResult</code> using {@link Parser#parse(String)} and sets the resulting statistics
+     * to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param mergeResult
+     *         the code to parse
+     * @return the <code>ParseResult</code> from {@link Parser#parse(String)}
+     */
     public ParseResult setLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
 
@@ -121,26 +183,61 @@ public class MergeScenarioStatistics {
         return result;
     }
 
+    /**
+     * Returns the statistics for {@link KeyEnums.Type#FILE}.
+     *
+     * @return the file statistics
+     */
     public ElementStatistics getFileStatistics() {
         return fileStatistics;
     }
 
+    /**
+     * Returns the statistics for {@link KeyEnums.Type#DIRECTORY}.
+     *
+     * @return the directory statistics
+     */
     public ElementStatistics getDirectoryStatistics() {
         return directoryStatistics;
     }
 
+    /**
+     * Returns the number conflicts.
+     *
+     * @return the number of conflicts
+     */
     public int getConflicts() {
         return conflicts;
     }
 
+    /**
+     * Returns the runtime.
+     *
+     * @return the runtime
+     */
     public long getRuntime() {
         return runtime;
     }
 
+    /**
+     * Sets the runtime to the new value.
+     *
+     * @param runtime
+     *         the new runtime
+     */
     public void setRuntime(long runtime) {
         this.runtime = runtime;
     }
 
+    /**
+     * Adds all <code>ElementStatistics</code> in <code>other</code> to the corresponding
+     * <code>ElementStatistics</code> added to <code>this</code>. If an <code>ElementStatistics</code> in
+     * <code>other</code> has no partner in <code>this</code> it will simply be added to <code>this</code>.
+     *
+     * @param other
+     *         the <code>MergeScenarioStatistics</code> to add to <code>this</code>
+     * @see ElementStatistics#add(ElementStatistics)
+     */
     public void add(MergeScenarioStatistics other) {
 
         for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : other.levelStatistics.entrySet()) {
@@ -172,6 +269,13 @@ public class MergeScenarioStatistics {
         runtime += other.runtime;
     }
 
+    /**
+     * Writes a human readable representation of this <code>MergeScenarioStatistics</code> object to the given
+     * <code>PrintStream</code>.
+     *
+     * @param os
+     *         the <code>PrintStream</code> to write to
+     */
     public void print(PrintStream os) {
         String indent = "    ";
 

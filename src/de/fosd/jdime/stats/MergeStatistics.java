@@ -125,7 +125,7 @@ public class MergeStatistics {
     }
 
     /**
-     * Prints a human readable representation of this <code>MergeStatistics</code> object to the given
+     * Writes a human readable representation of this <code>MergeStatistics</code> object to the given
      * <code>PrintStream</code>. Each line will be prepended by the given <code>indent</code>.
      *
      * @param ps
