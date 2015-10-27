@@ -31,7 +31,7 @@ public class NotYetImplementedException extends RuntimeException {
     private static final long serialVersionUID = -4810070779184281940L;
 
     public NotYetImplementedException(final String message) {
-        super(message);
+        super("Implement me: " + message + "!");
     }
 
     public NotYetImplementedException() {

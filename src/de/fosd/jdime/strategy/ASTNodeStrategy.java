@@ -39,7 +39,7 @@ public class ASTNodeStrategy extends AbstractNodeStrategy<ASTNodeArtifact> {
     @Override
     public final String getStatsKey(final ASTNodeArtifact artifact) {
         // FIXME: remove me when implementation is complete
-        throw new NotYetImplementedException("ASTNodeStrategy: Implement me!");
+        throw new NotYetImplementedException(this.getClass().getSimpleName() + ".getStatsKey()");
     }
 
     @Override
