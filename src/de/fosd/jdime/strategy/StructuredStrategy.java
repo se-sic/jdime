@@ -46,9 +46,6 @@ import de.fosd.jdime.stats.parser.ParseResult;
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(StructuredStrategy.class.getCanonicalName());
-    private static final String CONFLICT_START = "<<<<<<<";
-    private static final String CONFLICT_DELIM = "=======";
-    private static final String CONFLICT_END = ">>>>>>>";
 
     private SecurityManager systemSecurityManager = System.getSecurityManager();
     private SecurityManager noExitManager = new SecurityManager() {
@@ -190,12 +187,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(left, right.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
-
-                if (target != null) {
-                    scenarioStatistics.add(StatisticsInterface.getASTStatistics(target, null));
-                }
-
+                scenarioStatistics.add(StatisticsInterface.getASTStatistics(targetNode, null));
                 scenarioStatistics.setRuntime(runtime);
+
                 statistics.addScenarioStatistics(scenarioStatistics);
             }
         } catch (SecurityException e) {
