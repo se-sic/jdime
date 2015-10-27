@@ -25,6 +25,10 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
 
+/**
+ * A collection of <code>MergeScenarioStatistics</code> containing collected statistics about
+ * <code>MergeScenario</code>s that were merged during a run of JDime.
+ */
 public class Statistics {
 
     private static final XStream serializer;
@@ -110,42 +114,101 @@ public class Statistics {
 
     private Map<MergeScenario<?>, MergeScenarioStatistics> scenarioStatistics;
 
+    /**
+     * Constructs a new <code>Statistics</code> object.
+     */
     public Statistics() {
         this.scenarioStatistics = new HashMap<>();
     }
 
+    /**
+     * Returns the <code>MergeScenarioStatistics</code> for the given <code>MergeScenario</code>. A new
+     * <code>MergeScenarioStatistics</code> instance will be created and added if necessary.
+     *
+     * @param mergeScenario
+     *         the <code>MergeScenario</code> to get the <code>MergeScenarioStatistics</code> for
+     * @return the <code>MergeScenarioStatistics</code> for the given <code>MergeScenario</code>
+     */
     public MergeScenarioStatistics getScenarioStatistics(MergeScenario<?> mergeScenario) {
         return scenarioStatistics.computeIfAbsent(mergeScenario, MergeScenarioStatistics::new);
     }
 
+    /**
+     * Returns all <code>MergeScenarioStatistics</code> currently added to this <code>Statistics</code> instance.
+     *
+     * @return the <code>MergeScenarioStatistics</code>
+     */
     public List<MergeScenarioStatistics> getScenarioStatistics() {
         return scenarioStatistics.values().stream().collect(Collectors.toList());
     }
 
+    /**
+     * Adds a <code>MergeScenarioStatistics</code> instance to this <code>Statistics</code>. If there already is a
+     * <code>MergeScenarioStatistics</code> for the <code>MergeScenario</code> stored in <code>statistics</code> it will
+     * be replaced.
+     *
+     * @param statistics
+     *         the <code>MergeScenarioStatistics</code> to be adde
+     */
     public void addScenarioStatistics(MergeScenarioStatistics statistics) {
         scenarioStatistics.put(statistics.getMergeScenario(), statistics);
     }
 
+    /**
+     * Returns an <code>IntSummaryStatistics</code> for the conflict ({@link MergeScenarioStatistics#getConflicts()})
+     * statistics collected in all added <code>MergeScenarioStatistics</code>.
+     *
+     * @return the <code>IntSummaryStatistics</code> about conflicts that occurred
+     */
     public IntSummaryStatistics getConflictStatistics() {
         return scenarioStatistics.values().stream().collect(Collectors.summarizingInt(MergeScenarioStatistics::getConflicts));
     }
 
+    /**
+     * Returns whether any added <code>MergeScenarioStatistics</code> instance recorded more than 0 conflicts.
+     *
+     * @return true iff any added <code>MergeScenarioStatistics</code> recorded conflicts
+     */
     public boolean hasConflicts() {
         return scenarioStatistics.values().stream().anyMatch(s -> s.getConflicts() > 0);
     }
 
+    /**
+     * Adds all <code>MergeScenarioStatistics</code> in <code>other</code> to the corresponding
+     * <code>MergeScenarioStatistics</code> added to <code>this</code>. If a <code>MergeScenarioStatistics</code> in
+     * <code>other</code> has no partner in <code>this</code> it will simply be added to <code>this</code>.
+     *
+     * @param other
+     *         the <code>Statistics</code> to add to <code>this</code>
+     * @see MergeScenarioStatistics#add(MergeScenarioStatistics)
+     */
     public void add(Statistics other) {
         for (Map.Entry<MergeScenario<?>, MergeScenarioStatistics> entry : other.scenarioStatistics.entrySet()) {
             getScenarioStatistics(entry.getKey()).add(entry.getValue());
         }
     }
 
+    /**
+     * Stores the collected statistics in XML format in the given <code>File</code>. The <code>File</code> will
+     * be overwritten if it exists.
+     *
+     * @param file
+     *         the <code>File</code> to write the statistics to
+     * @throws IOException
+     *         if an <code>IOException</code> occurs accessing the <code>File</code>
+     */
     public void storeXML(File file) throws IOException {
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
             storeXML(os);
         }
     }
 
+    /**
+     * Writes the collected statistics in XML format to the given <code>OutputStream</code>.
+     *
+     * @param os
+     *         the <code>OutputStream</code> to write to
+     */
     public void storeXML(OutputStream os) {
         serializer.toXML(this, os);
     }
