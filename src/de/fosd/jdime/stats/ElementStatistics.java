@@ -32,58 +32,114 @@ public class ElementStatistics {
         numOccurInConflict += other.numOccurInConflict;
     }
 
+    /**
+     * Increments the total by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementTotal(int by) {
         total += by;
     }
 
+    /**
+     * Increments the added count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumAdded(int by) {
         numAdded += by;
     }
 
+    /**
+     * Increments the merged count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumMerged(int by) {
         numMerged += by;
     }
 
+    /**
+     * Increments the matched count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumMatched(int by) {
         numMatched += by;
     }
 
+    /**
+     * Increments the deleted count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumDeleted(int by) {
         numDeleted += by;
     }
 
+    /**
+     * Increments the changed count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumChanged(int by) {
         numChanged += by;
     }
 
+    /**
+     * Increments the occur in conflict count by the given amount.
+     *
+     * @param by the amount to add
+     */
     public void incrementNumOccurInConflic(int by) {
         numOccurInConflict += by;
     }
 
+    /**
+     * Increments the total by 1.
+     */
     public void incrementTotal() {
         incrementTotal(1);
     }
 
+    /**
+     * Increments the added count by 1.
+     */
     public void incrementNumAdded() {
         incrementNumAdded(1);
     }
 
+    /**
+     * Increments the merged count by 1.
+     */
     public void incrementNumMerged() {
         incrementNumMerged(1);
     }
 
+    /**
+     * Increments the matched count by 1.
+     */
     public void incrementNumMatched() {
         incrementNumMatched(1);
     }
 
+    /**
+     * Increments the deleted count by 1.
+     */
     public void incrementNumDeleted() {
         incrementNumDeleted(1);
     }
 
+    /**
+     * Increments the changed count by 1.
+     */
     public void incrementNumChanged() {
         incrementNumChanged(1);
     }
 
+    /**
+     * Increments the occur in conflict count by 1.
+     */
     public void incrementNumOccurInConflic() {
         incrementNumOccurInConflic(1);
     }
