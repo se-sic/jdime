@@ -216,10 +216,10 @@ public class Statistics {
     /**
      * Prints a human readable representation of the collected statistics to the given <code>PrintStream</code>.
      *
-     * @param os
+     * @param ps
      *         the <code>PrintStream</code> to write to
      */
-    public void print(PrintStream os) {
-        getScenarioStatistics().forEach(statistics -> statistics.print(os));
+    public void print(PrintStream ps) {
+        getScenarioStatistics().forEach(statistics -> statistics.print(ps));
     }
 }
