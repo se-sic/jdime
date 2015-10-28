@@ -419,7 +419,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final String getId() {
-        return getRevision() + "-" + getPath();
+        return getRevision() + ":" + getPath();
     }
 
     /**

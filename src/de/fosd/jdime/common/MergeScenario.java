@@ -79,13 +79,8 @@ public class MergeScenario<T extends Artifact<T>> {
         right.setRevision(RIGHT, true);
 
         this.artifacts.put(left.getRevision(), left);
-        logAddition(left);
-
         this.artifacts.put(base.getRevision(), base);
-        logAddition(base);
-
         this.artifacts.put(right.getRevision(), right);
-        logAddition(right);
     }
 
     /**
@@ -100,18 +95,7 @@ public class MergeScenario<T extends Artifact<T>> {
 
         for (T artifact : inputArtifacts) {
             artifacts.put(artifact.getRevision(), artifact);
-            logAddition(artifact);
         }
-    }
-
-    /**
-     * Logs the addition of the given <code>artifact</code> to this <code>MergeScenario</code>.
-     *
-     * @param artifact
-     *         the added artifact
-     */
-    private void logAddition(T artifact) {
-        LOG.finest(() -> String.format("Adding %s to the MergeScenario.", artifact.getId()));
     }
 
     /**

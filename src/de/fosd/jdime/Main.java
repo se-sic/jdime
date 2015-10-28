@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
@@ -426,13 +425,13 @@ public final class Main {
         Level level;
 
         try {
-            level = Level.parse(logLevel);
+            level = Level.parse(logLevel.toUpperCase());
         } catch (IllegalArgumentException e) {
             LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
             return;
         }
 
-        Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+        Logger root = Logger.getLogger(Main.class.getPackage().getName());
         root.setLevel(level);
 
         for (Handler handler : root.getHandlers()) {
