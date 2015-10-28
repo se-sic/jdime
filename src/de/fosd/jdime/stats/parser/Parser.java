@@ -3,6 +3,9 @@ package de.fosd.jdime.stats.parser;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+/**
+ * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
+ */
 public final class Parser {
 
     private static final Pattern conflictStart = Pattern.compile("<<<<<<<.*");
@@ -15,13 +18,17 @@ public final class Parser {
     private static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
     private static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
 
+    /**
+     * Utility class.
+     */
     private Parser() {}
 
     /**
      * Parses the given code to a list of {@link Content} objects and counts the merged and conflicting lines
-     * and the number of conflicts.
+     * and the number of conflicts. Comments and conflicts consisting only of commented out lines will be ignored.
      *
-     * @param code the piece of code to be parsed
+     * @param code
+     *         the piece of code to be parsed
      * @return the parse result
      */
     public static ParseResult parse(String code) {
@@ -96,7 +103,16 @@ public final class Parser {
         return res;
     }
 
-    public static boolean matches(Pattern p, String line) {
+    /**
+     * Returns whether the given <code>Pattern</code> matches the <code>line</code>.
+     *
+     * @param p
+     *         the <code>Pattern</code> to use
+     * @param line
+     *         the line to match against the pattern
+     * @return true iff the <code>Pattern</code> matched
+     */
+    private static boolean matches(Pattern p, String line) {
         return p.matcher(line).matches();
     }
 }
