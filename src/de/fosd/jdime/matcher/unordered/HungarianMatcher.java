@@ -26,12 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import blogspot.software_and_algorithms.stern_library.optimization.HungarianAlgorithm;
 
 /**
  * This unordered matcher uses the hungarian algorithm to solve the assignment
