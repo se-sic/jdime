@@ -144,58 +144,135 @@ public class ElementStatistics {
         incrementNumOccurInConflic(1);
     }
 
+    /**
+     * Returns the total.
+     *
+     * @return the total
+     */
     public int getTotal() {
         return total;
     }
 
+    /**
+     * Sets the total to the new value.
+     *
+     * @param total
+     *         the new total
+     */
     public void setTotal(int total) {
         this.total = total;
     }
 
+    /**
+     * Returns the added counter.
+     *
+     * @return the added counter
+     */
     public int getNumAdded() {
         return numAdded;
     }
 
+    /**
+     * Sets the added counter to the new value.
+     *
+     * @param numAdded
+     *         the new added counter
+     */
     public void setNumAdded(int numAdded) {
         this.numAdded = numAdded;
     }
 
+    /**
+     * Returns the merged counter.
+     *
+     * @return the merged counter
+     */
     public int getNumMerged() {
         return numMerged;
     }
 
+    /**
+     * Sets the merged counter to the new value.
+     *
+     * @param numMerged
+     *         the new merged counter
+     */
     public void setNumMerged(int numMerged) {
         this.numMerged = numMerged;
     }
 
+    /**
+     * Returns the matched counter.
+     *
+     * @return the matched counter
+     */
     public int getNumMatched() {
         return numMatched;
     }
 
+    /**
+     * Sets the matched counter to the new value.
+     *
+     * @param numMatched
+     *         the new matched counter
+     */
     public void setNumMatched(int numMatched) {
         this.numMatched = numMatched;
     }
 
+    /**
+     * Returns the deleted counter.
+     *
+     * @return the deleted counter
+     */
     public int getNumDeleted() {
         return numDeleted;
     }
 
+    /**
+     * Sets the deleted counter to the new value.
+     *
+     * @param numDeleted
+     *         the new deleted counter
+     */
     public void setNumDeleted(int numDeleted) {
         this.numDeleted = numDeleted;
     }
 
+    /**
+     * Returns the changed counter.
+     *
+     * @return the changed counter
+     */
     public int getNumChanged() {
         return numChanged;
     }
 
+    /**
+     * Sets the changed counter to the new value.
+     *
+     * @param numChanged
+     *         the new changed counter
+     */
     public void setNumChanged(int numChanged) {
         this.numChanged = numChanged;
     }
 
+    /**
+     * Returns the occur in conflict counter.
+     *
+     * @return the occur in conflict counter
+     */
     public int getNumOccurInConflict() {
         return numOccurInConflict;
     }
 
+    /**
+     * Sets the occur in conflict counter to the new value.
+     *
+     * @param numOccurInConflict
+     *         the new occur in conflict counter
+     */
     public void setNumOccurInConflict(int numOccurInConflict) {
         this.numOccurInConflict = numOccurInConflict;
     }
