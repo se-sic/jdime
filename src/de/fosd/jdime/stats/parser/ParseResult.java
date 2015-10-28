@@ -3,32 +3,70 @@ package de.fosd.jdime.stats.parser;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+/**
+ * A <code>List</code> of <code>Content</code> instances resulting from a run of {@link Parser#parse(String)}.
+ * In addition to the pieces of content the lines of code, the number of lines of code in conflicts and the number
+ * of conflicts are stored.
+ */
 public class ParseResult extends ArrayList<Content> {
 
     private int linesOfCode;
     private int conflicts;
     private int conflictingLinesOfCode;
 
+    /**
+     * Returns the lines of code.
+     *
+     * @return the lines of code
+     */
     public int getLinesOfCode() {
         return linesOfCode;
     }
 
-    public void setLinesOfCode(int mergedLinesOfCode) {
-        this.linesOfCode = mergedLinesOfCode;
+    /**
+     * Sets the lines of code to the new value.
+     *
+     * @param linesOfCode
+     *         the new lines of code
+     */
+    public void setLinesOfCode(int linesOfCode) {
+        this.linesOfCode = linesOfCode;
     }
 
+    /**
+     * Returns the conflicts.
+     *
+     * @return the conflicts
+     */
     public int getConflicts() {
         return conflicts;
     }
 
+    /**
+     * Sets the conflicts to the new value.
+     *
+     * @param conflicts
+     *         the new conflicts
+     */
     public void setConflicts(int conflicts) {
         this.conflicts = conflicts;
     }
 
+    /**
+     * Returns the conflicting lines of code.
+     *
+     * @return the conflicting lines of code
+     */
     public int getConflictingLinesOfCode() {
         return conflictingLinesOfCode;
     }
 
+    /**
+     * Sets the conflicting lines of code to the new value.
+     *
+     * @param conflictingLinesOfCode
+     *         the new conflicting lines of code
+     */
     public void setConflictingLinesOfCode(int conflictingLinesOfCode) {
         this.conflictingLinesOfCode = conflictingLinesOfCode;
     }
