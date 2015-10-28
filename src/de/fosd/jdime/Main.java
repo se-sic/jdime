@@ -458,7 +458,7 @@ public final class Main {
             return;
         }
 
-        Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+        Logger root = Logger.getLogger(Main.class.getPackage().getName());
         root.setLevel(level);
 
         for (Handler handler : root.getHandlers()) {
