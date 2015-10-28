@@ -6,7 +6,8 @@ import java.util.stream.Collectors;
 /**
  * A <code>List</code> of <code>Content</code> instances resulting from a run of {@link Parser#parse(String)}.
  * In addition to the pieces of content the lines of code, the number of lines of code in conflicts and the number
- * of conflicts are stored.
+ * of conflicts are stored. The {@link #toString()} and {@link #toString(String, String...)} methods produce the
+ * concatenation of the <code>String</code> representations of the <code>Content</code> pieces.
  */
 public class ParseResult extends ArrayList<Content> {
 
