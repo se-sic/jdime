@@ -2,6 +2,9 @@ package de.fosd.jdime.stats;
 
 import java.io.PrintStream;
 
+/**
+ * A container class for statistics counters.
+ */
 public class ElementStatistics {
 
     private int total;
@@ -12,6 +15,9 @@ public class ElementStatistics {
     private int numChanged;
     private int numOccurInConflict;
 
+    /**
+     * Constructs a new <code>ElementStatistics</code> instance.
+     */
     public ElementStatistics() {
         this.total = 0;
         this.numAdded = 0;
@@ -20,16 +26,6 @@ public class ElementStatistics {
         this.numDeleted = 0;
         this.numChanged = 0;
         this.numOccurInConflict = 0;
-    }
-
-    public void add(ElementStatistics other) {
-        total += other.total;
-        numAdded += other.numAdded;
-        numMerged += other.numMerged;
-        numMatched += other.numMatched;
-        numDeleted += other.numDeleted;
-        numChanged += other.numChanged;
-        numOccurInConflict += other.numOccurInConflict;
     }
 
     /**
@@ -277,13 +273,37 @@ public class ElementStatistics {
         this.numOccurInConflict = numOccurInConflict;
     }
 
-    public void print(PrintStream os, String indent) {
-        os.print(indent); os.print("Total:      "); os.println(total);
-        os.print(indent); os.print("Added:      "); os.println(numAdded);
-        os.print(indent); os.print("Merged:     "); os.println(numMerged);
-        os.print(indent); os.print("Matched:    "); os.println(numMatched);
-        os.print(indent); os.print("Deleted:    "); os.println(numDeleted);
-        os.print(indent); os.print("Changed:    "); os.println(numChanged);
-        os.print(indent); os.print("InConflict: "); os.println(numOccurInConflict);
+    /**
+     * Adds all values stored in <code>other</code> to the values in <code>this</code>.
+     *
+     * @param other the <code>ElementStatistics</code> to add
+     */
+    public void add(ElementStatistics other) {
+        total += other.total;
+        numAdded += other.numAdded;
+        numMerged += other.numMerged;
+        numMatched += other.numMatched;
+        numDeleted += other.numDeleted;
+        numChanged += other.numChanged;
+        numOccurInConflict += other.numOccurInConflict;
+    }
+
+    /**
+     * Writes a human readable representation of this <code>ElementStatistics</code> object to the given
+     * <code>PrintStream</code>. Each line will be prepended by the given <code>indent</code>.
+     *
+     * @param ps
+     *         the <code>PrintStream</code> to write to
+     * @param indent
+     *         the indentation to use
+     */
+    public void print(PrintStream ps, String indent) {
+        ps.print(indent); ps.print("Total:      "); ps.println(total);
+        ps.print(indent); ps.print("Added:      "); ps.println(numAdded);
+        ps.print(indent); ps.print("Merged:     "); ps.println(numMerged);
+        ps.print(indent); ps.print("Matched:    "); ps.println(numMatched);
+        ps.print(indent); ps.print("Deleted:    "); ps.println(numDeleted);
+        ps.print(indent); ps.print("Changed:    "); ps.println(numChanged);
+        ps.print(indent); ps.print("InConflict: "); ps.println(numOccurInConflict);
     }
 }
