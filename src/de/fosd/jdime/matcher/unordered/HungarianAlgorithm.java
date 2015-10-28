@@ -1,4 +1,4 @@
-package blogspot.software_and_algorithms.stern_library.optimization;
+package de.fosd.jdime.matcher.unordered;
 
 import java.util.Arrays;
 
