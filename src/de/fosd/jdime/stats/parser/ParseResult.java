@@ -72,6 +72,12 @@ public class ParseResult extends ArrayList<Content> {
         this.conflictingLinesOfCode = conflictingLinesOfCode;
     }
 
+    /**
+     * Adds a merged line (one that is not in a conflict) to the <code>ParseResult</code>.
+     *
+     * @param line
+     *         the line to add
+     */
     public void addMergedLine(String line) {
         Content.Merged lines;
 
@@ -92,6 +98,14 @@ public class ParseResult extends ArrayList<Content> {
         lines.add(line);
     }
 
+    /**
+     * Adds a line that is part of a conflict to the <code>ParseResult</code>.
+     *
+     * @param line
+     *         the line to add
+     * @param left
+     *         true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     */
     public void addConflictingLine(String line, boolean left) {
         Content.Conflict conflict;
 
