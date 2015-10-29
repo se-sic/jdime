@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -173,7 +175,7 @@ public final class Main {
                 }
 
                 if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
-                    f = makeUnique(f);
+                    f = findNonExistent(f);
                 }
 
                 try {
@@ -200,7 +202,7 @@ public final class Main {
                 }
 
                 if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
-                    f = makeUnique(f);
+                    f = findNonExistent(f);
                 }
 
                 try {
@@ -212,15 +214,46 @@ public final class Main {
         }
     }
 
-    private static File makeUnique(File f) {
+    /**
+     * Returns a <code>File</code> (possibly <code>f</code>) that does not exist in the parent directory of
+     * <code>f</code>. If <code>f</code> exists an increasing number is appended to the name of <code>f</code> until
+     * a <code>File</code> is found that does not exist.
+     *
+     * @param f
+     *         the <code>File</code> to find a non existent version of
+     * @return a <code>File</code> in the parent directory of <code>f</code> that does not exist
+     */
+    private static File findNonExistent(File f) {
 
         if (!f.exists()) {
             return f;
         }
 
-        //TODO
+        String fullName = f.getName();
+        String name;
+        String extension;
 
-        return null;
+        int pos = fullName.lastIndexOf('.');
+
+        if (pos != -1) {
+            name = fullName.substring(0, pos);
+            extension = fullName.substring(pos, fullName.length());
+        } else {
+            name = fullName;
+            extension = "";
+        }
+
+        File parent = f.getParentFile();
+
+        Stream<File> files = IntStream.range(0, Integer.MAX_VALUE).mapToObj(v -> {
+            String fileName = String.format("%s_%d%s", name, v, extension);
+            return new File(parent, fileName);
+        });
+
+        File nextFree = files.filter(file -> !file.exists()).findFirst().orElseThrow(() ->
+                new RuntimeException("Can not find a file that does not exist."));
+
+        return nextFree;
     }
 
     /**
