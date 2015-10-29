@@ -2,6 +2,7 @@ package de.fosd.jdime.stats;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.thoughtworks.xstream.XStream;
@@ -31,6 +34,7 @@ import de.fosd.jdime.common.Revision;
  */
 public class Statistics {
 
+    private static final Logger LOG = Logger.getLogger(Statistics.class.getCanonicalName());
     private static final XStream serializer;
 
     static {
@@ -199,12 +203,19 @@ public class Statistics {
      *
      * @param file
      *         the <code>File</code> to write the statistics to
-     * @throws IOException
-     *         if an <code>IOException</code> occurs accessing the <code>File</code>
+     * @throws FileNotFoundException
+     *         if an exception occurs accessing the <code>File</code>
      */
-    public void storeXML(File file) throws IOException {
+    public void printXML(File file) throws FileNotFoundException {
+
+        if (!check(file)) {
+            return;
+        }
+
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
-            storeXML(os);
+            printXML(os);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, e, () -> "Exception while closing an OutputStream.");
         }
     }
 
@@ -214,8 +225,27 @@ public class Statistics {
      * @param os
      *         the <code>OutputStream</code> to write to
      */
-    public void storeXML(OutputStream os) {
+    public void printXML(OutputStream os) {
         serializer.toXML(this, os);
+    }
+
+    /**
+     * Writes a human readable representation of the collected statistics to the given <code>File</code>.
+     *
+     * @param file
+     *         the <code>File</code> to write the statistics to
+     * @throws FileNotFoundException
+     *         if an exception occurs accessing the <code>File</code>
+     */
+    public void print(File file) throws FileNotFoundException {
+
+        if (!check(file)) {
+            return;
+        }
+
+        try (PrintStream ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+            print(ps);
+        }
     }
 
     /**
@@ -226,5 +256,35 @@ public class Statistics {
      */
     public void print(PrintStream ps) {
         getScenarioStatistics().forEach(statistics -> statistics.print(ps));
+    }
+
+    /**
+     * Checks whether <code>file</code> is a valid file to write to and if necessary creates the directory structure
+     * above it.
+     *
+     * @param file
+     *         the <code>File</code> to check
+     * @return true iff the file is valid
+     */
+    private boolean check(File file) {
+
+        if (file.isDirectory()) {
+            LOG.warning(() -> file.getAbsolutePath() + " is a directory and can be written to.");
+            return false;
+        }
+
+        File parent = file.getParentFile();
+
+        if (parent == null) {
+            LOG.warning(() -> file.getAbsolutePath() + " does not have a parent directory.");
+            return false;
+        }
+
+        if (!(parent.exists() || parent.mkdirs())) {
+            LOG.warning(() -> "Could not create the directory structure for " + parent.getAbsolutePath());
+            return false;
+        }
+
+        return true;
     }
 }

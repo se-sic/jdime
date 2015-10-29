@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -43,14 +44,18 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
+import de.uni_passau.fim.seibt.kvconfig.Config;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+
+import static de.fosd.jdime.JDimeConfig.*;
 
 /**
  * @author Olaf Lessenich
@@ -122,8 +127,7 @@ public final class Main {
         }
 
         if (context.hasStatistics()) {
-            context.getStatistics().storeXML(new File("Statistics.xml"));
-            context.getStatistics().print(System.out);
+            outputStatistics(context.getStatistics());
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
@@ -139,6 +143,84 @@ public final class Main {
         }
 
         System.exit(0);
+    }
+
+    /**
+     * Outputs the given <code>Statistics</code> according to the set configuration options.
+     *
+     * @param statistics
+     *         the <code>Statistics</code> to output
+     */
+    private static void outputStatistics(Statistics statistics) {
+        Config config = getConfig();
+
+        String hrOut = config.get(STATISTICS_HR_OUTPUT).orElse(STATISTICS_OUTPUT_STDOUT);
+        String xmlOut = config.get(STATISTICS_XML_OUTPUT).orElse(STATISTICS_OUTPUT_OFF);
+
+        switch (hrOut) {
+            case STATISTICS_OUTPUT_OFF:
+                LOG.fine("Human readable statistics output is disabled.");
+                break;
+            case STATISTICS_OUTPUT_STDOUT:
+                statistics.print(System.out);
+                break;
+            default: {
+                File f = new File(hrOut);
+
+                if (f.isDirectory()) {
+                    String name = config.get(STATISTICS_HR_NAME).orElse(STATISTICS_HR_DEFAULT_NAME);
+                    f = new File(f, String.format(name, new Date()));
+                }
+
+                if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
+                    f = makeUnique(f);
+                }
+
+                try {
+                    statistics.print(f);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
+                }
+            }
+        }
+
+        switch (xmlOut) {
+            case STATISTICS_OUTPUT_OFF:
+                LOG.fine("XML statistics output is disabled.");
+                break;
+            case STATISTICS_OUTPUT_STDOUT:
+                statistics.printXML(System.out);
+                break;
+            default: {
+                File f = new File(hrOut);
+
+                if (f.isDirectory()) {
+                    String name = config.get(STATISTICS_XML_NAME).orElse(STATISTICS_XML_DEFAULT_NAME);
+                    f = new File(f, String.format(name, new Date()));
+                }
+
+                if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
+                    f = makeUnique(f);
+                }
+
+                try {
+                    statistics.printXML(f);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
+                }
+            }
+        }
+    }
+
+    private static File makeUnique(File f) {
+
+        if (!f.exists()) {
+            return f;
+        }
+
+        //TODO
+
+        return null;
     }
 
     /**
