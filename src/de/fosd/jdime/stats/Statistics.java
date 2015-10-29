@@ -62,6 +62,8 @@ public class Statistics {
 
         serializer.registerConverter(new Converter() {
 
+            private static final String TYPE_ATTR = "type";
+
             private ImplicitCollectionMapper mapper = new ImplicitCollectionMapper(serializer.getMapper());
             private CollectionConverter c = new CollectionConverter(mapper);
 
@@ -69,10 +71,7 @@ public class Statistics {
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 MergeScenario mScenario = (MergeScenario) source;
 
-                writer.startNode("type");
-                context.convertAnother(mScenario.getMergeType());
-                writer.endNode();
-
+                writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
                 c.marshal(mScenario.asList(), writer, context);
             }
 
@@ -91,10 +90,16 @@ public class Statistics {
         });
 
         serializer.registerConverter(new Converter() {
+
+            private static final String TYPE_ATTR = "type";
+            private static final String ID_ATTR = "id";
+
             @Override
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 Artifact<?> artifact = (Artifact<?>) source;
-                writer.addAttribute("id", artifact.getId());
+
+                writer.addAttribute(TYPE_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(ID_ATTR, artifact.getId());
             }
 
             @Override
