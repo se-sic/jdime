@@ -194,7 +194,7 @@ public final class Main {
                 statistics.printXML(System.out);
                 break;
             default: {
-                File f = new File(hrOut);
+                File f = new File(xmlOut);
 
                 if (f.isDirectory()) {
                     String name = config.get(STATISTICS_XML_NAME).orElse(STATISTICS_XML_DEFAULT_NAME);
