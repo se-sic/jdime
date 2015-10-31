@@ -26,8 +26,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -132,7 +134,7 @@ public interface StatisticsInterface<T extends Artifact<T>> {
                 elementStats.forEach(ElementStatistics::incrementNumChanged);
                 elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
             } else if ((otherRev == null && current.hasMatches()) || current.hasMatching(otherRev)) {
-                elementStats.forEach(ElementStatistics::getNumMatched);
+                elementStats.forEach(ElementStatistics::incrementNumMatched);
             } else {
                 elementStats.forEach(ElementStatistics::incrementNumChanged);
 
@@ -152,7 +154,35 @@ public interface StatisticsInterface<T extends Artifact<T>> {
 
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
 
-        // TODO collect info about chunks
+        List<Integer> chunkSizes = new ArrayList<>();
+        int currentSize = 0;
+        boolean inChunk = false;
+
+        for (Artifact<?> a : preOrder) {
+            boolean change = a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
+
+            if (change) {
+                if (!inChunk) {
+                    inChunk = true;
+                }
+
+                currentSize++;
+            } else {
+                if (inChunk) {
+                    chunkSizes.add(currentSize);
+                    currentSize = 0;
+                    inChunk = false;
+                }
+            }
+        }
+
+        if (inChunk) {
+            chunkSizes.add(currentSize);
+        }
+
+        IntSummaryStatistics summary = chunkSizes.stream().collect(Collectors.summarizingInt(i -> i));
+        mergeStatistics.setNumChunks((int) summary.getCount());
+        mergeStatistics.setAvgChunkSize((float) summary.getAverage());
 
         return statistics;
     }
