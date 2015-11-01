@@ -181,27 +181,21 @@ public interface StatisticsInterface<T extends Artifact<T>> {
     static <T> IntSummaryStatistics segmentStatistics(Collection<T> coll, Predicate<T> test) {
         List<Integer> chunkSizes = new ArrayList<>();
         int currentSize = 0;
-        boolean inChunk = false;
 
         for (T item : coll) {
             boolean p = test.test(item);
 
             if (p) {
-                if (!inChunk) {
-                    inChunk = true;
-                }
-
                 currentSize++;
             } else {
-                if (inChunk) {
+                if (currentSize != 0) {
                     chunkSizes.add(currentSize);
                     currentSize = 0;
-                    inChunk = false;
                 }
             }
         }
 
-        if (inChunk) {
+        if (currentSize != 0) {
             chunkSizes.add(currentSize);
         }
 
