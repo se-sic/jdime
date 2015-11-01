@@ -157,7 +157,7 @@ public interface StatisticsInterface<T extends Artifact<T>> {
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
 
         Predicate<Artifact<?>> p = a -> a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
-        IntSummaryStatistics summary = listSegmentStatistics(preOrder, p);
+        IntSummaryStatistics summary = segmentStatistics(preOrder, p);
 
         mergeStatistics.setNumChunks((int) summary.getCount());
         mergeStatistics.setAvgChunkSize((float) summary.getAverage());
@@ -178,7 +178,7 @@ public interface StatisticsInterface<T extends Artifact<T>> {
      *         the type of the items
      * @return an <code>IntSummaryStatistics</code> over the list of segment lengths
      */
-    static <T> IntSummaryStatistics listSegmentStatistics(Collection<T> coll, Predicate<T> test) {
+    static <T> IntSummaryStatistics segmentStatistics(Collection<T> coll, Predicate<T> test) {
         List<Integer> chunkSizes = new ArrayList<>();
         int currentSize = 0;
         boolean inChunk = false;
