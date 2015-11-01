@@ -24,11 +24,13 @@ package de.fosd.jdime.strategy;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
@@ -150,18 +152,41 @@ public interface StatisticsInterface<T extends Artifact<T>> {
         MergeStatistics mergeStatistics = statistics.getMergeStatistics(artifact.getRevision());
 
         Optional<Artifact<?>> max = preOrder.stream().max((o1, o2) -> Integer.compare(o1.getNumChildren(), o2.getNumChildren()));
-        max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
 
+        max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
 
+        Predicate<Artifact<?>> p = a -> a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
+        IntSummaryStatistics summary = listSegmentStatistics(preOrder, p);
+
+        mergeStatistics.setNumChunks((int) summary.getCount());
+        mergeStatistics.setAvgChunkSize((float) summary.getAverage());
+
+        return statistics;
+    }
+
+    /**
+     * Given a collection of items and a <code>Predicate</code> to be fulfilled returns an
+     * <code>IntSummaryStatistics</code> over a list of the lengths of segments of successive (as determined by the
+     * order they are returned by the iterator of the collection) items that fulfill the predicate.
+     *
+     * @param coll
+     *         the collection of items
+     * @param test
+     *         the predicate to fulfill
+     * @param <T>
+     *         the type of the items
+     * @return an <code>IntSummaryStatistics</code> over the list of segment lengths
+     */
+    static <T> IntSummaryStatistics listSegmentStatistics(Collection<T> coll, Predicate<T> test) {
         List<Integer> chunkSizes = new ArrayList<>();
         int currentSize = 0;
         boolean inChunk = false;
 
-        for (Artifact<?> a : preOrder) {
-            boolean change = a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
+        for (T item : coll) {
+            boolean p = test.test(item);
 
-            if (change) {
+            if (p) {
                 if (!inChunk) {
                     inChunk = true;
                 }
@@ -180,10 +205,6 @@ public interface StatisticsInterface<T extends Artifact<T>> {
             chunkSizes.add(currentSize);
         }
 
-        IntSummaryStatistics summary = chunkSizes.stream().collect(Collectors.summarizingInt(i -> i));
-        mergeStatistics.setNumChunks((int) summary.getCount());
-        mergeStatistics.setAvgChunkSize((float) summary.getAverage());
-
-        return statistics;
+        return chunkSizes.stream().collect(Collectors.summarizingInt(i -> i));
     }
 }
