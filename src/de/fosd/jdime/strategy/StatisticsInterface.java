@@ -41,7 +41,7 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.MergeStatistics;
 
-public interface StatisticsInterface<T extends Artifact<T>> {
+public interface StatisticsInterface {
 
     /**
      * Returns the <code>KeyEnums.Type</code> matching this <code>Artifact</code>.

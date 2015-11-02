@@ -44,7 +44,7 @@ import de.fosd.jdime.strategy.StatisticsInterface;
  * @param <T>
  *            type of artifact
  */
-public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface<T> {
+public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface {
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
