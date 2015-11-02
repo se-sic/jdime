@@ -22,29 +22,29 @@ public class StatisticsInterfaceTest {
 
         IntSummaryStatistics stats = StatisticsInterface.segmentStatistics(seg1, p);
 
-        assertEquals(stats.getCount(), 4);
-        assertEquals(stats.getAverage(), (3 + 2 + 1 + 1) / 4.0, 0.0001);
-        assertEquals(stats.getMax(), 3);
-        assertEquals(stats.getMin(), 1);
-        assertEquals(stats.getSum(), 7);
+        assertEquals(4, stats.getCount());
+        assertEquals((3 + 2 + 1 + 1) / 4.0, 0.0001, stats.getAverage());
+        assertEquals(3, stats.getMax());
+        assertEquals(1, stats.getMin());
+        assertEquals(7, stats.getSum());
 
         List<Boolean> seg2 = Collections.emptyList();
 
         stats = StatisticsInterface.segmentStatistics(seg2, p);
-        assertEquals(stats.getCount(), 0);
+        assertEquals(0, stats.getCount());
 
         List<Boolean> seg3 = Arrays.asList(true, true, true);
 
         stats = StatisticsInterface.segmentStatistics(seg3, p);
-        assertEquals(stats.getCount(), 1);
-        assertEquals(stats.getAverage(), 3, 0.0001);
-        assertEquals(stats.getMax(), 3);
-        assertEquals(stats.getMin(), 3);
-        assertEquals(stats.getSum(), 3);
+        assertEquals(1, stats.getCount());
+        assertEquals(3, stats.getAverage(), 0.0001);
+        assertEquals(3, stats.getMax());
+        assertEquals(3, stats.getMin());
+        assertEquals(3, stats.getSum());
 
         List<Boolean> seg4 = Arrays.asList(false, false, false);
 
         stats = StatisticsInterface.segmentStatistics(seg4, p);
-        assertEquals(stats.getCount(), 0);
+        assertEquals(0, stats.getCount());
     }
 }
