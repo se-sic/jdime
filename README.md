@@ -31,8 +31,8 @@ and patches/ExtendJ/LICENSE for the license text.
 ## System Requirements:
 * gradle (http://www.gradle.org/) __>=2.2__
 * git (http://git-scm.com/)
-* glpk (http://www.gnu.org/software/glpk/) __=4.56__
-* glpk-java (http://glpk-java.sourceforge.net/) __=4.56__
+* glpk (http://www.gnu.org/software/glpk/) __=4.55__
+* glpk-java (http://glpk-java.sourceforge.net/) __=4.55__
 
 __Debian/Ubuntu:__  
 `apt-get install git libglpk-dev libglpk-java`
@@ -56,7 +56,7 @@ JDime uses gradle as a build system.
 To avoid version mismatches with already installed instances of gradle, you can use the supplied gradle wrapper `gradlew` that bootstraps the right version of gradle automatically.
 
 Use `./gradlew -Pglpk=PATH -PglpkJava=PATH installDist` providing the paths to the `glpk_X_XX` and `glpk_X_XX_java` 
-native libraries appropriate for your platform. `X_XX` refers to the version of glpk, currently __version 4.56__ is required.
+native libraries appropriate for your platform. `X_XX` refers to the version of glpk, currently __version 4.55__ is required.
 
 After running the command given above the directory `build/install/JDime/bin` will contain Unix and Windows scripts
 that you can use to start the application.
