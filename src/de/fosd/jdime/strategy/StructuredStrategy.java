@@ -151,6 +151,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                 final String finalPrettyPrint = prettyPrint;
                 LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", finalPrettyPrint));
+                context.appendLine(finalPrettyPrint);
             }
 
             LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
