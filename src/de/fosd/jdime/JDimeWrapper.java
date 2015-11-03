@@ -60,14 +60,14 @@ public class JDimeWrapper {
 
         // run the merge first with structured strategy to see whether there are conflicts
         context.setMergeStrategy(structured);
-        context.setSaveStats(true);
+        context.collectStatistics(true);
         Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
         merge.apply(context);
 
         // if there are no conflicts, run the conditional strategy
-        if (context.getStats().getConflicts() == 0) {
+        if (context.getStatistics().hasConflicts()) {
             context = (MergeContext) context.clone();
-            context.setSaveStats(false);
+            context.collectStatistics(false);
             context.setMergeStrategy(conditional);
             // use regular merging outside of methods
             context.setConditionalOutsideMethods(false);

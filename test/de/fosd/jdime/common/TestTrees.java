@@ -1,29 +1,16 @@
-package de.fosd.jdime.matcher.ordered.mceSubtree.test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.matcher.ordered.mceSubtree.BalancedSequence;
-import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
+package de.fosd.jdime.common;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
  */
-public class TestTrees {
+public final class TestTrees {
 
     /**
      * Returns the trees used as examples in the paper.
      *
      * @return the trees
      */
-    private static TestArtifact paperTree() throws IOException {
+    public static TestArtifact paperTree() {
         TestArtifact t = new TestArtifact();
         TestArtifact t1 = new TestArtifact();
         TestArtifact t2 = new TestArtifact();
@@ -79,7 +66,7 @@ public class TestTrees {
      *
      * @return the trees
      */
-    private static Tuple<TestArtifact, TestArtifact> simpleTree() {
+    public static Tuple<TestArtifact, TestArtifact> simpleTree() {
         TestArtifact t1 = new TestArtifact(1);
         TestArtifact t2 = new TestArtifact(2);
         TestArtifact t3 = new TestArtifact(3);
@@ -92,27 +79,5 @@ public class TestTrees {
         t3.addChild(t5);
 
         return Tuple.of(t1, t3);
-    }
-
-    public static void main(String[] args) {
-        Tuple<TestArtifact, TestArtifact> trees = simpleTree();
-
-        BalancedSequence<TestArtifact> s = new BalancedSequence<>(trees.x);
-        BalancedSequence<TestArtifact> t = new BalancedSequence<>(trees.y);
-
-        MCESubtreeMatcher<TestArtifact> matcher = new MCESubtreeMatcher<>(new Matcher<TestArtifact>());
-        Matchings<TestArtifact> matchings = matcher.match(null, trees.x, trees.y, MergeContext.LOOKAHEAD_FULL);
-
-        System.out.println("Left tree as BalancedSequence:");
-        System.out.println(s);
-        System.out.println("Right tree as BalancedSequence:");
-        System.out.println(t.toString() + '\n');
-
-        List<Matching<TestArtifact>> l = new ArrayList<>(matchings.optimized());
-        Collections.sort(l);
-
-        for (Matching<TestArtifact> matching : l) {
-            System.out.println(matching);
-        }
     }
 }

@@ -22,11 +22,12 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Objects;
+
 /**
  * This class represents a revision.
  *
  * @author Olaf Lessenich
- *
  */
 public class Revision {
 
@@ -36,12 +37,12 @@ public class Revision {
     private String name;
 
     /**
-     * Creates a new instance of revision.
+     * Constructs a new <code>Revision</code> with the given name.
      *
      * @param name
-     *            name of the revision
+     *         name of the revision
      */
-    public Revision(final String name) {
+    public Revision(String name) {
         this.name = name;
     }
 
@@ -50,7 +51,7 @@ public class Revision {
      *
      * @return the name
      */
-    public final String getName() {
+    public String getName() {
         return name;
     }
 
@@ -58,42 +59,45 @@ public class Revision {
      * Sets the name of the revision.
      *
      * @param name
-     *            the name to set
+     *         the name to set
      */
-    public final void setName(final String name) {
+    public void setName(String name) {
         this.name = name;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public final String toString() {
-        return name;
     }
 
     /**
      * Returns whether an artifact is contained in this revision.
      *
      * @param artifact
-     *            artifact
+     *         artifact
      * @return true if the artifact is contained in this revision
      */
-    public final boolean contains(final Artifact<?> artifact) {
-        boolean result = artifact != null && artifact.hasMatching(this);
-        return result;
+    public boolean contains(Artifact<?> artifact) {
+        return artifact != null && artifact.hasMatching(this);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return name.equals(((Revision) obj).name);
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Revision revision = (Revision) o;
+
+        return Objects.equals(name, revision.name);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return Objects.hash(name);
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
 }

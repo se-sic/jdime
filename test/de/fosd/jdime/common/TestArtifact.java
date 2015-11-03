@@ -1,12 +1,10 @@
-package de.fosd.jdime.matcher.ordered.mceSubtree.test;
+package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.stats.KeyEnums;
 
 /**
  * A simple <code>Artifact</code> to test the functionality of <code>MCESubtreeMatcher</code>. Not all all methods
@@ -81,11 +79,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public String getStatsKey(MergeContext context) {
-        return null;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -138,5 +131,15 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public int compareTo(TestArtifact o) {
         return id - o.id;
+    }
+
+    @Override
+    public KeyEnums.Type getType() {
+        return null;
+    }
+
+    @Override
+    public KeyEnums.Level getLevel() {
+        return null;
     }
 }

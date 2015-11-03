@@ -23,24 +23,11 @@
 package de.fosd.jdime.strategy;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.stats.Stats;
 
 /**
  * @author Olaf Lessenich
  */
 public class ASTNodeStrategy extends AbstractNodeStrategy<ASTNodeArtifact> {
-
-    @Override
-    public final Stats createStats() {
-        return new Stats(new String[] { "nodes" });
-    }
-
-    @Override
-    public final String getStatsKey(final ASTNodeArtifact artifact) {
-        // FIXME: remove me when implementation is complete
-        throw new NotYetImplementedException(this.getClass().getSimpleName() + ".getStatsKey()");
-    }
 
     @Override
     public String toString() {

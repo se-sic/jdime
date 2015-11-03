@@ -25,14 +25,12 @@ package de.fosd.jdime.common.operations;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -53,35 +51,37 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     private T artifact;
 
     /**
-     * Output Artifact.
+     * The output <code>Artifact</code>.
      */
     private T target;
 
+    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
-     * Class constructor.
-     * @param artifact that is added by the operation
-     * @param target output artifact
-     * @param condition condition under which the node is NOT deleted
+     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from <code>target</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to be deleted
+     * @param target
+     *         the <code>Artifact</code> to delete from
+     * @param mergeScenario
+     *         the current <code>MergeScenario</code>
+     * @param condition
+     *         the condition under which the node is NOT deleted
      */
-    public DeleteOperation(final T artifact, final T target, String condition) {
-        super();
+    public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
         this.artifact = artifact;
         this.target = target;
+        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#apply()
-     */
     @Override
-    public final void apply(final MergeContext context) throws IOException {
+    public void apply(MergeContext context) throws IOException {
         assert (artifact != null);
         assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
@@ -106,49 +106,23 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
             // which then calls deleteChildren() on the created Program.
         }
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(artifact
-                    .getStatsKey(context));
-            element.incrementDeleted();
-            
-            if (artifact instanceof FileArtifact) {
+        if (context.hasStatistics()) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-                // analyze java files to get statistics
-                for (FileArtifact child : ((FileArtifact) artifact)
-                        .getJavaFiles()) {
-                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-                    ASTStats childStats = childAST.getStats(null,
-                            LangElem.TOPLEVELNODE, false);
-
-                    LOG.fine(childStats::toString);
-
-                    childStats.setRemovalsfromAdditions(childStats);
-                    childStats.resetAdditions();
-
-                    if (context.isConsecutive()) {
-                        context.getStats().addRightStats(childStats);
-                    } else {
-                        context.getStats().addASTStats(childStats);
-                    }
-                }
-            }
+            element.incrementNumDeleted();
+            artifact.deleteOpStatistics(mScenarioStatistics, context);
         }
     }
 
     @Override
-    public final String getName() {
+    public String getName() {
         return "DELETE";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
-    public final String toString() {
+    public String toString() {
         return getId() + ": " + getName() + " " + artifact;
     }
 }

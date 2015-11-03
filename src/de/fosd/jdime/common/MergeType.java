@@ -50,11 +50,6 @@ public enum MergeType {
     public static final int THREEWAY_FILES = 3;
     public static final int MINFILES = TWOWAY_FILES;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Enum#toString()
-     */
     @Override
     public final String toString() {
         return this.name();

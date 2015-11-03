@@ -23,55 +23,60 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.operations.MergeOperation;
-
 /**
- * This class represents a merge scenario.
+ * A <code>MergeScenario</code> collects the <code>Artifact</code>s that are participating in the merge and stores its
+ * <code>MergeType</code>.
  *
- * @param <T> type of artifact
+ * @param <T>
+ *         the type of the <code>Artifact</code>s being merged
  * @author Olaf Lessenich
+ * @author Georg Seibt
  */
 public class MergeScenario<T extends Artifact<T>> {
 
     private static final Logger LOG = Logger.getLogger(MergeScenario.class.getCanonicalName());
 
-    /**
-     * Type of merge.
-     */
+    public static final Revision LEFT = new Revision("left");
+    public static final Revision BASE = new Revision("base");
+    public static final Revision RIGHT = new Revision("right");
+
     private MergeType mergeType;
-
-    private LinkedHashMap<Revision, T> artifacts;
-
-    private Revision leftRev = new Revision("left");
-    private Revision baseRev = new Revision("base");
-    private Revision rightRev = new Revision("right");
+    private Map<Revision, T> artifacts;
 
     /**
-     * Creates a new merge scenario.
+     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario. For all
+     * <code>Artifact</code>s the <code>Revision</code> will be (recursively) set to the appropriate static constant
+     * defined in this class.
      *
-     * @param mergeType type of merge
-     * @param left      artifact
-     * @param base      artifact
-     * @param right     artifact
+     * @param mergeType
+     *         the <code>MergeType</code> for this <code>MergeScenario</code>
+     * @param left
+     *         the <code>Artifact</code> for the {@link #LEFT} <code>Revision</code>
+     * @param base
+     *         the <code>Artifact</code> for the {@link #BASE} <code>Revision</code>
+     * @param right
+     *         the <code>Artifact</code> for the {@link #RIGHT} <code>Revision</code>
      */
-    public MergeScenario(final MergeType mergeType, final T left, final T base, final T right) {
+    public MergeScenario(MergeType mergeType, T left, T base, T right) {
+
+        if (mergeType != MergeType.TWOWAY && mergeType != MergeType.THREEWAY) {
+            LOG.warning(() -> String.format("Constructing a %s MergeScenario using the Left/Base/Right constructor.", mergeType));
+        }
+
         this.artifacts = new LinkedHashMap<>();
         this.mergeType = mergeType;
 
-        if (left.getRevision() == null) {
-            left.setRevision(leftRev, true);
-        }
-
-        base.setRevision(baseRev, true);
-
-        if (right.getRevision() == null) {
-            right.setRevision(rightRev, true);
-        }
+        left.setRevision(LEFT, true);
+        base.setRevision(BASE, true);
+        right.setRevision(RIGHT, true);
 
         this.artifacts.put(left.getRevision(), left);
         this.artifacts.put(base.getRevision(), base);
@@ -79,183 +84,193 @@ public class MergeScenario<T extends Artifact<T>> {
     }
 
     /**
-     * Creates a new merge scenario.
+     * Constructs a {@link MergeType#NWAY} <code>MergeScenario</code> from the given <code>Artifact</code>s.
      *
-     * @param mergeType      type of merge
-     * @param inputArtifacts artifacts to merge
+     * @param inputArtifacts
+     *         the <code>Artifact</code>s participating in the merge
      */
-    public MergeScenario(final MergeType mergeType, ArtifactList<T> inputArtifacts) {
+    public MergeScenario(List<T> inputArtifacts) {
         this.artifacts = new LinkedHashMap<>();
-        this.mergeType = mergeType;
+        this.mergeType = MergeType.NWAY;
 
         for (T artifact : inputArtifacts) {
             artifacts.put(artifact.getRevision(), artifact);
         }
     }
 
-    private final T get(int position) {
-        int i = 0;
-
-        for (Revision rev : artifacts.keySet()) {
-            i++;
-            if (i == position) {
-                return artifacts.get(rev);
-            }
-        }
-
-        return null;
-    }
-
     /**
-     * Returns the baseRev artifact.
+     * Returns the <code>MergeType</code> of this <code>MergeScenario</code>.
      *
-     * @return the baseRev
+     * @return the <code>MergeType</code>
      */
-    public final T getBase() {
-        try {
-            T base = artifacts.size() == 3 ? get(2) : getLeft().createEmptyArtifact();
-            return base;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Returns the leftRev artifact.
-     *
-     * @return the leftRev
-     */
-    public final T getLeft() {
-        T left = get(1);
-        return left;
-    }
-
-    /**
-     * Returns the type of merge.
-     *
-     * @return type of merge
-     */
-    public final MergeType getMergeType() {
+    public MergeType getMergeType() {
         return mergeType;
     }
 
     /**
-     * Returns the rightRev artifact.
+     * Returns an unmodifiable view of the <code>Map</code> used to store the <code>Artifact</code>s in this
+     * <code>MergeScenario</code>.
      *
-     * @return the rightRev
+     * @return the <code>Artifact</code>s in this <code>MergeScenario</code>
      */
-    public final T getRight() {
-        T right = artifacts.size() == 3 ? get(3) : get(2);
-        return right;
+    public Map<Revision, T> getArtifacts() {
+        return Collections.unmodifiableMap(artifacts);
+    }
+
+    /**
+     * Returns the n-th <code>Artifact</code> that was added to this <code>MergeScenario</code>. Will return
+     * <code>null</code> if <code>n</code> is invalid (not smaller than the number of artifacts in the scenario).
+     *
+     * @param n the number of the artifact to return
+     * @return the n-th <code>Artifact</code> of this <code>MergeScenario</code> by insertion order
+     */
+    public T get(int n) {
+        int i = 0;
+        T artifact = null;
+
+        for (Map.Entry<Revision, T> entry : artifacts.entrySet()) {
+
+            if (i == n) {
+                artifact = entry.getValue();
+            }
+
+            i++;
+        }
+
+        return artifact;
+    }
+
+    /**
+     * Returns the left <code>Artifact</code>.
+     *
+     * @return the left <code>Artifact</code>
+     */
+    public T getLeft() {
+        return artifacts.get(LEFT);
+    }
+
+    /**
+     * Sets the left <code>Artifact</code> to the new value.
+     *
+     * @param left the new left <code>Artifact</code>
+     */
+    public void setLeft(T left) {
+        artifacts.put(LEFT, left);
+    }
+
+    /**
+     * Returns the base <code>Artifact</code>.
+     *
+     * @return the base <code>Artifact</code>
+     */
+    public T getBase() {
+        return artifacts.get(BASE);
+    }
+
+    /**
+     * Sets the base <code>Artifact</code> to the new value.
+     *
+     * @param base the new base <code>Artifact</code>
+     */
+    public void setBase(T base) {
+        artifacts.put(BASE, base);
+    }
+
+    /**
+     * Returns the right <code>Artifact</code>.
+     *
+     * @return the right <code>Artifact</code>
+     */
+    public T getRight() {
+        return artifacts.get(RIGHT);
+    }
+
+    /**
+     * Sets the right <code>Artifact</code> to the new value.
+     *
+     * @param right the new right <code>Artifact</code>
+     */
+    public void setRight(T right) {
+        artifacts.put(RIGHT, right);
     }
 
     /**
      * Returns whether this is a valid merge scenario.
      *
-     * @return true if the merge scenario is valid.
+     * @return true iff the merge scenario is valid
      */
-    public final boolean isValid() {
-        // FIXME: this needs to be reimplemented
+    public boolean isValid() {
+        // TODO: this needs to be reimplemented considering the possibility of an n-way merge
         return true;
     }
 
     /**
-     * Run the merge scenario.
+     * Returns an <code>ArtifactList</code> containing the <code>Artifact</code>s in this <code>MergeScenario</code>
+     * in the order of their insertion.
      *
-     * @param mergeOperation merge operation
-     * @param context merge context
-     * @throws IOException
-     * @throws InterruptedException
+     * @return the <code>ArtifactList</code>
      */
-    public void run(final MergeOperation mergeOperation, final MergeContext context) throws IOException, InterruptedException {
-        // FIXME: I think this could be done easier. It's just too fucking ugly.
-        //        We need the first element that was inserted and run the merge on it.
-        artifacts.get(artifacts.keySet().iterator().next()).merge(mergeOperation, context);
+    public ArtifactList<T> asList() {
+        return artifacts.entrySet().stream().map(Map.Entry::getValue).collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
     }
 
-    /**
-     * Sets the baseRev artifact.
-     *
-     * @param base the baseRev to set
-     */
-    public final void setBase(final T base) {
-        artifacts.put(baseRev, base);
-    }
-
-    /**
-     * Sets the leftRev artifact.
-     *
-     * @param left the leftRev to set
-     */
-    public final void setLeft(final T left) {
-        artifacts.put(leftRev, left);
-    }
-
-    /**
-     * Sets the rightRev artifact.
-     *
-     * @param right the rightRev to set
-     */
-    public final void setRight(final T right) {
-        artifacts.put(rightRev, right);
-    }
-
-    /**
-     * Returns a String representing the MergeScenario separated by whitespace.
-     *
-     * @return String representation
-     */
     @Override
-    public final String toString() {
+    public String toString() {
         return toString(" ", false);
     }
 
     /**
-     * Returns a String representing the MergeScenario separated by whitespace,
-     * omitting empty dummy files.
+     * Returns a <code>String</code> representing the <code>MergeScenario</code> separated by a whitespace.
      *
-     * @param humanReadable do not print dummy files if true
-     * @return String representation
+     * @param humanReadable
+     *         whether to omit empty dummy <code>Artifact</code>s
+     * @return the <code>String</code> representing this <code>MergeScenario</code>
      */
-    public final String toString(final boolean humanReadable) {
+    public String toString(boolean humanReadable) {
         return toString(" ", humanReadable);
     }
 
     /**
-     * Returns a String representing the MergeScenario.
+     * Returns a <code>String</code> representing the <code>MergeScenario</code>.
      *
-     * @param sep           separator
-     * @param humanReadable do not print dummy files if true
-     * @return String representation
+     * @param sep
+     *         the separator to use between the representations of the <code>Artifact</code>s
+     * @param humanReadable
+     *         whether to omit empty dummy <code>Artifact</code>s
+     * @return the <code>String</code> representing this <code>MergeScenario</code>
      */
-    public final String toString(final String sep, final boolean humanReadable) {
-        StringBuilder sb = new StringBuilder("");
+    public String toString(String sep, boolean humanReadable) {
+        StringBuilder sb = new StringBuilder();
 
-        for (Revision rev : artifacts.keySet()) {
-            T artifact = artifacts.get(rev);
+        for (Map.Entry<Revision, T> entry : artifacts.entrySet()) {
+            T artifact = entry.getValue();
+
             if (!humanReadable || !artifact.isEmpty()) {
                 sb.append(artifact.getId()).append(sep);
             }
         }
+
         return sb.toString();
     }
 
-    /**
-     * Returns a list containing all three revisions. Empty dummies for baseRev are
-     * included.
-     *
-     * @return list of artifacts
-     */
-    public final ArtifactList<T> getList() {
-        ArtifactList<T> list = new ArtifactList<>();
-        list.add(getLeft());
-        list.add(getBase());
-        list.add(getRight());
-        return list;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MergeScenario<?> that = (MergeScenario<?>) o;
+
+        return Objects.equals(mergeType, that.mergeType) &&
+                Objects.equals(artifacts, that.artifacts);
     }
 
-    public LinkedHashMap<Revision, T> getArtifacts() {
-        return artifacts;
+    @Override
+    public int hashCode() {
+        return Objects.hash(mergeType, artifacts);
     }
 }
