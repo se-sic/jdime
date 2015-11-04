@@ -22,9 +22,11 @@
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'eclipse'
+plugins {
+    id 'java'
+    id 'application'
+    id 'eclipse'
+}
 
 sourceSets {
     main {
@@ -38,6 +40,9 @@ sourceSets {
     test {
         java {
             srcDir 'test'
+        }
+        resources {
+            srcDir 'testfiles'
         }
     }
 }
