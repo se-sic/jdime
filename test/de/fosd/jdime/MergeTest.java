@@ -25,6 +25,7 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -46,14 +48,33 @@ import static org.junit.Assert.fail;
  */
 public class MergeTest {
 
-    private MergeContext context;
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
+
+    private File testFilesDir;
+    private File leftDir;
+    private File baseDir;
+    private File rightDir;
+
+    private MergeContext context;
 
     /**
      * @throws java.lang.Exception
      */
     @Before
     public void setUp() throws Exception {
+
+        testFilesDir = new File("testfiles");
+
+        assertTrue("The test files directory could not be found.", testFilesDir.exists() && testFilesDir.isDirectory());
+
+        leftDir = new File(testFilesDir, "left");
+        baseDir = new File(testFilesDir, "base");
+        rightDir = new File(testFilesDir, "right");
+
+        Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
+            assertTrue(f.getAbsolutePath() + " couldn't be found or isn't a directory.", f.exists() && f.isDirectory());
+        });
+
         // initialize logger
         Logger root = Logger.getLogger(JDimeWrapper.class.getPackage().getName());
         root.setLevel(Level.WARNING);
@@ -73,13 +94,13 @@ public class MergeTest {
             // initialize input files
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-            inputArtifacts.add(new FileArtifact(new File("testfiles/left/", filepath)));
+            inputArtifacts.add(new FileArtifact(new File(leftDir, filepath)));
 
             if (threeway) {
-                inputArtifacts.add(new FileArtifact(new File("testfiles/base/", filepath)));
+                inputArtifacts.add(new FileArtifact(new File(baseDir, filepath)));
             }
 
-            inputArtifacts.add(new FileArtifact(new File("testfiles/right/", filepath)));
+            inputArtifacts.add(new FileArtifact(new File(rightDir, filepath)));
 
             for (String strategy : STRATEGIES) {
 
@@ -97,8 +118,7 @@ public class MergeTest {
                 Main.merge(context);
 
                 // check
-                File exp = FileUtils.getFile("testfiles", strategy, filepath);
-                String expected = FileUtils.readFileToString(exp);
+                String expected = FileUtils.readFileToString(FileUtils.getFile(testFilesDir, strategy, filepath));
                 String output = context.getOutputFile().getContent();
 
                 System.out.println("----------Expected:-----------");
