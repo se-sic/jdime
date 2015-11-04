@@ -144,14 +144,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
             LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
 
-            String prettyPrint = "";
-
             if (!context.isDiffOnly()) {
-                prettyPrint = targetNode.prettyPrint();
-
-                final String finalPrettyPrint = prettyPrint;
-                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", finalPrettyPrint));
-                context.appendLine(finalPrettyPrint);
+                context.appendLine(targetNode.prettyPrint());
+                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", context.getStdIn()));
             }
 
             LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
@@ -179,7 +174,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 
                 if (!context.isDiffOnly()) {
-                    ParseResult parseResult = scenarioStatistics.setLineStatistics(prettyPrint);
+                    ParseResult parseResult = scenarioStatistics.setLineStatistics(context.getStdIn());
 
                     if (parseResult.getConflicts() > 0) {
                         scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
