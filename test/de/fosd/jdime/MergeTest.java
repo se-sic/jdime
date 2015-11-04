@@ -23,24 +23,22 @@
 
 package de.fosd.jdime;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Olaf Lessenich
@@ -49,8 +47,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 public class MergeTest {
 
     private MergeContext context;
-    private static final String[] STRATEGIES = { "linebased", "structured",
-            "combined" };
+    private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
     /**
      * @throws java.lang.Exception
@@ -71,44 +68,47 @@ public class MergeTest {
         context.setPretend(false);
     }
 
-    private final void runMerge(String filepath, boolean threeway) {
+    private void runMerge(String filepath, boolean threeway) {
         try {
             // initialize input files
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-            inputArtifacts.add(new FileArtifact(new File("testfiles/left/"
-                    + filepath)));
+
+            inputArtifacts.add(new FileArtifact(new File("testfiles/left/", filepath)));
+
             if (threeway) {
-                inputArtifacts.add(new FileArtifact(new File("testfiles/base/"
-                        + filepath)));
+                inputArtifacts.add(new FileArtifact(new File("testfiles/base/", filepath)));
             }
-            inputArtifacts.add(new FileArtifact(new File("testfiles/right/"
-                    + filepath)));
+
+            inputArtifacts.add(new FileArtifact(new File("testfiles/right/", filepath)));
 
             for (String strategy : STRATEGIES) {
+
                 // setup context
                 context.setMergeStrategy(MergeStrategy.parse(strategy));
                 context.setInputFiles(inputArtifacts);
+
                 File out = Files.createTempFile("jdime-tests", ".java").toFile();
                 out.deleteOnExit();
+
                 context.setOutputFile(new FileArtifact(out));
 
                 // run
-                System.out.println("Running " + strategy + " strategy on "
-                        + filepath);
+                System.out.printf("Running %s strategy on %s%n", strategy, filepath);
                 Main.merge(context);
-                
+
                 // check
-                File expected = new File("testfiles" + File.separator
-                        + strategy + File.separator + filepath);
+                File exp = FileUtils.getFile("testfiles", strategy, filepath);
+                String expected = FileUtils.readFileToString(exp);
+                String output = context.getOutputFile().getContent();
+
                 System.out.println("----------Expected:-----------");
-                System.out.print(FileUtils.readFileToString(expected));
+                System.out.print(expected);
                 System.out.println("----------Received:-----------");
-                System.out.print(context.getOutputFile().getContent());
+                System.out.print(output);
                 System.out.println("------------------------------");
-                assertTrue("Strategy " + strategy
-                        + " resulted in unexpected output",
-                        FileUtils.contentEquals(context.getOutputFile()
-                                .getFile(), expected));
+
+                assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
+
                 System.out.println();
             }
         } catch (Exception e) {
