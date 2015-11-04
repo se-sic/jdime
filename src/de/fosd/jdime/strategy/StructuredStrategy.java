@@ -151,6 +151,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                 final String finalPrettyPrint = prettyPrint;
                 LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", finalPrettyPrint));
+                context.appendLine(finalPrettyPrint);
             }
 
             LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
@@ -161,7 +162,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
             if (!context.isPretend() && target != null) {
                 LOG.fine("Writing output to: " + target.getFullPath());
-                target.write(prettyPrint);
+                target.write(context.getStdIn());
             }
 
             if (context.hasStatistics()) {
