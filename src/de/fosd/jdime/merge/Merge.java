@@ -160,7 +160,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
                     for (T rightChild : rightChildren) {
 
-                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, l.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, triple, l.getName());
                         delOp.apply(context);
                     }
                     return;
@@ -181,7 +181,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 } else {
 
                     for (T leftChild : leftChildren) {
-                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, r.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, triple, r.getName());
                         delOp.apply(context);
                     }
                     return;

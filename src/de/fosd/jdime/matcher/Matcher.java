@@ -30,15 +30,18 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.Main;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.LPMatcher;
+import de.fosd.jdime.matcher.unordered.HungarianMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
+
+import static de.fosd.jdime.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static de.fosd.jdime.JDimeConfig.getConfig;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -65,7 +68,8 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
-    private static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
+
+    private boolean useMCESubtreeMatcher;
 
     private int calls = 0;
     private int orderedCalls = 0;
@@ -80,10 +84,12 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      * Constructs a new <code>Matcher</code>.
      */
     public Matcher() {
-        unorderedMatcher = new LPMatcher<>(this);
+        //unorderedMatcher = new LPMatcher<>(this);
+        unorderedMatcher = new HungarianMatcher<>(this);
         unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
         orderedMatcher = new SimpleTreeMatcher<>(this);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
+        useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
     @Override
@@ -115,7 +121,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
             return maxMatching;
         }
 
-        boolean fullyOrdered = Main.config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
+        boolean fullyOrdered = useMCESubtreeMatcher;
         boolean isOrdered = false;
         boolean uniqueLabels = true;
 
@@ -210,22 +216,14 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
                 T left = matching.getLeft();
                 T right = matching.getRight();
 
-                // TODO: collect statistical data about matching scores per language element and look-ahead setting
                 if (left.matches(right)) {
                     // regular top-down matching where the compared nodes do match
                     matching.setHighlightColor(color);
                     left.addMatching(matching);
                     right.addMatching(matching);
-
-                    // just for statistics
-                    context.matchedElement(left);
-                    context.matchedElement(right);
                 } else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
                     // the compared nodes do not match but look-ahead is active and found matchings in the subtree
-
-                    // just for statistics
-                    context.skippedLeftElement(left, matching.getScore());
-                    context.skippedRightElement(left, matching.getScore());
+                    // TODO: collect statistical data about matching scores per language element and look-ahead setting
                 } else {
                     // the compared nodes do not match and look-ahead is inactive: this is a serious bug!
                     String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";

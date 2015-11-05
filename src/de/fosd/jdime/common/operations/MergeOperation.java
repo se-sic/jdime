@@ -32,8 +32,9 @@ import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -102,8 +103,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         if (nway) {
-            mergeType = MergeType.NWAY;
-            this.mergeScenario = new MergeScenario<>(mergeType, inputArtifacts);
+            this.mergeScenario = new MergeScenario<>(inputArtifacts);
             LOG.finest("Created N-way scenario");
         } else {
 
@@ -182,15 +182,17 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
             assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
         }
 
-        mergeScenario.run(this, context);
+        // FIXME: I think this could be done easier. It's just too fucking ugly.
+        T artifact = mergeScenario.get(0);
+        artifact.merge(this, context);
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
-            if (stats != null) {
-                stats.incrementOperation(this);
-                StatsElement element = stats.getElement(mergeScenario.getLeft().getStatsKey(context));
-                element.incrementMerged();
-            }
+        if (context.hasStatistics()) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
+
+            element.incrementNumMerged();
+            artifact.mergeOpStatistics(mScenarioStatistics, context);
         }
     }
 

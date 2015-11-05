@@ -22,17 +22,18 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.strategy.StatisticsInterface;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -42,7 +43,7 @@ import de.fosd.jdime.matcher.Matching;
  * @param <T>
  *            type of artifact
  */
-public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
+public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface {
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
@@ -138,8 +139,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
      * @param child
      *            child to add
      * @return added child
-     * @throws IOException
-     *             If an input output exception occurs
      */
     public abstract T addChild(final T child);
 
@@ -418,7 +417,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
     /**
      * Returns the parent <code>Artifact</code>.
      *
-     * @return the parent <code>Artifact></code>
+     * @return the parent <code>Artifact</code>
      */
     public T getParent() {
         return parent;
@@ -434,13 +433,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
     }
 
     /**
-     * Returns key of statistical element.
+     * Returns the maximum depth of any node in the tree.
      *
-     * @param context
-     *            merge context
-     * @return key of statistical element
+     * @return the maximum depth
      */
-    public abstract String getStatsKey(MergeContext context);
+    public int getMaxDepth() {
+        return 1 + children.parallelStream().map(Artifact::getMaxDepth).max(Integer::compare).orElse(0);
+    }
 
     /**
      * Returns the size of the subtree. The <code>Artifact</code> itself is not included.
@@ -509,12 +508,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T> {
             return false;
         }
 
-        return getId().equals(((T) o).getId());
+        Artifact<?> artifact = (Artifact<?>) o;
+
+        return Objects.equals(getId(), artifact.getId());
     }
 
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return Objects.hash(getId());
     }
 
     /**

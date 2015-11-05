@@ -25,20 +25,17 @@ package de.fosd.jdime;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
@@ -47,22 +44,20 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.stats.StatsPrinter;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
-import de.fosd.jdime.strategy.StructuredStrategy;
 import de.uni_passau.fim.seibt.kvconfig.Config;
-import de.uni_passau.fim.seibt.kvconfig.PropFileConfigSource;
-import de.uni_passau.fim.seibt.kvconfig.SysEnvConfigSource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+
+import static de.fosd.jdime.JDimeConfig.*;
 
 /**
  * @author Olaf Lessenich
@@ -74,35 +69,6 @@ public final class Main {
 
     private static final String TOOLNAME = "jdime";
     private static final String VERSION = "0.3.11-develop";
-
-    private static final String LOGGING_CONFIG_FILE_NAME = "JDimeLogging.properties";
-    private static final String CONFIG_FILE_NAME = "JDime.properties";
-    private static final File LOGGING_CONFIG_FILE = new File(LOGGING_CONFIG_FILE_NAME);
-    private static final File CONFIG_FILE = new File(CONFIG_FILE_NAME);
-    public static final Config config;
-
-    static {
-        if (LOGGING_CONFIG_FILE.exists()) {
-
-            try (InputStream is = new FileInputStream(LOGGING_CONFIG_FILE)) {
-                LogManager.getLogManager().readConfiguration(is);
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not read logging configuration.");
-            }
-        }
-
-        config = new Config();
-        config.addSource(new SysEnvConfigSource(1));
-
-        if (CONFIG_FILE.exists()) {
-
-            try {
-                config.addSource(new PropFileConfigSource(2, CONFIG_FILE));
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + CONFIG_FILE.getAbsolutePath());
-            }
-        }
-    }
 
     /**
      * Perform a merge operation on the input files or directories.
@@ -162,8 +128,8 @@ public final class Main {
             merge(context);
         }
 
-        if (context.hasStats()) {
-            StatsPrinter.print(context);
+        if (context.hasStatistics()) {
+            outputStatistics(context.getStatistics());
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
@@ -179,6 +145,115 @@ public final class Main {
         }
 
         System.exit(0);
+    }
+
+    /**
+     * Outputs the given <code>Statistics</code> according to the set configuration options.
+     *
+     * @param statistics
+     *         the <code>Statistics</code> to output
+     */
+    private static void outputStatistics(Statistics statistics) {
+        Config config = getConfig();
+
+        String hrOut = config.get(STATISTICS_HR_OUTPUT).orElse(STATISTICS_OUTPUT_STDOUT);
+        String xmlOut = config.get(STATISTICS_XML_OUTPUT).orElse(STATISTICS_OUTPUT_OFF);
+
+        switch (hrOut) {
+            case STATISTICS_OUTPUT_OFF:
+                LOG.fine("Human readable statistics output is disabled.");
+                break;
+            case STATISTICS_OUTPUT_STDOUT:
+                statistics.print(System.out);
+                break;
+            default: {
+                File f = new File(hrOut);
+
+                if (f.isDirectory()) {
+                    String name = config.get(STATISTICS_HR_NAME).orElse(STATISTICS_HR_DEFAULT_NAME);
+                    f = new File(f, String.format(name, new Date()));
+                }
+
+                if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
+                    f = findNonExistent(f);
+                }
+
+                try {
+                    statistics.print(f);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
+                }
+            }
+        }
+
+        switch (xmlOut) {
+            case STATISTICS_OUTPUT_OFF:
+                LOG.fine("XML statistics output is disabled.");
+                break;
+            case STATISTICS_OUTPUT_STDOUT:
+                statistics.printXML(System.out);
+                break;
+            default: {
+                File f = new File(xmlOut);
+
+                if (f.isDirectory()) {
+                    String name = config.get(STATISTICS_XML_NAME).orElse(STATISTICS_XML_DEFAULT_NAME);
+                    f = new File(f, String.format(name, new Date()));
+                }
+
+                if (config.getBoolean(STATISTICS_OUTPUT_USE_UNIQUE_FILES).orElse(true)) {
+                    f = findNonExistent(f);
+                }
+
+                try {
+                    statistics.printXML(f);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a <code>File</code> (possibly <code>f</code>) that does not exist in the parent directory of
+     * <code>f</code>. If <code>f</code> exists an increasing number is appended to the name of <code>f</code> until
+     * a <code>File</code> is found that does not exist.
+     *
+     * @param f
+     *         the <code>File</code> to find a non existent version of
+     * @return a <code>File</code> in the parent directory of <code>f</code> that does not exist
+     */
+    private static File findNonExistent(File f) {
+
+        if (!f.exists()) {
+            return f;
+        }
+
+        String fullName = f.getName();
+        String name;
+        String extension;
+
+        int pos = fullName.lastIndexOf('.');
+
+        if (pos != -1) {
+            name = fullName.substring(0, pos);
+            extension = fullName.substring(pos, fullName.length());
+        } else {
+            name = fullName;
+            extension = "";
+        }
+
+        File parent = f.getParentFile();
+
+        Stream<File> files = IntStream.range(0, Integer.MAX_VALUE).mapToObj(v -> {
+            String fileName = String.format("%s_%d%s", name, v, extension);
+            return new File(parent, fileName);
+        });
+
+        File nextFree = files.filter(file -> !file.exists()).findFirst().orElseThrow(() ->
+                new RuntimeException("Can not find a file that does not exist."));
+
+        return nextFree;
     }
 
     /**
@@ -201,9 +276,6 @@ public final class Main {
         boolean continueRun = true;
 
         Options options = new Options();
-        options.addOption("benchmark", false,
-                "benchmark with " + context.getBenchmarkRuns()
-                        + " runs per file");
         options.addOption("debug", true, "set debug level"
                 + " (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)");
         options.addOption("consecutive", false,
@@ -224,7 +296,6 @@ public final class Main {
                 "print configuration information");
         options.addOption("stats", false,
                 "collects statistical data of the merge");
-        options.addOption("runLookAheadTests", false, "Run diffs with lookahead and print statistics");
         options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
         options.addOption("q", false, "quiet, do not print the merge result to stdout");
         options.addOption("version", false,
@@ -251,21 +322,6 @@ public final class Main {
 
             if (cmd.hasOption("debug")) {
                 setLogLevel(cmd.getOptionValue("debug"));
-            }
-
-            if (cmd.hasOption("runLookAheadTests")) {
-                if (!cmd.hasOption("debug")) {
-                    setLogLevel("WARNING");
-                }
-                
-                String wd = null;
-                String path = null;
-                if (cmd.getArgs().length > 1){
-                    wd = cmd.getArgs()[0];
-                    path = cmd.getArgs()[1];
-                }
-                runLookAheadTests(wd, path);
-                System.exit(0);
             }
 
             if (cmd.hasOption("mode")) {
@@ -366,9 +422,7 @@ public final class Main {
                 LOG.finest(() -> "Lookahead = " + context.getLookAhead());
             }
 
-            context.setSaveStats(cmd.hasOption("stats")
-                    || cmd.hasOption("benchmark"));
-            context.setBenchmark(cmd.hasOption("benchmark"));
+            context.collectStatistics(cmd.hasOption("stats"));
             context.setForceOverwriting(cmd.hasOption("f"));
             context.setRecursive(cmd.hasOption("r"));
             
@@ -482,17 +536,17 @@ public final class Main {
      * @param logLevel
      *             one of the valid log levels according to {@link Level#parse(String)}
      */
-    private static void setLogLevel(String logLevel) {
+    static void setLogLevel(String logLevel) {
         Level level;
 
         try {
-            level = Level.parse(logLevel);
+            level = Level.parse(logLevel.toUpperCase());
         } catch (IllegalArgumentException e) {
             LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
             return;
         }
 
-        Logger root = LogManager.getLogManager().getLogger(Main.class.getPackage().getName());
+        Logger root = Logger.getLogger(Main.class.getPackage().getName());
         root.setLevel(level);
 
         for (Handler handler : root.getHandlers()) {
@@ -594,218 +648,12 @@ public final class Main {
             // System.out.println(ast.prettyPrint());
             System.out.println(ast.dumpTree());
             System.out.println("--");
-            int[] s = ast.getStats();
-            System.out.println("Number of nodes: " + s[0]);
-            System.out.println("Tree Depth: " + s[1]);
-            System.out.println("MaxChildren: " + s[2]);
+            //int[] s = ast.getStats();
+            //System.out.println("Number of nodes: " + s[0]);
+            //System.out.println("Tree Depth: " + s[1]);
+            //System.out.println("MaxChildren: " + s[2]);
             System.out.println("--------------------------------------------");
         }
-    }
-
-    /**
-     * This is only for debugging and messing around with the look-ahead feature.
-     * TODO: remove this method when the feature is merged into develop.
-     */
-    private static void runLookAheadTests(String wd, String path) {
-        if (path == null) {
-            path = "lookahead";
-        }
-        
-        String[] files = new File(wd + "/left/" + path + "/").list();
-        int[] lookaheads = {MergeContext.LOOKAHEAD_OFF, (int)1, (int)2,
-            (int)3, (int)4, (int)5, MergeContext.LOOKAHEAD_FULL};
-        MergeContext context;
-        HashMap<String, Integer> allElements = new HashMap<>();
-        HashMap<String, HashMap<Integer, Integer>> matchedElements = new HashMap<>();
-        HashMap<String, HashMap<Integer, Integer>> skippedLeftElements = new HashMap<>();
-        HashMap<String, HashMap<Integer, Integer>> skippedRightElements = new HashMap<>();
-        List<Tuple<String, Tuple<Integer, Double>>> skippedElements = new ArrayList<>();
-        HashMap<String, Integer> curMatchedElements;
-        HashMap<String, Integer> curSkippedLeftElements;
-        HashMap<String, Integer> curSkippedRightElements;
-        List<Tuple<String, Double>> curSkippedElements;
-        HashMap<Integer, Integer> tmpMatchedElements;
-        HashMap<Integer, Integer> tmpSkippedLeftElements;
-        HashMap<Integer, Integer> tmpSkippedRightElements;
-
-        for (String file : files) {
-            try {
-                ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-                inputArtifacts.add(new FileArtifact(new File(wd + "/left/"
-                                + path + "/" + file)));
-                inputArtifacts.add(new FileArtifact(new File(wd + "/right/"
-                                + path + "/" + file)));
-
-                for (FileArtifact artifact : inputArtifacts) {
-                    if (!artifact.exists()) {
-                        continue;
-                    }
-                }
-
-                for (int lookAhead : lookaheads) {
-                    context = new MergeContext();
-                    context.setQuiet(true);
-                    context.setInputFiles(inputArtifacts);
-                    context.setMergeStrategy(new StructuredStrategy());
-                    context.setDiffOnly(true);
-                    context.setLookAhead(lookAhead);
-                    context.setKeepGoing(false);
-                    context.setRecursive(true);
-                    Main.merge(context);
-                    curMatchedElements = context.getMatchedElements();
-                    curSkippedLeftElements = context.getskippedLeftElements();
-                    curSkippedRightElements = context.getskippedRightElements();
-                    curSkippedElements = context.getSkippedElements();
-
-                    if (lookAhead == lookaheads[0]) {
-                        HashMap<String, Integer> elements = context.getElements();
-                        for (String key : elements.keySet()) {
-                            Integer value = allElements.get(key);
-                            value = value == null ? elements.get(key) : value + elements.get(key);
-                            allElements.put(key, value);
-                        }
-                    }
-
-                    for (Tuple<String, Double> t : curSkippedElements) {
-                        skippedElements.add(Tuple.of(t.x, Tuple.of(lookAhead, t.y)));
-                    }
-
-                    for (String elem : curMatchedElements.keySet()) {
-                        if (!matchedElements.containsKey(elem)) {
-                            HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
-                            lookAheadMap.put(lookAhead, curMatchedElements.get(elem));
-                            matchedElements.put(elem, lookAheadMap);
-                        } else {
-                            tmpMatchedElements = matchedElements.get(elem);
-                            int value =
-                                tmpMatchedElements.containsKey(lookAhead) ?
-                                tmpMatchedElements.get(lookAhead) : 0;
-                            matchedElements.get(elem).put(lookAhead, value +
-                                    curMatchedElements.get(elem));
-                        }
-                    }
-                    for (String elem : curSkippedLeftElements.keySet()) {
-                        if (!skippedLeftElements.containsKey(elem)) {
-                            HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
-                            lookAheadMap.put(lookAhead, curSkippedLeftElements.get(elem));
-                            skippedLeftElements.put(elem, lookAheadMap);
-                        } else {
-                            tmpSkippedLeftElements = skippedLeftElements.get(elem);
-                            int value =
-                                tmpSkippedLeftElements.containsKey(lookAhead) ?
-                                tmpSkippedLeftElements.get(lookAhead) : 0;
-                            skippedLeftElements.get(elem).put(lookAhead, value
-                                    + curSkippedLeftElements.get(elem));
-                        }
-                    }
-                    for (String elem : curSkippedRightElements.keySet()) {
-                        if (!skippedRightElements.containsKey(elem)) {
-                            HashMap<Integer, Integer> lookAheadMap = new HashMap<>();
-                            lookAheadMap.put(lookAhead, curSkippedRightElements.get(elem));
-                            skippedRightElements.put(elem, lookAheadMap);
-                        } else {
-                            tmpSkippedRightElements = skippedRightElements.get(elem);
-                            int value =
-                                tmpSkippedRightElements.containsKey(lookAhead)
-                                ? tmpSkippedRightElements.get(lookAhead) : 0;
-                            skippedRightElements.get(elem).put(lookAhead, value
-                                    + curSkippedRightElements.get(elem));
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println(e.toString());
-            }
-        }
-
-        // output
-        StringBuilder s = new StringBuilder();
-        s.append("Matched elements (absolute)\n\n");
-        s.append("LangElem;");
-        for (int lookAhead : lookaheads) {
-            if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-                s.append("n=full;");
-            } else {
-                s.append("n=" + lookAhead + ";");
-            }
-        }
-        s.append("\n");
-
-        ArrayList<String> keys = new ArrayList<>(matchedElements.keySet());
-        Collections.sort(keys);
-        for (String elem : keys) {
-            s.append(elem + ";");
-            tmpMatchedElements = matchedElements.get(elem);
-            for (int lookAhead : lookaheads) {
-                int value = tmpMatchedElements.containsKey(lookAhead) ?
-                    tmpMatchedElements.get(lookAhead) : 0;
-                s.append(value + ";");
-            }
-            s.append("\n");
-        }
-
-        s.append("\n\n");
-        s.append("Matched elements (relative)\n\n");
-        s.append("LangElem;");
-        for (int lookAhead : lookaheads) {
-            if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-                s.append("n=full;");
-            } else {
-                s.append("n=" + lookAhead + ";");
-            }
-        }
-        s.append("\n");
-
-        Collections.sort(keys);
-        for (String elem : keys) {
-            s.append(elem + ";");
-            tmpMatchedElements = matchedElements.get(elem);
-            for (int lookAhead : lookaheads) {
-                int value = tmpMatchedElements.containsKey(lookAhead) ?
-                    tmpMatchedElements.get(lookAhead) : 0;
-                s.append((double) Math.round(100 * (double) value / (double) allElements.get(elem)) / 100 + ";");
-            }
-            s.append("\n");
-        }
-
-        s.append("\n\n");
-        s.append("Skipped elements\n\n");
-        s.append("LangElem;");
-        for (int lookAhead : lookaheads) {
-            if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-                s.append("n=full;");
-            } else {
-                s.append("n=" + lookAhead + ";");
-            }
-        }
-        s.append("\n");
-        keys = new ArrayList<>(skippedLeftElements.keySet());
-        Collections.sort(keys);
-        for (String elem : keys) {
-            s.append(elem + ";");
-            tmpSkippedLeftElements = skippedLeftElements.get(elem);
-            tmpSkippedRightElements = skippedRightElements.get(elem);
-            for (int lookAhead : lookaheads) {
-                int value = tmpSkippedLeftElements.containsKey(lookAhead) ?
-                    tmpSkippedLeftElements.get(lookAhead) : 0;
-                if (tmpSkippedRightElements != null) {
-                    value = tmpSkippedRightElements.containsKey(lookAhead) ?
-                        value + tmpSkippedRightElements.get(lookAhead) : value;
-                }
-                s.append(value + ";");
-            }
-            s.append("\n");
-        }
-
-        s.append("\n\n");
-        s.append("Skipped elements (Detailed)\n\n");
-        s.append("LangElem;LookAhead;Relative Matches;\n");
-        for (Tuple<String, Tuple<Integer, Double>> t : skippedElements) {
-            String lookAhead = t.y.x == -1 ? "full" : "" + t.y.x;
-            s.append(t.x + ";" + lookAhead + ";" + t.y.y + ";\n");
-        }
-
-        System.out.println(s);
     }
 
     /**

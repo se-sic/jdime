@@ -125,7 +125,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     } else {
                         // can be safely deleted
-                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, triple, l.getName());
                         delOp.apply(context);
                     }
                 } else {
@@ -159,7 +159,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 }
                             } else {
                                 // add the left change
-                                AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                                AddOperation<T> addOp = new AddOperation<>(leftChild, target, triple, l.getName());
                                 leftChild.setMerged();
                                 addOp.apply(context);
                             }
@@ -181,7 +181,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
 
                         // add the left change
-                        AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                        AddOperation<T> addOp = new AddOperation<>(leftChild, target, triple, l.getName());
                         leftChild.setMerged();
                         addOp.apply(context);
                     }
@@ -224,7 +224,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     } else {
                         // can be safely deleted
-                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, triple, r.getName());
                         delOp.apply(context);
                     }
                 } else {
@@ -259,7 +259,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
                                 // add the right change
-                                AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                                AddOperation<T> addOp = new AddOperation<>(rightChild, target, triple, r.getName());
                                 rightChild.setMerged();
                                 addOp.apply(context);
                             }
@@ -281,7 +281,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
                         // add the right change
-                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, triple, r.getName());
                         rightChild.setMerged();
                         addOp.apply(context);
                     }
@@ -308,7 +308,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 if (leftChild.isChoice()) {
                     T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
                     leftChild.addVariant(r.getName(), matchedVariant);
-                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, triple, null);
                     leftChild.setMerged();
                     rightChild.setMerged();
                     addOp.apply(context);

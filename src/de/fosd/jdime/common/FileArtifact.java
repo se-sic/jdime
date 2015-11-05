@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
@@ -41,8 +43,12 @@ import javax.activation.MimetypesFileTypeMap;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.StatisticsInterface;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -440,7 +446,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final String getId() {
-        return getRevision() + "-" + getPath();
+        return getRevision() + ":" + getPath();
     }
 
     /**
@@ -480,16 +486,92 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final String getStatsKey(final MergeContext context) {
-        assert (context != null);
+    public KeyEnums.Type getType() {
+        return isDirectory() ? KeyEnums.Type.DIRECTORY : KeyEnums.Type.FILE;
+    }
 
-        // MergeStrategy<FileArtifact> strategy
-        // = (MergeStrategy<FileArtifact>) (isDirectory()
-        // ? new DirectoryStrategy() : context.getMergeStrategy());
-        // assert (strategy != null);
-        //
-        // return strategy.getStatsKey(this);
-        return isDirectory() ? "directories" : "files";
+    @Override
+    public KeyEnums.Level getLevel() {
+        return KeyEnums.Level.NONE;
+    }
+
+    @Override
+    public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        forAllJavaFiles(astNodeArtifact -> {
+            mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
+
+            // TODO do we need this with the way the new MergeScenarioStatistics work?
+//            if (mergeContext.isConsecutive()) {
+//                mergeContext.getStatistics().addRightStats(childStats);
+//            } else {
+//                mergeContext.getStatistics().addASTStats(childStats);
+//            }
+        });
+    }
+
+    @Override
+    public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        forAllJavaFiles(astNodeArtifact -> {
+            MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
+            Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
+            Map<Revision, Map<KeyEnums.Type, ElementStatistics>> tStats = delStats.getTypeStatistics();
+
+            for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : lStats.entrySet()) {
+                for (Map.Entry<KeyEnums.Level, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                    ElementStatistics eStats = sEntry.getValue();
+
+                    eStats.setNumDeleted(eStats.getNumAdded());
+                    eStats.setNumAdded(0);
+                }
+            }
+
+            for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : tStats.entrySet()) {
+                for (Map.Entry<KeyEnums.Type, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                    ElementStatistics eStats = sEntry.getValue();
+
+                    eStats.setNumDeleted(eStats.getNumAdded());
+                    eStats.setNumAdded(0);
+                }
+            }
+
+            mScenarioStatistics.add(delStats);
+
+            // TODO do we need this with the way the new MergeScenarioStatistics work?
+//            if (mergeContext.isConsecutive()) {
+//                mergeContext.getStatistics().addRightStats(childStats);
+//            } else {
+//                mergeContext.getStatistics().addASTStats(childStats);
+//            }
+        });
+    }
+
+    /**
+     * Uses {@link #getJavaFiles()} and applies the given <code>Consumer</code> to every resulting
+     * <code>FileArtifact</code> after it being parsed to an <code>ASTNodeArtifact</code>. If an
+     * <code>IOException</code> occurs getting the files the method will immediately return. If an
+     * <code>IOException</code> occurs parsing a file to an <code>ASTNodeArtifact</code> it will be skipped.
+     *
+     * @param cons
+     *         the <code>Consumer</code> to apply
+     */
+    private void forAllJavaFiles(Consumer<ASTNodeArtifact> cons) {
+
+        for (FileArtifact child : getJavaFiles()) {
+            ASTNodeArtifact childAST;
+
+            try {
+                childAST = new ASTNodeArtifact(child);
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING, e, () -> {
+                    String format = "Could not construct an ASTNodeArtifact from %s. No statistics will be collected for it.";
+                    return String.format(format, child);
+                });
+
+                continue;
+            }
+
+            cons.accept(childAST);
+        }
     }
 
     @Override

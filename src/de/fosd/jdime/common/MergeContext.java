@@ -26,49 +26,27 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
-import de.fosd.jdime.stats.Stats;
+import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 
 /**
  * @author Olaf Lessenich
- *
  */
 public class MergeContext implements Cloneable {
 
     /**
-     * Default value of benchmark runs.
+     * Do look at all nodes in the subtree even if the compared nodes are not
+     * equal.
      */
-    private static final int BENCHMARKRUNS = 10;
+    public static final int LOOKAHEAD_FULL = -1;
 
     /**
-     * Returns the median of a list of long values.
-     *
-     * @param values
-     *            list of values for which to compute the median
-     * @return median
+     * Stop looking for subtree matches if the two nodes compared are not equal.
      */
-    public static long median(List<Long> values) {
-        Collections.sort(values);
-
-        if (values.size() % 2 == 1) {
-            return values.get((values.size() + 1) / 2 - 1);
-        } else {
-            double lower = values.get(values.size() / 2 - 1);
-            double upper = values.get(values.size() / 2);
-
-            return Math.round((lower + upper) / 2.0);
-        }
-    }
-
-    /**
-     * Performs benchmarks with several runs per file to get average runtimes.
-     */
-
-    private boolean benchmark = false;
+    public static final int LOOKAHEAD_OFF = 0;
 
     /**
      * Whether we are in bug-fixing mode.
@@ -156,20 +134,8 @@ public class MergeContext implements Cloneable {
      */
     private boolean recursive = false;
 
-    /**
-     * Number of runs to perform for each file.
-     */
-    private int runs = BENCHMARKRUNS;
-
-    /**
-     * Save statistical data.
-     */
-    private boolean saveStats = false;
-
-    /**
-     * Statistical data are stored in a stats object.
-     */
-    private Stats stats = null;
+    private boolean collectStatistics = false;
+    private Statistics statistics = null;
 
     /**
      * StdOut of a merge operation.
@@ -191,29 +157,6 @@ public class MergeContext implements Cloneable {
      * The default ist to do no look-ahead matching.
      */
     private int lookAhead = MergeContext.LOOKAHEAD_OFF;
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    private HashMap<String, Integer> elements = new HashMap<>();
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    private HashMap<String, Integer> matchedElements = new HashMap<>();
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    private HashMap<String, Integer> skippedLeftElements = new HashMap<>();
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    private HashMap<String, Integer> skippedRightElements = new HashMap<>();
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    private List<Tuple<String, Double>> skippedElements = new ArrayList<>();
-
-    /**
-     * Do look at all nodes in the subtree even if the compared nodes are not
-     * equal.
-     */
-    public static final int LOOKAHEAD_FULL = -1;
-
-    /**
-     * Stop looking for subtree matches if the two nodes compared are not equal.
-     */
-    public static final int LOOKAHEAD_OFF = 0;
-
     private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
 
     /**
@@ -224,24 +167,32 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Adds statistical data to already collected data.
+     * Returns the median of a list of long values.
      *
-     * @param other
-     *            statistical data to add
+     * @param values
+     *         list of values for which to compute the median
+     * @return median
      */
-    public final void addStats(final Stats other) {
-        assert (stats != null);
-        assert (other != null);
-        stats.add(other);
+    public static long median(ArrayList<Long> values) {
+        Collections.sort(values);
+
+        if (values.size() % 2 == 1) {
+            return values.get((values.size() + 1) / 2 - 1);
+        } else {
+            double lower = values.get(values.size() / 2 - 1);
+            double upper = values.get(values.size() / 2);
+
+            return Math.round((lower + upper) / 2.0);
+        }
     }
 
     /**
      * Append a String to stdIN.
      *
      * @param s
-     *            String to append
+     *         String to append
      */
-    public final void append(final String s) {
+    public void append(String s) {
         if (stdIn != null) {
             stdIn.append(s);
         }
@@ -251,9 +202,9 @@ public class MergeContext implements Cloneable {
      * Append a String to stdERR.
      *
      * @param s
-     *            String to append
+     *         String to append
      */
-    public final void appendError(final String s) {
+    public void appendError(String s) {
         if (stdErr != null) {
             stdErr.append(s);
         }
@@ -263,9 +214,9 @@ public class MergeContext implements Cloneable {
      * Appends a line to the saved stderr buffer.
      *
      * @param line
-     *            to be appended
+     *         to be appended
      */
-    public final void appendErrorLine(final String line) {
+    public void appendErrorLine(String line) {
         if (stdErr != null) {
             stdErr.append(line);
             stdErr.append(System.getProperty("line.separator"));
@@ -276,50 +227,28 @@ public class MergeContext implements Cloneable {
      * Appends a line to the saved stdin buffer.
      *
      * @param line
-     *            to be appended
+     *         to be appended
      */
-    public final void appendLine(final String line) {
+    public void appendLine(String line) {
         if (stdIn != null) {
             stdIn.append(line);
             stdIn.append(System.lineSeparator());
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#clone()
-     */
-    @Override
-    public final Object clone() {
-        MergeContext clone = new MergeContext();
-        clone.forceOverwriting = forceOverwriting;
-        clone.mergeStrategy = mergeStrategy;
-        clone.inputFiles = inputFiles;
-        clone.outputFile = outputFile;
-        clone.quiet = quiet;
-        clone.recursive = recursive;
-        clone.saveStats = saveStats;
-        clone.keepGoing = keepGoing;
-        clone.diffOnly = diffOnly;
-        clone.lookAhead = lookAhead;
-        return clone;
-    }
-
-    /**
-     * Returns the number of benchmark runs.
-     *
-     * @return the number of benchmark runs
-     */
-    public final int getBenchmarkRuns() {
-        return runs;
-    }
-
     /**
      * @return the inputFiles
      */
-    public final ArtifactList<FileArtifact> getInputFiles() {
+    public ArtifactList<FileArtifact> getInputFiles() {
         return inputFiles;
+    }
+
+    /**
+     * @param inputFiles
+     *         the inputFiles to set
+     */
+    public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
+        this.inputFiles = inputFiles;
     }
 
     /**
@@ -327,264 +256,17 @@ public class MergeContext implements Cloneable {
      *
      * @return the merge strategy
      */
-    public final MergeStrategy<?> getMergeStrategy() {
+    public MergeStrategy<?> getMergeStrategy() {
         return mergeStrategy;
-    }
-
-    /**
-     * @return the outputFile
-     */
-    public final FileArtifact getOutputFile() {
-        return outputFile;
-    }
-
-    /**
-     * @return timestamp of program start
-     */
-    public final long getProgramStart() {
-        return programStart;
-    }
-
-    /**
-     * Retrieves the statistical data.
-     *
-     * @return statistical data
-     */
-    public final Stats getStats() {
-        return stats;
-    }
-
-    /**
-     * Returns the saved stderr buffer.
-     *
-     * @return stderr
-     */
-    public final String getStdErr() {
-        assert (stdErr != null);
-        return stdErr.toString();
-    }
-
-    /**
-     * Returns the saved stdin buffer.
-     *
-     * @return stdin
-     */
-    public final String getStdIn() {
-        assert (stdErr != null);
-        return stdIn.toString();
-    }
-
-    /**
-     * Returns true if stderr is not empty.
-     *
-     * @return true if stderr is not empty
-     */
-    public final boolean hasErrors() {
-        return stdErr != null && stdErr.toString().length() != 0;
-    }
-
-    /**
-     * Returns true if stdin is not empty.
-     *
-     * @return true if stdin is not empty
-     */
-    public final boolean hasOutput() {
-        return stdIn != null && stdIn.toString().length() != 0;
-    }
-
-    /**
-     * @return the saveStats
-     */
-    public final boolean hasStats() {
-        return saveStats;
-    }
-
-    /**
-     * @return the benchmark
-     */
-    public final boolean isBenchmark() {
-        return benchmark;
-    }
-
-    /**
-     * Returns whether bugfixing mode is enabled.
-     *
-     * @return true if bugfixing mode is enabled
-     */
-    public final boolean isBugfixing() {
-        return bugfixing;
-    }
-
-    /**
-     * @return the diffOnly
-     */
-    public final boolean isDiffOnly() {
-        return diffOnly;
-    }
-
-    /**
-     * @return the dumpFiles
-     */
-    public final boolean isDumpFile() {
-        return dumpFiles;
-    }
-
-    /**
-     * @return the dumpTree
-     */
-    public final boolean isDumpTree() {
-        return dumpTree;
-    }
-
-    /**
-     * Returns true if overwriting of files in the output directory is forced.
-     *
-     * @return whether overwriting of output files is forced
-     */
-    public final boolean isForceOverwriting() {
-        return forceOverwriting;
-    }
-
-    /**
-     * @return the guiDump
-     */
-    public final boolean isGuiDump() {
-        return guiDump;
-    }
-
-    /**
-     * @return the keepGoing
-     */
-    public final boolean isKeepGoing() {
-        return keepGoing;
-    }
-
-    /**
-     * Returns true if the output is quiet.
-     *
-     * @return if output is quiet
-     */
-    public final boolean isQuiet() {
-        return quiet;
-    }
-
-    /**
-     * Returns true if the merge is only simulated but not written to an output file.
-     *
-     * @return true, if the merge is only simulated but not written to an output file.
-     */
-    public final boolean isPretend() {
-        return pretend;
-    }
-
-    /**
-     * Returns whether directories are merged recursively.
-     *
-     * @return true, if directories are merged recursively
-     */
-    public final boolean isRecursive() {
-        return recursive;
-    }
-
-    /**
-     * Resets the input streams.
-     */
-    public final void resetStreams() {
-        stdIn = new StringWriter();
-        stdErr = new StringWriter();
-    }
-
-    /**
-     * @param benchmark
-     *            the benchmark to set
-     */
-    public final void setBenchmark(final boolean benchmark) {
-        this.benchmark = benchmark;
-    }
-
-    /**
-     * Sets the number of benchmark runs.
-     *
-     * @param runs
-     *            number of benchmark runs
-     */
-    public final void setBenchmarkRuns(final int runs) {
-        this.runs = runs;
-    }
-
-    /**
-     * Enables bugfixing mode.
-     */
-    public final void setBugfixing() {
-        bugfixing = true;
-    }
-
-    /**
-     * @param diffOnly
-     *            whether to run only diff
-     */
-    public final void setDiffOnly(final boolean diffOnly) {
-        this.diffOnly = diffOnly;
-    }
-
-    /**
-     * @param dumpFiles
-     *            the dumpFiles to set
-     */
-    public final void setDumpFiles(boolean dumpFiles) {
-        this.dumpFiles = dumpFiles;
-    }
-
-    /**
-     * @param dumpTree
-     *            the dumpTree to set
-     */
-    public final void setDumpTree(final boolean dumpTree) {
-        this.dumpTree = dumpTree;
-    }
-
-    /**
-     * Sets whether overwriting of files in the output directory is forced.
-     *
-     * @param forceOverwriting
-     *            overwrite files in the output directory
-     */
-    public final void setForceOverwriting(final boolean forceOverwriting) {
-        this.forceOverwriting = forceOverwriting;
-    }
-
-    /**
-     * @param guiDump
-     *            the guiDump to set
-     */
-    public final void setGuiDump(final boolean guiDump) {
-        this.guiDump = guiDump;
-    }
-
-    /**
-     * @param inputFiles
-     *            the inputFiles to set
-     */
-    public final void
-            setInputFiles(final ArtifactList<FileArtifact> inputFiles) {
-        this.inputFiles = inputFiles;
-    }
-
-    /**
-     * @param keepGoing
-     *            the keepGoing to set
-     */
-    public final void setKeepGoing(final boolean keepGoing) {
-        this.keepGoing = keepGoing;
     }
 
     /**
      * Sets the merge strategy.
      *
      * @param mergeStrategy
-     *            merge strategy
+     *         merge strategy
      */
-    public final void setMergeStrategy(final MergeStrategy<?> mergeStrategy) {
+    public void setMergeStrategy(MergeStrategy<?> mergeStrategy) {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {
@@ -593,65 +275,284 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @param outputFile
-     *            the outputFile to set
+     * @return the outputFile
      */
-    public final void setOutputFile(final FileArtifact outputFile) {
+    public FileArtifact getOutputFile() {
+        return outputFile;
+    }
+
+    /**
+     * @param outputFile
+     *         the outputFile to set
+     */
+    public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
+    }
+
+    /**
+     * @return timestamp of program start
+     */
+    public long getProgramStart() {
+        return programStart;
+    }
+
+    /**
+     * Returns the <code>Statistics</code> object used to collect statistical data. This method <u>may</u> return
+     * <code>null</code> if {@link #hasStatistics()} returns <code>false</code>.
+     *
+     * @return the <code>Statistics</code> object currently in use
+     */
+    public Statistics getStatistics() {
+        return statistics;
+    }
+
+    /**
+     * Returns the saved standard error buffer as a <code>String</code>.
+     *
+     * @return the stdErr buffer as a <code>String</code>
+     */
+    public String getStdErr() {
+        return stdErr.toString();
+    }
+
+    /**
+     * Returns the saved standard input buffer as a <code>String</code>.
+     *
+     * @return the stdIn buffer as a <code>String</code>
+     */
+    public String getStdIn() {
+        return stdIn.toString();
+    }
+
+    /**
+     * Returns true if stdErr is not empty.
+     *
+     * @return true if stdErr is not empty
+     */
+    public boolean hasErrors() {
+        return stdErr != null && stdErr.getBuffer().length() != 0;
+    }
+
+    /**
+     * Returns true if stdIn is not empty.
+     *
+     * @return true if stdIn is not empty
+     */
+    public boolean hasOutput() {
+        return stdIn != null && stdIn.getBuffer().length() != 0;
+    }
+
+    /**
+     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
+     * {@link #getStatistics()}.
+     *
+     * @return whether statistical data should be collected
+     */
+    public boolean hasStatistics() {
+        return collectStatistics;
+    }
+
+    /**
+     * Returns whether bugfixing mode is enabled.
+     *
+     * @return true if bugfixing mode is enabled
+     */
+    public boolean isBugfixing() {
+        return bugfixing;
+    }
+
+    /**
+     * @return the diffOnly
+     */
+    public boolean isDiffOnly() {
+        return diffOnly;
+    }
+
+    /**
+     * @param diffOnly
+     *         whether to run only diff
+     */
+    public void setDiffOnly(boolean diffOnly) {
+        this.diffOnly = diffOnly;
+    }
+
+    /**
+     * @return the dumpFiles
+     */
+    public boolean isDumpFile() {
+        return dumpFiles;
+    }
+
+    /**
+     * @return the dumpTree
+     */
+    public boolean isDumpTree() {
+        return dumpTree;
+    }
+
+    /**
+     * @param dumpTree
+     *         the dumpTree to set
+     */
+    public void setDumpTree(boolean dumpTree) {
+        this.dumpTree = dumpTree;
+    }
+
+    /**
+     * Returns true if overwriting of files in the output directory is forced.
+     *
+     * @return whether overwriting of output files is forced
+     */
+    public boolean isForceOverwriting() {
+        return forceOverwriting;
+    }
+
+    /**
+     * Sets whether overwriting of files in the output directory is forced.
+     *
+     * @param forceOverwriting
+     *         overwrite files in the output directory
+     */
+    public void setForceOverwriting(boolean forceOverwriting) {
+        this.forceOverwriting = forceOverwriting;
+    }
+
+    /**
+     * @return the guiDump
+     */
+    public boolean isGuiDump() {
+        return guiDump;
+    }
+
+    /**
+     * @param guiDump
+     *         the guiDump to set
+     */
+    public void setGuiDump(boolean guiDump) {
+        this.guiDump = guiDump;
+    }
+
+    /**
+     * @return the keepGoing
+     */
+    public boolean isKeepGoing() {
+        return keepGoing;
+    }
+
+    /**
+     * @param keepGoing
+     *         the keepGoing to set
+     */
+    public void setKeepGoing(boolean keepGoing) {
+        this.keepGoing = keepGoing;
+    }
+
+    /**
+     * Returns true if the output is quiet.
+     *
+     * @return if output is quiet
+     */
+    public boolean isQuiet() {
+        return quiet;
     }
 
     /**
      * Sets whether the output is quiet or not.
      *
      * @param quiet
-     *            do not print merge results to stdout
+     *         do not print merge results to stdout
      */
-    public final void setQuiet(final boolean quiet) {
+    public void setQuiet(boolean quiet) {
         this.quiet = quiet;
+    }
+
+    /**
+     * Returns true if the merge is only simulated but not written to an output file.
+     *
+     * @return true, if the merge is only simulated but not written to an output file.
+     */
+    public boolean isPretend() {
+        return pretend;
     }
 
     /**
      * Sets whether the merge is only simulated and not written to an output file.
      *
-     * @param pretend do not write the merge result to an output file
+     * @param pretend
+     *         do not write the merge result to an output file
      */
-    public final void setPretend(final boolean pretend) {
+    public void setPretend(boolean pretend) {
         this.pretend = pretend;
+    }
+
+    /**
+     * Returns whether directories are merged recursively.
+     *
+     * @return true, if directories are merged recursively
+     */
+    public boolean isRecursive() {
+        return recursive;
     }
 
     /**
      * Set whether directories are merged recursively.
      *
      * @param recursive
-     *            directories are merged recursively
+     *         directories are merged recursively
      */
-    public final void setRecursive(final boolean recursive) {
+    public void setRecursive(boolean recursive) {
         this.recursive = recursive;
     }
 
     /**
-     * @param saveStats
-     *            the saveStats to set
+     * Resets the input streams.
      */
-    public final void setSaveStats(final boolean saveStats) {
-        this.saveStats = saveStats;
+    public void resetStreams() {
+        stdIn = new StringWriter();
+        stdErr = new StringWriter();
+    }
 
-        if (saveStats) {
-            stats = mergeStrategy.createStats();
+    /**
+     * Enables bugfixing mode.
+     */
+    public void setBugfixing() {
+        bugfixing = true;
+    }
+
+    /**
+     * @param dumpFiles
+     *         the dumpFiles to set
+     */
+    public void setDumpFiles(boolean dumpFiles) {
+        this.dumpFiles = dumpFiles;
+    }
+
+    /**
+     * Sets whether statistical data should be collected during the next run using this <code>MergeContext</code>
+     *
+     * @param collectStatistics
+     *         whether to collect statistical data
+     */
+    public void collectStatistics(boolean collectStatistics) {
+        this.collectStatistics = collectStatistics;
+
+        if (collectStatistics && statistics == null) {
+            statistics = new Statistics();
         }
     }
 
     /**
      * @return whether consecutive diffing
      */
-    public final boolean isConsecutive() {
+    public boolean isConsecutive() {
         return consecutive;
     }
 
     /**
-     * @param consecutive consecutive diffing
+     * @param consecutive
+     *         consecutive diffing
      */
-    public final void setConsecutive(final boolean consecutive) {
+    public void setConsecutive(boolean consecutive) {
         this.consecutive = consecutive;
     }
 
@@ -685,7 +586,13 @@ public class MergeContext implements Cloneable {
      * @return number of levels to look down for subtree matches if the
      * currently compared nodes do not match
      */
-    public int getLookAhead() { return lookAhead; }
+    public int getLookAhead() {
+        return lookAhead;
+    }
+
+    public boolean isLookAhead() {
+        return lookAhead != MergeContext.LOOKAHEAD_OFF;
+    }
 
     /**
      * Sets how many levels to keep searching for matches in the subtree if
@@ -696,82 +603,12 @@ public class MergeContext implements Cloneable {
      * LOOKAHEAD_FULL, the matcher will look at the entire subtree. The default
      * ist to do no look-ahead matching.
      *
-     * @param lookAhead number of levels to look down for subtree matches if the
-     * currently compared nodes do not match
+     * @param lookAhead
+     *         number of levels to look down for subtree matches if the
+     *         currently compared nodes do not match
      */
     public void setLookAhead(int lookAhead) {
         this.lookAhead = lookAhead;
-    }
-
-    public boolean isLookAhead() {
-        return lookAhead != MergeContext.LOOKAHEAD_OFF;
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public HashMap<String, Integer> getElements() {
-        return elements;
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public void addElements(ASTNodeArtifact element) {
-        HashMap<String, Integer> elementStats = element.getLanguageElementStatistics();
-
-        for (String key : elementStats.keySet()) {
-            Integer value = elements.get(key);
-            value = value == null ? elementStats.get(key) : value + elementStats.get(key);
-            elements.put(key, value);
-        }
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public HashMap<String, Integer> getMatchedElements() {
-        return matchedElements;
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public void matchedElement(Artifact<?> element) {
-        String key = element.toString().split(" ")[0];
-        key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
-        Integer value = matchedElements.get(key);
-        value = value == null ? new Integer(1) : new Integer(value + 1);
-        matchedElements.put(key, value);
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public HashMap<String, Integer> getskippedLeftElements() {
-        return skippedLeftElements;
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public void skippedLeftElement(Artifact<?> element, int score) {
-        String key = element.toString().split(" ")[0];
-        key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
-        Integer value = skippedLeftElements.get(key);
-        value = value == null ? new Integer(1) : new Integer(value + 1);
-        skippedLeftElements.put(key, value);
-
-        // subtreeSize should never be zero if this is a skipped element.
-        skippedElements.add(Tuple.of(key, (double) score / (double) element.getSubtreeSize()));
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public HashMap<String, Integer> getskippedRightElements() {
-        return skippedRightElements;
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public void skippedRightElement(Artifact<?> element, int score) {
-        String key = element.toString().split(" ")[0];
-        key = key.startsWith("AST.") ? key.replaceFirst("AST.", "") : key;
-        Integer value = skippedRightElements.get(key);
-        value = value == null ? new Integer(1) : new Integer(value + 1);
-        skippedRightElements.put(key, value);
-        skippedElements.add(Tuple.of(key, (double) score/(double) element.getSubtreeSize()));
-    }
-
-    /** TODO: This is only for debugging and messing around with the look-ahead feature. */
-    public List<Tuple<String, Double>> getSkippedElements() {
-        return skippedElements;
     }
 
     /**
@@ -786,7 +623,8 @@ public class MergeContext implements Cloneable {
     /**
      * Sets whether conditional merging is used outside of methods.
      *
-     * @param conditionalOutsideMethods use conditional merging outside of methods
+     * @param conditionalOutsideMethods
+     *         use conditional merging outside of methods
      */
     public void setConditionalOutsideMethods(boolean conditionalOutsideMethods) {
         this.conditionalOutsideMethods = conditionalOutsideMethods;
@@ -804,9 +642,26 @@ public class MergeContext implements Cloneable {
     /**
      * Add a <code>MergeScenario</code> to the list of crashed scenarios.
      *
-     * @param scenario <code>MergeScenario</code> which crashed
+     * @param scenario
+     *         <code>MergeScenario</code> which crashed
      */
     public void addCrash(MergeScenario scenario, Throwable t) {
         crashes.put(scenario, t);
+    }
+
+    @Override
+    public Object clone() {
+        MergeContext clone = new MergeContext();
+        clone.forceOverwriting = forceOverwriting;
+        clone.mergeStrategy = mergeStrategy;
+        clone.inputFiles = inputFiles;
+        clone.outputFile = outputFile;
+        clone.quiet = quiet;
+        clone.recursive = recursive;
+        clone.collectStatistics = collectStatistics;
+        clone.keepGoing = keepGoing;
+        clone.diffOnly = diffOnly;
+        clone.lookAhead = lookAhead;
+        return clone;
     }
 }

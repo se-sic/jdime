@@ -24,14 +24,12 @@ package de.fosd.jdime.common.operations;
 
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation adds <code>Artifact</code>s.
@@ -56,18 +54,25 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      */
     private T target;
 
+    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
-     * Class constructor.
-     * @param artifact that is added by the operation
-     * @param target output artifact
-     * @param condition presence condition
+     * Constructs a new <code>AddOperation</code> adding the given <code>artifact</code> to <code>target</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to be added
+     * @param target
+     *         the <code>Artifact</code> to add to
+     * @param mergeScenario
+     *         the current <code>MergeScenario</code>
+     * @param condition
+     *         the presence condition for <code>artifact</code> or <code>null</code>
      */
-    public AddOperation(final T artifact, final T target, String condition) {
-        super();
+    public AddOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
         this.artifact = artifact;
         this.target = target;
+        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
@@ -99,34 +104,18 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
             }
         }
 
-        if (context.hasStats()) {
-            Stats stats = context.getStats();
-            stats.incrementOperation(this);
-            StatsElement element = stats.getElement(artifact
-                    .getStatsKey(context));
-            element.incrementAdded();
+        if (context.hasStatistics()) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            if (artifact instanceof FileArtifact) {
-
-                // analyze java files to get statistics
-                for (FileArtifact child : ((FileArtifact) artifact).getJavaFiles()) {
-                    ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-                    ASTStats childStats = childAST.getStats(null, LangElem.TOPLEVELNODE, false);
-
-                    LOG.fine(childStats::toString);
-
-                    if (context.isConsecutive()) {
-                        context.getStats().addRightStats(childStats);
-                    } else {
-                        context.getStats().addASTStats(childStats);
-                    }
-                }
-            }
+            element.incrementNumAdded();
+            artifact.addOpStatistics(mScenarioStatistics, context);
         }
     }
 
     @Override
-    public final String getName() {
+    public String getName() {
         return "ADD";
     }
 
@@ -134,17 +123,12 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      * Returns the target <code>Artifact</code>
      * @return the target
      */
-    public final T getTarget() {
+    public T getTarget() {
         return target;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
-    public final String toString() {
+    public String toString() {
         return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
     }
 }
