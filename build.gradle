@@ -26,6 +26,7 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
+    id 'idea'
     id "com.github.hierynomus.license" version "0.12.1"
 }
 
@@ -74,6 +75,13 @@ license {
     include "res/**"
     include "src/**"
     include "test/**"
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
 }
 
 def configFile = file('JDime.properties')

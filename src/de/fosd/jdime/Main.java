@@ -536,7 +536,7 @@ public final class Main {
      * @param logLevel
      *             one of the valid log levels according to {@link Level#parse(String)}
      */
-    private static void setLogLevel(String logLevel) {
+    static void setLogLevel(String logLevel) {
         Level level;
 
         try {
