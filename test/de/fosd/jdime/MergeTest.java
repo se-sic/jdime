@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,12 +19,9 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-
 package de.fosd.jdime;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -32,15 +29,16 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Olaf Lessenich

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,11 +19,9 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.matcher.unordered;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
