@@ -26,6 +26,7 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
+    id "com.github.hierynomus.license" version "0.12.1"
 }
 
 sourceSets {
@@ -63,6 +64,11 @@ dependencies {
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
     testCompile 'junit:junit:4.12'
+}
+
+license {
+    header rootProject.file('LICENSE_HEADER')
+    strictCheck true
 }
 
 def configFile = file('JDime.properties')
