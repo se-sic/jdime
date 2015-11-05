@@ -26,6 +26,7 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
+    id 'idea'
 }
 
 sourceSets {
@@ -63,6 +64,13 @@ dependencies {
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
     testCompile 'junit:junit:4.12'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
 }
 
 def configFile = file('JDime.properties')
