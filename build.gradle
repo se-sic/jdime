@@ -68,7 +68,12 @@ dependencies {
 
 license {
     header rootProject.file('LICENSE_HEADER')
+    mapping("fxml", "XML_STYLE")
     strictCheck true
+
+    include "res/**"
+    include "src/**"
+    include "test/**"
 }
 
 def configFile = file('JDime.properties')
