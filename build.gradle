@@ -75,6 +75,7 @@ license {
     include "res/**"
     include "src/**"
     include "test/**"
+    exclude "src/de/fosd/jdime/matcher/unordered/HungarianAlgorithm.java"
 }
 
 idea {
