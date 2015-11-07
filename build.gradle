@@ -152,16 +152,20 @@ task natives {
     outputs.files(glpkFile, glpkJavaFile)
 }
 
+def libraryPathOpt = '-Djava.library.path=.'
+def loggingOpt = "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"
+def defaultOpts = ["-Xmx2048m", "-ea"]
+
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    defaultJvmOpts = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = defaultOpts + libraryPathOpt + loggingOpt
 }
 
 task guiScripts(type: CreateStartScripts) {
     applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
-    defaultJvmOpts = ["-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = [loggingOpt]
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
 }
@@ -206,7 +210,10 @@ run {
 }
 
 test {
-    jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
+    jvmArgs loggingOpt, libraryPathOpt
+    maxHeapSize = '2048m'
+    enableAssertions = true
+    workingDir new File(installDist.destinationDir, 'bin')
 }
 
 test.dependsOn installDist
