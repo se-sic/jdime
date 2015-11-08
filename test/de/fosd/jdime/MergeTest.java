@@ -27,10 +27,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
@@ -42,6 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -53,7 +53,6 @@ public class MergeTest {
 
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
-    private static File testFilesDir;
     private static File leftDir;
     private static File baseDir;
     private static File rightDir;
@@ -62,16 +61,13 @@ public class MergeTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        testFilesDir = new File("testfiles");
 
-        assertTrue("The test files directory could not be found.", testFilesDir.exists() && testFilesDir.isDirectory());
-
-        leftDir = new File(testFilesDir, "left");
-        baseDir = new File(testFilesDir, "base");
-        rightDir = new File(testFilesDir, "right");
+       leftDir = file("/left");
+       baseDir = file("/base");
+       rightDir =file("/right");
 
         Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " couldn't be found or isn't a directory.", f.exists() && f.isDirectory());
+            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
         });
 
         Main.setLogLevel("WARNING");
@@ -113,7 +109,7 @@ public class MergeTest {
                 Main.merge(context);
 
                 // check
-                String expected = FileUtils.readFileToString(FileUtils.getFile(testFilesDir, strategy, filepath));
+                String expected = normalize(FileUtils.readFileToString(file(strategy, filepath)));
                 String output = normalize(context.getOutputFile().getContent());
 
                 System.out.println("----------Expected:-----------");
@@ -132,6 +128,39 @@ public class MergeTest {
     }
 
     /**
+     * Returns a file using the {@link Class#getResource(String)} method of the class <code>MergeTest</code> and
+     * the given path.
+     *
+     * @param path
+     *         the file path
+     * @return the resulting <code>File</code>
+     * @throws Exception
+     *         if the file does not exist or there is an exception constructing it
+     */
+    private static File file(String path) throws Exception {
+        URL res = MergeTest.class.getResource(path);
+
+        assertNotNull("The file " + path + " was not found.", res);
+        return new File(res.toURI());
+    }
+
+    /**
+     * Constructs an absolute (in the classpath) path from the given names an passes it to {@link #file(String)}.
+     *
+     * @param firstName
+     *         the first element of the path
+     * @param names
+     *         the other elements of the path
+     * @return the resulting <code>File</code>
+     * @throws Exception
+     *         if the file does not exist or there is an exception constructing it
+     */
+    private static File file(String firstName, String... names) throws Exception {
+        String path = String.format("/%s/%s", firstName, String.join("/", names));
+        return file(path);
+    }
+
+    /**
      * Replaces the system file separator in every line starting with a conflict marker by the expected '/' separator.
      *
      * @param content
@@ -139,13 +168,18 @@ public class MergeTest {
      * @return the normalized <code>String</code>
      */
     private static String normalize(String content) {
+        String conflictStart = "<<<<<<<";
+        String conflictEnd = ">>>>>>>";
         String lineSeparator = System.lineSeparator();
         StringBuilder b = new StringBuilder(content.length());
 
         try (BufferedReader r = new BufferedReader(new StringReader(content))) {
             r.lines().forEachOrdered(l -> {
-                if (l.startsWith("<<<<<<<") || l.startsWith(">>>>>>>")) {
-                    l = l.replaceAll(Pattern.quote(File.separator), Matcher.quoteReplacement("/"));
+
+                if (l.startsWith(conflictStart)) {
+                    l = conflictStart;
+                } else if (l.startsWith(conflictEnd)) {
+                    l = conflictEnd;
                 }
 
                 b.append(l).append(lineSeparator);
