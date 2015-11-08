@@ -202,11 +202,7 @@ distributions {
 }
 
 run {
-    main = 'de.fosd.jdime.Main'
-
-    if (System.getProperty("exec.args") != null) {
-        args System.getProperty("exec.args").split()
-    }
+    main = 'de.fosd.jdime.gui.GUI'
 }
 
 test {
