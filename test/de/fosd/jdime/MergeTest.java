@@ -161,10 +161,10 @@ public class MergeTest {
     }
 
     /**
-     * Replaces the system file separator in every line starting with a conflict marker by the expected '/' separator.
+     * Removes the file paths behind all conflict markers.
      *
      * @param content
-     *         the content in which to replace file separators
+     *         the content to normalize
      * @return the normalized <code>String</code>
      */
     private static String normalize(String content) {
