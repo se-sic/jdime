@@ -27,7 +27,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
 
@@ -41,15 +40,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * @author Olaf Lessenich
- *
+ * Tests the merge functionality of JDime as a black-box.
  */
-public class MergeTest {
+public class MergeTest extends JDimeTest {
 
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
@@ -80,18 +77,27 @@ public class MergeTest {
         context.setPretend(false);
     }
 
-    private void runMerge(String filepath, boolean threeway) {
+    /**
+     * Merges files under '/left/filePath', '/right/filePath' and '/base/filePath' (if <code>threeWay</code> is
+     * <code>true</code>). Merges will be performed using the strategies in {@link #STRATEGIES} and the output will
+     * be compared with the file in '/strategy/filePath'.
+     *
+     * @param filePath
+     *         the path to the files to be merged
+     * @param threeWay
+     *         whether to perform a tree way merge
+     */
+    private void runMerge(String filePath, boolean threeWay) {
         try {
-            // initialize input files
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-            inputArtifacts.add(new FileArtifact(new File(leftDir, filepath)));
+            inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
 
-            if (threeway) {
-                inputArtifacts.add(new FileArtifact(new File(baseDir, filepath)));
+            if (threeWay) {
+                inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
             }
 
-            inputArtifacts.add(new FileArtifact(new File(rightDir, filepath)));
+            inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
 
@@ -105,11 +111,11 @@ public class MergeTest {
                 context.setOutputFile(new FileArtifact(out));
 
                 // run
-                System.out.printf("Running %s strategy on %s%n", strategy, filepath);
+                System.out.printf("Running %s strategy on %s%n", strategy, filePath);
                 Main.merge(context);
 
                 // check
-                String expected = normalize(FileUtils.readFileToString(file(strategy, filepath)));
+                String expected = normalize(FileUtils.readFileToString(file(strategy, filePath)));
                 String output = normalize(context.getOutputFile().getContent());
 
                 System.out.println("----------Expected:-----------");
@@ -125,39 +131,6 @@ public class MergeTest {
         } catch (Exception e) {
             fail(e.toString());
         }
-    }
-
-    /**
-     * Returns a file using the {@link Class#getResource(String)} method of the class <code>MergeTest</code> and
-     * the given path.
-     *
-     * @param path
-     *         the file path
-     * @return the resulting <code>File</code>
-     * @throws Exception
-     *         if the file does not exist or there is an exception constructing it
-     */
-    private static File file(String path) throws Exception {
-        URL res = MergeTest.class.getResource(path);
-
-        assertNotNull("The file " + path + " was not found.", res);
-        return new File(res.toURI());
-    }
-
-    /**
-     * Constructs an absolute (in the classpath) path from the given names an passes it to {@link #file(String)}.
-     *
-     * @param firstName
-     *         the first element of the path
-     * @param names
-     *         the other elements of the path
-     * @return the resulting <code>File</code>
-     * @throws Exception
-     *         if the file does not exist or there is an exception constructing it
-     */
-    private static File file(String firstName, String... names) throws Exception {
-        String path = String.format("/%s/%s", firstName, String.join("/", names));
-        return file(path);
     }
 
     /**
