@@ -67,7 +67,7 @@ public class MergeTest extends JDimeTest {
             assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
         });
 
-        Main.setLogLevel("WARNING");
+        JDimeConfig.setLogLevel("WARNING");
     }
 
     @Before
