@@ -59,7 +59,7 @@ public class History {
             }
 
             @Override
-            public boolean canConvert(Class type) {
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
                 return type.equals(History.class);
             }
         });
@@ -79,7 +79,7 @@ public class History {
             }
 
             @Override
-            public boolean canConvert(Class type) {
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
                 return ObservableList.class.isAssignableFrom(type);
             }
         });

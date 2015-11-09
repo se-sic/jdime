@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -157,7 +158,7 @@ public class MergeContext implements Cloneable {
      * The default ist to do no look-ahead matching.
      */
     private int lookAhead = MergeContext.LOOKAHEAD_OFF;
-    private HashMap<MergeScenario, Throwable> crashes = new HashMap<>();
+    private Map<MergeScenario<?>, Throwable> crashes = new HashMap<>();
 
     /**
      * Class constructor.
@@ -566,7 +567,7 @@ public class MergeContext implements Cloneable {
     /**
      * Whether merge inserts choice nodes instead of direct merging of artifact.
      */
-    public boolean isConditionalMerge(Artifact artifact) {
+    public boolean isConditionalMerge(Artifact<?> artifact) {
         return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
     }
 
@@ -635,7 +636,7 @@ public class MergeContext implements Cloneable {
      *
      * @return list of merge scenarios that crashed
      */
-    public HashMap<MergeScenario, Throwable> getCrashes() {
+    public Map<MergeScenario<?>, Throwable> getCrashes() {
         return crashes;
     }
 
@@ -645,7 +646,7 @@ public class MergeContext implements Cloneable {
      * @param scenario
      *         <code>MergeScenario</code> which crashed
      */
-    public void addCrash(MergeScenario scenario, Throwable t) {
+    public void addCrash(MergeScenario<?> scenario, Throwable t) {
         crashes.put(scenario, t);
     }
 
