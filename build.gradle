@@ -214,11 +214,6 @@ test {
 
 test.dependsOn installDist
 
-allprojects {
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile) {
-            // options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-            options.compilerArgs << "-Xlint:deprecation"
-        }
-    }
+compileJava {
+    options.compilerArgs << "-Xlint:all"
 }
