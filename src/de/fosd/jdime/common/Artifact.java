@@ -444,7 +444,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return the maximum depth
      */
     public int getMaxDepth() {
-        return 1 + children.parallelStream().map(Artifact::getMaxDepth).max(Integer::compare).orElse(0);
+        return 1 + children.parallelStream().map(T::getMaxDepth).max(Integer::compare).orElse(0);
     }
 
     /**
