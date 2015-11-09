@@ -30,11 +30,9 @@ import de.fosd.jdime.common.MergeContext;
 /**
  * This class represents an operation that is applied to <code>Artifact</code>s.
  *
- * @author Olaf Lessenich
- *
  * @param <T>
- *            type of artifact
- *
+ *         type of artifact
+ * @author Olaf Lessenich
  */
 public abstract class Operation<T extends Artifact<T>> {
 
@@ -75,8 +73,7 @@ public abstract class Operation<T extends Artifact<T>> {
      * @throws InterruptedException
      *             If a thread is interrupted
      */
-    public abstract void apply(final MergeContext context) throws IOException,
-            InterruptedException;
+    public abstract void apply(MergeContext context) throws IOException, InterruptedException;
 
     /**
      * Returns the name of the operation.
@@ -85,11 +82,6 @@ public abstract class Operation<T extends Artifact<T>> {
      */
     public abstract String getName();
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public abstract String toString();
 
@@ -98,7 +90,7 @@ public abstract class Operation<T extends Artifact<T>> {
      *
      * @return number
      */
-    public final long getNumber() {
+    public long getNumber() {
         return number;
     }
 
@@ -107,7 +99,7 @@ public abstract class Operation<T extends Artifact<T>> {
      *
      * @return id
      */
-    public final String getId() {
+    public String getId() {
         return "OP" + number;
     }
 }

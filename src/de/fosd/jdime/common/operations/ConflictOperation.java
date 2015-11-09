@@ -73,13 +73,6 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * de.fosd.jdime.common.operations.Operation#apply(de.fosd.jdime.common.
-     * MergeContext)
-     */
     @Override
     public final void apply(final MergeContext context) throws IOException,
             InterruptedException {
@@ -110,21 +103,11 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#getName()
-     */
     @Override
     public final String getName() {
         return "CONFLICT";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see de.fosd.jdime.common.operations.Operation#toString()
-     */
     @Override
     public final String toString() {
         return getId() + ": " + getName() + " {" + left + "} <~~> {" + right

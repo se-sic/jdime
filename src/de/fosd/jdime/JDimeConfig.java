@@ -2,6 +2,8 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,6 +66,71 @@ public final class JDimeConfig {
      * Whether to use the {@link MCESubtreeMatcher} when diffing. Must be either 'true' or 'false'.
      */
     public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
+
+    /**
+     * Whether to append a number to the file name to ensure that no file of the same name is overwritten when
+     * writing the statistics. Must be either 'true' or 'false'. Defaults to true.
+     */
+    public static final String STATISTICS_OUTPUT_USE_UNIQUE_FILES = "STATISTICS_OUTPUT_USE_UNIQUE_FILES";
+
+    /**
+     * Using this value for {@link #STATISTICS_HR_OUTPUT} or {@link #STATISTICS_XML_OUTPUT} disables the output.
+     */
+    public static final String STATISTICS_OUTPUT_OFF = "off";
+
+    /**
+     * Using this value for {@link #STATISTICS_HR_OUTPUT} or {@link #STATISTICS_XML_OUTPUT} sends the output to standard
+     * out.
+     */
+    public static final String STATISTICS_OUTPUT_STDOUT = "stdout";
+
+    /**
+     * Where to send the human readable statistics output if '-stats' is given on the command line. If the value denotes
+     * a file this file will be written to, if it denotes a directory a file will be created there using the pattern
+     * specified in {@link #STATISTICS_HR_NAME}. Paths are relative to the current working directory.
+     * Defaults to {@link #STATISTICS_OUTPUT_STDOUT}.
+     *
+     * @see #STATISTICS_OUTPUT_OFF
+     * @see #STATISTICS_OUTPUT_STDOUT
+     * @see #STATISTICS_OUTPUT_USE_UNIQUE_FILES
+     */
+    public static final String STATISTICS_HR_OUTPUT = "STATISTICS_HR_OUTPUT";
+
+    /**
+     * A {@link String#format(Locale, String, Object...)} pattern to be used when creating a new file to write
+     * the human readable statistics output to. The current {@link Date} will be passed to the format method as its
+     * first parameter after the format <code>String</code>. Defaults to {@link #STATISTICS_HR_DEFAULT_NAME}.
+     */
+    public static final String STATISTICS_HR_NAME = "STATISTICS_HR_NAME";
+
+    /**
+     * The default name pattern when {@link #STATISTICS_HR_NAME} is not given.
+     */
+    public static final String STATISTICS_HR_DEFAULT_NAME = "Statistics_HR.txt";
+
+    /**
+     * Where to send the XML statistics output if '-stats' is given on the command line. If the value denotes
+     * a file this file will be written to, if it denotes a directory a file will be created there using the pattern
+     * specified in {@link #STATISTICS_XML_NAME}. Paths are relative to the current working directory.
+     * Defaults to {@link #STATISTICS_OUTPUT_OFF}.
+     *
+     * @see #STATISTICS_OUTPUT_OFF
+     * @see #STATISTICS_OUTPUT_STDOUT
+     * @see #STATISTICS_OUTPUT_USE_UNIQUE_FILES
+     */
+    public static final String STATISTICS_XML_OUTPUT = "STATISTICS_XML_OUTPUT";
+
+    /**
+     * A {@link String#format(Locale, String, Object...)} pattern to be used when creating a new file to write
+     * the XML statistics output to. The current {@link Date} will be passed to the format method as its
+     * first parameter after the format <code>String</code>. Defaults to {@link #STATISTICS_XML_DEFAULT_NAME}.
+     */
+    public static final String STATISTICS_XML_NAME = "STATISTICS_XML_NAME";
+
+    /**
+     * The default name pattern when {@link #STATISTICS_XML_NAME} is not given.
+     */
+    public static final String STATISTICS_XML_DEFAULT_NAME = "Statistics_XML.xml";
 
     /**
      * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
