@@ -82,14 +82,13 @@ task config {
     }
 }
 
-def libraryPathOpt = '-Djava.library.path=.'
 def loggingOpt = "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"
 def defaultOpts = ["-Xmx2048m", "-ea"]
 
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    defaultJvmOpts = defaultOpts + libraryPathOpt + loggingOpt
+    defaultJvmOpts = defaultOpts + loggingOpt
 }
 
 task guiScripts(type: CreateStartScripts) {
@@ -134,13 +133,10 @@ run {
 }
 
 test {
-    jvmArgs loggingOpt, libraryPathOpt
+    systemProperty "java.util.logging.config.file", loggingConfigFile.getAbsolutePath()
     maxHeapSize = '2048m'
     enableAssertions = true
-    workingDir new File(installDist.destinationDir, 'bin')
 }
-
-test.dependsOn installDist
 
 compileJava {
     options.compilerArgs << "-Xlint:all"
