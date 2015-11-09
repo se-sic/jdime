@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -132,14 +132,16 @@ public final class Main {
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
-            HashMap<MergeScenario, Throwable> crashes = context.getCrashes();
+            Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
-            for (MergeScenario scenario : crashes.keySet()) {
+
+            for (MergeScenario<?> scenario : crashes.keySet()) {
                 Throwable t = crashes.get(scenario);
                 sb.append("* " + t.toString() + "\n");
                 sb.append("    " + scenario.toString().replace(" ", "\n    ") + "\n");
             }
+
             LOG.config(sb.toString());
         }
 
