@@ -577,7 +577,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public final boolean hasMatching(T other) {
         Revision otherRev = other.getRevision();
-        boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact((T) this) == other;
+        boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
@@ -594,7 +594,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         if (!hasMatching && isChoice()) {
             // choice nodes have to be treated specially ...
             for (T variant: variants.values()) {
-                if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact((T) variant) == other) {
+                if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact(variant) == other) {
                     hasMatching = true;
                     break;
                 }

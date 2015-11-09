@@ -48,7 +48,7 @@ public class JDimeWrapper {
 
                 inputArtifacts.add(newArtifact);
             } catch (FileNotFoundException e) {
-                System.err.println("Input file not found: " + (String) filename);
+                System.err.println("Input file not found: " + filename);
             }
         }
 
