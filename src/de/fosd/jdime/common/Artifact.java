@@ -182,7 +182,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         }
     }
 
-    public abstract Object clone();
+    public abstract T clone();
 
     /**
      * Returns an <code>Artifact</code> that represents a merge conflict.
@@ -809,7 +809,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         if (recursive && children != null) {
             for (T child : children) {
-                child.setRevision(revision, recursive);
+                child.setRevision(revision, true);
             }
         }
     }

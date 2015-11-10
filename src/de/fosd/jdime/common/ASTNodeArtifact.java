@@ -204,7 +204,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public ASTNodeArtifact clone() {
         assert (exists());
 
         ASTNodeArtifact clone = null;

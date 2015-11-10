@@ -237,7 +237,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public FileArtifact clone() {
         LOG.finest(() -> "CLONE: " + this);
 
         try {

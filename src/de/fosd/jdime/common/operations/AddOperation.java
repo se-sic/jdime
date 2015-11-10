@@ -101,7 +101,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
                 target.addChild(choice);
             } else {
                 LOG.fine("no conditions");
-                target.addChild((T) artifact.clone());
+                target.addChild(artifact.clone());
             }
         }
 

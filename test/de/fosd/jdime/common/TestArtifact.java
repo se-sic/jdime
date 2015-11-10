@@ -33,7 +33,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public TestArtifact clone() {
         TestArtifact clone = new TestArtifact();
         clone.id = id;
         clone.children = children;

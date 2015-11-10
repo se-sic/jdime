@@ -75,7 +75,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         T target = operation.getTarget();
 
         Revision l = left.getRevision();
-        Revision b = base.getRevision();
         Revision r = right.getRevision();
 
         if (!context.isDiffOnly() && !context.isPretend()) {

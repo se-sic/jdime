@@ -303,8 +303,6 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             } else if (l.contains(rightChild) && r.contains(leftChild)) {
                 assert (leftChild != null);
                 assert (rightChild != null);
-                final T finalLeftChild = leftChild;
-                final T finalRightChild = rightChild;
 
                 // left and right have the artifact. merge it.
                 if (LOG.isLoggable(Level.FINEST)) {
@@ -331,7 +329,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             : MergeType.THREEWAY;
                     T baseChild = mBase == null ? leftChild.createEmptyArtifact()
                             : mBase.getMatchingArtifact(leftChild);
-                    T targetChild = target == null ? null : target.addChild((T) leftChild.clone());
+                    T targetChild = target == null ? null : target.addChild(leftChild.clone());
                     if (targetChild != null) {
                         assert targetChild.exists();
                         targetChild.deleteChildren();
