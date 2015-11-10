@@ -112,19 +112,6 @@ distributions {
             }
         }
     }
-    test {
-        contents.with {
-            def binDir = 'bin'
-
-            into(binDir) {
-                from(guiScripts)
-                fileMode = 0755
-            }
-            into(binDir) {
-                from(config)
-            }
-        }
-    }
 }
 
 run {
@@ -164,10 +151,10 @@ task getTestFiles {
     }
 
     doLast {
-        if (!testFilesDir.exists()) {
-            Grgit.clone(dir: testFilesDir, uri: gitURI)
-        } else {
+        if (testFilesDir.exists()) {
             Grgit.open(dir: testFilesDir).pull()
+        } else {
+            Grgit.clone(dir: testFilesDir, uri: gitURI)
         }
     }
 }
