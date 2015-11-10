@@ -59,9 +59,9 @@ public class MergeTest extends JDimeTest {
     @BeforeClass
     public static void init() throws Exception {
 
-       leftDir = file("/left");
-       baseDir = file("/base");
-       rightDir =file("/right");
+       leftDir = file("/threeway/left");
+       baseDir = file("/threeway/base");
+       rightDir =file("/threeway/right");
 
         Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
             assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
@@ -84,19 +84,13 @@ public class MergeTest extends JDimeTest {
      *
      * @param filePath
      *         the path to the files to be merged
-     * @param threeWay
-     *         whether to perform a tree way merge
      */
-    private void runMerge(String filePath, boolean threeWay) {
+    private void runMerge(String filePath) {
         try {
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
             inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
-
-            if (threeWay) {
-                inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
-            }
-
+            inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
             inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
@@ -115,7 +109,7 @@ public class MergeTest extends JDimeTest {
                 Main.merge(context);
 
                 // check
-                String expected = normalize(FileUtils.readFileToString(file(strategy, filePath)));
+                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath)));
                 String output = normalize(context.getOutputFile().getContent());
 
                 System.out.println("----------Expected:-----------");
@@ -165,27 +159,27 @@ public class MergeTest extends JDimeTest {
     }
 
     @Test
-    public final void testBag() {
-        runMerge("SimpleTests/Bag/Bag.java", true);
+    public void testBag() {
+        runMerge("SimpleTests/Bag/Bag.java");
     }
 
     @Test
-    public final void testBag2() {
-        runMerge("SimpleTests/Bag/Bag2.java", true);
+    public void testBag2() {
+        runMerge("SimpleTests/Bag/Bag2.java");
     }
 
     @Test
-    public final void testBag3() {
-        runMerge("SimpleTests/Bag/Bag3.java", true);
+    public void testBag3() {
+        runMerge("SimpleTests/Bag/Bag3.java");
     }
     
     @Test
-    public final void testImportConflict () {
-        runMerge("SimpleTests/ImportMess.java", true);
+    public void testImportConflict () {
+        runMerge("SimpleTests/ImportMess.java");
     }
 
     @Test
-    public final void testExprTest () {
-        runMerge("SimpleTests/ExprTest.java", true);
+    public void testExprTest () {
+        runMerge("SimpleTests/ExprTest.java");
     }
 }
