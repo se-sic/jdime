@@ -217,7 +217,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
             for (ASTNodeArtifact child : children) {
-                ASTNodeArtifact cloneChild = (ASTNodeArtifact) child.clone();
+                ASTNodeArtifact cloneChild = child.clone();
                 cloneChild.astnode.setParent(clone.astnode);
                 cloneChildren.add(cloneChild);
             }
