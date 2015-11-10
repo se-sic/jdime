@@ -149,7 +149,16 @@ task getTestFiles {
         }
     }
 
-    outputs.files testFilesDir
+    outputs.upToDateWhen {
+        if (!testFilesDir.exists()) {
+            return false;
+        }
+
+        def grgit = Grgit.open(dir: testFilesDir)
+        def status = grgit.branch.status(name: 'master')
+
+        return status.behindCount == 0
+    }
 
     doLast {
         if (!testFilesDir.exists()) {
@@ -158,9 +167,7 @@ task getTestFiles {
             def grgit = Grgit.open(dir: testFilesDir)
             def status = grgit.branch.status(name: 'master')
 
-            if (status.behindCount > 0) {
-                grgit.pull()
-            }
+            grgit.pull()
         }
     }
 }
