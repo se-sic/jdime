@@ -21,6 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
+import org.ajoberstar.grgit.Grgit
 
 plugins {
     id 'application'
@@ -135,6 +136,36 @@ test {
     maxHeapSize = '2048m'
     enableAssertions = true
 }
+
+task getTestFiles {
+    def gitURI = "git@github.com:xai/jdime-testfiles.git"
+    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
+
+    sourceSets {
+        test {
+            resources {
+                srcDir testFilesDir
+            }
+        }
+    }
+
+    outputs.files testFilesDir
+
+    doLast {
+        if (!testFilesDir.exists()) {
+            Grgit.clone(dir: testFilesDir, uri: gitURI)
+        } else {
+            def grgit = Grgit.open(dir: testFilesDir)
+            def status = grgit.branch.status(name: 'master')
+
+            if (status.behindCount > 0) {
+                grgit.pull()
+            }
+        }
+    }
+}
+
+test.dependsOn getTestFiles
 
 compileJava {
     options.compilerArgs << "-Xlint:all"
