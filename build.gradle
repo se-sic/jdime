@@ -141,6 +141,9 @@ task getTestFiles {
     def gitURI = "git@github.com:xai/jdime-testfiles.git"
     def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
+    description = "Clones (or pulls) the JDime test files repository from GitHub."
+    group = 'verification'
+
     sourceSets {
         test {
             resources {
@@ -164,10 +167,7 @@ task getTestFiles {
         if (!testFilesDir.exists()) {
             Grgit.clone(dir: testFilesDir, uri: gitURI)
         } else {
-            def grgit = Grgit.open(dir: testFilesDir)
-            def status = grgit.branch.status(name: 'master')
-
-            grgit.pull()
+            Grgit.open(dir: testFilesDir).pull()
         }
     }
 }
