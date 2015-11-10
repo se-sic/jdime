@@ -51,7 +51,7 @@ import de.fosd.jdime.common.Tuple;
 public class BalancedSequence<T extends Artifact<T>> {
 
     @SuppressWarnings("unchecked")
-    private static final BalancedSequence EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
+    private static final BalancedSequence<?> EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
 
     private List<T> seq;
 

@@ -84,7 +84,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      * Constructs a new <code>Matcher</code>.
      */
     public Matcher() {
-        //unorderedMatcher = new LPMatcher<>(this);
         unorderedMatcher = new HungarianMatcher<>(this);
         unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
         orderedMatcher = new SimpleTreeMatcher<>(this);
@@ -106,7 +105,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
             LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
                     left.getId()));
 
-            Map<Integer, Matchings> variantMatches = new HashMap<>();
+            Map<Integer, Matchings<T>> variantMatches = new HashMap<>();
 
             for (T variant: left.getVariants().values()) {
                 LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
@@ -190,7 +189,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      * @param left the left <code>Artifact</code> that is matched
      * @param right the right <code>Artifact</code> that is matched
      */
-    private void logMatcherUse(Class<? extends MatchingInterface> c, T left, T right) {
+    private void logMatcherUse(Class<?> c, T left, T right) {
         LOG.finest(() -> {
             String matcherName = c.getClass().getSimpleName();
             return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());

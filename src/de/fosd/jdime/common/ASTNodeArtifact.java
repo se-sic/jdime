@@ -209,7 +209,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone(), getRevision());
+            clone = new ASTNodeArtifact(astnode.clone(), getRevision());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);

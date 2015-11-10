@@ -30,8 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.logging.Handler;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -133,14 +132,16 @@ public final class Main {
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
-            HashMap<MergeScenario, Throwable> crashes = context.getCrashes();
+            Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
-            for (MergeScenario scenario : crashes.keySet()) {
+
+            for (MergeScenario<?> scenario : crashes.keySet()) {
                 Throwable t = crashes.get(scenario);
                 sb.append("* " + t.toString() + "\n");
                 sb.append("    " + scenario.toString().replace(" ", "\n    ") + "\n");
             }
+
             LOG.config(sb.toString());
         }
 
@@ -335,12 +336,6 @@ public final class Main {
                                 .parse("structured"));
                         context.setBugfixing();
                         break;
-                    case "test":
-                        InternalTests.run();
-                        return false;
-                    case "testenvironment":
-                        InternalTests.runEnvironmentTest();
-                        return false;
                     case "dumptree":
                         // User only wants to display the ASTs
                         context.setMergeStrategy(MergeStrategy
@@ -468,7 +463,7 @@ public final class Main {
 
                     inputArtifacts.add(newArtifact);
                 } catch (FileNotFoundException e) {
-                    System.err.println("Input file not found: " + (String) filename);
+                    System.err.println("Input file not found: " + filename);
                 }
             }
 
@@ -516,42 +511,6 @@ public final class Main {
      */
     private static void version() {
         System.out.println(TOOLNAME + " VERSION " + VERSION);
-    }
-
-    /**
-     * Set the logging level. The levels in descending order are:<br>
-     *
-     * <ul>
-     *  <li>ALL</li>
-     *  <li>SEVERE (highest value)</li>
-     *  <li>WARNING</li>
-     *  <li>INFO</li>
-     *  <li>CONFIG</li>
-     *  <li>FINE</li>
-     *  <li>FINER</li>
-     *  <li>FINEST (lowest value)</li>
-     *  <li>OFF</li>
-     * </ul>
-     *
-     * @param logLevel
-     *             one of the valid log levels according to {@link Level#parse(String)}
-     */
-    static void setLogLevel(String logLevel) {
-        Level level;
-
-        try {
-            level = Level.parse(logLevel.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
-            return;
-        }
-
-        Logger root = Logger.getLogger(Main.class.getPackage().getName());
-        root.setLevel(level);
-
-        for (Handler handler : root.getHandlers()) {
-            handler.setLevel(level);
-        }
     }
 
     /**

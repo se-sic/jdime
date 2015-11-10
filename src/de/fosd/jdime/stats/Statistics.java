@@ -96,7 +96,7 @@ public class Statistics {
 
             @Override
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-                MergeScenario mScenario = (MergeScenario) source;
+                MergeScenario<?> mScenario = (MergeScenario<?>) source;
 
                 writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
                 c.marshal(mScenario.asList(), writer, context);
@@ -111,7 +111,7 @@ public class Statistics {
             }
 
             @Override
-            public boolean canConvert(Class type) {
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
                 return type.equals(MergeScenario.class);
             }
         });
@@ -138,7 +138,7 @@ public class Statistics {
             }
 
             @Override
-            public boolean canConvert(Class type) {
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
                 return Artifact.class.isAssignableFrom(type);
             }
         });
