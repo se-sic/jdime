@@ -21,11 +21,13 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
+import org.ajoberstar.grgit.Grgit
 
 plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
+    id 'org.ajoberstar.grgit' version '1.3.2'
 }
 
 sourceSets {
@@ -40,9 +42,6 @@ sourceSets {
     test {
         java {
             srcDir 'test'
-        }
-        resources {
-            srcDir 'testfiles'
         }
     }
 }
@@ -113,19 +112,6 @@ distributions {
             }
         }
     }
-    test {
-        contents.with {
-            def binDir = 'bin'
-
-            into(binDir) {
-                from(guiScripts)
-                fileMode = 0755
-            }
-            into(binDir) {
-                from(config)
-            }
-        }
-    }
 }
 
 run {
@@ -137,6 +123,43 @@ test {
     maxHeapSize = '2048m'
     enableAssertions = true
 }
+
+task getTestFiles {
+    def gitURI = "git@github.com:xai/jdime-testfiles.git"
+    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
+
+    description = "Clones (or pulls) the JDime test files repository from GitHub."
+    group = 'verification'
+
+    sourceSets {
+        test {
+            resources {
+                srcDir testFilesDir
+            }
+        }
+    }
+
+    outputs.upToDateWhen {
+        if (!testFilesDir.exists()) {
+            return false;
+        }
+
+        def grgit = Grgit.open(dir: testFilesDir)
+        def status = grgit.branch.status(name: 'master')
+
+        return status.behindCount == 0
+    }
+
+    doLast {
+        if (testFilesDir.exists()) {
+            Grgit.open(dir: testFilesDir).pull()
+        } else {
+            Grgit.clone(dir: testFilesDir, uri: gitURI)
+        }
+    }
+}
+
+test.dependsOn getTestFiles
 
 compileJava {
     options.compilerArgs << "-Xlint:all"
