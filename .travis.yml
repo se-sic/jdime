@@ -14,4 +14,7 @@ addons:
         - git
 
 notifications:
-    irc: "irc.freenode.org#jdime"
+    irc:
+        channels:
+            - "irc.freenode.org#jdime"
+        skip_join: true
