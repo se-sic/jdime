@@ -231,15 +231,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
     }
 
     /**
-     * Resets the call counters.
-     */
-    public void reset() {
-        calls = 0;
-        unorderedCalls = 0;
-        orderedCalls = 0;
-    }
-
-    /**
      * Returns a formatted string describing the logged call counts.
      *
      * @return a log of the call counts
