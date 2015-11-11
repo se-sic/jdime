@@ -18,3 +18,5 @@ notifications:
         channels:
             - "irc.freenode.org#jdime"
         skip_join: true
+        on_success: change
+        on_failure: always
