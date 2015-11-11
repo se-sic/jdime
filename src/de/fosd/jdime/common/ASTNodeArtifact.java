@@ -198,20 +198,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public ASTNodeArtifact clone() {
         assert (exists());
 
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact((ASTNode<?>) astnode.clone(), getRevision());
+            clone = new ASTNodeArtifact(astnode.clone(), getRevision());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
 
             ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
             for (ASTNodeArtifact child : children) {
-                ASTNodeArtifact cloneChild = (ASTNodeArtifact) child.clone();
+                ASTNodeArtifact cloneChild = child.clone();
                 cloneChild.astnode.setParent(clone.astnode);
                 cloneChildren.add(cloneChild);
             }

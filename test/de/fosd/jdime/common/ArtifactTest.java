@@ -5,7 +5,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by Georg on 02.11.2015.
+ * Tests for the <code>Artifact</code> class.
  */
 public class ArtifactTest {
 

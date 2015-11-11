@@ -21,12 +21,13 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
+import org.ajoberstar.grgit.Grgit
 
 plugins {
-    id 'java'
     id 'application'
     id 'eclipse'
     id 'idea'
+    id 'org.ajoberstar.grgit' version '1.3.2'
 }
 
 sourceSets {
@@ -42,24 +43,16 @@ sourceSets {
         java {
             srcDir 'test'
         }
-        resources {
-            srcDir 'testfiles'
-        }
     }
 }
 
 repositories {
     mavenCentral()
-    maven { // for glpk-java
-        name = 'Xypron Release'
-        url = 'http://rsync.xypron.de/repository'
-    }
 }
 
 dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-cli:commons-cli:1.2'
-    compile 'org.gnu.glpk:glpk-java:1.0.37'
     compile 'com.thoughtworks.xstream:xstream:1.4.8'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
@@ -88,81 +81,19 @@ task config {
     }
 }
 
-task natives {
-    def fail = false;
-    def glpk_version = "4_55"
-    def glpk_java_prop_name = "glpkJava"
-    def glpk_prop_name = "glpk"
-    def glpk_java_name
-    def glpk_name
-
-    def os = System.getProperty("os.name").toLowerCase()
-
-    if (os.contains("windows")) {
-        glpk_java_name = "glpk_${glpk_version}_java.dll"
-        glpk_name = "glpk_${glpk_version}.dll"
-    } else if (os.contains("mac")) {
-        glpk_java_name = "libglpk_java.dylib"
-        glpk_name = "libglpk.dylib"
-    } else {
-        glpk_java_name = "libglpk_java.so"
-        glpk_name = "libglpk.so"
-    }
-
-    if (!rootProject.hasProperty(glpk_java_prop_name)) {
-        println "Provide the path to the $glpk_java_name native library using the $glpk_java_prop_name property."
-        fail = true;
-    }
-    if (!rootProject.hasProperty(glpk_prop_name)) {
-        println "Provide the path to the $glpk_name native library using the $glpk_prop_name property."
-        fail = true;
-    }
-
-    if (fail) {
-        throw new InvalidUserDataException("Missing native library paths.");
-    }
-
-    def glpkJavaFile = file(rootProject."$glpk_java_prop_name").getAbsoluteFile()
-    def glpkFile = file(rootProject."$glpk_prop_name").getAbsoluteFile()
-
-    if (glpkJavaFile.exists()) {
-        if (!glpkJavaFile.isFile() || glpkJavaFile.getName() != glpk_java_name) {
-            println "$glpkJavaFile is not a file or does not have the correct name. Expecting $glpk_java_name."
-            fail = true;
-        }
-    } else {
-        println "$glpkJavaFile does not exist."
-        fail = true;
-    }
-
-    if (glpkFile.exists()) {
-        if (!glpkFile.isFile() || glpkFile.getName() != glpk_name) {
-            println "$glpkFile is not a file or does not have the correct name. Expecting $glpk_name."
-            fail = true;
-        }
-    } else {
-        println "$glpkFile does not exist."
-        fail = true;
-    }
-
-    if (fail) {
-        throw new InvalidUserDataException("Invalid native libraries.");
-    }
-
-    inputs.files(glpkFile, glpkJavaFile)
-    outputs.files(glpkFile, glpkJavaFile)
-}
+def loggingOpt = "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"
+def defaultOpts = ["-Xmx2048m", "-ea"]
 
 startScripts {
     applicationName = rootProject.name
     mainClassName = "de.fosd.jdime.Main"
-    defaultJvmOpts = ["-Xmx2048m", "-ea", "-Djava.library.path=.", "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = defaultOpts + loggingOpt
 }
 
 task guiScripts(type: CreateStartScripts) {
     applicationName = "${rootProject.name}_GUI"
     mainClassName = 'de.fosd.jdime.gui.GUI'
-    defaultJvmOpts = ["-Djava.util.logging.config.file=${loggingConfigFile.getName()}"]
+    defaultJvmOpts = [loggingOpt]
     outputDir = startScripts.outputDir
     classpath = startScripts.classpath
 }
@@ -177,21 +108,6 @@ distributions {
                 fileMode = 0755
             }
             into(binDir) {
-                from(natives)
-                from(config)
-            }
-        }
-    }
-    test {
-        contents.with {
-            def binDir = 'bin'
-
-            into(binDir) {
-                from(guiScripts)
-                fileMode = 0755
-            }
-            into(binDir) {
-                from(natives)
                 from(config)
             }
         }
@@ -199,24 +115,52 @@ distributions {
 }
 
 run {
-    main = 'de.fosd.jdime.Main'
-
-    if (System.getProperty("exec.args") != null) {
-        args System.getProperty("exec.args").split()
-    }
+    main = 'de.fosd.jdime.gui.GUI'
 }
 
 test {
-    jvmArgs = ["-Xmx2048m", "-ea", "-Djava.library.path=build/install/JDime/bin"]
+    systemProperty "java.util.logging.config.file", loggingConfigFile.getAbsolutePath()
+    maxHeapSize = '2048m'
+    enableAssertions = true
 }
 
-test.dependsOn installDist
+task getTestFiles {
+    def gitURI = "https://github.com/xai/jdime-testfiles"
+    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
-allprojects {
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile) {
-            // options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-            options.compilerArgs << "-Xlint:deprecation"
+    description = "Clones (or pulls) the JDime test files repository from GitHub."
+    group = 'verification'
+
+    sourceSets {
+        test {
+            resources {
+                srcDir testFilesDir
+            }
         }
     }
+
+    outputs.upToDateWhen {
+        if (!testFilesDir.exists()) {
+            return false;
+        }
+
+        def grgit = Grgit.open(dir: testFilesDir)
+        def status = grgit.branch.status(name: 'master')
+
+        return status.behindCount == 0
+    }
+
+    doLast {
+        if (testFilesDir.exists()) {
+            Grgit.open(dir: testFilesDir).pull()
+        } else {
+            Grgit.clone(dir: testFilesDir, uri: gitURI)
+        }
+    }
+}
+
+test.dependsOn getTestFiles
+
+compileJava {
+    options.compilerArgs << "-Xlint:all"
 }
