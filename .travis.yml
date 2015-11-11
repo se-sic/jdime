@@ -12,3 +12,6 @@ addons:
         packages:
         - oracle-java8-installer
         - git
+
+notifications:
+    irc: "irc.freenode.org#jdime"
