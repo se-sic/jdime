@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
@@ -46,14 +44,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * @author Olaf Lessenich
- *
+ * Tests the merge functionality of JDime as a black-box.
  */
-public class MergeTest {
+public class MergeTest extends JDimeTest {
 
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
-    private static File testFilesDir;
     private static File leftDir;
     private static File baseDir;
     private static File rightDir;
@@ -62,19 +58,16 @@ public class MergeTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        testFilesDir = new File("testfiles");
 
-        assertTrue("The test files directory could not be found.", testFilesDir.exists() && testFilesDir.isDirectory());
-
-        leftDir = new File(testFilesDir, "left");
-        baseDir = new File(testFilesDir, "base");
-        rightDir = new File(testFilesDir, "right");
+       leftDir = file("/threeway/left");
+       baseDir = file("/threeway/base");
+       rightDir =file("/threeway/right");
 
         Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " couldn't be found or isn't a directory.", f.exists() && f.isDirectory());
+            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
         });
 
-        Main.setLogLevel("WARNING");
+        JDimeConfig.setLogLevel("WARNING");
     }
 
     @Before
@@ -84,18 +77,21 @@ public class MergeTest {
         context.setPretend(false);
     }
 
-    private void runMerge(String filepath, boolean threeway) {
+    /**
+     * Merges files under '/left/filePath', '/right/filePath' and '/base/filePath' (if <code>threeWay</code> is
+     * <code>true</code>). Merges will be performed using the strategies in {@link #STRATEGIES} and the output will
+     * be compared with the file in '/strategy/filePath'.
+     *
+     * @param filePath
+     *         the path to the files to be merged
+     */
+    private void runMerge(String filePath) {
         try {
-            // initialize input files
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-            inputArtifacts.add(new FileArtifact(new File(leftDir, filepath)));
-
-            if (threeway) {
-                inputArtifacts.add(new FileArtifact(new File(baseDir, filepath)));
-            }
-
-            inputArtifacts.add(new FileArtifact(new File(rightDir, filepath)));
+            inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
+            inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
+            inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
 
@@ -109,11 +105,11 @@ public class MergeTest {
                 context.setOutputFile(new FileArtifact(out));
 
                 // run
-                System.out.printf("Running %s strategy on %s%n", strategy, filepath);
+                System.out.printf("Running %s strategy on %s%n", strategy, filePath);
                 Main.merge(context);
 
                 // check
-                String expected = FileUtils.readFileToString(FileUtils.getFile(testFilesDir, strategy, filepath));
+                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath)));
                 String output = normalize(context.getOutputFile().getContent());
 
                 System.out.println("----------Expected:-----------");
@@ -132,20 +128,25 @@ public class MergeTest {
     }
 
     /**
-     * Replaces the system file separator in every line starting with a conflict marker by the expected '/' separator.
+     * Removes the file paths behind all conflict markers.
      *
      * @param content
-     *         the content in which to replace file separators
+     *         the content to normalize
      * @return the normalized <code>String</code>
      */
     private static String normalize(String content) {
+        String conflictStart = "<<<<<<<";
+        String conflictEnd = ">>>>>>>";
         String lineSeparator = System.lineSeparator();
         StringBuilder b = new StringBuilder(content.length());
 
         try (BufferedReader r = new BufferedReader(new StringReader(content))) {
             r.lines().forEachOrdered(l -> {
-                if (l.startsWith("<<<<<<<") || l.startsWith(">>>>>>>")) {
-                    l = l.replaceAll(Pattern.quote(File.separator), Matcher.quoteReplacement("/"));
+
+                if (l.startsWith(conflictStart)) {
+                    l = conflictStart;
+                } else if (l.startsWith(conflictEnd)) {
+                    l = conflictEnd;
                 }
 
                 b.append(l).append(lineSeparator);
@@ -158,27 +159,27 @@ public class MergeTest {
     }
 
     @Test
-    public final void testBag() {
-        runMerge("SimpleTests/Bag/Bag.java", true);
+    public void testBag() {
+        runMerge("SimpleTests/Bag/Bag.java");
     }
 
     @Test
-    public final void testBag2() {
-        runMerge("SimpleTests/Bag/Bag2.java", true);
+    public void testBag2() {
+        runMerge("SimpleTests/Bag/Bag2.java");
     }
 
     @Test
-    public final void testBag3() {
-        runMerge("SimpleTests/Bag/Bag3.java", true);
+    public void testBag3() {
+        runMerge("SimpleTests/Bag/Bag3.java");
     }
     
     @Test
-    public final void testImportConflict () {
-        runMerge("SimpleTests/ImportMess.java", true);
+    public void testImportConflict () {
+        runMerge("SimpleTests/ImportMess.java");
     }
 
     @Test
-    public final void testExprTest () {
-        runMerge("SimpleTests/ExprTest.java", true);
+    public void testExprTest () {
+        runMerge("SimpleTests/ExprTest.java");
     }
 }

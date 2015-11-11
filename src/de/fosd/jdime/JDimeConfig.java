@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -174,6 +175,42 @@ public final class JDimeConfig {
             } catch (IOException e) {
                 LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + configFile.getAbsolutePath());
             }
+        }
+    }
+
+    /**
+     * Set the logging level. The levels in descending order are:<br>
+     *
+     * <ul>
+     *  <li>ALL</li>
+     *  <li>SEVERE (highest value)</li>
+     *  <li>WARNING</li>
+     *  <li>INFO</li>
+     *  <li>CONFIG</li>
+     *  <li>FINE</li>
+     *  <li>FINER</li>
+     *  <li>FINEST (lowest value)</li>
+     *  <li>OFF</li>
+     * </ul>
+     *
+     * @param logLevel
+     *             one of the valid log levels according to {@link Level#parse(String)}
+     */
+    public static void setLogLevel(String logLevel) {
+        Level level;
+
+        try {
+            level = Level.parse(logLevel.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            LOG.warning(() -> "Invalid log level %s. Must be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST or ALL.");
+            return;
+        }
+
+        Logger root = Logger.getLogger(Main.class.getPackage().getName());
+        root.setLevel(level);
+
+        for (Handler handler : root.getHandlers()) {
+            handler.setLevel(level);
         }
     }
 }

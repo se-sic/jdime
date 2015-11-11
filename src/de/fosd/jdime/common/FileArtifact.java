@@ -243,7 +243,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public FileArtifact clone() {
         LOG.finest(() -> "CLONE: " + this);
 
         try {
@@ -353,7 +353,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
      * If the content type can not be determined <code>null</code> will be returned.
      *
-     * @return the MIME content type 
+     * @return the MIME content type
      */
     public final String getContentType() {
         assert (exists());

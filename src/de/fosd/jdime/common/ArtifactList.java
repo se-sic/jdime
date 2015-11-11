@@ -56,6 +56,6 @@ public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
      * @return a string representation of this collection
      */
     private String toString(String separator) {
-        return String.join(separator, stream().map(Artifact::getId).collect(Collectors.toList()));
+        return String.join(separator, stream().map(E::getId).collect(Collectors.toList()));
     }
 }

@@ -94,14 +94,13 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
             }
         }
 
-        Iterator it = variants.keySet().iterator();
-        targetNode = new ASTNodeArtifact(variants.get((Revision) it.next()));
+        Iterator<Revision> it = variants.keySet().iterator();
+        targetNode = new ASTNodeArtifact(variants.get(it.next()));
 
         while (it.hasNext()) {
 
             merged = targetNode;
-
-            next = new ASTNodeArtifact(variants.get((Revision) it.next()));
+            next = new ASTNodeArtifact(variants.get(it.next()));
 
             try {
                 mergeContext = context;
