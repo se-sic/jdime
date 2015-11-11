@@ -312,7 +312,7 @@ public final class Main {
             }
 
             if (cmd.hasOption("info")) {
-                info(context);
+                info();
                 return false;
             }
 
@@ -484,11 +484,8 @@ public final class Main {
 
     /**
      * Print short information.
-     *  @param context
-     *            merge context
-     *
      */
-    private static void info(final MergeContext context) {
+    private static void info() {
         version();
         System.out.println();
         System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");

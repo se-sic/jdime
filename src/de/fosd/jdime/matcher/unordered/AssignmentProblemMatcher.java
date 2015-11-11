@@ -102,7 +102,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                matchings[i][j] = Tuple.of(0, new Matchings<T>());
+                matchings[i][j] = Tuple.of(0, new Matchings<>());
             }
         }
 

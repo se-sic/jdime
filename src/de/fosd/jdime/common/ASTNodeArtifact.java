@@ -80,8 +80,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         };
         BytecodeReader bytecodeParser = new BytecodeReader() {
             @Override
-            public CompilationUnit read(InputStream is, String fullName, Program p)
-                    throws FileNotFoundException, IOException {
+            public CompilationUnit read(InputStream is, String fullName, Program p) throws IOException {
                 return new BytecodeParser(is, fullName).parse(null, null, p);
             }
         };
@@ -203,7 +202,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public ASTNodeArtifact clone() {
         assert (exists());
 
         ASTNodeArtifact clone = null;
@@ -216,7 +215,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
             for (ASTNodeArtifact child : children) {
-                ASTNodeArtifact cloneChild = (ASTNodeArtifact) child.clone();
+                ASTNodeArtifact cloneChild = child.clone();
                 cloneChild.astnode.setParent(clone.astnode);
                 cloneChildren.add(cloneChild);
             }
@@ -253,7 +252,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createEmptyArtifact() throws FileNotFoundException {
+    public final ASTNodeArtifact createEmptyArtifact() {
         ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
         emptyArtifact.setRevision(getRevision());
         return emptyArtifact;

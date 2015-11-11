@@ -129,9 +129,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
             T node = wait.poll();
             fullyOrdered = node.isOrdered();
 
-            for (T t : node.getChildren()) {
-                wait.offer(t);
-            }
+            node.getChildren().forEach(wait::offer);
         }
         
         for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {

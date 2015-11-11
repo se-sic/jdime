@@ -237,7 +237,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public FileArtifact clone() {
         LOG.finest(() -> "CLONE: " + this);
 
         try {
@@ -714,8 +714,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final FileArtifact createChoiceArtifact(final String condition, final FileArtifact artifact)
-            throws FileNotFoundException {
+    public final FileArtifact createChoiceArtifact(final String condition, final FileArtifact artifact) {
         throw new NotYetImplementedException();
     }
 

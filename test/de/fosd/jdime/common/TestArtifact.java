@@ -56,7 +56,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public Object clone() {
+    public TestArtifact clone() {
         TestArtifact clone = new TestArtifact();
         clone.id = id;
         clone.children = children;
@@ -69,7 +69,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) throws FileNotFoundException {
+    public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) {
         return null;
     }
     public TestArtifact createEmptyArtifact() throws FileNotFoundException {
