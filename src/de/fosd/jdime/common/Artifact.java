@@ -140,7 +140,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            child to add
      * @return added child
      */
-    public abstract T addChild(final T child);
+    public abstract T addChild(T child);
 
     /**
      * Adds a matching.
