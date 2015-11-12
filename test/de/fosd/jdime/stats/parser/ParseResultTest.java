@@ -37,18 +37,19 @@ public class ParseResultTest extends JDimeTest {
         assertEquals(1, res.size());
         assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
         assertEquals(concat, res.toString());
+        assertEquals(concat, res.toString("ID1", "ID2")); // IDs are ignored if there are not conflicts
     }
 
     @Test
     public void testAddConflictingLine() throws Exception {
         String[] lines = {"L0", "L1", "L2", "L3", "L4"};
         String concat = String.format("%s%n" +
-                                      "<<<<<<<%n" +
+                                      "<<<<<<< ID1%n" +
                                       "%s%n" +
                                       "%s%n" +
                                       "=======%n" +
                                       "%s%n" +
-                                      ">>>>>>>%n" +
+                                      ">>>>>>> ID2%n" +
                                       "%s", (Object[]) lines);
 
         res.addMergedLine(lines[0]);
@@ -61,5 +62,7 @@ public class ParseResultTest extends JDimeTest {
         assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
         assertThat(res.get(1), is(instanceOf(Content.Conflict.class)));
         assertThat(res.get(2), is(instanceOf(Content.Merged.class)));
+        assertEquals(normalize(concat), res.toString());
+        assertEquals(concat, res.toString("ID1", "ID2"));
     }
 }

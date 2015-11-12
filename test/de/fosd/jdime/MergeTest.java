@@ -110,9 +110,9 @@ public class MergeTest extends JDimeTest {
                 String output = normalize(context.getOutputFile().getContent());
 
                 System.out.println("----------Expected:-----------");
-                System.out.print(expected);
+                System.out.println(expected);
                 System.out.println("----------Received:-----------");
-                System.out.print(output);
+                System.out.println(output);
                 System.out.println("------------------------------");
 
                 assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
