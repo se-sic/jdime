@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -79,7 +80,8 @@ public class JDimeTest {
         StringBuilder b = new StringBuilder(content.length());
 
         try (BufferedReader r = new BufferedReader(new StringReader(content))) {
-            r.lines().forEachOrdered(l -> {
+            for (Iterator<String> it = r.lines().iterator(); it.hasNext(); ) {
+                String l = it.next();
 
                 if (l.startsWith(conflictStart)) {
                     l = conflictStart;
@@ -87,8 +89,12 @@ public class JDimeTest {
                     l = conflictEnd;
                 }
 
-                b.append(l).append(lineSeparator);
-            });
+                b.append(l);
+
+                if (it.hasNext()) {
+                    b.append(lineSeparator);
+                }
+            }
         } catch (IOException e) {
             fail(e.getMessage());
         }
