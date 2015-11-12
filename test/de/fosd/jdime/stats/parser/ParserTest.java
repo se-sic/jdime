@@ -33,6 +33,22 @@ public class ParserTest extends JDimeTest {
         assertEquals(0, result.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
-        // TODO add some tests for files containing comments
+        file = file("threeway", "linebased", "ParserTest", "Comments.java");
+        code = FileUtils.readFileToString(file);
+        result = Parser.parse(code);
+
+        assertEquals(7, result.getLinesOfCode());
+        assertEquals(0, result.getConflicts());
+        assertEquals(0, result.getConflictingLinesOfCode());
+        assertEquals(normalize(code), normalize(result.toString()));
+
+        file = file("threeway", "linebased", "ParserTest", "CommentsConflict.java");
+        code = FileUtils.readFileToString(file);
+        result = Parser.parse(code);
+
+        assertEquals(11, result.getLinesOfCode());
+        assertEquals(1, result.getConflicts());
+        assertEquals(2, result.getConflictingLinesOfCode());
+        assertEquals(normalize(code), normalize(result.toString()));
     }
 }
