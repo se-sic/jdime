@@ -23,10 +23,7 @@
 
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.Arrays;
 
@@ -125,37 +122,6 @@ public class MergeTest extends JDimeTest {
         } catch (Exception e) {
             fail(e.toString());
         }
-    }
-
-    /**
-     * Removes the file paths behind all conflict markers.
-     *
-     * @param content
-     *         the content to normalize
-     * @return the normalized <code>String</code>
-     */
-    private static String normalize(String content) {
-        String conflictStart = "<<<<<<<";
-        String conflictEnd = ">>>>>>>";
-        String lineSeparator = System.lineSeparator();
-        StringBuilder b = new StringBuilder(content.length());
-
-        try (BufferedReader r = new BufferedReader(new StringReader(content))) {
-            r.lines().forEachOrdered(l -> {
-
-                if (l.startsWith(conflictStart)) {
-                    l = conflictStart;
-                } else if (l.startsWith(conflictEnd)) {
-                    l = conflictEnd;
-                }
-
-                b.append(l).append(lineSeparator);
-            });
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
-
-        return b.toString();
     }
 
     @Test

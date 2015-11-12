@@ -1,10 +1,14 @@
 package de.fosd.jdime;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URL;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Contains useful methods for running tests for JDime.
@@ -59,5 +63,36 @@ public class JDimeTest {
     protected static File file(String firstName, String... names) throws Exception {
         String path = String.format("/%s/%s", firstName, String.join("/", names));
         return file(path);
+    }
+
+    /**
+     * Removes everything after the conflict marker in any line starting with one.
+     *
+     * @param content
+     *         the content to normalize
+     * @return the normalized <code>String</code>
+     */
+    protected static String normalize(String content) {
+        String conflictStart = "<<<<<<<";
+        String conflictEnd = ">>>>>>>";
+        String lineSeparator = System.lineSeparator();
+        StringBuilder b = new StringBuilder(content.length());
+
+        try (BufferedReader r = new BufferedReader(new StringReader(content))) {
+            r.lines().forEachOrdered(l -> {
+
+                if (l.startsWith(conflictStart)) {
+                    l = conflictStart;
+                } else if (l.startsWith(conflictEnd)) {
+                    l = conflictEnd;
+                }
+
+                b.append(l).append(lineSeparator);
+            });
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+
+        return b.toString();
     }
 }
