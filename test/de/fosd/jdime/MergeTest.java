@@ -56,9 +56,9 @@ public class MergeTest extends JDimeTest {
     @BeforeClass
     public static void init() throws Exception {
 
-       leftDir = file("/threeway/left");
-       baseDir = file("/threeway/base");
-       rightDir =file("/threeway/right");
+       leftDir = file("threeway", "left");
+       baseDir = file("threeway", "base");
+       rightDir =file("threeway", "right");
 
         Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
             assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
@@ -75,9 +75,9 @@ public class MergeTest extends JDimeTest {
     }
 
     /**
-     * Merges files under '/left/filePath', '/right/filePath' and '/base/filePath' (if <code>threeWay</code> is
+     * Merges files under 'leftDir/filePath', 'rightDir/filePath' and 'baseDir/filePath' (if <code>threeWay</code> is
      * <code>true</code>). Merges will be performed using the strategies in {@link #STRATEGIES} and the output will
-     * be compared with the file in '/strategy/filePath'.
+     * be compared with the file in '/threeway/strategy/filePath'.
      *
      * @param filePath
      *         the path to the files to be merged
