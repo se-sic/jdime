@@ -91,8 +91,6 @@ public class MergeTest extends JDimeTest {
             inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
-
-                // setup context
                 context.setMergeStrategy(MergeStrategy.parse(strategy));
                 context.setInputFiles(inputArtifacts);
 
@@ -101,23 +99,23 @@ public class MergeTest extends JDimeTest {
 
                 context.setOutputFile(new FileArtifact(out));
 
-                // run
-                System.out.printf("Running %s strategy on %s%n", strategy, filePath);
                 Main.merge(context);
 
-                // check
                 String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath)));
                 String output = normalize(context.getOutputFile().getContent());
 
-                System.out.println("----------Expected:-----------");
-                System.out.println(expected);
-                System.out.println("----------Received:-----------");
-                System.out.println(output);
-                System.out.println("------------------------------");
+                try {
+                    assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
+                } catch (Exception e) {
+                    System.out.println("----------Expected:-----------");
+                    System.out.println(expected);
+                    System.out.println("----------Received:-----------");
+                    System.out.println(output);
+                    System.out.println("------------------------------");
+                    System.out.println();
 
-                assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
-
-                System.out.println();
+                    throw e;
+                }
             }
         } catch (Exception e) {
             fail(e.toString());
