@@ -299,7 +299,7 @@ public class MergeScenarioStatistics {
 
         if (!mergeStatistics.isEmpty()) os.println("Merge Statistics");
         mergeStatistics.forEach((rev, stats) -> {
-            os.println(Revision.class.getSimpleName());
+            os.printf("%s %s", Revision.class.getSimpleName(), rev);
             stats.print(os, indent);
         });
 
