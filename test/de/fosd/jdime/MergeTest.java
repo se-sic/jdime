@@ -25,7 +25,6 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.Arrays;
 
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
@@ -37,7 +36,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -47,23 +45,10 @@ public class MergeTest extends JDimeTest {
 
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
-    private static File leftDir;
-    private static File baseDir;
-    private static File rightDir;
-
     private MergeContext context;
 
     @BeforeClass
     public static void init() throws Exception {
-
-       leftDir = file("threeway", "left");
-       baseDir = file("threeway", "base");
-       rightDir =file("threeway", "right");
-
-        Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
-        });
-
         JDimeConfig.setLogLevel("WARNING");
     }
 
