@@ -46,9 +46,9 @@ import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.StatisticsInterface;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 

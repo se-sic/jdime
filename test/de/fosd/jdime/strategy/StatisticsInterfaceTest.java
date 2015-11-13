@@ -6,6 +6,7 @@ import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.function.Predicate;
 
+import de.fosd.jdime.stats.StatisticsInterface;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.StatisticsInterface;
+import de.fosd.jdime.stats.StatisticsInterface;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.

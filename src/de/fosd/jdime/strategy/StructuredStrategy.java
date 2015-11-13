@@ -36,6 +36,7 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
+import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
 
 /**
