@@ -269,7 +269,7 @@ public class Statistics {
     private boolean check(File file) {
 
         if (file.isDirectory()) {
-            LOG.warning(() -> file.getAbsolutePath() + " is a directory and can be written to.");
+            LOG.warning(() -> file.getAbsolutePath() + " is a directory and can't be written to.");
             return false;
         }
 
