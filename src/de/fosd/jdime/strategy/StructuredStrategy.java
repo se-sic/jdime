@@ -132,6 +132,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
             astMergeOp.apply(context);
+            targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             long runtime = System.currentTimeMillis() - startTime;
 
