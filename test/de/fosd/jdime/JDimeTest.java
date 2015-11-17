@@ -24,7 +24,7 @@ public class JDimeTest {
     protected static File rightDir;
 
     @BeforeClass
-    public static void initializeDirectories() throws Exception {
+    public static void initDirectories() throws Exception {
 
         leftDir = file("threeway", "left");
         baseDir = file("threeway", "base");
