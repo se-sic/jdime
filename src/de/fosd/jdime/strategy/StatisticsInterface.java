@@ -133,12 +133,8 @@ public interface StatisticsInterface {
             elementStats.forEach(ElementStatistics::incrementTotal);
 
             if (current.isConflict()) {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
                 elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
-            } else if ((otherRev == null && current.hasMatches()) || current.hasMatching(otherRev)) {
-                elementStats.forEach(ElementStatistics::incrementNumMatched);
             } else {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
 
                 // added or deleted?
                 if (current.hasMatches()) {
