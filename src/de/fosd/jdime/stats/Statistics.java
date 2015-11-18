@@ -131,6 +131,18 @@ public class Statistics {
     }
 
     /**
+     * Checks whether a <code>MergeScenarioStatistics</code> for the given <code>MergeScenario</code> was added to
+     * this <code>Statistics</code>.
+     *
+     * @param mergeScenario
+     *         the <code>MergeScenario</code> to check for
+     * @return true iff a <code>MergeScenarioStatistics</code> was registered for <code>mergeScenario</code>
+     */
+    public boolean containsStatistics(MergeScenario<?> mergeScenario) {
+        return scenarioStatistics.containsKey(mergeScenario);
+    }
+
+    /**
      * Returns the <code>MergeScenarioStatistics</code> for the given <code>MergeScenario</code>. A new
      * <code>MergeScenarioStatistics</code> instance will be created and added if necessary.
      *
