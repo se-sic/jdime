@@ -306,7 +306,7 @@ public class Statistics {
             return false;
         }
 
-        File parent = file.getParentFile();
+        File parent = file.getAbsoluteFile().getParentFile();
 
         if (parent == null) {
             LOG.warning(() -> file.getAbsolutePath() + " does not have a parent directory.");
