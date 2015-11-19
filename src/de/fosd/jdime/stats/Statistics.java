@@ -25,6 +25,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.ImplicitCollectionMapper;
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
 
@@ -121,6 +122,7 @@ public class Statistics {
         });
     }
 
+    private MergeScenario<FileArtifact> currentFileMergeScenario;
     private Map<MergeScenario<?>, MergeScenarioStatistics> scenarioStatistics;
 
     /**
@@ -128,6 +130,25 @@ public class Statistics {
      */
     public Statistics() {
         this.scenarioStatistics = new HashMap<>();
+    }
+
+    /**
+     * Gets the <code>MergeScenarioStatistics</code> for the current <code>FileArtifact</code>
+     * <code>MergeScenario</code>.
+     *
+     * @return the <code>MergeScenarioStatistics</code>
+     */
+    public MergeScenarioStatistics getCurrentFileMergeScenarioStatistics() {
+        return getScenarioStatistics(currentFileMergeScenario);
+    }
+
+    /**
+     * Sets the currently active <code>MergeScenario</code> for <code>FileArtifacts</code> to the new value.
+     *
+     * @param currentFileMergeScenario the new <code>MergeScenario</code> for <code>FileArtifacts</code>
+     */
+    public void setCurrentFileMergeScenario(MergeScenario<FileArtifact> currentFileMergeScenario) {
+        this.currentFileMergeScenario = currentFileMergeScenario;
     }
 
     /**
