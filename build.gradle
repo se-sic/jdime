@@ -144,17 +144,20 @@ task getTestFiles {
             return false;
         }
 
-        def grgit = Grgit.open(dir: testFilesDir)
-        def status = grgit.branch.status(name: 'master')
+        def status;
+
+        Grgit.open(dir: testFilesDir).withCloseable {
+            status = it.branch.status(name: 'master')
+        }
 
         return status.behindCount == 0
     }
 
     doLast {
         if (testFilesDir.exists()) {
-            Grgit.open(dir: testFilesDir).pull()
+            Grgit.open(dir: testFilesDir).withCloseable { it.pull(); }
         } else {
-            Grgit.clone(dir: testFilesDir, uri: gitURI)
+            Grgit.clone(dir: testFilesDir, uri: gitURI).close()
         }
     }
 }
