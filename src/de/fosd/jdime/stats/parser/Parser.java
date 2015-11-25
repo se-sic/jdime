@@ -41,6 +41,7 @@ public final class Parser {
         int clocBeforeConflict = 0; // cloc = conflicting lines of code
 
         boolean inConflict = false;
+        boolean inLeftComment = false; // whether we were in a comment when the left part of the conflict started
         boolean inLeft = true;
         boolean inComment = false;
 
@@ -61,12 +62,14 @@ public final class Parser {
 
                     wasConflictMarker = true;
                     inConflict = true;
+                    inLeftComment = inComment;
                     inLeft = true;
                     clocBeforeConflict = conflictingLinesOfCode;
                     conflicts++;
                 } else if (matches(conflictSep, line)) {
 
                     wasConflictMarker = true;
+                    inComment = inLeftComment;
                     inLeft = false;
                 } else if (matches(conflictEnd, line)) {
 

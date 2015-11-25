@@ -104,12 +104,13 @@ public abstract class Content {
 
         @Override
         public String toString() {
+            String ls = System.lineSeparator();
             StringBuilder b = new StringBuilder();
 
-            b.append(CONFLICT_START);
-            b.append(String.join(System.lineSeparator(), leftLines));
-            b.append(CONFLICT_DELIM);
-            b.append(String.join(System.lineSeparator(), rightLines));
+            b.append(CONFLICT_START).append(ls);
+            b.append(String.join(ls, leftLines)).append(ls);
+            b.append(CONFLICT_DELIM).append(ls);
+            b.append(String.join(ls, rightLines)).append(ls);
             b.append(CONFLICT_END);
 
             return b.toString();
@@ -124,11 +125,12 @@ public abstract class Content {
             }
 
             StringBuilder b = new StringBuilder();
+            String ls = System.lineSeparator();
 
-            b.append(CONFLICT_START).append(" ").append(fstId);
-            b.append(String.join(System.lineSeparator(), leftLines));
-            b.append(CONFLICT_DELIM);
-            b.append(String.join(System.lineSeparator(), rightLines));
+            b.append(CONFLICT_START).append(" ").append(fstId).append(ls);
+            b.append(String.join(ls, leftLines)).append(ls);
+            b.append(CONFLICT_DELIM).append(ls);
+            b.append(String.join(ls, rightLines)).append(ls);
             b.append(CONFLICT_END).append(" ").append(ids[0]);
 
             return b.toString();

@@ -147,14 +147,18 @@ task getTestFiles {
         def grgit = Grgit.open(dir: testFilesDir)
         def status = grgit.branch.status(name: 'master')
 
+        grgit.close()
         return status.behindCount == 0
     }
 
     doLast {
         if (testFilesDir.exists()) {
-            Grgit.open(dir: testFilesDir).pull()
+            def grgit = Grgit.open(dir: testFilesDir)
+
+            grgit.pull()
+            grgit.close()
         } else {
-            Grgit.clone(dir: testFilesDir, uri: gitURI)
+            Grgit.clone(dir: testFilesDir, uri: gitURI).close()
         }
     }
 }

@@ -47,6 +47,7 @@ public class MergeScenario<T extends Artifact<T>> {
     public static final Revision LEFT = new Revision("left");
     public static final Revision BASE = new Revision("base");
     public static final Revision RIGHT = new Revision("right");
+    public static final Revision TARGET = new Revision("target");
 
     private MergeType mergeType;
     private Map<Revision, T> artifacts;

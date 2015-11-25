@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.strategy;
+package de.fosd.jdime.stats;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -36,10 +36,6 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.stats.ElementStatistics;
-import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.MergeScenarioStatistics;
-import de.fosd.jdime.stats.MergeStatistics;
 
 public interface StatisticsInterface {
 
@@ -133,12 +129,8 @@ public interface StatisticsInterface {
             elementStats.forEach(ElementStatistics::incrementTotal);
 
             if (current.isConflict()) {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
                 elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
-            } else if ((otherRev == null && current.hasMatches()) || current.hasMatching(otherRev)) {
-                elementStats.forEach(ElementStatistics::incrementNumMatched);
             } else {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
 
                 // added or deleted?
                 if (current.hasMatches()) {

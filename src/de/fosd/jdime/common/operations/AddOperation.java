@@ -107,7 +107,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
-            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
+            MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
             ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
             element.incrementNumAdded();
