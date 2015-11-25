@@ -193,7 +193,7 @@ public class Statistics {
      *         the <code>MergeScenarioStatistics</code> to be adde
      */
     public void addScenarioStatistics(MergeScenarioStatistics statistics) {
-        scenarioStatistics.put(statistics.getMergeScenario(), statistics);
+        scenarioStatistics.merge(statistics.getMergeScenario(), statistics, (o, n) -> {o.add(n); return o;});
     }
 
     /**
