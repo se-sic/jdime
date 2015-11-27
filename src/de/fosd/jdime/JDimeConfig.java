@@ -139,6 +139,26 @@ public final class JDimeConfig {
      */
     public static final String STATISTICS_XML_DEFAULT_NAME = "Statistics_XML.xml";
 
+    /*
+     * These constants define the (short) parameter names expected on the command line. Corresponding Options
+     * are constructed in buildCliOptions().
+     */
+    public static final String CLI_LOG_LEVEL = "log";
+    public static final String CLI_CONSECUTIVE = "c";
+    public static final String CLI_DIFFONLY = "d";
+    public static final String CLI_FORCE_OVERWRITE = "f";
+    public static final String CLI_HELP = "h";
+    public static final String CLI_KEEPGOING = "k";
+    public static final String CLI_LOOKAHEAD = "lah";
+    public static final String CLI_MODE = "m";
+    public static final String CLI_OUTPUT = "o";
+    public static final String CLI_RECURSIVE = "r";
+    public static final String CLI_SHOWCONFIG = "sc";
+    public static final String CLI_STATS = "s";
+    public static final String CLI_PRINT = "p";
+    public static final String CLI_QUIET = "q";
+    public static final String CLI_VERSION = "v";
+
     /**
      * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
      * the classloader when the {@link #getConfig()} method is first called.
@@ -199,7 +219,7 @@ public final class JDimeConfig {
         Options options = new Options();
         Option o;
 
-        o = Option.builder("log")
+        o = Option.builder(CLI_LOG_LEVEL)
                 .longOpt("log-level")
                 .desc("Set the logging level to one of (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL).")
                 .hasArg()
@@ -208,7 +228,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("c")
+        o = Option.builder(CLI_CONSECUTIVE)
                 .longOpt("consecutive")
                 .desc("Requires diffonly mode. Treats versions as consecutive versions.")
                 .hasArg(false)
@@ -216,7 +236,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("d")
+        o = Option.builder(CLI_DIFFONLY)
                 .longOpt("diffonly")
                 .desc("Only perform the diff stage.")
                 .hasArg(false)
@@ -224,7 +244,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("f")
+        o = Option.builder(CLI_FORCE_OVERWRITE)
                 .longOpt("force-overwrite")
                 .desc("Force overwriting of output files.")
                 .hasArg(false)
@@ -232,7 +252,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("h")
+        o = Option.builder(CLI_HELP)
                 .longOpt("help")
                 .desc("Print this message.")
                 .hasArg(false)
@@ -240,7 +260,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("k")
+        o = Option.builder(CLI_KEEPGOING)
                 .longOpt("keepgoing")
                 .desc("Keep running after exceptions.")
                 .hasArg(false)
@@ -248,7 +268,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("lah")
+        o = Option.builder(CLI_LOOKAHEAD)
                 .longOpt("lookahead")
                 .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
                 .hasArg()
@@ -257,7 +277,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("m")
+        o = Option.builder(CLI_MODE)
                 .longOpt("mode")
                 .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
                         "prettyprint, nway)")
@@ -267,7 +287,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("o")
+        o = Option.builder(CLI_OUTPUT)
                 .longOpt("output")
                 .desc("Set the output directory/file.")
                 .hasArg()
@@ -276,7 +296,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("r")
+        o = Option.builder(CLI_RECURSIVE)
                 .longOpt("recursive")
                 .desc("Merge directories recursively.")
                 .hasArg(false)
@@ -284,7 +304,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("sc")
+        o = Option.builder(CLI_SHOWCONFIG)
                 .longOpt("showconfig")
                 .desc("Print configuration information.")
                 .hasArg(false)
@@ -292,7 +312,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("s")
+        o = Option.builder(CLI_STATS)
                 .longOpt("stats")
                 .desc("Collect statistical data about the merge.")
                 .hasArg(false)
@@ -300,7 +320,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("p")
+        o = Option.builder(CLI_PRINT)
                 .longOpt("print")
                 .desc("(print/pretend) Prints the merge result to stdout instead of an output file.")
                 .hasArg(false)
@@ -308,7 +328,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("q")
+        o = Option.builder(CLI_QUIET)
                 .longOpt("quiet")
                 .desc("Do not print the merge result to stdout.")
                 .hasArg(false)
@@ -316,7 +336,7 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("v")
+        o = Option.builder(CLI_VERSION)
                 .longOpt("version")
                 .desc("Print the version information and exit.")
                 .hasArg(false)

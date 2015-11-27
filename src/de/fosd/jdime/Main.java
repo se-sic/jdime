@@ -274,28 +274,23 @@ public final class Main {
         try {
             CommandLine cmd = JDimeConfig.parseArgs(args);
 
-            if (cmd.hasOption("help")) {
+            if (cmd.hasOption(CLI_HELP)) {
                 JDimeConfig.printCLIHelp();
                 return false;
             }
 
-            if (cmd.hasOption("info")) {
-                info();
-                return false;
-            }
-
-            if (cmd.hasOption("version")) {
+            if (cmd.hasOption(CLI_VERSION)) {
                 version();
                 return false;
             }
 
-            if (cmd.hasOption("debug")) {
-                setLogLevel(cmd.getOptionValue("debug"));
+            if (cmd.hasOption(CLI_LOG_LEVEL)) {
+                setLogLevel(cmd.getOptionValue(CLI_LOG_LEVEL));
             }
 
-            if (cmd.hasOption("mode")) {
+            if (cmd.hasOption(CLI_MODE)) {
                 try {
-                    switch (cmd.getOptionValue("mode").toLowerCase()) {
+                    switch (cmd.getOptionValue(CLI_MODE).toLowerCase()) {
                     case "list":
                         printStrategies();
                         return false;
@@ -333,7 +328,7 @@ public final class Main {
                     default:
                         // User wants to merge
                         context.setMergeStrategy(MergeStrategy.parse(cmd
-                                .getOptionValue("mode")));
+                                .getOptionValue(CLI_MODE)));
                         break;
                     }
                 } catch (StrategyNotFoundException e) {
@@ -348,22 +343,22 @@ public final class Main {
             }
 
             String outputFileName = null;
-            if (cmd.hasOption("output")) {
+            if (cmd.hasOption(CLI_OUTPUT)) {
                 // TODO[low priority]: The default should in a later,
                 // rock-stable version be changed to be overwriting file1 so
                 // that we are compatible with gnu merge call syntax
-                outputFileName = cmd.getOptionValue("output");
+                outputFileName = cmd.getOptionValue(CLI_OUTPUT);
             }
 
-            if (cmd.hasOption("diffonly")) {
+            if (cmd.hasOption(CLI_DIFFONLY)) {
                 context.setDiffOnly(true);
-                if (cmd.hasOption("consecutive")) {
+                if (cmd.hasOption(CLI_CONSECUTIVE)) {
                     context.setConsecutive(true);
                 }
             }
 
-            if (cmd.hasOption("lookahead")) {
-                String lookAheadValue = cmd.getOptionValue("lookahead");
+            if (cmd.hasOption(CLI_LOOKAHEAD)) {
+                String lookAheadValue = cmd.getOptionValue(CLI_LOOKAHEAD);
 
                 // initialize with the context's default.
                 int lookAhead = context.getLookAhead();
@@ -385,20 +380,20 @@ public final class Main {
                 LOG.finest(() -> "Lookahead = " + context.getLookAhead());
             }
 
-            context.collectStatistics(cmd.hasOption("stats"));
-            context.setForceOverwriting(cmd.hasOption("f"));
-            context.setRecursive(cmd.hasOption("r"));
+            context.collectStatistics(cmd.hasOption(CLI_STATS));
+            context.setForceOverwriting(cmd.hasOption(CLI_FORCE_OVERWRITE));
+            context.setRecursive(cmd.hasOption(CLI_RECURSIVE));
             
-            if (cmd.hasOption("p")) {
+            if (cmd.hasOption(CLI_PRINT)) {
                 context.setPretend(true);
                 context.setQuiet(false);
-            } else if (cmd.hasOption('q')) {
+            } else if (cmd.hasOption(CLI_QUIET)) {
                 context.setQuiet(true);
             }
             
-            context.setKeepGoing(cmd.hasOption("keepgoing"));
+            context.setKeepGoing(cmd.hasOption(CLI_KEEPGOING));
 
-            if (cmd.hasOption("showconfig")) {
+            if (cmd.hasOption(CLI_SHOWCONFIG)) {
                 showConfig(context);
                 return false;
             }
@@ -448,15 +443,6 @@ public final class Main {
         }
 
         return continueRun;
-    }
-
-    /**
-     * Print short information.
-     */
-    private static void info() {
-        version();
-        System.out.println();
-        System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
     }
 
     /**
