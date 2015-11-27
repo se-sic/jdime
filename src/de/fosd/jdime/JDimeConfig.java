@@ -203,20 +203,21 @@ public final class JDimeConfig {
                 .longOpt("log-level")
                 .desc("Set the logging level to one of (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL).")
                 .hasArg()
-                .required()
                 .argName("level")
                 .build();
 
         options.addOption(o);
 
-        o = Option.builder("consecutive")
+        o = Option.builder("c")
+                .longOpt("consecutive")
                 .desc("Requires diffonly mode. Treats versions as consecutive versions.")
                 .hasArg(false)
                 .build();
 
         options.addOption(o);
 
-        o = Option.builder("diffonly")
+        o = Option.builder("d")
+                .longOpt("diffonly")
                 .desc("Only perform the diff stage.")
                 .hasArg(false)
                 .build();
@@ -239,27 +240,28 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("keepgoing")
+        o = Option.builder("k")
+                .longOpt("keepgoing")
                 .desc("Keep running after exceptions.")
                 .hasArg(false)
                 .build();
 
         options.addOption(o);
 
-        o = Option.builder("lookahead")
+        o = Option.builder("lah")
+                .longOpt("lookahead")
                 .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
                 .hasArg()
-                .required()
                 .argName("level")
                 .build();
 
         options.addOption(o);
 
-        o = Option.builder("mode")
+        o = Option.builder("m")
+                .longOpt("mode")
                 .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
                         "prettyprint, nway)")
                 .hasArg()
-                .required()
                 .argName("mode")
                 .build();
 
@@ -269,7 +271,6 @@ public final class JDimeConfig {
                 .longOpt("output")
                 .desc("Set the output directory/file.")
                 .hasArg()
-                .required()
                 .argName("file")
                 .build();
 
@@ -283,14 +284,16 @@ public final class JDimeConfig {
 
         options.addOption(o);
 
-        o = Option.builder("showconfig")
+        o = Option.builder("sc")
+                .longOpt("showconfig")
                 .desc("Print configuration information.")
                 .hasArg(false)
                 .build();
 
         options.addOption(o);
 
-        o = Option.builder("stats")
+        o = Option.builder("s")
+                .longOpt("stats")
                 .desc("Collect statistical data about the merge.")
                 .hasArg(false)
                 .build();
