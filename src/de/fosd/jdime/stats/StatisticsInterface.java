@@ -114,6 +114,9 @@ public interface StatisticsInterface {
             }
         }
 
+        Predicate<Artifact<?>> otherMatches = a -> ((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
+        Predicate<Artifact<?>> isConflict = Artifact::isConflict;
+
         for (Artifact<?> current : preOrder) {
             elementStats.clear();
 
@@ -130,7 +133,7 @@ public interface StatisticsInterface {
 
             if (current.isConflict()) {
                 elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
-            } else {
+            } else if (otherMatches.negate().test(current)) {
 
                 // added or deleted?
                 if (current.hasMatches()) {
@@ -148,8 +151,7 @@ public interface StatisticsInterface {
         max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
 
-        Predicate<Artifact<?>> p = a -> a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
-        IntSummaryStatistics summary = segmentStatistics(preOrder, p);
+        IntSummaryStatistics summary = segmentStatistics(preOrder, isConflict.or(otherMatches.negate()));
 
         mergeStatistics.setNumChunks((int) summary.getCount());
         mergeStatistics.setAvgChunkSize((float) summary.getAverage());

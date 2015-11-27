@@ -186,6 +186,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         T artifact = mergeScenario.get(0);
         artifact.merge(this, context);
 
+        // todo iterate merge scenario, increment merged, type and level stats
+
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
