@@ -12,6 +12,12 @@ import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 /**
  * Contains the singleton <code>Config</code> instance containing the configuration options for JDime. All
@@ -150,7 +156,29 @@ public final class JDimeConfig {
         return InstanceHolder.INSTANCE.config;
     }
 
+    /**
+     * Returns a <code>CommandLine</code> instance containing the parsed command line options.
+     *
+     * @param args
+     *         the command line arguments to parse
+     * @return the resulting <code>CommandLine</code> instance
+     * @throws ParseException
+     *         if there is an exception parsing <code>args</code>
+     */
+    public static CommandLine parseArgs(String[] args) throws ParseException {
+        return new DefaultParser().parse(InstanceHolder.INSTANCE.cliOptions, args);
+    }
+
+    /**
+     * Prints usage information and a help text about the command line options to <code>System.out</code>.
+     */
+    public static void printCLIHelp() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp(Main.TOOLNAME, InstanceHolder.INSTANCE.cliOptions, true);
+    }
+
     private Config config;
+    private Options cliOptions;
 
     /**
      * Private constructor to prevent outside instantiation.
@@ -159,6 +187,136 @@ public final class JDimeConfig {
         config = new Config();
         config.addSource(new SysEnvConfigSource(1));
         loadConfigFile();
+        cliOptions = buildCliOptions();
+    }
+
+    private Options buildCliOptions() {
+        Options options = new Options();
+        Option o;
+
+        o = Option.builder("log")
+                .longOpt("log-level")
+                .desc("Set the logging level to one of (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL).")
+                .hasArg()
+                .required()
+                .argName("level")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("consecutive")
+                .desc("Requires diffonly mode. Treats versions as consecutive versions.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("diffonly")
+                .desc("Only perform the diff stage.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("f")
+                .longOpt("force-overwrite")
+                .desc("Force overwriting of output files.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("h")
+                .longOpt("help")
+                .desc("Print this message.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("keepgoing")
+                .desc("Keep running after exceptions.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("lookahead")
+                .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
+                .hasArg()
+                .required()
+                .argName("level")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("mode")
+                .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
+                        "prettyprint, nway)")
+                .hasArg()
+                .required()
+                .argName("mode")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("o")
+                .longOpt("output")
+                .desc("Set the output directory/file.")
+                .hasArg()
+                .required()
+                .argName("file")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("r")
+                .longOpt("recursive")
+                .desc("Merge directories recursively.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("showconfig")
+                .desc("Print configuration information.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("stats")
+                .desc("Collect statistical data about the merge.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("p")
+                .longOpt("print")
+                .desc("(print/pretend) Prints the merge result to stdout instead of an output file.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("q")
+                .longOpt("quiet")
+                .desc("Do not print the merge result to stdout.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder("v")
+                .longOpt("version")
+                .desc("Print the version information and exit.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        return options;
     }
 
     /**

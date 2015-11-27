@@ -49,11 +49,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 
 import static de.fosd.jdime.JDimeConfig.*;
 
@@ -65,8 +61,8 @@ public final class Main {
 
     private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
-    private static final String TOOLNAME = "jdime";
-    private static final String VERSION = "0.3.11-develop";
+    public static final String TOOLNAME = "jdime";
+    public static final String VERSION = "0.3.11-develop";
 
     /**
      * Perform a merge operation on the input files or directories.
@@ -275,38 +271,11 @@ public final class Main {
         LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
         boolean continueRun = true;
 
-        Options options = new Options();
-        options.addOption("debug", true, "set debug level"
-                + " (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)");
-        options.addOption("consecutive", false,
-                "requires diffonly, treats versions"
-                        + " as consecutive versions");
-        options.addOption("diffonly", false, "diff only, do not merge");
-        options.addOption("f", false, "force overwriting of output files");
-        options.addOption("help", false, "print this message");
-        options.addOption("keepgoing", false, "Keep running after exceptions.");
-        options.addOption("lookahead", true,
-                "Use heuristics for matching. Supply off, full, or a number as argument.");
-        options.addOption("mode", true,
-                "set merge mode (unstructured, structured, autotuning, dumptree"
-                        + ", dumpgraph, dumpfile, prettyprint, nway)");
-        options.addOption("output", true, "output directory/file");
-        options.addOption("r", false, "merge directories recursively");
-        options.addOption("showconfig", false,
-                "print configuration information");
-        options.addOption("stats", false,
-                "collects statistical data of the merge");
-        options.addOption("p", false, "(print/pretend) prints the merge result to stdout instead of an output file");
-        options.addOption("q", false, "quiet, do not print the merge result to stdout");
-        options.addOption("version", false,
-                "print the version information and exit");
-
-        CommandLineParser parser = new PosixParser();
         try {
-            CommandLine cmd = parser.parse(options, args);
+            CommandLine cmd = JDimeConfig.parseArgs(args);
 
             if (cmd.hasOption("help")) {
-                help(options);
+                JDimeConfig.printCLIHelp();
                 return false;
             }
 
@@ -373,7 +342,7 @@ public final class Main {
                 }
 
                 if (context.getMergeStrategy() == null) {
-                    help(options);
+                    JDimeConfig.printCLIHelp();
                     return false;
                 }
             }
@@ -438,7 +407,7 @@ public final class Main {
 
             if (!((context.isDumpTree() || context.isDumpFile() || context
                     .isBugfixing()) || numInputFiles >= MergeType.MINFILES)) {
-                help(options);
+                JDimeConfig.printCLIHelp();
                 return false;
             }
 
@@ -488,17 +457,6 @@ public final class Main {
         version();
         System.out.println();
         System.out.println("Run the program with the argument '--help' in order to retrieve information on its usage!");
-    }
-
-    /**
-     * Print help on usage.
-     *
-     * @param options
-     *            Available command line options
-     */
-    private static void help(final Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp(TOOLNAME, options, true);
     }
 
     /**
