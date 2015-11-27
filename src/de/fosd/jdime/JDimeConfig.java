@@ -190,6 +190,11 @@ public final class JDimeConfig {
         cliOptions = buildCliOptions();
     }
 
+    /**
+     * Builds the <code>Options</code> instance describing the JDime command line configuration options.
+     *
+     * @return the <code>Options</code> instance
+     */
     private Options buildCliOptions() {
         Options options = new Options();
         Option o;
