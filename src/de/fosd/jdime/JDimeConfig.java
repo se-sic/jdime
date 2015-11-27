@@ -135,7 +135,7 @@ public final class JDimeConfig {
 
     /**
      * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
-     * the classloader when the {@link #getConfig()} method is fist called.
+     * the classloader when the {@link #getConfig()} method is first called.
      */
     private static final class InstanceHolder {
         private static final JDimeConfig INSTANCE = new JDimeConfig();
