@@ -14,10 +14,10 @@ index 83488da..20a5ef4 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..63a53e8
+index 0000000..05dec31
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,168 @@
 +/*
 + * Copyright (C) 2013-2014 Olaf Lessenich
 + * Copyright (C) 2014-2015 University of Passau, Germany
@@ -89,7 +89,7 @@ index 0000000..63a53e8
 +				s.append(left.prettyPrint());
 +				s.append("\n");
 +			}
-+			s.append("======= \n");
++			s.append("=======\n");
 +			if (right != null) {
 +				s.append(right.prettyPrint());
 +				s.append("\n");
@@ -144,8 +144,16 @@ index 0000000..63a53e8
 +		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
 +	}
 +
++	public String VarDeclStmt.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
 +	public String MethodDecl.getMatchingRepresentation() {
 +		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String VariableDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getID() + "]";
 +	}
 +
 +	public boolean ASTNode.matches(ASTNode other) {
