@@ -24,6 +24,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -32,7 +33,6 @@ import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -186,15 +186,15 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         T artifact = mergeScenario.get(0);
         artifact.merge(this, context);
 
-        // todo iterate merge scenario, increment merged, type and level stats
-
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
-            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            element.incrementNumMerged();
-            artifact.mergeOpStatistics(mScenarioStatistics, context);
+            mergeScenario.getArtifacts().entrySet().stream().map(Map.Entry::getValue).forEach(a -> {
+                mScenarioStatistics.getTypeStatistics(a.getRevision(), a.getType()).incrementNumMerged();
+                mScenarioStatistics.getLevelStatistics(a.getRevision(), a.getLevel()).incrementNumMerged();
+                a.mergeOpStatistics(mScenarioStatistics, context);
+            });
         }
     }
 
