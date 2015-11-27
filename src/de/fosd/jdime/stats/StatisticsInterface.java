@@ -98,6 +98,21 @@ public interface StatisticsInterface {
 
     }
 
+    /**
+     * Collects statistics about the given <code>artifact</code> tree. The <code>otherRev</code> is used when counting
+     * added, deleted and matched elements elements. <code>otherRev</code> should be the 'opposite'
+     * <code>Revision</code> e.g. when <code>artifact</code> represents the tree of the 'left' revision,
+     * <code>otherRev</code> should be the 'right' <code>Revision</code>. The resulting
+     * <code>MergeScenarioStatistics</code> contains <code>null</code> as its <code>MergeScenario</code> and is intended
+     * to be added to an existing <code>MergeScenarioStatistics</code> instance.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> tree to collect statistics for
+     * @param otherRev
+     *         the 'opposite' <code>Revision</code> or <code>null</code> (when collecting statistics for the target
+     *         <code>Artifact</code>)
+     * @return the resulting <code>MergeScenarioStatistics</code>
+     */
     static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev) {
         MergeScenarioStatistics statistics = new MergeScenarioStatistics(null);
         List<ElementStatistics> elementStats = new ArrayList<>();
