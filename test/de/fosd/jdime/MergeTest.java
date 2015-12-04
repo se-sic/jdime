@@ -131,4 +131,9 @@ public class MergeTest extends JDimeTest {
     public void testExprTest () {
         runMerge("SimpleTests/ExprTest.java");
     }
+
+    @Test
+    public void testDeletionInsertion() throws Exception {
+        runMerge("SimpleTests/DeletionInsertion.java");
+    }
 }
