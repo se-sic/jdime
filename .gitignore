@@ -11,6 +11,9 @@ gradle-app.setting
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 
+# Gradle properties
+gradle.properties
+
 ### Java template
 *.class
 
