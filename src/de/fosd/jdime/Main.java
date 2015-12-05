@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -112,9 +111,7 @@ public final class Main {
 
         }
 
-        if (context.isBugfixing()) {
-            bugfixing(context);
-        } else if (context.isDumpTree()) {
+        if (context.isDumpTree()) {
             dumpTrees(context);
         } else if (context.isDumpFile()) {
             dumpFiles(context);
@@ -294,11 +291,6 @@ public final class Main {
                     case "list":
                         printStrategies();
                         return false;
-                    case "bugfixing":
-                        context.setMergeStrategy(MergeStrategy
-                                .parse("structured"));
-                        context.setBugfixing();
-                        break;
                     case "dumptree":
                         // User only wants to display the ASTs
                         context.setMergeStrategy(MergeStrategy
@@ -400,8 +392,7 @@ public final class Main {
 
             int numInputFiles = cmd.getArgList().size();
 
-            if (!((context.isDumpTree() || context.isDumpFile() || context
-                    .isBugfixing()) || numInputFiles >= MergeType.MINFILES)) {
+            if (!((context.isDumpTree() || context.isDumpFile()) || numInputFiles >= MergeType.MINFILES)) {
                 JDimeConfig.printCLIHelp();
                 return false;
             }
@@ -531,33 +522,6 @@ public final class Main {
             MergeStrategy<FileArtifact> strategy =
                     (MergeStrategy<FileArtifact>) context.getMergeStrategy();
             System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
-        }
-    }
-
-    /**
-     * Only used for debugging purposes.
-     *
-     * @param context
-     *            merge context
-     *
-     */
-    private static void bugfixing(final MergeContext context) throws IOException {
-        context.setPretend(true);
-        context.setQuiet(false);
-        setLogLevel("FINEST");
-
-        for (FileArtifact artifact : context.getInputFiles()) {
-            ASTNodeArtifact ast = new ASTNodeArtifact(artifact);
-            // System.out.println(ast.getASTNode().dumpTree());
-            // System.out.println(ast.getASTNode());
-            // System.out.println(ast.prettyPrint());
-            System.out.println(ast.dumpTree());
-            System.out.println("--");
-            //int[] s = ast.getStats();
-            //System.out.println("Number of nodes: " + s[0]);
-            //System.out.println("Tree Depth: " + s[1]);
-            //System.out.println("MaxChildren: " + s[2]);
-            System.out.println("--------------------------------------------");
         }
     }
 
