@@ -53,8 +53,7 @@ import org.apache.commons.cli.ParseException;
 import static de.fosd.jdime.JDimeConfig.*;
 
 /**
- * @author Olaf Lessenich
- *
+ * Contains the main method of the application.
  */
 public final class Main {
 
@@ -62,6 +61,11 @@ public final class Main {
 
     public static final String TOOLNAME = "jdime";
     public static final String VERSION = "0.3.11-develop";
+
+    /**
+     * Prevent instantiation.
+     */
+    private Main() {}
 
     /**
      * Perform a merge operation on the input files or directories.
@@ -523,11 +527,5 @@ public final class Main {
                     (MergeStrategy<FileArtifact>) context.getMergeStrategy();
             System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
         }
-    }
-
-    /**
-     * Private constructor.
-     */
-    private Main() {
     }
 }
