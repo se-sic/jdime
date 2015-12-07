@@ -213,7 +213,8 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
                 T right = matching.getRight();
 
                 if (context.getLookAhead() == MergeContext.LOOKAHEAD_OFF && !left.matches(right)) {
-                    String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";
+                    String format = "Tried to store a non-lookahead matching between %s and %s that do not match.";
+                    String msg = String.format(format, left.getId(), right.getId());
                     throw new RuntimeException(msg);
                 }
 
