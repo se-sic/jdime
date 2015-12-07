@@ -212,19 +212,14 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
                 T left = matching.getLeft();
                 T right = matching.getRight();
 
-                if (left.matches(right)) {
-                    // regular top-down matching where the compared nodes do match
-                    matching.setHighlightColor(color);
-                    left.addMatching(matching);
-                    right.addMatching(matching);
-                } else if (context.getLookAhead() != MergeContext.LOOKAHEAD_OFF) {
-                    // the compared nodes do not match but look-ahead is active and found matchings in the subtree
-                    // TODO: collect statistical data about matching scores per language element and look-ahead setting
-                } else {
-                    // the compared nodes do not match and look-ahead is inactive: this is a serious bug!
+                if (context.getLookAhead() == MergeContext.LOOKAHEAD_OFF && !left.matches(right)) {
                     String msg = "Tried to store matching tree when lookahead is off and nodes do not match!";
                     throw new RuntimeException(msg);
                 }
+
+                matching.setHighlightColor(color);
+                left.addMatching(matching);
+                right.addMatching(matching);
             }
         }
     }
