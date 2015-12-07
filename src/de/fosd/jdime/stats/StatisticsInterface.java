@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.Matching;
 
 public interface StatisticsInterface {
 
@@ -155,6 +156,14 @@ public interface StatisticsInterface {
                     elementStats.forEach(ElementStatistics::incrementNumDeleted);
                 } else {
                     elementStats.forEach(ElementStatistics::incrementNumAdded);
+                }
+            }
+
+            if (otherRev != null) {
+                Matching<?> matching = current.getMatching(otherRev);
+
+                if (matching != null) {
+                    statistics.addMatching(matching);
                 }
             }
         }
