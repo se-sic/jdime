@@ -24,7 +24,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -245,12 +244,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final int compareTo(final ASTNodeArtifact o) {
-        if (hasUniqueLabels()) {
-            return astnode.dumpString().compareTo(o.astnode.dumpString());
-        } else {
-            throw new RuntimeException("This artifact is not comparable.");
-        }
+    public int compareTo(ASTNodeArtifact o) {
+        return getId().compareTo(o.getId());
     }
 
     @Override
