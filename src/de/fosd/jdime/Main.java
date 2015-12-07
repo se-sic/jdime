@@ -70,7 +70,8 @@ public final class Main {
     /**
      * Perform a merge operation on the input files or directories.
      *
-     * @param args command line arguments
+     * @param args
+     *         command line arguments
      */
     public static void main(String[] args) {
 
@@ -85,7 +86,8 @@ public final class Main {
     /**
      * Perform a merge operation on the input files or directories.
      *
-     * @param args command line arguments
+     * @param args
+     *         command line arguments
      */
     public static void run(String[] args) throws IOException, ParseException, InterruptedException {
         MergeContext context = new MergeContext();
@@ -270,17 +272,17 @@ public final class Main {
      * Parses command line arguments and initializes program.
      *
      * @param context
-     *            merge context
+     *         merge context
      * @param args
-     *            command line arguments
+     *         command line arguments
      * @return true if program should continue
      * @throws IOException
-     *             If an input output exception occurs
+     *         If an input output exception occurs
      * @throws ParseException
-     *             If arguments cannot be parsed
+     *         If arguments cannot be parsed
      */
-    private static boolean parseCommandLineArgs(final MergeContext context,
-            final String[] args) throws IOException, ParseException {
+    private static boolean parseCommandLineArgs(final MergeContext context, final String[] args) throws IOException,
+            ParseException {
         assert (context != null);
         LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
         boolean continueRun = true;
@@ -305,40 +307,33 @@ public final class Main {
             if (cmd.hasOption(CLI_MODE)) {
                 try {
                     switch (cmd.getOptionValue(CLI_MODE).toLowerCase()) {
-                    case "list":
-                        printStrategies();
-                        return false;
-                    case "dumptree":
-                        // User only wants to display the ASTs
-                        context.setMergeStrategy(MergeStrategy
-                                .parse("structured"));
-                        context.setDumpTree(true);
-                        context.setGuiDump(false);
-                        break;
-                    case "dumpgraph":
-                        // User only wants to display the ASTs
-                        context.setMergeStrategy(MergeStrategy
-                                .parse("structured"));
-                        context.setDumpTree(true);
-                        context.setGuiDump(true);
-                        break;
-                    case "dumpfile":
-                        // User only wants to display the files
-                        context.setMergeStrategy(MergeStrategy
-                                .parse("linebased"));
-                        context.setDumpFiles(true);
-                        break;
-                    case "prettyprint":
-                        // User wants to parse and pretty-print file
-                        context.setMergeStrategy(MergeStrategy
-                                .parse("structured"));
-                        context.setDumpFiles(true);
-                        break;
-                    default:
-                        // User wants to merge
-                        context.setMergeStrategy(MergeStrategy.parse(cmd
-                                .getOptionValue(CLI_MODE)));
-                        break;
+                        case "list":
+                            printStrategies();
+                            return false;
+                        case "dumptree":
+                            // User only wants to display the ASTs
+                            context.setMergeStrategy(MergeStrategy.parse("structured"));
+                            context.setDumpTree(true);
+                            context.setGuiDump(false);
+                            break;
+                        case "dumpgraph":
+                            // User only wants to display the ASTs
+                            context.setMergeStrategy(MergeStrategy.parse("structured"));
+                            context.setDumpTree(true);
+                            context.setGuiDump(true);
+                            break;
+                        case "dumpfile":
+                            // User only wants to display the files
+                            context.setMergeStrategy(MergeStrategy.parse("linebased"));
+                            context.setDumpFiles(true);
+                            break;
+                        case "prettyprint":
+                            // User wants to parse and pretty-print file
+                            context.setMergeStrategy(MergeStrategy.parse("structured"));
+                            context.setDumpFiles(true);
+                            break;
+                        default:
+                            context.setMergeStrategy(MergeStrategy.parse(cmd.getOptionValue(CLI_MODE)));
                     }
                 } catch (StrategyNotFoundException e) {
                     LOG.severe(e.getMessage());
@@ -376,7 +371,7 @@ public final class Main {
                 try {
                     lookAhead = Integer.parseInt(lookAheadValue);
                 } catch (NumberFormatException e) {
-                    switch(lookAheadValue) {
+                    switch (lookAheadValue) {
                         case "off":
                             break;
                         case "full":
@@ -392,14 +387,14 @@ public final class Main {
             context.collectStatistics(cmd.hasOption(CLI_STATS));
             context.setForceOverwriting(cmd.hasOption(CLI_FORCE_OVERWRITE));
             context.setRecursive(cmd.hasOption(CLI_RECURSIVE));
-            
+
             if (cmd.hasOption(CLI_PRINT)) {
                 context.setPretend(true);
                 context.setQuiet(false);
             } else if (cmd.hasOption(CLI_QUIET)) {
                 context.setQuiet(true);
             }
-            
+
             context.setKeepGoing(cmd.hasOption(CLI_KEEPGOING));
 
             if (cmd.hasOption(CLI_SHOWCONFIG)) {
@@ -455,7 +450,6 @@ public final class Main {
 
     /**
      * Print version information.
-     *
      */
     private static void version() {
         System.out.println(TOOLNAME + " VERSION " + VERSION);
@@ -465,7 +459,7 @@ public final class Main {
      * Prints configuration information.
      *
      * @param context
-     *            merge context
+     *         merge context
      */
     private static void showConfig(final MergeContext context) {
         assert (context != null);
@@ -475,7 +469,6 @@ public final class Main {
 
     /**
      * Prints the available strategies.
-     *
      */
     private static void printStrategies() {
         System.out.println("Available merge strategies:");
@@ -489,11 +482,11 @@ public final class Main {
      * Merges the input files.
      *
      * @param context
-     *            merge context
+     *         merge context
      * @throws InterruptedException
-     *             If a thread is interrupted
+     *         If a thread is interrupted
      * @throws IOException
-     *             If an input output exception occurs
+     *         If an input output exception occurs
      */
     public static void merge(MergeContext context) throws IOException, InterruptedException {
         ArtifactList<FileArtifact> inFiles = context.getInputFiles();
@@ -512,15 +505,14 @@ public final class Main {
      * Mainly used for debugging purposes.
      *
      * @param context
-     *            merge context
+     *         merge context
      * @throws IOException
-     *             If an input output exception occurs
+     *         If an input output exception occurs
      */
     @SuppressWarnings("unchecked")
     private static void dumpTrees(final MergeContext context) throws IOException {
         for (FileArtifact artifact : context.getInputFiles()) {
-            MergeStrategy<FileArtifact> strategy =
-                    (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+            MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
             System.out.println(strategy.dumpTree(artifact, context.isGuiDump()));
         }
     }
@@ -529,15 +521,14 @@ public final class Main {
      * Mainly used for debugging purposes.
      *
      * @param context
-     *            merge context
+     *         merge context
      * @throws IOException
-     *             If an input output exception occurs
+     *         If an input output exception occurs
      */
     @SuppressWarnings("unchecked")
     private static void dumpFiles(final MergeContext context) throws IOException {
         for (FileArtifact artifact : context.getInputFiles()) {
-            MergeStrategy<FileArtifact> strategy =
-                    (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+            MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
             System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
         }
     }
