@@ -28,6 +28,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.Matching;
 
 /**
  * A collection of <code>MergeScenarioStatistics</code> containing collected statistics about
@@ -52,6 +53,8 @@ public class Statistics {
 
         serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
         serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
+
+        serializer.omitField(Matching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
 
