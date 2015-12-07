@@ -72,11 +72,26 @@ public final class Main {
      *
      * @param args command line arguments
      */
-    public static void main(final String[] args) throws IOException, ParseException, InterruptedException {
+    public static void main(String[] args) {
+
+        try {
+            run(args);
+        } catch (Throwable e) {
+            LOG.log(Level.SEVERE, e, () -> "Uncaught exception.");
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Perform a merge operation on the input files or directories.
+     *
+     * @param args command line arguments
+     */
+    public static void run(String[] args) throws IOException, ParseException, InterruptedException {
         MergeContext context = new MergeContext();
 
         if (!parseCommandLineArgs(context, args)) {
-            System.exit(0);
+            return;
         }
 
         ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
@@ -140,8 +155,6 @@ public final class Main {
 
             LOG.config(sb.toString());
         }
-
-        System.exit(0);
     }
 
     /**
