@@ -22,7 +22,6 @@
  */
 package de.fosd.jdime.matcher;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -123,7 +122,9 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         boolean isOrdered = false;
         boolean uniqueLabels = true;
 
-        Queue<T> wait = new LinkedList<>(Arrays.asList(left, right));
+        Queue<T> wait = new LinkedList<>(left.getChildren());
+        wait.addAll(right.getChildren());
+
         while (fullyOrdered && !wait.isEmpty()) {
             T node = wait.poll();
             fullyOrdered = node.isOrdered();
