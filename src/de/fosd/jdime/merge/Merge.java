@@ -84,7 +84,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         Diff<T> diff = new Diff<>();
 
         Matching<T> m;
-        if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
+        if (!left.hasMatching(r) && !right.hasMatching(l)) {
             if (!base.isEmpty()) {
                 // 3-way merge
 

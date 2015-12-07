@@ -719,15 +719,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean matches(T other);
 
     /**
-     * Returns true if matches were previously computed.
-     *
-     * @return true if matches were already computed
-     */
-    public boolean matchingComputed(Revision rev) {
-        return hasMatching(rev);
-    }
-
-    /**
      * Performs a merge on the provided merge triple.
      * This method selects the <code>MergeStrategy</code> and triggers the merge.
      *
