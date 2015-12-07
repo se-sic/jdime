@@ -1,11 +1,15 @@
 package de.fosd.jdime.stats;
 
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 
@@ -16,6 +20,7 @@ public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
 
+    private Set<Matching<?>> matchings;
     private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
     private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
     private Map<Revision, MergeStatistics> mergeStatistics;
@@ -35,6 +40,7 @@ public class MergeScenarioStatistics {
      */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
+        this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
@@ -52,6 +58,26 @@ public class MergeScenarioStatistics {
      */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
+    }
+
+    /**
+     * Adds a <code>Matching</code> to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param matching
+     *         the <code>Matching</code> to add
+     */
+    public void addMatching(Matching<?> matching) {
+        matchings.add(matching);
+    }
+
+    /**
+     * Adds all <code>Matching</code>s contained in <code>matchings</code> to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param matchings
+     *         the <code>Matching</code>s to add
+     */
+    public void addAllMatchings(Collection<? extends Matching<?>> matchings) {
+        this.matchings.addAll(matchings);
     }
 
     /**
@@ -268,6 +294,8 @@ public class MergeScenarioStatistics {
      */
     public void add(MergeScenarioStatistics other) {
 
+        addAllMatchings(other.matchings);
+
         for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : other.levelStatistics.entrySet()) {
             Revision rev = entry.getKey();
 
@@ -312,6 +340,11 @@ public class MergeScenarioStatistics {
         os.println("General:");
         os.printf("%sConflicts: %s%n", indent, conflicts);
         os.printf("%sRuntime: %dms%n", indent, runtime);
+
+        if (!matchings.isEmpty()) os.println("Matchings");
+        matchings.stream().sorted().forEachOrdered(matching -> {
+            os.printf("%s%s%n", indent, matching);
+        });
 
         if (!levelStatistics.isEmpty()) os.println("Level Statistics");
         levelStatistics.forEach((rev, map) -> map.forEach((level, stats) -> {
