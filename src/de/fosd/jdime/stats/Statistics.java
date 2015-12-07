@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -291,7 +292,14 @@ public class Statistics {
      *         the <code>PrintStream</code> to write to
      */
     public void print(PrintStream ps) {
-        getScenarioStatistics().forEach(statistics -> statistics.print(ps));
+
+        for (Iterator<MergeScenarioStatistics> it = getScenarioStatistics().iterator(); it.hasNext(); ) {
+            it.next().print(ps);
+
+            if (it.hasNext()) {
+                ps.println();
+            }
+        }
     }
 
     /**
