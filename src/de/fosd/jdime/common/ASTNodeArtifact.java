@@ -29,7 +29,9 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -438,9 +440,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final boolean hasUniqueLabels() {
-        return ImportDecl.class.isAssignableFrom(astnode.getClass())
-                || Literal.class.isAssignableFrom(astnode.getClass());
+    public Optional<Supplier<String>> getUniqueLabel() {
+        boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())
+                            || Literal.class.isAssignableFrom(astnode.getClass());
+
+        return hasLabel ? Optional.of(() -> astnode.dumpString()) : Optional.empty();
     }
 
     @Override

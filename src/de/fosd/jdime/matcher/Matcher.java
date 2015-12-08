@@ -134,20 +134,24 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         
         for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
             T leftChild = left.getChild(i);
+
             if (leftChild.isOrdered()) {
                 isOrdered = true;
             }
-            if (!uniqueLabels || !leftChild.hasUniqueLabels()) {
+
+            if (!uniqueLabels || !leftChild.getUniqueLabel().isPresent()) {
                 uniqueLabels = false;
             }
         }
 
         for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
             T rightChild = right.getChild(i);
+
             if (rightChild.isOrdered()) {
                 isOrdered = true;
             }
-            if (!uniqueLabels || !rightChild.hasUniqueLabels()) {
+
+            if (!uniqueLabels || !rightChild.getUniqueLabel().isPresent()) {
                 uniqueLabels = false;
             }
         }

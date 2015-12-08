@@ -34,8 +34,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
@@ -560,8 +562,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final boolean hasUniqueLabels() {
-        return true;
+    public Optional<Supplier<String>> getUniqueLabel() {
+        return Optional.of(() -> file.getName());
     }
 
     /**

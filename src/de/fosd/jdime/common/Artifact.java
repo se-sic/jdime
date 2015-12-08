@@ -33,8 +33,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -646,12 +648,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether this <code>Artifact</code> has unique labels.
-     * If this is the case, a more efficient <code>UnorderedMatcher</code> can be used.
+     * Returns a <code>Supplier</code> producing a unique label for this <code>Artifact</code> or an empty optional
+     * if there is no such label. If there is a unique label a more efficient <code>UnorderedMatcher</code> can be used.
      *
-     * @return whether the <code>Artifact</code> has unique labels
+     * @return optionally a <code>Supplier</code> producing a unique label
      */
-    public abstract boolean hasUniqueLabels();
+    public abstract Optional<Supplier<String>> getUniqueLabel();
 
     /**
      * Returns true if the <code>Artifact</code> is a conflict node.

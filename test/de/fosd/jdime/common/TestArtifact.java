@@ -2,6 +2,8 @@ package de.fosd.jdime.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
@@ -94,8 +96,8 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public boolean hasUniqueLabels() {
-        return true;
+    public Optional<Supplier<String>> getUniqueLabel() {
+        return Optional.of(() -> String.valueOf(id));
     }
 
     @Override
