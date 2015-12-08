@@ -329,6 +329,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             sb.append(Color.RED.toShell());
             sb.append(">>>>>>> ");
+            sb.append(Color.DEFAULT.toShell());
             sb.append(System.lineSeparator());
         } else if (isChoice()) {
             Set<String> conditions = getVariants().keySet();
@@ -348,6 +349,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 }
                 sb.append(Color.RED.toShell());
                 sb.append("#endif");
+                sb.append(Color.DEFAULT.toShell());
                 sb.append(System.lineSeparator());
 
             }
