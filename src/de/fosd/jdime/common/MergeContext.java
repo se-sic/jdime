@@ -50,11 +50,6 @@ public class MergeContext implements Cloneable {
     public static final int LOOKAHEAD_OFF = 0;
 
     /**
-     * Whether we are in bug-fixing mode.
-     */
-    private boolean bugfixing = false;
-
-    /**
      * Whether merge inserts choice nodes instead of direct merging.
      */
     private boolean conditionalMerge = false;
@@ -354,15 +349,6 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Returns whether bugfixing mode is enabled.
-     *
-     * @return true if bugfixing mode is enabled
-     */
-    public boolean isBugfixing() {
-        return bugfixing;
-    }
-
-    /**
      * @return the diffOnly
      */
     public boolean isDiffOnly() {
@@ -511,13 +497,6 @@ public class MergeContext implements Cloneable {
     public void resetStreams() {
         stdIn = new StringWriter();
         stdErr = new StringWriter();
-    }
-
-    /**
-     * Enables bugfixing mode.
-     */
-    public void setBugfixing() {
-        bugfixing = true;
     }
 
     /**
