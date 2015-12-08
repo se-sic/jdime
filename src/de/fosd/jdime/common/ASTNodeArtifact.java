@@ -611,11 +611,19 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             if (left != null) {
                 left.rebuildAST();
                 astnode.left = left.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
 
             if (right != null) {
                 right.rebuildAST();
                 astnode.right = right.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
         }
 
