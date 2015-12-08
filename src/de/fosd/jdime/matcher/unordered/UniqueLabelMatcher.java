@@ -25,6 +25,7 @@ package de.fosd.jdime.matcher.unordered;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,6 +43,12 @@ import de.fosd.jdime.matcher.Matchings;
  * @author Olaf Lessenich
  */
 public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
+
+    private final Comparator<T> comp = (o1, o2) -> {
+
+        // we expect that the Artifacts have a unique label, if they do not an exception is to be expected
+        return o1.getUniqueLabel().get().get().compareTo(o2.getUniqueLabel().get().get());
+    };
 
     /**
      * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>Matcher</code> for recursive calls.
@@ -97,8 +104,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         List<T> leftChildren = left.getChildren();
         List<T> rightChildren = right.getChildren();
 
-        Collections.sort(leftChildren);
-        Collections.sort(rightChildren);
+        Collections.sort(leftChildren, comp);
+        Collections.sort(rightChildren, comp);
 
         Iterator<T> leftIt = leftChildren.iterator();
         Iterator<T> rightIt = rightChildren.iterator();
@@ -108,7 +115,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 
         boolean done = false;
         while (!done) {
-            int c = leftChild.compareTo(rightChild);
+            int c = comp.compare(leftChild, rightChild);
             if (c < 0) {
                 if (leftIt.hasNext()) {
                     leftChild = leftIt.next();
