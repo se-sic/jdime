@@ -131,11 +131,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public int compareTo(TestArtifact o) {
-        return id - o.id;
-    }
-
-    @Override
     public KeyEnums.Type getType() {
         return null;
     }

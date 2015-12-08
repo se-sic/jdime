@@ -250,15 +250,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final int compareTo(final FileArtifact o) {
-        if (o == this) {
-            return 0;
-        }
-
-        return this.toString().compareTo(o.toString());
-    }
-
-    @Override
     public final FileArtifact createEmptyArtifact() throws IOException {
         FileArtifact emptyFile = new FileArtifact();
         LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());

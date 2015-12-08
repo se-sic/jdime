@@ -246,11 +246,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public int compareTo(ASTNodeArtifact o) {
-        return getId().compareTo(o.getId());
-    }
-
-    @Override
     public final ASTNodeArtifact createEmptyArtifact() {
         ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
         emptyArtifact.setRevision(getRevision());

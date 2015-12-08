@@ -852,6 +852,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     @Override
     public abstract String toString();
 
+    @Override
+    public final int compareTo(T o) {
+        return getId().compareTo(o.getId());
+    }
+
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
      */
