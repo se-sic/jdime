@@ -3,6 +3,7 @@ package de.fosd.jdime.matcher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
@@ -149,9 +149,11 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
         forEach(matching -> {
             UnorderedTuple<T, T> artifacts = matching.getMatchedArtifacts();
             BiFunction<Artifact<T>, List<Matching<T>>, List<Matching<T>>> adder = (artifact, list) -> {
+
                 if (list == null) {
                     list = new ArrayList<>();
                 }
+
                 list.add(matching);
 
                 return list;
@@ -161,11 +163,27 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
             matchings.compute(artifacts.getY(), adder);
         });
 
-        Set<Matching<T>> filtered = matchings.entrySet()
-                                             .stream()
-                                             .map(entry -> Collections.max(entry.getValue(), (o1, o2) ->
-                                                     Float.compare(o1.getPercentage(), o2.getPercentage())))
-                                             .collect(Collectors.toSet());
+        Set<Matching<T>> filtered = new HashSet<>();
+        Set<Artifact<T>> computed = new HashSet<>();
+        Comparator<Matching<T>> comp = (o1, o2) -> Float.compare(o1.getPercentage(), o2.getPercentage());
+
+        for (Map.Entry<Artifact<T>, List<Matching<T>>> entry : matchings.entrySet()) {
+            Collections.sort(entry.getValue(), comp.reversed());
+
+            for (Matching<T> max : entry.getValue()) {
+                T left = max.getLeft();
+                T right = max.getRight();
+
+                if (!computed.contains(left) && !computed.contains(right)) {
+                    filtered.add(max);
+                    computed.add(left);
+                    computed.add(right);
+                    break;
+                }
+            }
+        }
+
+        filtered.stream().sorted().forEachOrdered(System.out::println);
 
         Matchings<T> res = new Matchings<>();
         res.addAll(filtered);
