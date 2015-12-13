@@ -163,7 +163,8 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 
         Set<Matching<T>> filtered = matchings.entrySet()
                                              .stream()
-                                             .map(entry -> Collections.max(entry.getValue(), (o1, o2) -> o1.getScore() - o2.getScore()))
+                                             .map(entry -> Collections.max(entry.getValue(), (o1, o2) ->
+                                                     Float.compare(o1.getPercentage(), o2.getPercentage())))
                                              .collect(Collectors.toSet());
 
         Matchings<T> res = new Matchings<>();
