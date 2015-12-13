@@ -120,8 +120,10 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
             list.add(new BalancedSequence<>(root, lookAhead));
         }
 
-        if (lookAhead == MergeContext.LOOKAHEAD_FULL || lookAhead > 0) {
-            root.getChildren().forEach(c -> getSequences(root, lookAhead - 1, list));
+        if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
+            root.getChildren().forEach(c -> getSequences(c, lookAhead, list));
+        } else if (lookAhead > 0) {
+            root.getChildren().forEach(c -> getSequences(c, lookAhead - 1, list));
         }
 
         return list;
