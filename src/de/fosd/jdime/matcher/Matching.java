@@ -133,6 +133,23 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     }
 
     /**
+     * Returns a float from [0, 1] describing the percentual match between the matched <code>Artifact</code>s.
+     * The percentage is calculated as (2 * score) / (left.getTreeSize() + right.getTreeSize()).
+     *
+     * @return the matching percentage
+     */
+    public float getPercentage() {
+        T left = getLeft();
+        T right = getRight();
+
+        if (left == null || right == null) {
+            return 0;
+        }
+
+        return (2 * (float) score) / (left.getTreeSize() + right.getTreeSize());
+    }
+
+    /**
      * Returns a <code>String</code> describing the algorithm that found the matching.
      *
      * @return the algorithm description
@@ -170,7 +187,8 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
 
     @Override
     public String toString() {
-        return String.format("(%s, %s) = %d", getLeft().getId(), getRight().getId(), score);
+        int percentage = (int) (getPercentage() * 100);
+        return String.format("(%s, %s) = %d (%d%%)", getLeft().getId(), getRight().getId(), score, percentage);
     }
 
     @Override
