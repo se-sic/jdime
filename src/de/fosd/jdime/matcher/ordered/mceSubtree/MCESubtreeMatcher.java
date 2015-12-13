@@ -46,13 +46,6 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         List<BalancedSequence<T>> rightSeqs = getSequences(right, lookAhead, new ArrayList<>());
         Set<Matching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
-        /*
-         * Now we filter out the BalancedSequences in rightSequences which were produced by a node that is
-         * already in the left tree.
-         */
-        rightSeqs.removeIf(rightSeq -> leftSeqs.stream().anyMatch(leftSeq -> rightSeq.getRoot().matches(leftSeq.getRoot())));
-        matchings.addAll(getMatchings(rightSeqs, leftSeqs));
-
         Matchings<T> result = new Matchings<>();
         result.addAll(matchings);
 
