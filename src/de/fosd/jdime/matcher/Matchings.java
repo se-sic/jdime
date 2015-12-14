@@ -183,8 +183,6 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
             }
         }
 
-        filtered.stream().sorted().forEachOrdered(System.out::println);
-
         Matchings<T> res = new Matchings<>();
         res.addAll(filtered);
 
