@@ -24,13 +24,6 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     private int score;
 
     /**
-     * Constructs a new empty <code>Matching</code> with score 0.
-     */
-    public Matching() {
-        this(null, null, 0);
-    }
-
-    /**
      * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
      *
      * @param left the left <code>Artifact</code>
