@@ -171,6 +171,11 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
             Collections.sort(entry.getValue(), comp.reversed());
 
             for (Matching<T> max : entry.getValue()) {
+
+                if (max.getScore() == 0) {
+                    break;
+                }
+
                 T left = max.getLeft();
                 T right = max.getRight();
 
