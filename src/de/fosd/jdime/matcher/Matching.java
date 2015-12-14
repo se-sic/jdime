@@ -1,5 +1,7 @@
 package de.fosd.jdime.matcher;
 
+import java.util.Objects;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
 
@@ -21,6 +23,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     private Color highlightColor;
 
     private UnorderedTuple<T, T> matchedArtifacts;
+    private float percentage;
     private int score;
 
     /**
@@ -41,8 +44,13 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      * @param score the score of the matching
      */
     public Matching(UnorderedTuple<T, T> matchedArtifacts, int score) {
+        Objects.requireNonNull(matchedArtifacts);
+        Objects.requireNonNull(matchedArtifacts.getX());
+        Objects.requireNonNull(matchedArtifacts.getY());
+
         this.matchedArtifacts = matchedArtifacts;
         this.score = score;
+        calculatePercentage();
     }
 
     /**
@@ -105,6 +113,8 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
         } else if (right.getId().equals(artifact.getId())) {
             matchedArtifacts.setY(artifact);
         }
+
+        calculatePercentage();
     }
 
     /**
@@ -123,6 +133,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      */
     public void setScore(int score) {
         this.score = score;
+        calculatePercentage();
     }
 
     /**
@@ -132,14 +143,22 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      * @return the matching percentage
      */
     public float getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * Sets the <code>percentage</code> field to (2 * score) / (left.getTreeSize() + right.getTreeSize()) or 0 if
+     * <code>left</code> or <code>right</code> is <code>null</code>.
+     */
+    private void calculatePercentage() {
         T left = getLeft();
         T right = getRight();
 
         if (left == null || right == null) {
-            return 0;
+            percentage = 0;
+        } else {
+            percentage = (2 * (float) score) / (left.getTreeSize() + right.getTreeSize());
         }
-
-        return (2 * (float) score) / (left.getTreeSize() + right.getTreeSize());
     }
 
     /**
