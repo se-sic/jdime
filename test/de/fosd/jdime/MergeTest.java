@@ -141,4 +141,9 @@ public class MergeTest extends JDimeTest {
     public void testVariableDeclaration() throws Exception {
         runMerge("SimpleTests/VariableDeclaration.java");
     }
+
+    @Test
+    public void testChangedMethod() throws Exception {
+        runMerge("SimpleTests/ChangedMethod.java");
+    }
 }
