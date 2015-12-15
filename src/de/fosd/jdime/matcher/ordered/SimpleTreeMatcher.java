@@ -44,6 +44,8 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
+    private static final String ID = SimpleTreeMatcher.class.getSimpleName();
+
     /**
      * Constructs a new <code>SimpleTreeMatcher</code> using the given <code>Matcher</code> for recursive calls.
      *
@@ -61,31 +63,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      */
     @Override
     public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-        String id = getClass().getSimpleName();
         int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
-                /*
-                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
-                 * subtrees and return early to save time.
-                 */
-
-                LOG.finest(() -> {
-                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-                    return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
-                });
-
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
-                m.get(left, right).get().setAlgorithm(id);
-
-                return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
-            }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
-        }
 
         // number of first-level subtrees of t1
         int m = left.getNumChildren();
@@ -162,7 +140,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
         // total matching score for these trees is the score of the matched children + the matching of the root nodes
         Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
-        matching.setAlgorithm(id);
+        matching.setAlgorithm(ID);
 
         Matchings<T> matchings = new Matchings<>();
         matchings.add(matching);

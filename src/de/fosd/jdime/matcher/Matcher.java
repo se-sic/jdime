@@ -66,6 +66,7 @@ import static de.fosd.jdime.JDimeConfig.getConfig;
 public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
+    private static final String ID = Matcher.class.getSimpleName();
 
     private boolean useMCESubtreeMatcher;
 
@@ -93,7 +94,10 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
     public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 
         if (left.isConflict()) {
-            return Matchings.of(left, right, 0);
+            Matchings<T> m = Matchings.of(left, right, 0);
+            m.get(left, right).get().setAlgorithm(ID);
+
+            return m;
         }
 
         if (left.isChoice()) {
@@ -116,6 +120,31 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
             LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
             return maxMatching;
+        }
+
+        int rootMatching = left.matches(right) ? 1 : 0;
+
+        if (rootMatching == 0) {
+            if (lookAhead == 0) {
+                /*
+                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
+                 * subtrees and return early to save time.
+                 */
+
+                LOG.finest(() -> {
+                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
+                    return String.format(format, ID, left.getId(), right.getId(), context.getLookAhead());
+                });
+
+                Matchings<T> m = Matchings.of(left, right, rootMatching);
+                m.get(left, right).get().setAlgorithm(ID);
+
+                return m;
+            } else if (lookAhead > 0) {
+                lookAhead = lookAhead - 1;
+            }
+        } else if (context.isLookAhead()) {
+            lookAhead = context.getLookAhead();
         }
 
         boolean fullyOrdered = useMCESubtreeMatcher;

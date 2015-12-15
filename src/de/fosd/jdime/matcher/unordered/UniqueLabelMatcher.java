@@ -44,6 +44,8 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
+    private static final String ID = UniqueLabelMatcher.class.getSimpleName();
+
     private final Comparator<T> comp = (o1, o2) -> {
 
         // we expect that the Artifacts have a unique label, if they do not an exception is to be expected
@@ -67,35 +69,11 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
      */
     @Override
     public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-        String id = getClass().getSimpleName();
         int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
-                /*
-                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
-                 * subtrees and return early to save time.
-                 */
-
-                LOG.finest(() -> {
-                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-                    return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
-                });
-
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
-                m.get(left, right).get().setAlgorithm(id);
-
-                return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
-            }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
-        }
 
         if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
             Matchings<T> m = Matchings.of(left, right, rootMatching);
-            m.get(left, right).get().setAlgorithm(id);
+            m.get(left, right).get().setAlgorithm(ID);
 
             return m;
         }
@@ -145,6 +123,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         }
 
         Matchings<T> result = Matchings.of(left, right, sum + rootMatching);
+        result.get(left, right).get().setAlgorithm(ID);
         result.addAllMatchings(childrenMatchings);
 
         return result;
