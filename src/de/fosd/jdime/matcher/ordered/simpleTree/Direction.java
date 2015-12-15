@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.ordered.simpleTree;
 
 /**
  * A helper class used within the matrix of the LCST matcher.

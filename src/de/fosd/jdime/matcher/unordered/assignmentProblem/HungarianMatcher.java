@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import java.util.ArrayList;
 import java.util.List;

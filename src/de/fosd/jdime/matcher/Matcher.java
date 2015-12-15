@@ -36,11 +36,11 @@ import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
-import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
-import de.fosd.jdime.matcher.unordered.HungarianMatcher;
+import de.fosd.jdime.matcher.ordered.simpleTree.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
+import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
 
 import static de.fosd.jdime.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static de.fosd.jdime.JDimeConfig.getConfig;

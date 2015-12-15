@@ -1,4 +1,4 @@
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import java.util.Arrays;
 

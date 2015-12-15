@@ -45,7 +45,7 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements MatcherIn
     /**
      * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
      */
-    MatcherInterface<T> matcher;
+    protected MatcherInterface<T> matcher;
 
     /**
      * Constructs a new <code>OrderedMatcher</code> using the given <code>matcher</code> for recursive calls.

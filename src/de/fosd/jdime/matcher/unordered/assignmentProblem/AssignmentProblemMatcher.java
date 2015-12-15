@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -28,6 +28,7 @@ import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
  * <code>UnorderedMatcher</code> that solves the assignment problem, which

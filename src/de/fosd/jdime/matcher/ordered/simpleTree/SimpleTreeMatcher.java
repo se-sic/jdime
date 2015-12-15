@@ -21,18 +21,17 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher.ordered;
+package de.fosd.jdime.matcher.ordered.simpleTree;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.matcher.Direction;
-import de.fosd.jdime.matcher.Entry;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
 /**
  * This ordered matcher implements a variant of Yang's Simple Tree Matching.
