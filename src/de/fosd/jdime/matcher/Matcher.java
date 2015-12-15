@@ -31,6 +31,9 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;

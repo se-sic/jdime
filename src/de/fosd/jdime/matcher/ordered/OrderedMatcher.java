@@ -28,7 +28,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.MatchingInterface;
-import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.matching.Matchings;
 
 /**
  * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing

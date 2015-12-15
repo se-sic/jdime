@@ -9,7 +9,7 @@ import java.util.Set;
 
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 

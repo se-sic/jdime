@@ -23,6 +23,7 @@
 package de.fosd.jdime.matcher;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.matcher.matching.Matchings;
 
 /**
  * A helper class used within the matrix of the LCST matcher.

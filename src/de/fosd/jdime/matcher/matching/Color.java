@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.matching;
 
 /**
  * @author Olaf Lessenich

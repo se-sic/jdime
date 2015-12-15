@@ -1,4 +1,4 @@
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.matching;
 
 import java.util.Objects;
 

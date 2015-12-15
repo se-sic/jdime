@@ -29,7 +29,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
 
 /**
  * A collection of <code>MergeScenarioStatistics</code> containing collected statistics about

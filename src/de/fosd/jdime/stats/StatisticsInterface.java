@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
 
 public interface StatisticsInterface {
 
