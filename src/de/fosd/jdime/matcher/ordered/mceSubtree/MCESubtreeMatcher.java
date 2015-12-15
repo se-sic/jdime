@@ -28,7 +28,8 @@ import de.fosd.jdime.matcher.ordered.OrderedMatcher;
  */
 public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-    private static ExecutorService ex = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final ExecutorService EX = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final String ID = MCESubtreeMatcher.class.getSimpleName();
 
     /**
      * Constructs a new <code>OrderedMatcher</code>
@@ -68,17 +69,22 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
         for (BalancedSequence<T> leftSequence : left) {
             for (BalancedSequence<T> rightSequence : right) {
-                Matching<T> matching = new Matching<T>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
+                Matching<T> matching = new Matching<>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
+                matching.setAlgorithm(ID);
 
                 if (!matchings.contains(matching)) {
-                    tasks.add(() -> { matching.setScore(BalancedSequence.lcs(leftSequence, rightSequence));    return null; });
+                    tasks.add(() -> {
+                        matching.setScore(BalancedSequence.lcs(leftSequence, rightSequence));
+                        return null;
+                    });
+
                     matchings.add(matching);
                 }
             }
         }
 
         try {
-            List<Future<Void>> futures = ex.invokeAll(tasks);
+            List<Future<Void>> futures = EX.invokeAll(tasks);
 
             for (Future<Void> future : futures) {
 

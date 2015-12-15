@@ -46,7 +46,7 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMatcher<T> {
 
-    private String id = getClass().getSimpleName();
+    private static final String ID = HungarianMatcher.class.getSimpleName();
 
     /**
      * Constructs a new <code>HungarianMatcher</code> using the given <code>Matcher</code> for recursive calls.
@@ -57,7 +57,6 @@ public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMa
     public HungarianMatcher(final Matcher<T> matcher) {
         super(matcher);
     }
-
 
     /**
      * {@inheritDoc}
@@ -110,7 +109,7 @@ public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMa
         }
 
         Matching<T> matching = new Matching<>(left, right, score + rootMatching);
-        matching.setAlgorithm(id);
+        matching.setAlgorithm(ID);
 
         Matchings<T> result = new Matchings<>();
         result.add(matching);

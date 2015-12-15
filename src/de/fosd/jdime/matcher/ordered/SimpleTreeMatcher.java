@@ -44,6 +44,8 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
+    private static final String ID = SimpleTreeMatcher.class.getSimpleName();
+
     /**
      * Constructs a new <code>SimpleTreeMatcher</code> using the given <code>Matcher</code> for recursive calls.
      *
@@ -61,7 +63,6 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      */
     @Override
     public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-        String id = getClass().getSimpleName();
         int rootMatching = left.matches(right) ? 1 : 0;
 
         // number of first-level subtrees of t1
@@ -139,7 +140,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
         // total matching score for these trees is the score of the matched children + the matching of the root nodes
         Matching<T> matching = new Matching<>(left, right, matrixM[m][n] + rootMatching);
-        matching.setAlgorithm(id);
+        matching.setAlgorithm(ID);
 
         Matchings<T> matchings = new Matchings<>();
         matchings.add(matching);

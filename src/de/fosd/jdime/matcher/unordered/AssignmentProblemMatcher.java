@@ -39,7 +39,7 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-    private String id = getClass().getSimpleName();
+    private static final String ID = AssignmentProblemMatcher.class.getSimpleName();
 
     /**
      * Constructs a new <code>AssignmentProblemMatcher</code> using the given <code>Matcher</code> for recursive calls.
@@ -68,7 +68,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
 
         if (m == 0 || n == 0) {
             Matchings<T> matchings = Matchings.of(left, right, rootMatching);
-            matchings.get(left, right).get().setAlgorithm(id);
+            matchings.get(left, right).get().setAlgorithm(ID);
 
             return matchings;
         }
