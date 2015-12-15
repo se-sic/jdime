@@ -31,7 +31,7 @@ import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
@@ -53,12 +53,12 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
     };
 
     /**
-     * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatchingInterface</code>
      */
-    public UniqueLabelMatcher(Matcher<T> matcher) {
+    public UniqueLabelMatcher(MatchingInterface<T> matcher) {
         super(matcher);
     }
 

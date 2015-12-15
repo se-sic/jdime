@@ -25,7 +25,7 @@ package de.fosd.jdime.matcher.unordered;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
@@ -42,12 +42,12 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
     private static final String ID = AssignmentProblemMatcher.class.getSimpleName();
 
     /**
-     * Constructs a new <code>AssignmentProblemMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>AssignmentProblemMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatchingInterface</code>
      */
-    public AssignmentProblemMatcher(final Matcher<T> matcher) {
+    public AssignmentProblemMatcher(MatchingInterface<T> matcher) {
         super(matcher);
     }
 

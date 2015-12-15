@@ -13,7 +13,7 @@ import java.util.logging.Level;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
@@ -35,9 +35,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      * Constructs a new <code>OrderedMatcher</code>
      *
      * @param matcher
-     *         matcher
+     *         the parent <code>MatchingInterface</code>
      */
-    public MCESubtreeMatcher(Matcher<T> matcher) {
+    public MCESubtreeMatcher(MatchingInterface<T> matcher) {
         super(matcher);
     }
 

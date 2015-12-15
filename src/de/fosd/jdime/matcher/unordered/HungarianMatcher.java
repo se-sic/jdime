@@ -27,7 +27,7 @@ import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.MatchingInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
@@ -49,12 +49,12 @@ public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMa
     private static final String ID = HungarianMatcher.class.getSimpleName();
 
     /**
-     * Constructs a new <code>HungarianMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>HungarianMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatchingInterface</code>
      */
-    public HungarianMatcher(final Matcher<T> matcher) {
+    public HungarianMatcher(MatchingInterface<T> matcher) {
         super(matcher);
     }
 

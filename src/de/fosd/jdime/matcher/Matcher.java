@@ -66,7 +66,7 @@ import static de.fosd.jdime.JDimeConfig.getConfig;
  *
  * @param <T> type of <code>Artifact</code>
  */
-public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
+public class Matcher<T extends Artifact<T>> {
 
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
     private static final String ID = Matcher.class.getSimpleName();
@@ -86,15 +86,18 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      * Constructs a new <code>Matcher</code>.
      */
     public Matcher() {
-        unorderedMatcher = new HungarianMatcher<>(this);
-        unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
-        orderedMatcher = new SimpleTreeMatcher<>(this);
-        mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
+        unorderedMatcher = new HungarianMatcher<>(this::match);
+        unorderedLabelMatcher = new UniqueLabelMatcher<>(this::match);
+        orderedMatcher = new SimpleTreeMatcher<>(this::match);
+        mceSubtreeMatcher = new MCESubtreeMatcher<>(this::match);
         useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
-    @Override
-    public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+    public Matchings<T> match(MergeContext context, T left, T right) {
+        return match(context, left, right, context.getLookAhead());
+    }
+
+    protected Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 
         if (left.isConflict()) {
             Matchings<T> m = Matchings.of(left, right, 0);
