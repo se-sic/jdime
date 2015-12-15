@@ -38,7 +38,7 @@ import de.fosd.jdime.merge.MergeInterface;
  *         type of <code>Artifact</code>
  * @author Olaf Lessenich
  */
-public interface MatchingInterface<T extends Artifact<T>> {
+public interface MatcherInterface<T extends Artifact<T>> {
 
     /**
      * Returns a <code>Set</code> of <code>Matching</code>s for the provided <code>Artifact</code>s.

@@ -219,10 +219,10 @@ public class Matcher<T extends Artifact<T>> {
     }
 
     /**
-     * Logs the use of a <code>MatchingInterface</code> implementation to match <code>left</code> and
+     * Logs the use of a <code>MatcherInterface</code> implementation to match <code>left</code> and
      * <code>right</code>.
      *
-     * @param c the <code>MatchingInterface</code> that is used
+     * @param c the <code>MatcherInterface</code> that is used
      * @param left the left <code>Artifact</code> that is matched
      * @param right the right <code>Artifact</code> that is matched
      */

@@ -30,7 +30,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Direction;
 import de.fosd.jdime.matcher.Entry;
-import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
@@ -50,9 +50,9 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      * Constructs a new <code>SimpleTreeMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>MatchingInterface</code>
+     *         the parent <code>MatcherInterface</code>
      */
-    public SimpleTreeMatcher(MatchingInterface<T> matcher) {
+    public SimpleTreeMatcher(MatcherInterface<T> matcher) {
         super(matcher);
     }
 
