@@ -329,6 +329,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             sb.append(Color.RED.toShell());
             sb.append(">>>>>>> ");
+            sb.append(Color.DEFAULT.toShell());
             sb.append(System.lineSeparator());
         } else if (isChoice()) {
             Set<String> conditions = getVariants().keySet();
@@ -348,6 +349,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 }
                 sb.append(Color.RED.toShell());
                 sb.append("#endif");
+                sb.append(Color.DEFAULT.toShell());
                 sb.append(System.lineSeparator());
 
             }
@@ -609,11 +611,19 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             if (left != null) {
                 left.rebuildAST();
                 astnode.left = left.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
 
             if (right != null) {
                 right.rebuildAST();
                 astnode.right = right.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
         }
 
