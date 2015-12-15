@@ -104,8 +104,11 @@ public final class Main {
 
             if (inputFile.isDirectory() && !context.isRecursive()) {
                 String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
+
                 LOG.severe(msg);
-                throw new RuntimeException(msg);
+                System.err.println(msg);
+
+                return;
             }
         }
 
@@ -130,8 +133,11 @@ public final class Main {
                 }
             } else {
                 String msg = "File exists and will not be overwritten.";
+
                 LOG.severe(msg);
-                throw new RuntimeException(msg);
+                System.err.println(msg);
+
+                return;
             }
 
         }
@@ -286,11 +292,8 @@ public final class Main {
      * @throws ParseException
      *         If arguments cannot be parsed
      */
-    private static boolean parseCommandLineArgs(final MergeContext context, final String[] args) throws IOException,
-            ParseException {
-        assert (context != null);
+    private static boolean parseCommandLineArgs(MergeContext context, String[] args) throws IOException, ParseException {
         LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
-        boolean continueRun = true;
 
         try {
             CommandLine cmd = JDimeConfig.parseArgs(args);
@@ -341,8 +344,8 @@ public final class Main {
                             context.setMergeStrategy(MergeStrategy.parse(cmd.getOptionValue(CLI_MODE)));
                     }
                 } catch (StrategyNotFoundException e) {
-                    LOG.severe(e.getMessage());
-                    throw e;
+                    LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
+                    return false;
                 }
 
                 if (context.getMergeStrategy() == null) {
@@ -351,16 +354,9 @@ public final class Main {
                 }
             }
 
-            String outputFileName = null;
-            if (cmd.hasOption(CLI_OUTPUT)) {
-                // TODO[low priority]: The default should in a later,
-                // rock-stable version be changed to be overwriting file1 so
-                // that we are compatible with gnu merge call syntax
-                outputFileName = cmd.getOptionValue(CLI_OUTPUT);
-            }
-
             if (cmd.hasOption(CLI_DIFFONLY)) {
                 context.setDiffOnly(true);
+
                 if (cmd.hasOption(CLI_CONSECUTIVE)) {
                     context.setConsecutive(true);
                 }
@@ -440,17 +436,27 @@ public final class Main {
 
             context.setInputFiles(inputArtifacts);
 
+            String outputFileName = null;
+            if (cmd.hasOption(CLI_OUTPUT)) {
+                // TODO[low priority]: The default should in a later,
+                // rock-stable version be changed to be overwriting file1 so
+                // that we are compatible with gnu merge call syntax
+                outputFileName = cmd.getOptionValue(CLI_OUTPUT);
+            }
+
             if (outputFileName != null) {
-                context.setOutputFile(new FileArtifact(new Revision("merge"), new File(outputFileName),
-                        true, targetIsFile));
+                Revision mergeRev = new Revision("merge");
+                FileArtifact outArtifact = new FileArtifact(mergeRev, new File(outputFileName), true, targetIsFile);
+
+                context.setOutputFile(outArtifact);
                 context.setPretend(false);
             }
         } catch (ParseException e) {
-            LOG.severe(() -> "Arguments could not be parsed: " + e.getMessage());
-            throw e;
+            LOG.log(Level.SEVERE, e, () -> "Arguments could not be parsed!");
+            return false;
         }
 
-        return continueRun;
+        return true;
     }
 
     /**
