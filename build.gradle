@@ -60,15 +60,18 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
+
 license {
     header rootProject.file('LICENSE_HEADER')
     mapping("fxml", "XML_STYLE")
     strictCheck true
 
-    include "res/**"
-    include "src/**"
-    include "test/**"
-    exclude "src/de/fosd/jdime/matcher/unordered/HungarianAlgorithm.java"
+    fileTree(testFilesDir).visit {
+        exclude it.getRelativePath().getPathString()
+    }
+
+    exclude "de/fosd/jdime/matcher/unordered/HungarianAlgorithm.java"
 }
 
 idea {
@@ -138,7 +141,6 @@ test {
 
 task getTestFiles {
     def gitURI = "https://github.com/xai/jdime-testfiles"
-    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
     group = 'verification'
