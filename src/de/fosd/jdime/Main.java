@@ -49,6 +49,7 @@ import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.JDimeConfig.*;
 
@@ -109,23 +110,28 @@ public final class Main {
         }
 
         if (output != null && output.exists() && !output.isEmpty()) {
-            System.err.println("Output directory is not empty!");
-            System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            String response = reader.readLine();
+            boolean overwrite;
 
-            if (response.length() == 0 || response.toLowerCase().charAt(0) != 'y') {
-                String msg = "File exists and will not be overwritten.";
-                LOG.warning(msg);
-                throw new RuntimeException(msg);
-            } else {
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(System.in))) {
+                System.err.println("Output directory is not empty!");
+                System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
+
+                String response = r.readLine().trim().toLowerCase();
+                overwrite = response.length() != 0 && response.charAt(0) == 'y';
+            }
+
+            if (overwrite) {
                 LOG.warning("File exists and will be overwritten.");
-                boolean isDirectory = output.isDirectory();
+
                 output.remove();
 
-                if (isDirectory) {
-                    output.getFile().mkdir();
+                if (output.isDirectory()) {
+                    FileUtils.forceMkdir(output.getFile());
                 }
+            } else {
+                String msg = "File exists and will not be overwritten.";
+                LOG.severe(msg);
+                throw new RuntimeException(msg);
             }
 
         }
