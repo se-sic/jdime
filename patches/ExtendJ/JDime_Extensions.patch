@@ -1,3 +1,53 @@
+diff --git a/LICENSE b/LICENSE
+index 3e801c1..a0ed362 100644
+--- a/LICENSE
++++ b/LICENSE
+@@ -1,6 +1,8 @@
+-Copyright (c) 2005-2015, ExtendJ Committers
++Original work Copyright (c) 2005-2015, ExtendJ Committers
+ All rights reserved.
+ 
++Modified work Copyright 2013-2015 Olaf Lessenich
++
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+diff --git a/README.md b/README.md
+index 263757c..b2ea50e 100644
+--- a/README.md
++++ b/README.md
+@@ -1,16 +1,28 @@
+-ExtendJ
++ExtendJ (Fork for JDime)
+ ========
+ 
+-The JastAdd extensible Java compiler.
++The JastAdd extensible Java compiler (JDime flavoured).
++
++Notice: This is a fork of [extendj/extendj](https://bitbucket.org/extendj/extendj).
++
++I basically use this as a backend for my structured merge tool
++[JDime](https://github.com/xai/jdime).
++
++I made my extensions to the project in the form of aspects, which reside in
++files whose name includes the string "JDime".
+ 
+ License & Copyright
+ -------------------
+ 
++The copyright for most portions of the software are held by the original authors:
+ * Copyright (c) 2005-2008, Torbj&ouml;rn Ekman
+-* Copyright (c) 2005-2013, ExtendJ Committers
++* Copyright (c) 2005-2015, ExtendJ Committers
+ 
+ All rights reserved.
+ 
++The copyright for minor extensions of the software (All files whose name
++includes the String "JDime") is held by Olaf Lessenich, 2013-2015.
++
+ ExtendJ is covered by the Modified BSD License. The full license text is
+ distributed with this software. See the `LICENSE` file.
+ 
 diff --git a/build.xml b/build.xml
 index 83488da..20a5ef4 100644
 --- a/build.xml
@@ -14,7 +64,7 @@ index 83488da..20a5ef4 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..9409bb3
+index 0000000..db4beb4
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
 @@ -0,0 +1,180 @@
@@ -96,7 +146,7 @@ index 0000000..9409bb3
 +	 */
 +	public boolean ASTNode.printVirtualNode(StringBuffer s) {
 +		if (isConflict) {
-+			s.append("\n<<<<<<< " + left.sourceFile() + "\n");
++			s.append("\n<<<<<<< " + (left != null ? left.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
 +			if (left != null) {
 +				s.append(left.prettyPrint());
 +				s.append("\n");
@@ -106,7 +156,7 @@ index 0000000..9409bb3
 +				s.append(right.prettyPrint());
 +				s.append("\n");
 +			}
-+			s.append(">>>>>>> " + right.sourceFile() + "\n");
++			s.append(">>>>>>> " + (right != null ? right.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
 +			return true;
 +		} else if (isChoice) {
 +			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
@@ -200,10 +250,10 @@ index 0000000..9409bb3
 +}
 diff --git a/java4/frontend/PrettyPrintJDime.jadd b/java4/frontend/PrettyPrintJDime.jadd
 new file mode 100644
-index 0000000..c7e37bd
+index 0000000..d9c6cba
 --- /dev/null
 +++ b/java4/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,421 @@
+@@ -0,0 +1,486 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
@@ -296,6 +346,16 @@ index 0000000..c7e37bd
 +	}
 +
 +	refine PrettyPrint public void VariableDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VariableDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VarDeclStmt.prettyPrint(StringBuffer sb) {
 +		if (printVirtualNode(sb)) { return; }
 +		refined(sb);
 +	}
@@ -621,6 +681,61 @@ index 0000000..c7e37bd
 +	}
 +
 +	refine PrettyPrint public void VoidType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BlockLambdaBody.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DeclaredLambdaParameters.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprLambdaBody.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprMethodReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InferredLambdaParameters.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InferredParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IntersectionCastExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LambdaExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeMethodReference.prettyPrint(StringBuffer sb) {
 +		if (printVirtualNode(sb)) { return; }
 +		refined(sb);
 +	}
@@ -1119,27 +1234,40 @@ index 0000000..84c8ec7
 +}
 diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
 new file mode 100644
-index 0000000..fa691a8
+index 0000000..89abdad
 --- /dev/null
 +++ b/java7/frontend/MultiCatchJDime.jadd
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,46 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -1158,27 +1286,40 @@ index 0000000..fa691a8
 +}
 diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
 new file mode 100644
-index 0000000..9abc60b
+index 0000000..23c12d3
 --- /dev/null
 +++ b/java7/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,41 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -1192,27 +1333,40 @@ index 0000000..9abc60b
 +}
 diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
 new file mode 100644
-index 0000000..97d4934
+index 0000000..d194e1c
 --- /dev/null
 +++ b/java7/frontend/TryWithResourcesJDime.jadd
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,41 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>

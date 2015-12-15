@@ -521,6 +521,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return whether the <code>Artifact</code> or its subtree has changes
      */
     public boolean hasChanges() {
+        // FIXME: this method does currently not detect deletions as changes.
+
         boolean hasChanges = !hasMatches();
 
         for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
