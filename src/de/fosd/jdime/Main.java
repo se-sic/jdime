@@ -99,10 +99,8 @@ public final class Main {
         ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
         FileArtifact output = context.getOutputFile();
 
-        assert inputFiles != null : "List of input artifacts may not be null!";
-
         for (FileArtifact inputFile : inputFiles) {
-            assert (inputFile != null);
+
             if (inputFile.isDirectory() && !context.isRecursive()) {
                 String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
                 LOG.severe(msg);
@@ -146,13 +144,14 @@ public final class Main {
 
         if (LOG.isLoggable(Level.CONFIG)) {
             Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
+            String ls = System.lineSeparator();
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
 
             for (MergeScenario<?> scenario : crashes.keySet()) {
                 Throwable t = crashes.get(scenario);
-                sb.append("* " + t.toString() + "\n");
-                sb.append("    " + scenario.toString().replace(" ", "\n    ") + "\n");
+                sb.append("* ").append(t.toString()).append(ls);
+                sb.append("    ").append(scenario.toString().replace(" ", ls + "    ")).append(ls);
             }
 
             LOG.config(sb.toString());
