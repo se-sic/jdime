@@ -77,6 +77,10 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
             merge = new Merge<>();
         }
 
+        if (context.hasStatistics()) {
+            context.getStatistics().setCurrentFileMergeScenario(triple);
+        }
+
         LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
         merge.merge(operation, context);
     }

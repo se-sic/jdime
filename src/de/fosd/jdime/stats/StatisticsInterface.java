@@ -20,7 +20,7 @@
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  */
-package de.fosd.jdime.strategy;
+package de.fosd.jdime.stats;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -36,10 +36,6 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.stats.ElementStatistics;
-import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.MergeScenarioStatistics;
-import de.fosd.jdime.stats.MergeStatistics;
 
 public interface StatisticsInterface {
 
@@ -102,6 +98,21 @@ public interface StatisticsInterface {
 
     }
 
+    /**
+     * Collects statistics about the given <code>artifact</code> tree. The <code>otherRev</code> is used when counting
+     * added, deleted and matched elements elements. <code>otherRev</code> should be the 'opposite'
+     * <code>Revision</code> e.g. when <code>artifact</code> represents the tree of the 'left' revision,
+     * <code>otherRev</code> should be the 'right' <code>Revision</code>. The resulting
+     * <code>MergeScenarioStatistics</code> contains <code>null</code> as its <code>MergeScenario</code> and is intended
+     * to be added to an existing <code>MergeScenarioStatistics</code> instance.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> tree to collect statistics for
+     * @param otherRev
+     *         the 'opposite' <code>Revision</code> or <code>null</code> (when collecting statistics for the target
+     *         <code>Artifact</code>)
+     * @return the resulting <code>MergeScenarioStatistics</code>
+     */
     static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev) {
         MergeScenarioStatistics statistics = new MergeScenarioStatistics(null);
         List<ElementStatistics> elementStats = new ArrayList<>();
@@ -118,6 +129,9 @@ public interface StatisticsInterface {
             }
         }
 
+        Predicate<Artifact<?>> otherMatches = a -> ((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
+        Predicate<Artifact<?>> isConflict = Artifact::isConflict;
+
         for (Artifact<?> current : preOrder) {
             elementStats.clear();
 
@@ -133,12 +147,8 @@ public interface StatisticsInterface {
             elementStats.forEach(ElementStatistics::incrementTotal);
 
             if (current.isConflict()) {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
                 elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
-            } else if ((otherRev == null && current.hasMatches()) || current.hasMatching(otherRev)) {
-                elementStats.forEach(ElementStatistics::incrementNumMatched);
-            } else {
-                elementStats.forEach(ElementStatistics::incrementNumChanged);
+            } else if (otherMatches.negate().test(current)) {
 
                 // added or deleted?
                 if (current.hasMatches()) {
@@ -156,8 +166,7 @@ public interface StatisticsInterface {
         max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());
 
-        Predicate<Artifact<?>> p = a -> a.isConflict() || !((otherRev == null && a.hasMatches()) || a.hasMatching(otherRev));
-        IntSummaryStatistics summary = segmentStatistics(preOrder, p);
+        IntSummaryStatistics summary = segmentStatistics(preOrder, isConflict.or(otherMatches.negate()));
 
         mergeStatistics.setNumChunks((int) summary.getCount());
         mergeStatistics.setAvgChunkSize((float) summary.getAverage());

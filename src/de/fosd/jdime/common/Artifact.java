@@ -22,18 +22,22 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strategy.StatisticsInterface;
+import de.fosd.jdime.stats.StatisticsInterface;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -248,6 +252,36 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return artifact structure as indented plain text
      */
     protected abstract String dumpTree(String indent);
+
+    /**
+     * Returns the tree with this node as its root in TGF format.
+     *
+     * @return the .tgf String
+     */
+    public String dumpTGF() {
+        AtomicInteger nextId = new AtomicInteger(); // an easy way to encapsulate an Integer for the lambdas
+        Map<Artifact<T>, Integer> ids = new HashMap<>();
+        List<String> nodeIDs = new ArrayList<>();
+        List<String> connections = new ArrayList<>();
+        Deque<Artifact<T>> q = new ArrayDeque<>(Collections.singleton(this));
+
+        while (!q.isEmpty()) {
+            Artifact<T> artifact = q.removeFirst();
+
+            Integer fromId = ids.computeIfAbsent(artifact, a -> nextId.getAndIncrement());
+            nodeIDs.add(String.format("%d %s", fromId, artifact.toString()));
+
+            for (T t : artifact.getChildren()) {
+                Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
+                connections.add(String.format("%d %d", fromId, toId));
+            }
+
+            artifact.getChildren().forEach(q::addFirst);
+        }
+
+        String ls = System.lineSeparator();
+        return String.format("%s%n#%n%s", String.join(ls, nodeIDs), String.join(ls, connections));
+    }
 
     /**
      * Returns the AST in dot-format. {@link #toString()} will be used to label the nodes.
