@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -108,10 +107,8 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
-            MergeScenarioStatistics mScenarioStatistics = statistics.getScenarioStatistics(mergeScenario);
-            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
+            MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
 
-            element.incrementNumAdded();
             artifact.addOpStatistics(mScenarioStatistics, context);
         }
     }

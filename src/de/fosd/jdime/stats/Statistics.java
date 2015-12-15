@@ -48,6 +48,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.ImplicitCollectionMapper;
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
 
@@ -144,6 +145,7 @@ public class Statistics {
         });
     }
 
+    private MergeScenario<FileArtifact> currentFileMergeScenario;
     private Map<MergeScenario<?>, MergeScenarioStatistics> scenarioStatistics;
 
     /**
@@ -151,6 +153,37 @@ public class Statistics {
      */
     public Statistics() {
         this.scenarioStatistics = new HashMap<>();
+    }
+
+    /**
+     * Gets the <code>MergeScenarioStatistics</code> for the current <code>FileArtifact</code>
+     * <code>MergeScenario</code>.
+     *
+     * @return the <code>MergeScenarioStatistics</code>
+     */
+    public MergeScenarioStatistics getCurrentFileMergeScenarioStatistics() {
+        return getScenarioStatistics(currentFileMergeScenario);
+    }
+
+    /**
+     * Sets the currently active <code>MergeScenario</code> for <code>FileArtifacts</code> to the new value.
+     *
+     * @param currentFileMergeScenario the new <code>MergeScenario</code> for <code>FileArtifacts</code>
+     */
+    public void setCurrentFileMergeScenario(MergeScenario<FileArtifact> currentFileMergeScenario) {
+        this.currentFileMergeScenario = currentFileMergeScenario;
+    }
+
+    /**
+     * Checks whether a <code>MergeScenarioStatistics</code> for the given <code>MergeScenario</code> was added to
+     * this <code>Statistics</code>.
+     *
+     * @param mergeScenario
+     *         the <code>MergeScenario</code> to check for
+     * @return true iff a <code>MergeScenarioStatistics</code> was registered for <code>mergeScenario</code>
+     */
+    public boolean containsStatistics(MergeScenario<?> mergeScenario) {
+        return scenarioStatistics.containsKey(mergeScenario);
     }
 
     /**
@@ -183,7 +216,7 @@ public class Statistics {
      *         the <code>MergeScenarioStatistics</code> to be adde
      */
     public void addScenarioStatistics(MergeScenarioStatistics statistics) {
-        scenarioStatistics.put(statistics.getMergeScenario(), statistics);
+        scenarioStatistics.merge(statistics.getMergeScenario(), statistics, (o, n) -> {o.add(n); return o;});
     }
 
     /**
@@ -292,11 +325,11 @@ public class Statistics {
     private boolean check(File file) {
 
         if (file.isDirectory()) {
-            LOG.warning(() -> file.getAbsolutePath() + " is a directory and can be written to.");
+            LOG.warning(() -> file.getAbsolutePath() + " is a directory and can't be written to.");
             return false;
         }
 
-        File parent = file.getParentFile();
+        File parent = file.getAbsoluteFile().getParentFile();
 
         if (parent == null) {
             LOG.warning(() -> file.getAbsolutePath() + " does not have a parent directory.");

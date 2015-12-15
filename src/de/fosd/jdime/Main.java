@@ -44,7 +44,6 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
@@ -544,10 +543,16 @@ public final class Main {
      * @throws IOException
      *             If an input output exception occurs
      */
-    public static void merge(final MergeContext context) throws IOException,
-            InterruptedException {
-        assert (context != null);
-        Operation<FileArtifact> merge = new MergeOperation<>(context.getInputFiles(), context.getOutputFile(), null, null, context.isConditionalMerge());
+    public static void merge(MergeContext context) throws IOException, InterruptedException {
+        ArtifactList<FileArtifact> inFiles = context.getInputFiles();
+        FileArtifact outFile = context.getOutputFile();
+        boolean conditional = context.isConditionalMerge();
+        MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
+
+        if (context.hasStatistics()) {
+            context.getStatistics().setCurrentFileMergeScenario(merge.getMergeScenario());
+        }
+
         merge.apply(context);
     }
 

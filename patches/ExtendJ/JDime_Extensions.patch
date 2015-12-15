@@ -14,28 +14,40 @@ index 83488da..20a5ef4 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..63a53e8
+index 0000000..9409bb3
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,180 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -89,7 +101,7 @@ index 0000000..63a53e8
 +				s.append(left.prettyPrint());
 +				s.append("\n");
 +			}
-+			s.append("======= \n");
++			s.append("=======\n");
 +			if (right != null) {
 +				s.append(right.prettyPrint());
 +				s.append("\n");
@@ -144,8 +156,16 @@ index 0000000..63a53e8
 +		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
 +	}
 +
++	public String VarDeclStmt.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
 +	public String MethodDecl.getMatchingRepresentation() {
 +		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String VariableDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getID() + "]";
 +	}
 +
 +	public boolean ASTNode.matches(ASTNode other) {
@@ -180,28 +200,40 @@ index 0000000..63a53e8
 +}
 diff --git a/java4/frontend/PrettyPrintJDime.jadd b/java4/frontend/PrettyPrintJDime.jadd
 new file mode 100644
-index 0000000..0ffad31
+index 0000000..c7e37bd
 --- /dev/null
 +++ b/java4/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,421 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -595,28 +627,40 @@ index 0000000..0ffad31
 +}
 diff --git a/java5/frontend/AnnotationsJDime.jadd b/java5/frontend/AnnotationsJDime.jadd
 new file mode 100644
-index 0000000..98d3c59
+index 0000000..03348ab
 --- /dev/null
 +++ b/java5/frontend/AnnotationsJDime.jadd
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,76 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -665,28 +709,40 @@ index 0000000..98d3c59
 +}
 diff --git a/java5/frontend/EnhancedForJDime.jadd b/java5/frontend/EnhancedForJDime.jadd
 new file mode 100644
-index 0000000..ba84ec6
+index 0000000..7ab9503
 --- /dev/null
 +++ b/java5/frontend/EnhancedForJDime.jadd
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,41 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -700,28 +756,40 @@ index 0000000..ba84ec6
 +}
 diff --git a/java5/frontend/EnumsJDime.jadd b/java5/frontend/EnumsJDime.jadd
 new file mode 100644
-index 0000000..b59b5b9
+index 0000000..b529f51
 --- /dev/null
 +++ b/java5/frontend/EnumsJDime.jadd
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,46 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -740,28 +808,40 @@ index 0000000..b59b5b9
 +} 
 diff --git a/java5/frontend/GenericMethodsJDime.jadd b/java5/frontend/GenericMethodsJDime.jadd
 new file mode 100644
-index 0000000..9bc5e45
+index 0000000..b97a1f4
 --- /dev/null
 +++ b/java5/frontend/GenericMethodsJDime.jadd
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,71 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -805,28 +885,40 @@ index 0000000..9bc5e45
 +}
 diff --git a/java5/frontend/GenericsJDime.jadd b/java5/frontend/GenericsJDime.jadd
 new file mode 100644
-index 0000000..23018ba
+index 0000000..260d3b0
 --- /dev/null
 +++ b/java5/frontend/GenericsJDime.jadd
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,82 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -881,28 +973,40 @@ index 0000000..23018ba
 +}
 diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
 new file mode 100644
-index 0000000..4061b20
+index 0000000..c2e0f8d
 --- /dev/null
 +++ b/java5/frontend/StaticImportsJDime.jadd
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,46 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -921,28 +1025,40 @@ index 0000000..4061b20
 +}
 diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
 new file mode 100644
-index 0000000..c1ebdae
+index 0000000..5ed6e31
 --- /dev/null
 +++ b/java5/frontend/VariableArityParametersJDime.jadd
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,41 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -956,28 +1072,40 @@ index 0000000..c1ebdae
 +}
 diff --git a/java7/frontend/DiamondJDime.jadd b/java7/frontend/DiamondJDime.jadd
 new file mode 100644
-index 0000000..ed857ac
+index 0000000..84c8ec7
 --- /dev/null
 +++ b/java7/frontend/DiamondJDime.jadd
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,41 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
-+ * This library is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
 + *
-+ * This library is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
 + *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-+ * MA 02110-1301  USA
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + *
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
@@ -991,13 +1119,12 @@ index 0000000..ed857ac
 +}
 diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
 new file mode 100644
-index 0000000..4970774
+index 0000000..fa691a8
 --- /dev/null
 +++ b/java7/frontend/MultiCatchJDime.jadd
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
 + * This library is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU Lesser General Public
@@ -1031,13 +1158,12 @@ index 0000000..4970774
 +}
 diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
 new file mode 100644
-index 0000000..7d6090f
+index 0000000..9abc60b
 --- /dev/null
 +++ b/java7/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
 + * This library is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU Lesser General Public
@@ -1066,13 +1192,12 @@ index 0000000..7d6090f
 +}
 diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
 new file mode 100644
-index 0000000..c7f0371
+index 0000000..97d4934
 --- /dev/null
 +++ b/java7/frontend/TryWithResourcesJDime.jadd
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +/*
-+ * Copyright (C) 2013-2014 Olaf Lessenich
-+ * Copyright (C) 2014-2015 University of Passau, Germany
++ * Copyright (C) 2013-2015 Olaf Lessenich
 + *
 + * This library is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU Lesser General Public

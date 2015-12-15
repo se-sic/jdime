@@ -23,12 +23,8 @@
  */
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Files;
-import java.util.Arrays;
 
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
@@ -40,7 +36,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -50,23 +45,10 @@ public class MergeTest extends JDimeTest {
 
     private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
 
-    private static File leftDir;
-    private static File baseDir;
-    private static File rightDir;
-
     private MergeContext context;
 
     @BeforeClass
     public static void init() throws Exception {
-
-       leftDir = file("/threeway/left");
-       baseDir = file("/threeway/base");
-       rightDir =file("/threeway/right");
-
-        Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
-        });
-
         JDimeConfig.setLogLevel("WARNING");
     }
 
@@ -78,9 +60,9 @@ public class MergeTest extends JDimeTest {
     }
 
     /**
-     * Merges files under '/left/filePath', '/right/filePath' and '/base/filePath' (if <code>threeWay</code> is
+     * Merges files under 'leftDir/filePath', 'rightDir/filePath' and 'baseDir/filePath' (if <code>threeWay</code> is
      * <code>true</code>). Merges will be performed using the strategies in {@link #STRATEGIES} and the output will
-     * be compared with the file in '/strategy/filePath'.
+     * be compared with the file in '/threeway/strategy/filePath'.
      *
      * @param filePath
      *         the path to the files to be merged
@@ -94,8 +76,6 @@ public class MergeTest extends JDimeTest {
             inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
-
-                // setup context
                 context.setMergeStrategy(MergeStrategy.parse(strategy));
                 context.setInputFiles(inputArtifacts);
 
@@ -104,58 +84,27 @@ public class MergeTest extends JDimeTest {
 
                 context.setOutputFile(new FileArtifact(out));
 
-                // run
-                System.out.printf("Running %s strategy on %s%n", strategy, filePath);
                 Main.merge(context);
 
-                // check
                 String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath)));
                 String output = normalize(context.getOutputFile().getContent());
 
-                System.out.println("----------Expected:-----------");
-                System.out.print(expected);
-                System.out.println("----------Received:-----------");
-                System.out.print(output);
-                System.out.println("------------------------------");
+                try {
+                    assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
+                } catch (Exception e) {
+                    System.out.println("----------Expected:-----------");
+                    System.out.println(expected);
+                    System.out.println("----------Received:-----------");
+                    System.out.println(output);
+                    System.out.println("------------------------------");
+                    System.out.println();
 
-                assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
-
-                System.out.println();
+                    throw e;
+                }
             }
         } catch (Exception e) {
             fail(e.toString());
         }
-    }
-
-    /**
-     * Removes the file paths behind all conflict markers.
-     *
-     * @param content
-     *         the content to normalize
-     * @return the normalized <code>String</code>
-     */
-    private static String normalize(String content) {
-        String conflictStart = "<<<<<<<";
-        String conflictEnd = ">>>>>>>";
-        String lineSeparator = System.lineSeparator();
-        StringBuilder b = new StringBuilder(content.length());
-
-        try (BufferedReader r = new BufferedReader(new StringReader(content))) {
-            r.lines().forEachOrdered(l -> {
-
-                if (l.startsWith(conflictStart)) {
-                    l = conflictStart;
-                } else if (l.startsWith(conflictEnd)) {
-                    l = conflictEnd;
-                }
-
-                b.append(l).append(lineSeparator);
-            });
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
-
-        return b.toString();
     }
 
     @Test
@@ -181,5 +130,10 @@ public class MergeTest extends JDimeTest {
     @Test
     public void testExprTest () {
         runMerge("SimpleTests/ExprTest.java");
+    }
+
+    @Test
+    public void testDeletionInsertion() throws Exception {
+        runMerge("SimpleTests/DeletionInsertion.java");
     }
 }

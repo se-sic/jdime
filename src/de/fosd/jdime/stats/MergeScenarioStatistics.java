@@ -78,6 +78,20 @@ public class MergeScenarioStatistics {
     }
 
     /**
+     * Checks whether an <code>ElementStatistics</code> was registered for the <code>Revision</code> and
+     * <code>KeyEnums.Level</code> combination.
+     *
+     * @param rev
+     *         the <code>Revision</code> to check for
+     * @param level
+     *         the <code>KeyEnums.Level</code> to check for
+     * @return true iff an <code>ElementStatistics</code> was registered
+     */
+    public boolean containsLevelStatistics(Revision rev, KeyEnums.Level level) {
+        return levelStatistics.containsKey(rev) && levelStatistics.get(rev).containsKey(level);
+    }
+
+    /**
      * Returns the statistics container for the different <code>KeyEnums.Level</code> values.
      *
      * @return the <code>Map</code> from the <code>Revision</code>s of the <code>MergeScenario</code> to the statistics
@@ -99,6 +113,20 @@ public class MergeScenarioStatistics {
      */
     public ElementStatistics getLevelStatistics(Revision rev, KeyEnums.Level level) {
         return levelStatistics.computeIfAbsent(rev, r -> new HashMap<>()).computeIfAbsent(level, l -> new ElementStatistics());
+    }
+
+    /**
+     * Checks whether an <code>ElementStatistics</code> was registered for the <code>Revision</code> and
+     * <code>KeyEnums.Type</code> combination.
+     *
+     * @param rev
+     *         the <code>Revision</code> to check for
+     * @param type
+     *         the <code>KeyEnums.Type</code> to check for
+     * @return true iff an <code>ElementStatistics</code> was registered
+     */
+    public boolean containsTypeStatistics(Revision rev, KeyEnums.Type type) {
+        return typeStatistics.containsKey(rev) && typeStatistics.get(rev).containsKey(type);
     }
 
     /**
@@ -322,7 +350,7 @@ public class MergeScenarioStatistics {
 
         if (!mergeStatistics.isEmpty()) os.println("Merge Statistics");
         mergeStatistics.forEach((rev, stats) -> {
-            os.println(Revision.class.getSimpleName());
+            os.printf("%s %s%n", Revision.class.getSimpleName(), rev);
             stats.print(os, indent);
         });
 

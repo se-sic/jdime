@@ -33,9 +33,7 @@ public class ElementStatistics {
     private int total;
     private int numAdded;
     private int numMerged;
-    private int numMatched;
     private int numDeleted;
-    private int numChanged;
     private int numOccurInConflict;
 
     /**
@@ -45,9 +43,7 @@ public class ElementStatistics {
         this.total = 0;
         this.numAdded = 0;
         this.numMerged = 0;
-        this.numMatched = 0;
         this.numDeleted = 0;
-        this.numChanged = 0;
         this.numOccurInConflict = 0;
     }
 
@@ -79,30 +75,12 @@ public class ElementStatistics {
     }
 
     /**
-     * Increments the matched count by the given amount.
-     *
-     * @param by the amount to add
-     */
-    public void incrementNumMatched(int by) {
-        numMatched += by;
-    }
-
-    /**
      * Increments the deleted count by the given amount.
      *
      * @param by the amount to add
      */
     public void incrementNumDeleted(int by) {
         numDeleted += by;
-    }
-
-    /**
-     * Increments the changed count by the given amount.
-     *
-     * @param by the amount to add
-     */
-    public void incrementNumChanged(int by) {
-        numChanged += by;
     }
 
     /**
@@ -136,24 +114,10 @@ public class ElementStatistics {
     }
 
     /**
-     * Increments the matched count by 1.
-     */
-    public void incrementNumMatched() {
-        incrementNumMatched(1);
-    }
-
-    /**
      * Increments the deleted count by 1.
      */
     public void incrementNumDeleted() {
         incrementNumDeleted(1);
-    }
-
-    /**
-     * Increments the changed count by 1.
-     */
-    public void incrementNumChanged() {
-        incrementNumChanged(1);
     }
 
     /**
@@ -221,25 +185,6 @@ public class ElementStatistics {
     }
 
     /**
-     * Returns the matched counter.
-     *
-     * @return the matched counter
-     */
-    public int getNumMatched() {
-        return numMatched;
-    }
-
-    /**
-     * Sets the matched counter to the new value.
-     *
-     * @param numMatched
-     *         the new matched counter
-     */
-    public void setNumMatched(int numMatched) {
-        this.numMatched = numMatched;
-    }
-
-    /**
      * Returns the deleted counter.
      *
      * @return the deleted counter
@@ -256,25 +201,6 @@ public class ElementStatistics {
      */
     public void setNumDeleted(int numDeleted) {
         this.numDeleted = numDeleted;
-    }
-
-    /**
-     * Returns the changed counter.
-     *
-     * @return the changed counter
-     */
-    public int getNumChanged() {
-        return numChanged;
-    }
-
-    /**
-     * Sets the changed counter to the new value.
-     *
-     * @param numChanged
-     *         the new changed counter
-     */
-    public void setNumChanged(int numChanged) {
-        this.numChanged = numChanged;
     }
 
     /**
@@ -305,9 +231,7 @@ public class ElementStatistics {
         total += other.total;
         numAdded += other.numAdded;
         numMerged += other.numMerged;
-        numMatched += other.numMatched;
         numDeleted += other.numDeleted;
-        numChanged += other.numChanged;
         numOccurInConflict += other.numOccurInConflict;
     }
 
@@ -324,9 +248,7 @@ public class ElementStatistics {
         ps.print(indent); ps.print("Total:      "); ps.println(total);
         ps.print(indent); ps.print("Added:      "); ps.println(numAdded);
         ps.print(indent); ps.print("Merged:     "); ps.println(numMerged);
-        ps.print(indent); ps.print("Matched:    "); ps.println(numMatched);
         ps.print(indent); ps.print("Deleted:    "); ps.println(numDeleted);
-        ps.print(indent); ps.print("Changed:    "); ps.println(numChanged);
         ps.print(indent); ps.print("InConflict: "); ps.println(numOccurInConflict);
     }
 }
