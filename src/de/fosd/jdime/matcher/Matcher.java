@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
@@ -93,11 +94,48 @@ public class Matcher<T extends Artifact<T>> {
         useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
-    public Matchings<T> match(MergeContext context, T left, T right) {
-        return match(context, left, right, context.getLookAhead());
+    /**
+     * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+     *
+     * @param context
+     *         <code>MergeContext</code>
+     * @param left
+     *         left node
+     * @param right
+     *         right node
+     * @param color
+     *         color of the matching (for debug output only)
+     * @return <code>Matchings</code> of the two nodes
+     */
+    public Matchings<T> match(MergeContext context, T left, T right, Color color) {
+        Matchings<T> matchings = match(context, left, right, context.getLookAhead());
+        Matching<T> matching = matchings.get(left, right).get();
+
+        LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
+        LOG.fine(this::getLog);
+
+        storeMatchings(context, matchings, color);
+
+        if (LOG.isLoggable(Level.FINEST)) {
+            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
+            System.out.println(matchings);
+        }
+
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine(left.getRevision() + ".dumpTree():");
+            System.out.println(left.dumpTree());
+
+            LOG.fine(right.getRevision() + ".dumpTree():");
+            System.out.println(right.dumpTree());
+        }
+
+        return matchings;
     }
 
-    protected Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+    /**
+     * @see MatcherInterface#match(MergeContext, Artifact, Artifact, int)
+     */
+    private Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
 
         if (left.isConflict()) {
             Matchings<T> m = Matchings.of(left, right, 0);
@@ -244,7 +282,8 @@ public class Matcher<T extends Artifact<T>> {
      * @param color
      *         the <code>Color</code> used to highlight the matchings in the debug output
      */
-    public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+    private void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+        LOG.finest("Store matching information within nodes.");
 
         for (Matching<T> matching : matchings.optimized()) {
 
@@ -270,7 +309,7 @@ public class Matcher<T extends Artifact<T>> {
      *
      * @return a log of the call counts
      */
-    public String getLog() {
+    private String getLog() {
         assert (calls == unorderedCalls + orderedCalls) : "Wrong sum for matcher calls";
         return "Matcher calls (all/ordered/unordered): " + calls + "/" + orderedCalls + "/" + unorderedCalls;
     }
