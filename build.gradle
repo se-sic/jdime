@@ -139,6 +139,7 @@ task getTestFiles {
         }
     }
 
+    outputs.dir(testFilesDir)
     outputs.upToDateWhen {
         if (!testFilesDir.exists()) {
             return false;

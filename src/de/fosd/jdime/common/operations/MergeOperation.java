@@ -24,6 +24,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -32,7 +33,7 @@ import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -189,10 +190,25 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
-            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            element.incrementNumMerged();
-            artifact.mergeOpStatistics(mScenarioStatistics, context);
+            boolean files = mergeScenario.getArtifacts().entrySet().stream().map(Map.Entry::getValue)
+                    .allMatch(a -> {
+                        KeyEnums.Type t = a.getType();
+                        return t == KeyEnums.Type.FILE || t == KeyEnums.Type.DIRECTORY;
+                    });
+
+            if (files) {
+                mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType()).incrementNumMerged();
+                artifact.mergeOpStatistics(mScenarioStatistics, context);
+            } else {
+                mergeScenario.getArtifacts().entrySet().stream().map(Map.Entry::getValue)
+                        .filter(a -> !a.getRevision().equals(MergeScenario.BASE))
+                        .forEach(a -> {
+                            mScenarioStatistics.getTypeStatistics(a.getRevision(), a.getType()).incrementNumMerged();
+                            mScenarioStatistics.getLevelStatistics(a.getRevision(), a.getLevel()).incrementNumMerged();
+                            a.mergeOpStatistics(mScenarioStatistics, context);
+                        });
+            }
         }
     }
 
