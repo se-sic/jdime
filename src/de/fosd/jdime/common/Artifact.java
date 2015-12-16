@@ -522,6 +522,27 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Returns whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision.
+     *
+     * @param revision <Code>Revision</Code> to compare to
+     * @return whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision
+     */
+    public boolean hasChanges(Revision revision) {
+
+        boolean hasChanges = !hasMatching(revision);
+
+        if (!hasChanges) {
+            T baseArtifact = getMatching(revision).getMatchingArtifact(this);
+            hasChanges = baseArtifact.hasChanges();
+        }
+
+        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
+            hasChanges = getChild(i).hasChanges(revision);
+        }
+
+        return hasChanges;
+    }
+    /**
      * Returns true if the <code>Artifact</code> is a change.
      *
      * @return true if the <code>Artifact</code> is a change
