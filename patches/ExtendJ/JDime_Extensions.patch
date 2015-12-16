@@ -1,0 +1,1380 @@
+diff --git a/LICENSE b/LICENSE
+index 3e801c1..a0ed362 100644
+--- a/LICENSE
++++ b/LICENSE
+@@ -1,6 +1,8 @@
+-Copyright (c) 2005-2015, ExtendJ Committers
++Original work Copyright (c) 2005-2015, ExtendJ Committers
+ All rights reserved.
+ 
++Modified work Copyright 2013-2015 Olaf Lessenich
++
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+diff --git a/README.md b/README.md
+index 263757c..b2ea50e 100644
+--- a/README.md
++++ b/README.md
+@@ -1,16 +1,28 @@
+-ExtendJ
++ExtendJ (Fork for JDime)
+ ========
+ 
+-The JastAdd extensible Java compiler.
++The JastAdd extensible Java compiler (JDime flavoured).
++
++Notice: This is a fork of [extendj/extendj](https://bitbucket.org/extendj/extendj).
++
++I basically use this as a backend for my structured merge tool
++[JDime](https://github.com/xai/jdime).
++
++I made my extensions to the project in the form of aspects, which reside in
++files whose name includes the string "JDime".
+ 
+ License & Copyright
+ -------------------
+ 
++The copyright for most portions of the software are held by the original authors:
+ * Copyright (c) 2005-2008, Torbj&ouml;rn Ekman
+-* Copyright (c) 2005-2013, ExtendJ Committers
++* Copyright (c) 2005-2015, ExtendJ Committers
+ 
+ All rights reserved.
+ 
++The copyright for minor extensions of the software (All files whose name
++includes the String "JDime") is held by Olaf Lessenich, 2013-2015.
++
+ ExtendJ is covered by the Modified BSD License. The full license text is
+ distributed with this software. See the `LICENSE` file.
+ 
+diff --git a/build.xml b/build.xml
+index 83488da..20a5ef4 100644
+--- a/build.xml
++++ b/build.xml
+@@ -188,6 +188,9 @@ Build a standard release:
+ 			<fileset dir="${bin.dir}">
+ 				<include name="**/*"/>
+ 			</fileset>
++			<fileset dir="${src.dir}">
++				<include name="**/*"/>
++			</fileset>
+ 		</jar>
+ 	</target>
+ 
+diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
+new file mode 100644
+index 0000000..db4beb4
+--- /dev/null
++++ b/java4/frontend/JDime.jadd
+@@ -0,0 +1,180 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect JDime {
++	/**
++	 * Replaces the children of the <code>ASTNode</code>.
++	 * 
++	 * @param newchildren child nodes that should replace the current ones
++	 */
++	public void ASTNode.setChildren(ASTNode[] newchildren) {
++		this.init$Children();
++
++		for (int i = 0; i < newchildren.length; i++) {
++			setChild(newchildren[i], i);
++		}
++	}
++
++	/**
++	 * Deletes all children of the <code>ASTNode</code>.
++	 */
++	public void ASTNode.removeChildren() {
++		children = null;
++		numChildren = 0;
++	}
++
++	public String ASTNode.jdimeId = "";
++
++	public boolean ASTNode.jdimeChanges = false;
++
++	public boolean ASTNode.isConflict = false;
++	public boolean ASTNode.isChoice = false;
++
++	public ASTNode<?> ASTNode.left;
++	public ASTNode<?> ASTNode.right;
++	public LinkedHashMap<String, ASTNode<?>> ASTNode.variants;
++
++	/**
++	 * If the <code>ASTNode</code> represents a merge conflict, both conflicting alternatives
++	 * are appended to the <code>StringBuffer</code> in a patch-compatible format.
++	 * If the <code>ASTNode</code> does not represent a merge conflict, nothing is appended.
++	 *
++	 * @param s <code>StringBuffer</code> that is appended by potential alternatives
++	 * @return true if this node represents a conflict
++	 */
++	public boolean ASTNode.printVirtualNode(StringBuffer s) {
++		if (isConflict) {
++			s.append("\n<<<<<<< " + (left != null ? left.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
++			if (left != null) {
++				s.append(left.prettyPrint());
++				s.append("\n");
++			}
++			s.append("=======\n");
++			if (right != null) {
++				s.append(right.prettyPrint());
++				s.append("\n");
++			}
++			s.append(">>>>>>> " + (right != null ? right.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
++			return true;
++		} else if (isChoice) {
++			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
++			Collections.sort(sortedConditions);
++			Iterator<String> it = sortedConditions.iterator();
++			String condition = it.next();
++			s.append("\n");
++			s.append("// #ifdef " + condition);
++			s.append("\n");
++			s.append(variants.get(condition).prettyPrint());
++
++			while (it.hasNext()) {
++				condition = it.next();
++				s.append("\n");
++				s.append("// #elif " + condition);
++				s.append("\n");
++				s.append(variants.get(condition).prettyPrint());
++			}
++
++			s.append("\n");
++			s.append("// #endif");
++			s.append("\n");
++			return true;
++		}
++		return false;
++	}
++
++	refine FlushCaches public void ASTNode.flushCaches() {
++		refined();
++		if (left != null) { left.flushCaches(); }
++		if (right != null) { right.flushCaches(); }
++	}
++
++	public String ASTNode.getMatchingRepresentation() {
++		return dumpString();
++	}
++
++	public String ImportDecl.getMatchingRepresentation() {
++		return prettyPrint();
++	}
++
++	public String Literal.getMatchingRepresentation() {
++		return prettyPrint();
++	}
++
++	public String VariableDeclaration.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String VarDeclStmt.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String MethodDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
++	}
++
++	public String VariableDecl.getMatchingRepresentation() {
++		return dumpString() + " [" + getID() + "]";
++	}
++
++	public boolean ASTNode.matches(ASTNode other) {
++		return getClass().equals(other.getClass())
++		       && getMatchingRepresentation().equals(other.getMatchingRepresentation());
++	}
++
++	public boolean ASTNode.isOrdered() {
++		return true;
++	}
++
++	public boolean BodyDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean InterfaceDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean ImportDecl.isOrdered() {
++		return false;
++	}
++
++	public boolean Modifier.isOrdered() {
++		return false;
++	}
++
++	public boolean TypeAccess.isOrdered() {
++		// TODO: assert
++		return !(getParent() instanceof List);
++	}
++}
+diff --git a/java4/frontend/PrettyPrintJDime.jadd b/java4/frontend/PrettyPrintJDime.jadd
+new file mode 100644
+index 0000000..d9c6cba
+--- /dev/null
++++ b/java4/frontend/PrettyPrintJDime.jadd
+@@ -0,0 +1,486 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect PrettyPrintJDime {
++	refine PrettyPrint public void Program.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CompilationUnit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SingleTypeImportDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint protected void TypeDecl.ppBodyDecls(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InstanceInitializer.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void StaticInitializer.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstructorDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void FieldDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VariableDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VariableDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VarDeclStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MemberClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MemberInterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void EmptyType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayInit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AssignExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Literal.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void StringLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CharacterLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void LongLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void FloatingPointLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Java7Literals public void DoubleLiteral.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ParExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassInstanceExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayCreationExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Unary.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CastExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Binary.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InstanceOfExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConditionalExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Modifiers.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Modifier.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AbstractDot.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VarAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void MethodAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayTypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayTypeWithSizeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ThisAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SuperAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void PackageAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void Block.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void EmptyStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LabeledStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SwitchStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ConstCase.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DefaultCase.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IfStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void WhileStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DoStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ForStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BreakStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ContinueStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ReturnStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ThrowStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void SynchronizedStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TryStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BasicCatch.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void AssertStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LocalClassDeclStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BooleanType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ByteType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ShortType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IntType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LongType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void CharType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void FloatType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DoubleType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void NullType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void VoidType.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ArrayReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void BlockLambdaBody.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ClassReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void DeclaredLambdaParameters.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprLambdaBody.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void ExprMethodReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InferredLambdaParameters.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void InferredParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void IntersectionCastExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void LambdaExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine PrettyPrint public void TypeMethodReference.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/AnnotationsJDime.jadd b/java5/frontend/AnnotationsJDime.jadd
+new file mode 100644
+index 0000000..03348ab
+--- /dev/null
++++ b/java5/frontend/AnnotationsJDime.jadd
+@@ -0,0 +1,76 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect AnnotationsJDime {
++	refine AnnotationPrettyPrinting public void AnnotatedCompilationUnit.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void AnnotationDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void AnnotationMethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void Annotation.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementValuePair.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementConstantValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementAnnotationValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine AnnotationPrettyPrinting public void ElementArrayValue.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/EnhancedForJDime.jadd b/java5/frontend/EnhancedForJDime.jadd
+new file mode 100644
+index 0000000..7ab9503
+--- /dev/null
++++ b/java5/frontend/EnhancedForJDime.jadd
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect EnhancedForJDime {
++	refine EnhancedFor public void EnhancedForStmt.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/EnumsJDime.jadd b/java5/frontend/EnumsJDime.jadd
+new file mode 100644
+index 0000000..b529f51
+--- /dev/null
++++ b/java5/frontend/EnumsJDime.jadd
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect EnumsJDime {
++	refine Enums public void EnumDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine Enums public void EnumConstant.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++} 
+diff --git a/java5/frontend/GenericMethodsJDime.jadd b/java5/frontend/GenericMethodsJDime.jadd
+new file mode 100644
+index 0000000..b97a1f4
+--- /dev/null
++++ b/java5/frontend/GenericMethodsJDime.jadd
+@@ -0,0 +1,71 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect GenericMethodsJDime {
++	refine GenericMethodsPrettyPrint public void ParMethodAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParSuperConstructorAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void ParClassInstanceExpr.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint private void GenericMethodDecl.ppTypeParameters(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void GenericMethodDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericMethodsPrettyPrint public void GenericConstructorDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/GenericsJDime.jadd b/java5/frontend/GenericsJDime.jadd
+new file mode 100644
+index 0000000..260d3b0
+--- /dev/null
++++ b/java5/frontend/GenericsJDime.jadd
+@@ -0,0 +1,82 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect GenericsJDime {
++	refine GenericsPrettyPrint public void TypeVariable.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void ParTypeAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void ParClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint private void GenericClassDecl.ppTypeParameters(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void GenericClassDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void GenericInterfaceDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void Wildcard.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void WildcardExtends.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine GenericsPrettyPrint public void WildcardSuper.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++}
+diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
+new file mode 100644
+index 0000000..c2e0f8d
+--- /dev/null
++++ b/java5/frontend/StaticImportsJDime.jadd
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect StaticImportsJDime {
++	refine StaticImports public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine StaticImports public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
+new file mode 100644
+index 0000000..5ed6e31
+--- /dev/null
++++ b/java5/frontend/VariableArityParametersJDime.jadd
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect VariableArityParametersJDime {
++	refine VariableArityParameters public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/DiamondJDime.jadd b/java7/frontend/DiamondJDime.jadd
+new file mode 100644
+index 0000000..84c8ec7
+--- /dev/null
++++ b/java7/frontend/DiamondJDime.jadd
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect DiamondJDime {
++	refine Diamond public void DiamondAccess.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
+new file mode 100644
+index 0000000..89abdad
+--- /dev/null
++++ b/java7/frontend/MultiCatchJDime.jadd
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect MultiCatchJDime {
++	refine MultiCatch public void MultiCatch.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++
++	refine MultiCatch public void CatchParameterDeclaration.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
+new file mode 100644
+index 0000000..23c12d3
+--- /dev/null
++++ b/java7/frontend/PrettyPrintJDime.jadd
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect PrettyPrintJDime {
++	refine PrettyPrint public void ParseName.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}
+diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
+new file mode 100644
+index 0000000..d194e1c
+--- /dev/null
++++ b/java7/frontend/TryWithResourcesJDime.jadd
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2013-2015 Olaf Lessenich
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *   1. Redistributions of source code must retain the above copyright
++ *      notice, this list of conditions and the following disclaimer.
++ *
++ *   2. Redistributions in binary form must reproduce the above
++ *      copyright notice, this list of conditions and the following
++ *      disclaimer in the documentation and/or other materials provided
++ *      with the distribution.
++ *
++ *   3. The name of the author may not be used to endorse or promote
++ *      products derived from this software without specific prior
++ *      written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Contributors:
++ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
++ */
++
++aspect TryWithResourcesJDime {
++	refine PrettyPrint public void TryWithResources.prettyPrint(StringBuffer sb) {
++		if (printVirtualNode(sb)) { return; }
++		refined(sb);
++	}
++}

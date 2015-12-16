@@ -28,76 +28,30 @@ package de.fosd.jdime.common;
  */
 public enum MergeType {
 
-	/**
-	 * Two-way merge.
-	 */
-	TWOWAY(2, "left", "right"),
+    /**
+     * Two-way merge.
+     */
+    TWOWAY,
 
-	/**
-	 * Three-way merge.
-	 */
-	THREEWAY(3, "left", "base", "right");
+    /**
+     * Three-way merge.
+     */
+    THREEWAY,
 
-	/**
-	 * At least two input files are needed.
-	 */
-	public static final int MINFILES = TWOWAY.numFiles;
+    /**
+     * N-way merge.
+     */
+    NWAY;
 
-	/**
-	 * More than three input files are not supported at the moment.
-	 */
-	public static final int MAXFILES = THREEWAY.numFiles;
+    /**
+     * At least two input files are needed.
+     */
+    public static final int TWOWAY_FILES = 2;
+    public static final int THREEWAY_FILES = 3;
+    public static final int MINFILES = TWOWAY_FILES;
 
-	/**
-	 * Number of required input files.
-	 */
-	private int numFiles;
-
-	/**
-	 * Names of input revisions.
-	 */
-	private String[] revisions;
-
-	/**
-	 * Creates a new instance of MergeType.
-	 *
-	 * @param numFiles
-	 *            number of required input files
-	 * @param revisions
-	 *            names of input revisions
-	 */
-	MergeType(final int numFiles, final String... revisions) {
-		this.numFiles = numFiles;
-		this.revisions = revisions;
-	}
-
-	/**
-	 * Returns revision name of the input file at a certain position.
-	 *
-	 * @param pos
-	 *            position of the input file
-	 * @return revision name
-	 */
-	public String getRevision(final int pos) {
-		return revisions[pos];
-	}
-
-	/**
-	 * Returns number of required input files.
-	 *
-	 * @return required input files.
-	 */
-	public int getNumFiles() {
-		return numFiles;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Enum#toString()
-	 */
-	@Override
-	public final String toString() {
-		return this.name();
-	}
+    @Override
+    public final String toString() {
+        return this.name();
+    }
 }

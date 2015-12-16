@@ -15,9 +15,9 @@
 <TabPane fx:id="tabPane">
 <tabs>
 <Tab fx:id="outputTab" closable="false" text="JDime Output">
-<content>
-      <TextArea fx:id="output" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" />
-</content>
+               <content>
+                  <ListView fx:id="output" stylesheets="@ListView.css" />
+               </content>
 </Tab>
 </tabs>
 </TabPane>
@@ -59,7 +59,7 @@
             <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#runClicked" text="Run" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS" />
             <HBox alignment="CENTER_LEFT" spacing="2.0" GridPane.rowIndex="5">
                <children>
-                  <Label prefWidth="35.0" text="JDime" GridPane.rowIndex="3" />
+                  <Label prefWidth="45.0" text="JDime" GridPane.rowIndex="3" />
                   <TextField fx:id="jDime" HBox.hgrow="ALWAYS" />
                   <Button mnemonicParsing="false" onAction="#chooseJDime" text="Choose" />
                </children>
@@ -74,6 +74,8 @@
                <children>
                   <CheckBox fx:id="debugMode" mnemonicParsing="false" text="JVM Debug Mode" />
                   <Region HBox.hgrow="ALWAYS" />
+                  <Button mnemonicParsing="false" onAction="#saveClicked" text="Save" />
+                  <Button mnemonicParsing="false" onAction="#loadClicked" text="Load" />
                   <Button fx:id="historyNext" disable="true" mnemonicParsing="false" onAction="#historyNext" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&gt;" />
                   <Label text="History" />
                   <Button fx:id="historyPrevious" disable="true" mnemonicParsing="false" onAction="#historyPrevious" style="-fx-background-radius: 0; -fx-background-insets: 0;" text="&lt;" />
@@ -88,5 +90,11 @@
             <Insets bottom="5.0" left="5.0" right="5.0" />
          </GridPane.margin>
       </GridPane>
+      <StackPane fx:id="cancelPane" prefHeight="150.0" prefWidth="200.0" visible="false" GridPane.rowIndex="1">
+         <children>
+            <ProgressIndicator scaleX="0.8" scaleY="0.8" />
+            <Button mnemonicParsing="false" onAction="#cancelClicked" text="Cancel" />
+         </children>
+      </StackPane>
    </children>
 </GridPane>

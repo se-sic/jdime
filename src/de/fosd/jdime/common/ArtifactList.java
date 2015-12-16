@@ -24,50 +24,38 @@
 package de.fosd.jdime.common;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
- * A <code>LinkedList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
+ * An <code>ArrayList</code> of <code>Artifact</code>s. Its {@link #toString()} method is overridden to use
  * {@link Artifact#getId()} to represent its contents.
  *
  * @param <E>
- * 		the type of elements held by this collection
+ *         the type of elements held by this collection
  *
  * @author Olaf Lessenich
  * @see Artifact
  */
 public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 
-	private static final String DEFAULT_SEP = " ";
+    private static final String DEFAULT_SEP = " ";
 
-	@Override
-	public String toString() {
-		return toString(DEFAULT_SEP);
-	}
+    @Override
+    public String toString() {
+        return toString(DEFAULT_SEP);
+    }
 
-	/**
-	 * Returns a string representation of this collection. The string representation consists of a list of the
-	 * collection's elements in the order they are returned by its iterator. Adjacent elements are separated by the
-	 * given <code>separator</code>. Elements are converted to strings as by {@link Artifact#getId()}.
-	 *
-	 * @param separator
-	 * 		the separator to be used
-	 *
-	 * @return a string representation of this collection
-	 */
-	public String toString(String separator) {
-		assert (separator != null);
-
-		StringBuilder sb = new StringBuilder("");
-		
-		for (Iterator<E> it = this.iterator(); it.hasNext();) {
-			sb.append(it.next().getId());
-			
-			if (it.hasNext()) {
-				sb.append(separator);
-			}
-		}
-		
-		return sb.toString();
-	}
+    /**
+     * Returns a string representation of this collection. The string representation consists of a list of the
+     * collection's elements in the order they are returned by its iterator. Adjacent elements are separated by the
+     * given <code>separator</code>. Elements are converted to strings as by {@link Artifact#getId()}.
+     *
+     * @param separator
+     *         the separator to be used
+     *
+     * @return a string representation of this collection
+     */
+    private String toString(String separator) {
+        return String.join(separator, stream().map(E::getId).collect(Collectors.toList()));
+    }
 }

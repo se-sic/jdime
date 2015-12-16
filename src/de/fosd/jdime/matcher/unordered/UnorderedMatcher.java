@@ -22,46 +22,45 @@
  */
 package de.fosd.jdime.matcher.unordered;
 
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.Matchings;
 
 /**
- * @author Olaf Lessenich
+ * <code>UnorderedMatcher</code>s ignore the order of the elements they match when comparing <code>Artifact</code>s.
  *
  * @param <T>
- *            type of artifact
- *
+ *         the type of the <code>Artifact</code>s
+ * @author Olaf Lessenich
  */
-public abstract class UnorderedMatcher<T extends Artifact<T>> implements
-		MatchingInterface<T> {
+public abstract class UnorderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	/**
-	 * The matcher is used for recursive matching calls. It can determine
-	 * whether the order of artifacts is essential.
-	 */
-	protected Matcher<T> matcher;
+    protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
-	/**
-	 * Creates a new instance of UnorderedMatcher.
-	 *
-	 * @param matcher
-	 *            matcher
-	 */
-	public UnorderedMatcher(final Matcher<T> matcher) {
-		this.matcher = matcher;
-	}
+    /**
+     * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
+     */
+    Matcher<T> matcher;
 
-	/**
-	 * Compares two nodes while ignoring the order of the elements.
-	 *
-	 * @param left
-	 *            left tree
-	 * @param right
-	 *            right tree
-	 * @return largest common subtree of left and right tree
-	 */
-	@Override
-	public abstract Matching<T> match(final T left, final T right);
+    /**
+     * Constructs a new <code>UnorderedMatcher</code> using the given <code>matcher</code> for recursive calls.
+     *
+     * @param matcher
+     *         the parent <code>Matcher</code>
+     */
+    public UnorderedMatcher(final Matcher<T> matcher) {
+        this.matcher = matcher;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Compares <code>left</code> and <code>right</code> while ignoring the order of the elements.
+     */
+    @Override
+    public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
 }

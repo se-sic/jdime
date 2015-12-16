@@ -1,263 +1,226 @@
-/*
- * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- *
- * Contributors:
- *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *     Georg Seibt <seibt@fim.uni-passau.de>
- */
 package de.fosd.jdime.matcher;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.UnorderedTuple;
 
 /**
- * TODO: This needs more explanation.
+ * A container class representing a matching between two <code>T</code>s.
  *
- * @author Olaf Lessenich
- *
- * @param <T>
- *            type of artifact
+ * @param <T> the type of the <code>Artifact</code>
  */
-public class Matching<T extends Artifact<T>> implements Cloneable {
+public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Matching<T>> {
 
-	/**
-	 * Algorithm that found this matching.
-	 */
-	private String algorithm;
+    /**
+     * The algorithm that found the matching.
+     */
+    private String algorithm;
 
-	/**
-	 * List of child matchings.
-	 */
-	private List<Matching<T>> children = new ArrayList<>();
+    /**
+     * The color to highlight the matching in.
+     */
+    private Color highlightColor;
 
-	/**
-	 * String representing a color to highlight the matching in.
-	 */
-	private Color color = null;
+    private UnorderedTuple<T, T> matchedArtifacts;
+    private int score;
 
-	/**
-	 * Left artifact of the matching.
-	 */
-	private T left;
+    /**
+     * Constructs a new empty <code>Matching</code> with score 0.
+     */
+    public Matching() {
+        this(null, null, 0);
+    }
 
-	/**
-	 * Right artifact of the matching.
-	 */
-	private T right;
+    /**
+     * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
+     *
+     * @param left the left <code>Artifact</code>
+     * @param right the right <code>Artifact</code>
+     * @param score the score of the matching
+     */
+    public Matching(T left, T right, int score) {
+        this(UnorderedTuple.of(left, right), score);
+    }
 
-	/**
-	 * Matching score. Higher score means more submatches.
-	 */
-	private int score;
+    /**
+     * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
+     *
+     * @param matchedArtifacts the two matched <code>Artifact</code>s
+     * @param score the score of the matching
+     */
+    public Matching(UnorderedTuple<T, T> matchedArtifacts, int score) {
+        this.matchedArtifacts = matchedArtifacts;
+        this.score = score;
+    }
 
-	/**
-	 * Creates a new empty matching instance.
-	 */
-	public Matching() {
-		left = null;
-		right = null;
-		score = 0;
-	}
+    /**
+     * Returns the left <code>Artifact</code> of the matching.
+     *
+     * @return the left <code>Artifact</code>
+     */
+    public T getLeft() {
+        return matchedArtifacts.getX();
+    }
 
-	/**
-	 * Creates a new matching instance.
-	 *
-	 * @param left
-	 *            left T
-	 * @param right
-	 *            right T
-	 * @param score
-	 *            number of matches
-	 */
-	public Matching(final T left, final T right, final int score) {
-		this.left = left;
-		this.right = right;
-		this.score = score;
-	}
+    /**
+     * Returns the right <code>Artifact</code> of the matching.
+     *
+     * @return the right <code>Artifact</code>
+     */
+    public T getRight() {
+        return matchedArtifacts.getY();
+    }
 
-	/**
-	 * Returns a String representation of the algorithm that computed the
-	 * matching.
-	 *
-	 * @return algorithm used to compute the matching
-	 */
-	public final String getAlgorithm() {
-		return algorithm;
-	}
+    /**
+     * Returns the matched <code>Artifact</code>s.
+     *
+     * @return the matched <code>Artifact</code>s
+     */
+    public UnorderedTuple<T, T> getMatchedArtifacts() {
+        return matchedArtifacts;
+    }
 
-	/**
-	 * Returns the matchings for child Ts.
-	 *
-	 * @return matchings of child Ts
-	 */
-	public final List<Matching<T>> getChildren() {
-		return children;
-	}
+    /**
+     * If one of the <code>Artifact</code>s contained in this <code>Matching</code> is referentially equal to
+     * <code>artifact</code> this method returns the other <code>Artifact</code> in this <code>Matching</code>.
+     * Otherwise <code>null</code> is returned.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> whose match is to be returned
+     * @return the match of the <code>artifact</code> or <code>null</code>
+     */
+    public T getMatchingArtifact(Artifact<T> artifact) {
+        T left = getLeft();
+        T right = getRight();
 
-	/**
-	 * @return the color
-	 */
-	public final Color getColor() {
-		return color;
-	}
+        return left == artifact ? right : right == artifact ? left : null;
+    }
 
-	/**
-	 * Returns the left T of the matching.
-	 *
-	 * @return left T
-	 */
-	public final T getLeft() {
-		return left;
-	}
+    /**
+     * Replaces one of the <code>Artifact</code>s contained in this <code>Matching</code> if it has the same id (as
+     * per {@link Artifact#getId()}) with <code>artifact</code>. Do not use if you do not exactly know what you are
+     * doing.
+     *
+     * @param artifact
+     *         the artifact to possibly insert into this <code>Matching</code>
+     */
+    public void updateMatching(T artifact) {
+        T left = getLeft();
+        T right = getRight();
 
-	/**
-	 * Returns the right T of the matching.
-	 *
-	 * @return right T
-	 */
-	public final T getRight() {
-		return right;
-	}
+        if (left.getId().equals(artifact.getId())) {
+            matchedArtifacts.setX(artifact);
+        } else if (right.getId().equals(artifact.getId())) {
+            matchedArtifacts.setY(artifact);
+        }
+    }
 
-	/**
-	 * Returns the number of matches.
-	 *
-	 * @return number of matches
-	 */
-	public final int getScore() {
-		return score;
-	}
+    /**
+     * Returns the score of the matching.
+     *
+     * @return the score
+     */
+    public int getScore() {
+        return score;
+    }
 
-	/**
-	 * Set a String representation of the algorithm used to compute the
-	 * matching.
-	 *
-	 * @param algorithm
-	 *            used to compute the matching
-	 */
-	public final void setAlgorithm(final String algorithm) {
-		this.algorithm = algorithm;
-	}
+    /**
+     * Sets score to the given value.
+     *
+     * @param score the new score
+     */
+    public void setScore(int score) {
+        this.score = score;
+    }
 
-	/**
-	 * Sets the matchings for the respective child Ts.
-	 *
-	 * @param children
-	 *            matchings of child Ts
-	 */
-	public final void setChildren(final List<Matching<T>> children) {
-		this.children = children;
-	}
+    /**
+     * Returns a <code>String</code> describing the algorithm that found the matching.
+     *
+     * @return the algorithm description
+     */
+    public String getAlgorithm() {
+        return algorithm;
+    }
 
-	/**
-	 * @param color
-	 *            the color to set
-	 */
-	public final void setColor(final Color color) {
-		this.color = color;
-	}
+    /**
+     * Sets the <code>String</code> describing the algorithm that found the matching to the given value.
+     *
+     * @param algorithm the new algorithm description
+     */
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
 
-	/**
-	 * Returns the matching artifact for the artifact passed as argument. If the
-	 * artifact is not contained in the matching, null is returned.
-	 *
-	 * @param artifact
-	 *            artifact for which to return matching artifact
-	 * @return matching artifact
-	 */
-	public final T getMatchingArtifact(final T artifact) {
-		return left == artifact ? right : right == artifact ? left : null;
-	}
+    /**
+     * Returns the color to highlight the matching in.
+     *
+     * @return the highlight color
+     */
+    public Color getHighlightColor() {
+        return highlightColor;
+    }
 
-	/**
-	 * Updates references in an existing matching. Do not use if you do not
-	 * exactly know what you are doing.
-	 *
-	 * @param artifact
-	 *            artifact instance to use as new reference.
-	 */
-	public final void updateMatching(final T artifact) {
-		if (left.getId().equals(artifact.getId())) {
-			left = artifact;
-		} else if (right.getId().equals(artifact.getId())) {
-			right = artifact;
-		}
-	}
+    /**
+     * Sets the color to highlight the matching in to the given value.
+     *
+     * @param highlightColor the new highlight color
+     */
+    public void setHighlightColor(Color highlightColor) {
+        this.highlightColor = highlightColor;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return "(" + left.getId() + ", " + right.getId() + ") = " + score;
-	}
+    @Override
+    public String toString() {
+        return String.format("(%s, %s) = %d", getLeft().getId(), getRight().getId(), score);
+    }
 
-	/**
-	 * Returns the tree of matches as indented plain text.
-	 *
-	 * @return tree of matches as indented plain text
-	 */
-	public final String dumpTree() {
-		return dumpTree("");
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
 
-	/**
-	 * @param indent
-	 *            String used to indent the current matching
-	 * @return ASCII String representing the tree of matches
-	 */
-	private String dumpTree(final String indent) {
-		StringBuilder sb = new StringBuilder();
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-		// node itself
-		if (color != null) {
-			sb.append(color.toShell());
-		}
+        Matching<?> that = (Matching<?>) o;
 
-		sb.append(indent).append(this);
-		if (color != null) {
-			sb.append(Color.DEFAULT.toShell());
-		}
-		sb.append(System.lineSeparator());
+        return matchedArtifacts.equals(that.matchedArtifacts);
+    }
 
-		// children
-		for (Matching<T> child : getChildren()) {
-			sb.append(child.dumpTree(indent + "  "));
-		}
+    @Override
+    public int hashCode() {
+        return matchedArtifacts.hashCode();
+    }
 
-		return sb.toString();
-	}
+    @Override
+    @SuppressWarnings("unchecked") // the warning is inevitable but harmless
+    public Matching<T> clone() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#clone()
-	 */
-	@Override
-	public final Object clone() {
-		Matching<T> clone = new Matching<>(left, right, score);
-		clone.setChildren(children);
-		clone.color = color;
-		return clone;
-	}
+        try {
+            Matching<T> clone = (Matching<T>) super.clone();
+            clone.matchedArtifacts = matchedArtifacts.clone();
+
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public int compareTo(Matching<T> o) {
+        int dif = matchedArtifacts.getX().compareTo(o.getMatchedArtifacts().getX());
+
+        if (dif != 0) {
+            return dif;
+        }
+
+        dif = matchedArtifacts.getY().compareTo(o.getMatchedArtifacts().getY());
+
+        if (dif != 0) {
+            return dif;
+        }
+
+        return score - o.score;
+    }
 }

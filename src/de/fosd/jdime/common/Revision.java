@@ -22,66 +22,82 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Objects;
+
 /**
  * This class represents a revision.
  *
  * @author Olaf Lessenich
- *
  */
 public class Revision {
 
-	/**
-	 * Name of the revision.
-	 */
-	private String name;
+    /**
+     * Name of the revision.
+     */
+    private String name;
 
-	/**
-	 * Creates a new instance of revision.
-	 *
-	 * @param name
-	 *            name of the revision
-	 */
-	public Revision(final String name) {
-		this.name = name;
-	}
+    /**
+     * Constructs a new <code>Revision</code> with the given name.
+     *
+     * @param name
+     *         name of the revision
+     */
+    public Revision(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * Returns the name of the revision.
-	 *
-	 * @return the name
-	 */
-	public final String getName() {
-		return name;
-	}
+    /**
+     * Returns the name of the revision.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * Sets the name of the revision.
-	 *
-	 * @param name
-	 *            the name to set
-	 */
-	public final void setName(final String name) {
-		this.name = name;
-	}
+    /**
+     * Sets the name of the revision.
+     *
+     * @param name
+     *         the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return name;
-	}
+    /**
+     * Returns whether an artifact is contained in this revision.
+     *
+     * @param artifact
+     *         artifact
+     * @return true if the artifact is contained in this revision
+     */
+    public boolean contains(Artifact<?> artifact) {
+        return artifact != null && artifact.hasMatching(this);
+    }
 
-	/**
-	 * Returns whether an artifact is contained in this revision.
-	 *
-	 * @param artifact
-	 *            artifact
-	 * @return true if the artifact is contained in this revision
-	 */
-	public final boolean contains(final Artifact<?> artifact) {
-		return artifact == null ? false : artifact.hasMatching(this);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Revision revision = (Revision) o;
+
+        return Objects.equals(name, revision.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

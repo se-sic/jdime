@@ -30,84 +30,76 @@ import de.fosd.jdime.common.MergeContext;
 /**
  * This class represents an operation that is applied to <code>Artifact</code>s.
  *
- * @author Olaf Lessenich
- *
  * @param <T>
- *            type of artifact
- *
+ *         type of artifact
+ * @author Olaf Lessenich
  */
 public abstract class Operation<T extends Artifact<T>> {
 
-	/**
-	 * Operation counter.
-	 */
-	private static long count = 1;
+    /**
+     * Operation counter.
+     */
+    private static long count = 1;
 
-	/**
-	 * Returns counter value.
-	 *
-	 * @return counter value
-	 */
-	public static long getCount() {
-		return count;
-	}
+    /**
+     * Returns counter value.
+     *
+     * @return counter value
+     */
+    public static long getCount() {
+        return count;
+    }
 
-	/**
-	 * Number of the current operation.
-	 */
-	private long number;
+    /**
+     * Number of the current operation.
+     */
+    private long number;
 
-	/**
-	 * Returns a new instance of operation.
-	 */
-	public Operation() {
-		this.number = count;
-		count++;
-	}
+    /**
+     * Returns a new instance of operation.
+     */
+    public Operation() {
+        this.number = count;
+        count++;
+    }
 
-	/**
-	 * Applies the operation.
-	 *
-	 * @param context
-	 *            merge context
-	 * @throws IOException
-	 *             If an input or output exception occurs
-	 * @throws InterruptedException
-	 *             If a thread is interrupted
-	 */
-	public abstract void apply(final MergeContext context) throws IOException,
-			InterruptedException;
+    /**
+     * Applies the operation.
+     *
+     * @param context
+     *            merge context
+     * @throws IOException
+     *             If an input or output exception occurs
+     * @throws InterruptedException
+     *             If a thread is interrupted
+     */
+    public abstract void apply(MergeContext context) throws IOException, InterruptedException;
 
-	/**
-	 * Returns the name of the operation.
-	 *
-	 * @return name of the operation
-	 */
-	public abstract String getName();
+    /**
+     * Returns the name of the operation.
+     *
+     * @return name of the operation
+     */
+    public abstract String getName();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public abstract String toString();
+    @Override
+    public abstract String toString();
 
-	/**
-	 * Returns the number of the operation.
-	 *
-	 * @return number
-	 */
-	public final long getNumber() {
-		return number;
-	}
+    /**
+     * Returns the number of the operation.
+     *
+     * @return number
+     */
+    public long getNumber() {
+        return number;
+    }
 
-	/**
-	 * Returns an ID.
-	 *
-	 * @return id
-	 */
-	public final String getId() {
-		return "OP" + number;
-	}
+    /**
+     * Returns an ID.
+     *
+     * @return id
+     */
+    public String getId() {
+        return "OP" + number;
+    }
 }

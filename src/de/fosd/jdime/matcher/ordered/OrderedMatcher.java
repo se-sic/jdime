@@ -22,45 +22,46 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.logging.Logger;
+
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.MatchingInterface;
+import de.fosd.jdime.matcher.Matchings;
 
 /**
- * @author Olaf Lessenich
+ * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing
+ * <code>Artifact</code>s.
  *
  * @param <T>
- *            type of artifact
+ *         the type of the <code>Artifact</code>s
+ * @author Olaf Lessenich
  */
-public abstract class OrderedMatcher<T extends Artifact<T>> implements
-		MatchingInterface<T> {
+public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
-	/**
-	 * The matcher is used for recursive matching calls. It can determine
-	 * whether the order of artifacts is essential.
-	 */
-	protected Matcher<T> matcher;
+    protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
-	/**
-	 * Creates a new instance of OrderedMatcher.
-	 *
-	 * @param matcher
-	 *            matcher
-	 */
-	public OrderedMatcher(final Matcher<T> matcher) {
-		this.matcher = matcher;
-	}
+    /**
+     * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
+     */
+    Matcher<T> matcher;
 
-	/**
-	 * Compares two nodes while considering the order of the elements important.
-	 *
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @return matching
-	 */
-	@Override
-	public abstract Matching<T> match(final T left, final T right);
+    /**
+     * Constructs a new <code>OrderedMatcher</code> using the given <code>matcher</code> for recursive calls.
+     *
+     * @param matcher
+     *         the parent <code>Matcher</code>
+     */
+    public OrderedMatcher(Matcher<T> matcher) {
+        this.matcher = matcher;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Compares <code>left</code> and <code>right</code> while considering the order of the elements important.
+     */
+    @Override
+    public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
 }

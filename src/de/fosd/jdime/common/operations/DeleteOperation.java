@@ -23,18 +23,14 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
-
-import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.LangElem;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.stats.ASTStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.stats.ElementStatistics;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 
 /**
  * The operation deletes <code>Artifact</code>s.
@@ -47,96 +43,86 @@ import de.fosd.jdime.stats.StatsElement;
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(DeleteOperation.class));
+    private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
-	/**
-	 * The <code>Artifact</code> that is deleted by the operation.
-	 */
-	private T artifact;
+    /**
+     * The <code>Artifact</code> that is deleted by the operation.
+     */
+    private T artifact;
 
-	/**
-	 * Class constructor.
-	 *
-	 * @param artifact
-	 *            that is deleted by the operation
-	 */
-	public DeleteOperation(final T artifact) {
-		super();
-		this.artifact = artifact;
-	}
+    /**
+     * The output <code>Artifact</code>.
+     */
+    private T target;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see de.fosd.jdime.common.operations.Operation#apply()
-	 */
-	@Override
-	public final void apply(final MergeContext context) throws IOException {
-		assert (artifact != null);
-		assert (artifact.exists()) : "Artifact does not exist: " + artifact;
+    private MergeScenario<T> mergeScenario;
+    private String condition;
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Applying: " + this);
-		}
+    /**
+     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from <code>target</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to be deleted
+     * @param target
+     *         the <code>Artifact</code> to delete from
+     * @param mergeScenario
+     *         the current <code>MergeScenario</code>
+     * @param condition
+     *         the condition under which the node is NOT deleted
+     */
+    public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+        this.artifact = artifact;
+        this.target = target;
+        this.mergeScenario = mergeScenario;
 
-		// This method does actually nothing!
-		//
-		// Why?
-		// While merging, the target node is created with no children.
-		// Therefore if a deletion of an element is applied during the merge,
-		// nothing has to be done.
-		//
-		// For ASTNodeArtifacts, the important method we rely on here is
-		// StructuredStrategy.merge(), which calls
-		// ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-		// which then calls deleteChildren() on the created Program.
+        if (condition != null) {
+            this.condition = condition;
+        }
+    }
 
-		if (context.hasStats()) {
-			// but for the statistics, we have to look at the element
-			Stats stats = context.getStats();
-			stats.incrementOperation(this);
-			StatsElement element = stats.getElement(artifact
-					.getStatsKey(context));
-			element.incrementDeleted();
-			
-			if (artifact instanceof FileArtifact) {
+    @Override
+    public void apply(MergeContext context) throws IOException {
+        assert (artifact != null);
+        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
-				// analyze java files to get statistics
-				for (FileArtifact child : ((FileArtifact) artifact)
-						.getJavaFiles()) {
-					ASTNodeArtifact childAST = new ASTNodeArtifact(child);
-					ASTStats childStats = childAST.getStats(null,
-							LangElem.TOPLEVELNODE, false);
-					if (LOG.isDebugEnabled()) {
-						LOG.debug(childStats.toString());
-					}
-					
-					childStats.setRemovalsfromAdditions(childStats);
-					childStats.resetAdditions();
+        LOG.fine(() -> "Applying: " + this);
 
-					if (context.isConsecutive()) {
-						context.getStats().addRightStats(childStats);
-					} else {
-						context.getStats().addASTStats(childStats);
-					}
-				}
-			}
-		}
-	}
+        if (context.isConditionalMerge(artifact) && condition != null) {
+            // we need to insert a choice node
+            T choice = target.createChoiceArtifact(condition, artifact);
+            assert (choice.isChoice());
+            target.addChild(choice);
+        } else {
+            // Nothing to do :-)
+            //
+            // Why?
+            // While merging, the target node is created with no children.
+            // Therefore if a deletion of an element is applied during the merge,
+            // nothing has to be done.
+            //
+            // For ASTNodeArtifacts, the important method we rely on here is
+            // StructuredStrategy.merge(), which calls
+            // ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
+            // which then calls deleteChildren() on the created Program.
+        }
 
-	@Override
-	public final String getName() {
-		return "DELETE";
-	}
+        if (context.hasStatistics()) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
+            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public final String toString() {
-		return getId() + ": " + getName() + " " + artifact;
-	}
+            element.incrementNumDeleted();
+            artifact.deleteOpStatistics(mScenarioStatistics, context);
+        }
+    }
+
+    @Override
+    public String getName() {
+        return "DELETE";
+    }
+
+    @Override
+    public String toString() {
+        return getId() + ": " + getName() + " " + artifact;
+    }
 }

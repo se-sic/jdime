@@ -1,0 +1,22 @@
+sudo: required
+
+dist: trusty
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+addons:
+    apt:
+        packages:
+        - oracle-java8-installer
+        - git
+
+notifications:
+    irc:
+        channels: "irc.freenode.org#jdime"
+        skip_join: true
+        use_notice: true
+        on_success: change
+        on_failure: always

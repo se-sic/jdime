@@ -22,64 +22,64 @@
  */
 package de.fosd.jdime.merge;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.log4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matchings;
 
 /**
  * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
  *
  * @author Olaf Lessenich
- * 
+ *
  * @param <T>
  *            type of artifact
  */
 public class Diff<T extends Artifact<T>> {
-	private static final Logger LOG = Logger.getLogger(ClassUtils
-			.getShortClassName(Diff.class));
 
-	/**
-	 * Compares two nodes and returns a respective matching.
-	 * 
-	 * @param left
-	 *            left node
-	 * @param right
-	 *            right node
-	 * @param color
-	 *            color of the matching (for debug output only)
-	 * @return Matching of the two nodes
-	 */
-	public final Matching<T> compare(final T left, final T right,
-			final Color color) {
-		Matcher<T> matcher = new Matcher<>();
-		Matching<T> m = matcher.match(left, right);
+    private static final Logger LOG = Logger.getLogger(Diff.class.getCanonicalName());
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("match(" + left.getRevision() + ", "
-					+ right.getRevision() + ") = " + m.getScore());
-			LOG.debug(matcher.getLog());
-			LOG.trace("Store matching information within nodes.");
-		}
+    /**
+     * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+     *
+     * @param context <code>MergeContext</code>
+     * @param left
+     *            left node
+     * @param right
+     *            right node
+     * @param color
+     *            color of the matching (for debug output only)
+     * @return <code>Matchings</code> of the two nodes
+     */
+    public Matchings<T> compare(MergeContext context, T left, T right, Color color) {
+        Matcher<T> matcher = new Matcher<>();
+        Matchings<T> matchings = matcher.match(context, left, right, context.getLookAhead());
+        Matching<T> matching = matchings.get(left, right).get();
 
-		matcher.storeMatching(m, color);
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Dumping matching of " + left.getRevision() + " and "
-					+ right.getRevision());
-			System.out.println(m.dumpTree());
-		}
+        LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
+        LOG.fine(matcher::getLog);
+        LOG.finest("Store matching information within nodes.");
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(left.getRevision() + ".dumpTree():");
-			System.out.println(left.dumpTree());
+        matcher.storeMatchings(context, matchings, color);
 
-			LOG.debug(right.getRevision() + ".dumpTree():");
-			System.out.println(right.dumpTree());
-		}
+        if (LOG.isLoggable(Level.FINEST)) {
+            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
+            System.out.println(matchings);
+        }
 
-		return m;
-	}
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine(left.getRevision() + ".dumpTree():");
+            System.out.println(left.dumpTree());
+
+            LOG.fine(right.getRevision() + ".dumpTree():");
+            System.out.println(right.dumpTree());
+        }
+
+        return matchings;
+    }
 }

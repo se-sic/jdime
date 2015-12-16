@@ -31,17 +31,16 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeTriple;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.stats.MergeTripleStats;
-import de.fosd.jdime.stats.Stats;
-import de.fosd.jdime.stats.StatsElement;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
+import de.fosd.jdime.stats.parser.ParseResult;
 
 /**
  * Performs an unstructured, line based merge.
@@ -52,270 +51,146 @@ import org.apache.log4j.Logger;
  */
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
-	private static final Logger LOG = Logger.getLogger(ClassUtils.getShortClassName(LinebasedStrategy.class));
-	
-	/**
-	 * The command to use for merging.
-	 */
-	private static final String BASECMD = "git";
-	
-	/**
-	 * The arguments for <code>BASECMD</code>.
-	 */
-	private static final String[] BASEARGS = { "merge-file", "-q", "-p" };
+    private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
+    
+    /**
+     * The command to use for merging.
+     */
+    private static final String BASECMD = "git";
+    
+    /**
+     * The arguments for <code>BASECMD</code>.
+     */
+    private static final List<String> BASEARGS = Arrays.asList("merge-file", "-q", "-p");
 
-	/**
-	 * This line-based <code>merge</code> method uses the merging routine of
-	 * the external tool <code>git</code>.
-	 * <p>
-	 * Basically, the input <code>FileArtifacts</code> are passed as arguments to
-	 * `git merge-file -q -p`.
-	 * <p>
-	 * In a common run, the number of processed lines of code, the number of
-	 * conflicting situations, and the number of conflicting lines of code will
-	 * be counted. Empty lines and comments are skipped to keep
-	 * <code>MergeStrategies</code> comparable, as JDime does (in its current
-	 * implementation) not respect comments.
-	 * <p>
-	 * In case of a performance benchmark, the output is simply ignored for the
-	 * sake of speed, and the merge will be run the specified amount of times,
-	 * aiming to allow the computation of a reasonable mean runtime.
-	 *
-	 * @param operation <code>MergeOperation</code> that is executed by this strategy
-	 * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
-	 *
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@Override
-	public final void merge(final MergeOperation<FileArtifact> operation,
-			final MergeContext context) throws IOException,
-			InterruptedException {
+    /**
+     * This line-based <code>merge</code> method uses the merging routine of
+     * the external tool <code>git</code>.
+     * <p>
+     * Basically, the input <code>FileArtifacts</code> are passed as arguments to
+     * `git merge-file -q -p`.
+     * <p>
+     * In a common run, the number of processed lines of code, the number of
+     * conflicting situations, and the number of conflicting lines of code will
+     * be counted. Empty lines and comments are skipped to keep
+     * <code>MergeStrategies</code> comparable, as JDime does (in its current
+     * implementation) not respect comments.
+     * <p>
+     * In case of a performance benchmark, the output is simply ignored for the
+     * sake of speed, and the merge will be run the specified amount of times,
+     * aiming to allow the computation of a reasonable mean runtime.
+     *
+     * @param operation <code>MergeOperation</code> that is executed by this strategy
+     * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Override
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+        MergeScenario<FileArtifact> triple = operation.getMergeScenario();
+        FileArtifact target = null;
 
-		assert (operation != null);
-		assert (context != null);
+        if (!context.isDiffOnly() && operation.getTarget() != null) {
+            target = operation.getTarget();
 
-		MergeTriple<FileArtifact> triple = operation.getMergeTriple();
-		assert (triple != null);
-		assert (triple.isValid()) : "The merge triple is not valid!";
-		assert (triple.getLeft() instanceof FileArtifact);
-		assert (triple.getBase() instanceof FileArtifact);
-		assert (triple.getRight() instanceof FileArtifact);
-		assert (triple.getLeft().exists() && !triple.getLeft().isDirectory());
-		assert ((triple.getBase().exists() && !triple.getBase().isDirectory()) || triple
-				.getBase().isEmptyDummy());
-		assert (triple.getRight().exists() && !triple.getRight().isDirectory());
+            if (target.exists() && !target.isEmpty()) {
+                throw new AssertionError(String.format("Would be overwritten: %s", target));
+            }
+        }
 
-		context.resetStreams();
-		FileArtifact target = null;
-
-		if (operation.getTarget() != null) {
-			assert (operation.getTarget() instanceof FileArtifact);
-			target = operation.getTarget();
-			assert (!target.exists() || target.isEmpty()) : "Would be overwritten: "
-					+ target;
-		}
+        context.resetStreams();
 
         List<String> cmd = new ArrayList<>();
-		cmd.add(BASECMD);
-		cmd.addAll(Arrays.asList(BASEARGS));
+        cmd.add(BASECMD);
+        cmd.addAll(BASEARGS);
+        cmd.addAll(triple.asList().stream().limit(3).map(FileArtifact::getPath).collect(Collectors.toList()));
 
-		for (FileArtifact file : triple.getList()) {
-			cmd.add(file.getPath());
-		}
+        ProcessBuilder pb = new ProcessBuilder(cmd);
 
-		ProcessBuilder pb = new ProcessBuilder(cmd);
-		ArrayList<Long> runtimes = new ArrayList<>();
-		int conflicts = 0;
-		int loc = 0;
-		int cloc = 0;
+        LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
+        long runtime, startTime = System.currentTimeMillis();
+        Process pr = pb.start();
 
-		// launch the merge process by invoking GNU merge (rcs has to be
-		// installed)
-		LOG.debug("Running external command: " + StringUtils.join(cmd, " "));
+        StringBuilder processOutput = new StringBuilder();
+        StringBuilder processErrorOutput = new StringBuilder();
+        String ls = System.lineSeparator();
 
-		for (int i = 0; i < context.getBenchmarkRuns() + 1
-				&& (i == 0 || context.isBenchmark()); i++) {
-			long cmdStart = System.currentTimeMillis();
-			Process pr = pb.start();
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+            String line;
 
-			if (i == 0 && (!context.isBenchmark() || context.hasStats())) {
-				// process input stream
-				BufferedReader buf = new BufferedReader(new InputStreamReader(
-						pr.getInputStream()));
-				boolean conflict = false;
-				boolean comment = false;
+            while ((line = r.readLine()) != null) {
+                processOutput.append(line).append(ls);
+            }
+        }
 
-				int tmp = 0;
-				String line;
-				while ((line = buf.readLine()) != null) {
-					context.appendLine(line);
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
+            String line;
 
-					if (context.hasStats()) {
-						if (line.matches("^$") || line.matches("^\\s*$")
-								|| line.matches("^\\s*//.*$")) {
-							// skip empty lines and single line comments
-							continue;
-						} else if (line.matches("^\\s*/\\*.*")) {
-							if (line.matches("^\\s*/\\*.*?\\*/")) {
-								// one line comment
-								continue;
-							} else {
-								// starting block comment
-								comment = true;
-								continue;
-							}
-						} else if (line.matches("^.*?\\*/")) {
-							// ending block comment
-							comment = false;
-							continue;
-						}
-						if (line.matches("^\\s*<<<<<<<.*")) {
-							if (LOG.isDebugEnabled()) {
-								LOG.debug("CONFLICT in " + triple);
-							}
-							conflict = true;
-							comment = false;
-							tmp = cloc;
-							conflicts++;
-						} else if (line.matches("^\\s*=======.*")) {
-							comment = false;
-						} else if (line.matches("^\\s*>>>>>>>.*")) {
-							conflict = false;
-							comment = false;
-							if (tmp == cloc) {
-								// only conflicting comments or empty lines
-								conflicts--;
-							}
-						} else {
-							loc++;
-							if (conflict && !comment) {
-								cloc++;
-							}
-						}
-					}
-				}
+            while ((line = r.readLine()) != null) {
+                processErrorOutput.append(line).append(ls);
+            }
+        }
 
-				buf.close();
+        context.append(processOutput.toString());
+        context.appendError(processErrorOutput.toString());
 
-				// process error stream
-				buf = new BufferedReader(new InputStreamReader(
-						pr.getErrorStream()));
-				while ((line = buf.readLine()) != null) {
-					if (i == 0
-							&& (!context.isBenchmark() || context.hasStats())) {
-						context.appendErrorLine(line);
-					}
-				}
+        pr.waitFor();
+        runtime = System.currentTimeMillis() - startTime;
 
-				buf.close();
-			}
-			pr.getInputStream().close();
-			pr.getErrorStream().close();
-			pr.getOutputStream().close();
+        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
-			pr.waitFor();
+        if (context.hasErrors()) {
+            LOG.severe(() -> String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), context.getStdErr()));
+        }
 
-			long runtime = System.currentTimeMillis() - cmdStart;
-			runtimes.add(runtime);
+        if (!context.isPretend() && target != null) {
+            LOG.fine("Writing output to: " + target.getFullPath());
+            target.write(context.getStdIn());
+        }
 
-			if (LOG.isInfoEnabled() && context.isBenchmark()
-					&& context.hasStats()) {
-				if (i == 0) {
-					LOG.info("Initial run: " + runtime + " ms");
-				} else {
-					LOG.info("Run " + i + " of " + context.getBenchmarkRuns()
-							+ ": " + runtime + " ms");
-				}
-			}
-		}
+        if (context.hasStatistics()) {
+            Statistics statistics = context.getStatistics();
+            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
+            ParseResult res = scenarioStatistics.addLineStatistics(processOutput.toString());
 
-		if (context.isBenchmark() && runtimes.size() > 1) {
-			// remove first run as it took way longer due to all the counting
-			runtimes.remove(0);
-		}
+            if (res.getConflicts() > 0) {
+                scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
+            }
 
-		Long runtime = MergeContext.median(runtimes);
-		LOG.debug("Linebased merge time was " + runtime + " ms.");
+            scenarioStatistics.setRuntime(runtime);
+            statistics.addScenarioStatistics(scenarioStatistics);
+        }
+    }
 
-		if (context.hasErrors()) {
-			LOG.fatal("Errors occured while calling '" + cmd + "')");
-			System.err.println(context.getStdErr());
-		}
+    @Override
+    public final String toString() {
+        return "linebased";
+    }
 
-		// write output
-		if (!context.isPretend() && target != null) {
-			assert (target.exists());
-			target.write(context.getStdIn());
-		}
+    /**
+     * Throws <code>UnsupportedOperationException</code>. You should use a structured strategy to dump a tree.
+     * 
+     * @param artifact
+     *            artifact to dump
+     * @param graphical
+     *            output option
+     */
+    @Override
+    public final String dumpTree(FileArtifact artifact, boolean graphical) {
+        throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
+    }
 
-		// add statistical data to context
-		if (context.hasStats()) {
-			assert (cloc <= loc);
+    @Override
+    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
+        List<String> lines = Files.readAllLines(artifact.getFile().toPath(), StandardCharsets.UTF_8);
+        StringBuilder sb = new StringBuilder();
 
-			Stats stats = context.getStats();
-			StatsElement linesElement = stats.getElement("lines");
-			assert (linesElement != null);
-			StatsElement newElement = new StatsElement();
-			newElement.setMerged(loc);
-			newElement.setConflicting(cloc);
-			linesElement.addStatsElement(newElement);
+        for (String line : lines) {
+            sb.append(line);
+            sb.append(System.lineSeparator());
+        }
 
-			if (conflicts > 0) {
-				assert (cloc > 0);
-				stats.addConflicts(conflicts);
-				StatsElement filesElement = stats.getElement("files");
-				assert (filesElement != null);
-				filesElement.incrementConflicting();
-			} else {
-				assert (cloc == 0);
-			}
-
-			stats.increaseRuntime(runtime);
-
-			MergeTripleStats scenariostats = new MergeTripleStats(triple,
-					conflicts, cloc, loc, runtime, null, null, null);
-			stats.addScenarioStats(scenariostats);
-		}
-	}
-
-	@Override
-	public final Stats createStats() {
-		return new Stats(new String[] { "directories", "files", "lines" });
-	}
-
-	@Override
-	public final String toString() {
-		return "linebased";
-	}
-
-	@Override
-	public final String getStatsKey(FileArtifact artifact) {
-		return "lines";
-	}
-
-	/**
-	 * Throws <code>UnsupportedOperationException</code>. You should use a structured strategy to dump a tree.
-	 * 
-	 * @param artifact
-	 *            artifact to dump
-	 * @param graphical
-	 *            output option
-	 */
-	@Override
-	public final String dumpTree(FileArtifact artifact, boolean graphical) {
-		throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
-	}
-
-	@Override
-	public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
-		List<String> lines = Files.readAllLines(artifact.getFile().toPath(), StandardCharsets.UTF_8);
-		StringBuilder sb = new StringBuilder();
-
-		for (String line : lines) {
-			sb.append(line + System.lineSeparator());
-		}
-
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 }
