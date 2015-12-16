@@ -76,6 +76,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         T target = operation.getTarget();
 
         Revision l = left.getRevision();
+        Revision b = base.getRevision();
         Revision r = right.getRevision();
 
         if (!context.isDiffOnly() && !context.isPretend()) {
@@ -151,7 +152,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 LOG.finest(() -> String.format("%s has no children", prefix(left)));
                 LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
 
-                if (right.hasChanges()) {
+                if (right.hasChanges(b)) {
                     LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
                     for (T rightChild : right.getChildren()) {
@@ -173,7 +174,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 LOG.finest(() -> String.format("%s has no children", prefix(right)));
                 LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
 
-                if (left.hasChanges()) {
+                if (left.hasChanges(b)) {
                     LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
                     for (T leftChild : left.getChildren()) {

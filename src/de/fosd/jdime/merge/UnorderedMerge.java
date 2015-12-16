@@ -113,7 +113,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
                     // was deleted in right
-                    if (leftChild.hasChanges()) {
+                    if (leftChild.hasChanges(b)) {
                         // insertion-deletion-conflict
                         if (LOG.isLoggable(Level.FINEST)) {
                             LOG.finest(prefix(leftChild) + "has changes in subtree.");
@@ -157,8 +157,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
                     // was deleted in left
-                    if (rightChild.hasChanges()) {
-                        LOG.finest(() -> String.format("%shas changes in subtree.", prefix(finalRightChild)));
+                    if (rightChild.hasChanges(b)) {
+                        LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
                         // insertion-deletion-conflict
                         ConflictOperation<T> conflictOp = new ConflictOperation<>(
