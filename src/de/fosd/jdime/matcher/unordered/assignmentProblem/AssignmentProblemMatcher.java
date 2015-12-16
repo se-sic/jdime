@@ -58,7 +58,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
      * TODO: this really needs documentation. I'll soon take care of that.
      */
     @Override
-    public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+    public final Matchings<T> match(final MergeContext context, final T left, final T right, int leftLAH, int rightLAH) {
         int rootMatching = left.matches(right) ? 1 : 0;
 
         // number of first-level subtrees of t1
@@ -90,7 +90,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
             childT1 = left.getChild(i);
             for (int j = 0; j < n; j++) {
                 childT2 = right.getChild(j);
-                Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
+                Matchings<T> w = matcher.match(context, childT1, childT2, leftLAH, rightLAH);
                 Matching<T> matching = w.get(childT1, childT2).get();
                 matchings[i][j] = Tuple.of(matching.getScore(), w);
             }

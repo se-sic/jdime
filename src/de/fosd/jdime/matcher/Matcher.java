@@ -30,6 +30,7 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.JDimeConfig;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.matching.Color;
@@ -108,7 +109,10 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        Matchings<T> matchings = match(context, left, right, context.getLookAhead());
+        int leftLAH = JDimeConfig.getLookahead(left.getType()).orElse(context.getLookAhead());
+        int rightLAH = JDimeConfig.getLookahead(right.getType()).orElse(context.getLookAhead());
+
+        Matchings<T> matchings = match(context, left, right, leftLAH, rightLAH);
         Matching<T> matching = matchings.get(left, right).get();
 
         LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
@@ -133,9 +137,9 @@ public class Matcher<T extends Artifact<T>> {
     }
 
     /**
-     * @see MatcherInterface#match(MergeContext, Artifact, Artifact, int)
+     * @see MatcherInterface#match(MergeContext, Artifact, Artifact, int, int)
      */
-    private Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+    private Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
 
         if (left.isConflict()) {
             Matchings<T> m = Matchings.of(left, right, 0);
@@ -161,7 +165,7 @@ public class Matcher<T extends Artifact<T>> {
                     return String.format("%s.match(%s, %s)", name, variant.getId(), right.getId());
                 });
 
-                Matchings<T> cur = match(context, variant, right, lookAhead);
+                Matchings<T> cur = match(context, variant, right, leftLAH, rightLAH);
                 Matching<T> highest = cur.get(variant, right).get();
                 variantMatches.put(highest.getScore(), cur);
             }
@@ -176,10 +180,8 @@ public class Matcher<T extends Artifact<T>> {
             return maxMatching;
         }
 
-        int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
+        if (!left.matches(right)) {
+            if (leftLAH == 0 && rightLAH == 0) {
                 /*
                  * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
                  * subtrees and return early to save time.
@@ -190,15 +192,23 @@ public class Matcher<T extends Artifact<T>> {
                     return String.format(format, ID, left.getId(), right.getId(), context.getLookAhead());
                 });
 
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
+                Matchings<T> m = Matchings.of(left, right, 0);
                 m.get(left, right).get().setAlgorithm(ID);
 
                 return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
+            } else {
+
+                if (leftLAH > 0) {
+                    leftLAH -= 1;
+                }
+
+                if (rightLAH > 0) {
+                    rightLAH -= 1;
+                }
             }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
+        } else {
+            leftLAH = JDimeConfig.getLookahead(left.getType()).orElse(context.getLookAhead());
+            rightLAH = JDimeConfig.getLookahead(right.getType()).orElse(context.getLookAhead());
         }
 
         boolean fullyOrdered = useMCESubtreeMatcher;
@@ -245,23 +255,23 @@ public class Matcher<T extends Artifact<T>> {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
-            return mceSubtreeMatcher.match(context, left, right, lookAhead);
+            return mceSubtreeMatcher.match(context, left, right, leftLAH, rightLAH);
         }
         
         if (isOrdered) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
-            return orderedMatcher.match(context, left, right, lookAhead);
+            return orderedMatcher.match(context, left, right, leftLAH, rightLAH);
         } else {
             unorderedCalls++;
 
             if (uniqueLabels) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
-                return unorderedLabelMatcher.match(context, left, right, lookAhead);
+                return unorderedLabelMatcher.match(context, left, right, leftLAH, rightLAH);
             } else {
                 logMatcherUse(unorderedMatcher.getClass(), left, right);
-                return unorderedMatcher.match(context, left, right, lookAhead);
+                return unorderedMatcher.match(context, left, right, leftLAH, rightLAH);
             }
         }
     }

@@ -20,7 +20,7 @@ import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
- * Its {@link #match(MergeContext, Artifact, Artifact, int)} method assumes that the given <code>Artifact</code>s
+ * Its {@link #match(MergeContext, Artifact, Artifact, int, int)} method assumes that the given <code>Artifact</code>s
  * may be interpreted as ordered trees whose nodes are labeled via their {@link Artifact#matches(Artifact)} method.
  *
  * @param <T>
@@ -42,9 +42,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
     }
 
     @Override
-    public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
-        List<BalancedSequence<T>> leftSeqs = getSequences(left, lookAhead, new ArrayList<>());
-        List<BalancedSequence<T>> rightSeqs = getSequences(right, lookAhead, new ArrayList<>());
+    public Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
+        List<BalancedSequence<T>> leftSeqs = getSequences(left, leftLAH, new ArrayList<>());
+        List<BalancedSequence<T>> rightSeqs = getSequences(right, rightLAH, new ArrayList<>());
         Set<Matching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
 
         Matchings<T> result = new Matchings<>();

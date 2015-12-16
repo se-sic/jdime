@@ -62,5 +62,5 @@ public abstract class UnorderedMatcher<T extends Artifact<T>> implements Matcher
      * Compares <code>left</code> and <code>right</code> while ignoring the order of the elements.
      */
     @Override
-    public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
+    public abstract Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH);
 }

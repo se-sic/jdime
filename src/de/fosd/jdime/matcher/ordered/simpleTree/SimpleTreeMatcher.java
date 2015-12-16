@@ -61,7 +61,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      * TODO: this really needs documentation. I'll soon take care of that.
      */
     @Override
-    public Matchings<T> match(MergeContext context, T left, T right, int lookAhead) {
+    public Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
         int rootMatching = left.matches(right) ? 1 : 0;
 
         // number of first-level subtrees of t1
@@ -90,7 +90,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
                 T leftChild = left.getChild(i - 1);
                 T rightChild = right.getChild(j - 1);
 
-                Matchings<T> w = matcher.match(context, leftChild, rightChild, lookAhead);
+                Matchings<T> w = matcher.match(context, leftChild, rightChild, leftLAH, rightLAH);
                 Matching<T> matching = w.get(leftChild, rightChild).get();
 
                 if (matrixM[i][j - 1] > matrixM[i - 1][j]) {
