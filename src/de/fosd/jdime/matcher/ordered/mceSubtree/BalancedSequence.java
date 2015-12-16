@@ -31,6 +31,7 @@ public class BalancedSequence<T extends Artifact<T>> {
     private static final BalancedSequence<?> EMPTY_SEQ = new BalancedSequence<>(Collections.EMPTY_LIST);
 
     private List<T> seq;
+    private int hashCode;
 
     /**
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
@@ -65,6 +66,7 @@ public class BalancedSequence<T extends Artifact<T>> {
      */
     private BalancedSequence(List<T> seq) {
         this.seq = seq;
+        this.hashCode = seq.hashCode();
     }
 
     /**
@@ -102,6 +104,7 @@ public class BalancedSequence<T extends Artifact<T>> {
     private void initSeq(T tree, int maxDepth) {
         seq.set(0, tree);
         initSeqRec(tree, 1, 0, maxDepth);
+        hashCode = seq.hashCode();
     }
 
     /**
@@ -428,7 +431,7 @@ public class BalancedSequence<T extends Artifact<T>> {
 
     @Override
     public int hashCode() {
-        return seq.hashCode();
+        return hashCode;
     }
 
     @Override
