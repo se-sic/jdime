@@ -1,16 +1,5 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
@@ -28,7 +17,6 @@ import de.fosd.jdime.matcher.ordered.OrderedMatcher;
  */
 public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
-    private static final ExecutorService EX = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private static final String ID = MCESubtreeMatcher.class.getSimpleName();
 
     /**
@@ -43,88 +31,33 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
-        List<BalancedSequence<T>> leftSeqs = getSequences(left, leftLAH, new ArrayList<>());
-        List<BalancedSequence<T>> rightSeqs = getSequences(right, rightLAH, new ArrayList<>());
-        Set<Matching<T>> matchings = getMatchings(leftSeqs, rightSeqs);
+        BalancedSequence<T> lSeq;
+        BalancedSequence<T> rSeq;
 
-        Matchings<T> result = new Matchings<>();
-        result.addAll(matchings);
-
-        return result;
-    }
-
-    /**
-     * Returns for every element of <code>left</code> a <code>Matching</code> with every element of
-     * <code>right</code>.
-     *
-     * @param left
-     *         the <code>BalancedSequence</code>s of the nodes of the left tree
-     * @param right
-     *         the <code>BalancedSequence</code>s of the nodes of the right tree
-     * @return a <code>Set</code> of <code>Matching</code>s
-     */
-    private Set<Matching<T>> getMatchings(List<BalancedSequence<T>> left, List<BalancedSequence<T>> right) {
-        Set<Matching<T>> matchings = new HashSet<>();
-        List<Callable<Void>> tasks = new ArrayList<>();
-
-        for (BalancedSequence<T> leftSequence : left) {
-            for (BalancedSequence<T> rightSequence : right) {
-                Matching<T> matching = new Matching<>(leftSequence.getRoot(), rightSequence.getRoot(), 0);
-                matching.setAlgorithm(ID);
-
-                if (!matchings.contains(matching)) {
-                    tasks.add(() -> {
-                        matching.setScore(BalancedSequence.lcs(leftSequence, rightSequence));
-                        return null;
-                    });
-
-                    matchings.add(matching);
-                }
-            }
+        if (leftLAH != MergeContext.LOOKAHEAD_FULL) {
+            lSeq = new BalancedSequence<T>(left);
+        } else {
+            lSeq = new BalancedSequence<T>(left, leftLAH);
         }
 
-        try {
-            List<Future<Void>> futures = EX.invokeAll(tasks);
+        if (rightLAH != MergeContext.LOOKAHEAD_FULL) {
+            rSeq = new BalancedSequence<T>(left);
+        } else {
+            rSeq = new BalancedSequence<T>(left, leftLAH);
+        }
 
-            for (Future<Void> future : futures) {
+        Matchings<T> matchings = new Matchings<>();
+        Matching<T> matching = new Matching<T>(left, right, BalancedSequence.lcs(lSeq, rSeq));
 
-                try {
-                    future.get();
-                } catch (ExecutionException e) {
-                    LOG.log(Level.SEVERE, "LCS calculation threw an Exception.", e);
-                }
+        matching.setAlgorithm(ID);
+        matchings.add(matching);
+
+        for (T lChild : left.getChildren()) {
+            for (T rChild : right.getChildren()) {
+                matchings.addAll(matcher.match(context, lChild, rChild, leftLAH, rightLAH));
             }
-        } catch (InterruptedException ignored) {}
+        }
 
         return matchings;
-    }
-
-    /**
-     * Transforms the given tree <code>root</code> into a list of <code>BalancedSequence</code>s. The given
-     * <code>lookAhead</code> is decremented for every level the method descends into the tree.
-     *
-     * @param root
-     *         the root of the tree to transform
-     * @param lookAhead
-     *         the number of levels to look ahead from the root node of the tree
-     * @param list
-     *         the <code>List</code> to fill with <code>BalancedSequence</code>s
-     * @return the given <code>list</code> filled with the <code>BalancedSequence</code>s resulting from the tree
-     */
-    private List<BalancedSequence<T>> getSequences(T root, int lookAhead, List<BalancedSequence<T>> list) {
-
-        if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-            list.add(new BalancedSequence<>(root));
-        } else if (lookAhead >= 0) {
-            list.add(new BalancedSequence<>(root, lookAhead));
-        }
-
-        if (lookAhead == MergeContext.LOOKAHEAD_FULL) {
-            root.getChildren().forEach(c -> getSequences(c, lookAhead, list));
-        } else if (lookAhead > 0) {
-            root.getChildren().forEach(c -> getSequences(c, lookAhead - 1, list));
-        }
-
-        return list;
     }
 }
