@@ -148,13 +148,19 @@ public class Matcher<T extends Artifact<T>> {
             // We have to split the choice node into its variants and create a matching for each one.
             // The highest matching is returned.
 
-            LOG.finest(() -> String.format("%s encountered a choice node (%s)", this.getClass().getSimpleName(),
-                    left.getId()));
+            LOG.finest(() -> {
+                String name = getClass().getSimpleName();
+                return String.format("%s encountered a choice node (%s)", name, left.getId());
+            });
 
             Map<Integer, Matchings<T>> variantMatches = new HashMap<>();
 
             for (T variant: left.getVariants().values()) {
-                LOG.finest(() -> String.format("%s.match(%s, %s)", this.getClass().getSimpleName(), variant.getId(), right.getId()));
+                LOG.finest(() -> {
+                    String name = getClass().getSimpleName();
+                    return String.format("%s.match(%s, %s)", name, variant.getId(), right.getId());
+                });
+
                 Matchings<T> cur = match(context, variant, right, lookAhead);
                 Matching<T> highest = cur.get(variant, right).get();
                 variantMatches.put(highest.getScore(), cur);
@@ -162,7 +168,11 @@ public class Matcher<T extends Artifact<T>> {
 
             Matchings<T> maxMatching = variantMatches.get(Collections.max(variantMatches.keySet()));
 
-            LOG.finest(() -> String.format("%s: highest match: %s", this.getClass().getSimpleName(), maxMatching));
+            LOG.finest(() -> {
+                String name = this.getClass().getSimpleName();
+                return String.format("%s: highest match: %s", name, maxMatching);
+            });
+
             return maxMatching;
         }
 
