@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
+import de.fosd.jdime.stats.KeyEnums;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
@@ -134,6 +136,12 @@ public final class JDimeConfig {
     public static final String STATISTICS_XML_DEFAULT_NAME = "Statistics_XML.xml";
 
     /**
+     * This prefix followed by one of the names of the variants in {@link KeyEnums.Type} can be used to define the
+     * lookahead to be applied when encountering non-matching nodes of the given type.
+     */
+    public static final String LOOKAHEAD_PREFIX = "LAH_";
+
+    /**
      * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
      * the classloader when the {@link #getConfig()} method is fist called.
      */
@@ -176,6 +184,17 @@ public final class JDimeConfig {
                 LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + configFile.getAbsolutePath());
             }
         }
+    }
+
+    /**
+     * Optionally returns the lookahead defined in the <code>Config</code> for the given <code>type</code> of node.
+     *
+     * @param type
+     *         the <code>type</code> of node to get the lookahead for
+     * @return optionally the lookahead
+     */
+    public static Optional<Integer> getLookahead(KeyEnums.Type type) {
+        return getConfig().getInteger(LOOKAHEAD_PREFIX + type.name()); //TODO cache this?
     }
 
     /**
