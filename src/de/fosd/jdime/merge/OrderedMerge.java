@@ -112,7 +112,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
                     // was deleted in right
-                    if (leftChild.hasChanges()) {
+                    if (leftChild.hasChanges(b)) {
                         // insertion-deletion-conflict
                         if (LOG.isLoggable(Level.FINEST)) {
                             LOG.finest(prefix(leftChild) + "has changes in subtree.");
@@ -147,7 +147,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
                             // rightChild was deleted in left
-                            if (rightChild.hasChanges()) {
+                            if (rightChild.hasChanges(b)) {
                                 LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
                                 // deletion-insertion conflict
@@ -212,7 +212,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
                     // was deleted in left
-                    if (rightChild.hasChanges()) {
+                    if (rightChild.hasChanges(b)) {
                         LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
                         // insertion-deletion-conflict
@@ -245,7 +245,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         if (b != null && b.contains(leftChild)) {
                             LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
-                            if (leftChild.hasChanges()) {
+                            if (leftChild.hasChanges(b)) {
                                 LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
 
                                 // deletion-insertion conflict
