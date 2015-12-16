@@ -55,6 +55,7 @@ import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
+import org.jastadd.extendj.ast.TryStmt;
 
 /**
  * @author Olaf Lessenich
@@ -385,6 +386,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             return KeyEnums.Type.METHOD;
         } else if (isClass()) {
             return KeyEnums.Type.CLASS;
+        } else if (astnode instanceof TryStmt){
+            return KeyEnums.Type.TRY;
         } else {
             return KeyEnums.Type.NODE;
         }

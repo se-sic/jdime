@@ -45,7 +45,12 @@ public final class KeyEnums {
         /**
          * An AST node representing a method declaration.
          */
-        METHOD
+        METHOD,
+
+        /**
+         * An AST node representing a try statement
+         */
+        TRY
     }
 
     /**
