@@ -112,6 +112,14 @@ public class Matcher<T extends Artifact<T>> {
         int leftLAH = JDimeConfig.getLookahead(left.getType()).orElse(context.getLookAhead());
         int rightLAH = JDimeConfig.getLookahead(right.getType()).orElse(context.getLookAhead());
 
+        if (leftLAH != MergeContext.LOOKAHEAD_FULL && leftLAH != MergeContext.LOOKAHEAD_OFF) {
+            leftLAH += 1;
+        }
+
+        if (rightLAH != MergeContext.LOOKAHEAD_FULL && rightLAH != MergeContext.LOOKAHEAD_OFF) {
+            rightLAH += 1;
+        }
+
         Matchings<T> matchings = match(context, left, right, leftLAH, rightLAH);
         Matching<T> matching = matchings.get(left, right).get();
 
