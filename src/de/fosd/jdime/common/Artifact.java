@@ -583,12 +583,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         Artifact<?> artifact = (Artifact<?>) o;
 
-        return Objects.equals(getId(), artifact.getId());
+        return number == artifact.number &&
+                Objects.equals(revision, artifact.revision);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId());
+        return Objects.hash(number, revision);
     }
 
     /**
