@@ -88,10 +88,16 @@ public class Matcher<T extends Artifact<T>> {
      * Constructs a new <code>Matcher</code>.
      */
     public Matcher() {
-        unorderedMatcher = new HungarianMatcher<>(this::match);
-        unorderedLabelMatcher = new UniqueLabelMatcher<>(this::match);
-        orderedMatcher = new SimpleTreeMatcher<>(this::match);
-        mceSubtreeMatcher = new MCESubtreeMatcher<>(this::match);
+
+        // no method reference because this syntax makes setting a breakpoint for debugging easier
+        MatcherInterface<T> rootMatcher = (context, left, right, leftLAH, rightLAH) -> {
+            return match(context, left, right, leftLAH, rightLAH);
+        };
+
+        unorderedMatcher = new HungarianMatcher<>(rootMatcher);
+        unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
+        orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
+        mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
         useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
