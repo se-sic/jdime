@@ -276,7 +276,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
             Artifact<T> artifact = q.removeFirst();
 
             Integer fromId = ids.computeIfAbsent(artifact, a -> nextId.getAndIncrement());
-            nodeIDs.add(String.format("%d %s", fromId, artifact.toString()));
+            nodeIDs.add(String.format("%d (%s) %s", fromId, artifact.getId(), artifact.toString()));
 
             for (T t : artifact.getChildren()) {
                 Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
