@@ -34,20 +34,20 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         BalancedSequence<T> lSeq;
         BalancedSequence<T> rSeq;
 
-        if (leftLAH != MergeContext.LOOKAHEAD_FULL) {
-            lSeq = new BalancedSequence<T>(left);
+        if (leftLAH == MergeContext.LOOKAHEAD_FULL) {
+            lSeq = new BalancedSequence<>(left);
         } else {
-            lSeq = new BalancedSequence<T>(left, leftLAH);
+            lSeq = new BalancedSequence<>(left, leftLAH);
         }
 
-        if (rightLAH != MergeContext.LOOKAHEAD_FULL) {
-            rSeq = new BalancedSequence<T>(left);
+        if (rightLAH == MergeContext.LOOKAHEAD_FULL) {
+            rSeq = new BalancedSequence<>(left);
         } else {
-            rSeq = new BalancedSequence<T>(left, leftLAH);
+            rSeq = new BalancedSequence<>(left, leftLAH);
         }
 
         Matchings<T> matchings = new Matchings<>();
-        Matching<T> matching = new Matching<T>(left, right, BalancedSequence.lcs(lSeq, rSeq));
+        Matching<T> matching = new Matching<>(left, right, BalancedSequence.lcs(lSeq, rSeq));
 
         matching.setAlgorithm(ID);
         matchings.add(matching);
