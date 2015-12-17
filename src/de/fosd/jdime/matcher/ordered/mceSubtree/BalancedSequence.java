@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Tuple;
@@ -32,6 +33,8 @@ public class BalancedSequence<T extends Artifact<T>> {
 
     private List<T> seq;
     private int hashCode;
+
+    private Map<BalancedSequence<T>, Set<BalancedSequence<T>>> decompositionCache;
 
     /**
      * Constructs a new <code>BalancedSequence</code> representing the given <code>tree</code> structure.
@@ -165,12 +168,14 @@ public class BalancedSequence<T extends Artifact<T>> {
 
         if (headLength != 0) {
             head = new BalancedSequence<>(seq.subList(1, 1 + headLength));
+            head.setDecompositionCache(decompositionCache);
         } else {
             head = emptySeq();
         }
 
         if (tailLength != 0) {
             tail = new BalancedSequence<>(seq.subList(index, index + tailLength));
+            tail.setDecompositionCache(decompositionCache);
         } else {
             tail = emptySeq();
         }
@@ -191,6 +196,22 @@ public class BalancedSequence<T extends Artifact<T>> {
     }
 
     /**
+     * An expensive part of the algorithm implemented in {@link BalancedSequence#lcs(BalancedSequence, BalancedSequence)}
+     * is the decomposition of one <code>BalancedSequence</code> into a <code>Set</code> of <code>BalancedSequences</code>.
+     * When performing multiple calls to {@link BalancedSequence#lcs(BalancedSequence, BalancedSequence)} for similar
+     * <code>BalancedSequences</code> performance can be improved by using a persistent cache for all of them.
+     * <p>
+     * The given cache will be used and updated in the {@link #decompose()} method. It will also be passed to the
+     * produced <code>BalancedSequences</code> in {@link #decompose()} and {@link #partition()}.
+     *
+     * @param decompositionCache
+     *         the decomposition cache
+     */
+    public void setDecompositionCache(Map<BalancedSequence<T>, Set<BalancedSequence<T>>> decompositionCache) {
+        this.decompositionCache = decompositionCache;
+    }
+
+    /**
      * Returns the decomposition of this balanced sequence. The decomposition of the empty balanced sequence is a set
      * containing only the empty balanced sequence. For all other sequences s the decomposition is the union of a
      * set containing s and the decompositions of head(s), tail(s) and the concatenation of head(s) and tail(s).
@@ -203,17 +224,25 @@ public class BalancedSequence<T extends Artifact<T>> {
             return Collections.singleton(emptySeq());
         }
 
-        Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(this));
+        Function<BalancedSequence<T>, Set<BalancedSequence<T>>> calcDecomp = seq -> {
+            Set<BalancedSequence<T>> decomposition = new HashSet<>(Collections.singleton(seq));
 
-        Tuple<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
-        BalancedSequence<T> head = partition.getX();
-        BalancedSequence<T> tail = partition.getY();
+            Tuple<BalancedSequence<T>, BalancedSequence<T>> partition = partition();
+            BalancedSequence<T> head = partition.getX();
+            BalancedSequence<T> tail = partition.getY();
 
-        decomposition.addAll(head.decompose());
-        decomposition.addAll(tail.decompose());
-        decomposition.addAll(concatenate(head, tail).decompose());
+            decomposition.addAll(head.decompose());
+            decomposition.addAll(tail.decompose());
+            decomposition.addAll(concatenate(head, tail).decompose());
 
-        return decomposition;
+            return decomposition;
+        };
+
+        if (decompositionCache != null) {
+            return decompositionCache.computeIfAbsent(this, calcDecomp);
+        } else {
+            return calcDecomp.apply(this);
+        }
     }
 
     /**
@@ -239,7 +268,15 @@ public class BalancedSequence<T extends Artifact<T>> {
         result.addAll(left.seq);
         result.addAll(right.seq);
 
-        return new BalancedSequence<>(result);
+        BalancedSequence<T> res = new BalancedSequence<>(result);
+
+        if (left.decompositionCache != null) {
+            res.setDecompositionCache(left.decompositionCache);
+        } else if (right.decompositionCache != null) {
+            res.setDecompositionCache(right.decompositionCache);
+        }
+
+        return res;
     }
 
     /**

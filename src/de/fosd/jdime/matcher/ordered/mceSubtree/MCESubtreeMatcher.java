@@ -1,5 +1,9 @@
 package de.fosd.jdime.matcher.ordered.mceSubtree;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
@@ -19,6 +23,8 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
     private static final String ID = MCESubtreeMatcher.class.getSimpleName();
 
+    private Map<BalancedSequence<T>, Set<BalancedSequence<T>>> decompositionCache;
+
     /**
      * Constructs a new <code>OrderedMatcher</code>
      *
@@ -27,6 +33,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
      */
     public MCESubtreeMatcher(MatcherInterface<T> matcher) {
         super(matcher);
+        this.decompositionCache = new HashMap<>();
     }
 
     @Override
@@ -45,6 +52,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         } else {
             rSeq = new BalancedSequence<>(left, leftLAH);
         }
+
+        lSeq.setDecompositionCache(decompositionCache);
+        rSeq.setDecompositionCache(decompositionCache);
 
         Matchings<T> matchings = new Matchings<>();
         Matching<T> matching = new Matching<>(left, right, BalancedSequence.lcs(lSeq, rSeq));
