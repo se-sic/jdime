@@ -48,9 +48,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         }
 
         if (rightLAH == MergeContext.LOOKAHEAD_FULL) {
-            rSeq = new BalancedSequence<>(left);
+            rSeq = new BalancedSequence<>(right);
         } else {
-            rSeq = new BalancedSequence<>(left, leftLAH);
+            rSeq = new BalancedSequence<>(right, rightLAH);
         }
 
         lSeq.setDecompositionCache(decompositionCache);
