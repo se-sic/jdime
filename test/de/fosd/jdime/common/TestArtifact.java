@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import de.fosd.jdime.common.operations.MergeOperation;
@@ -72,7 +71,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) {
         return null;
     }
-    public TestArtifact createEmptyArtifact() throws FileNotFoundException {
+    public TestArtifact createEmptyArtifact() {
         return null;
     }
 
@@ -92,7 +91,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public void deleteChildren() throws IOException {
+    public void deleteChildren() {
         this.children = new ArtifactList<>();
     }
 
@@ -142,7 +141,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public void merge(MergeOperation<TestArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<TestArtifact> operation, MergeContext context) {
 
     }
 

@@ -82,7 +82,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
      * @param context the <code>MergeContext</code>
      */
     @Override
-    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         /**
          * The method creates ASTNodeArtifacts from the input files. An ASTNodeStrategy is then applied.
          * The result is pretty printed and possibly written to the output file.
@@ -198,7 +198,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             context.addCrash(triple, t);
 
             if (!context.isKeepGoing()) {
-                throw t;
+                throw new RuntimeException(t);
             }
         } finally {
             System.setSecurityManager(systemSecurityManager);

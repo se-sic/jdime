@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -145,10 +144,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param child
      *            child to add
      * @return added child
-     * @throws IOException
-     *             If an input output exception occurs
      */
-    public abstract T addChild(final T child) throws IOException;
+    public abstract T addChild(T child);
 
     /**
      * Adds a matching.
@@ -209,17 +206,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param artifact conditional artifact
      * @return choice artifact
      */
-    public abstract T createChoiceArtifact(final String condition, final T artifact);
+    public abstract T createChoiceArtifact(String condition, T artifact);
 
     /**
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
      * base <code>Artifact</code> is empty.
      *
      * @return empty <code>Artifact</code>
-     * @throws IOException
-     *             If a file is not found or cannot be created
      */
-    public abstract T createEmptyArtifact() throws IOException;
+    public abstract T createEmptyArtifact();
 
     /**
      * Finds the root artifact and calls <code>dumpTree()</code> on it.
@@ -408,7 +403,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         return children;
     }
 
-    public abstract void deleteChildren() throws IOException;
+    public abstract void deleteChildren();
 
     /**
      * Returns the identifier of the <code>Artifact</code>,
@@ -511,6 +506,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return whether the <code>Artifact</code> or its subtree has changes
      */
     public boolean hasChanges() {
+        // FIXME: this method does currently not detect deletions as changes.
+
         boolean hasChanges = !hasMatches();
 
         for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
@@ -520,6 +517,27 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         return hasChanges;
     }
 
+    /**
+     * Returns whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision.
+     *
+     * @param revision <Code>Revision</Code> to compare to
+     * @return whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision
+     */
+    public boolean hasChanges(Revision revision) {
+
+        boolean hasChanges = !hasMatching(revision);
+
+        if (!hasChanges) {
+            T baseArtifact = getMatching(revision).getMatchingArtifact(this);
+            hasChanges = baseArtifact.hasChanges();
+        }
+
+        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
+            hasChanges = getChild(i).hasChanges(revision);
+        }
+
+        return hasChanges;
+    }
     /**
      * Returns true if the <code>Artifact</code> is a change.
      *
@@ -727,13 +745,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            merge operation
      * @param context
      *            merge context
-     * @throws InterruptedException
-     *             If a thread is interrupted
-     * @throws IOException
-     *             If an input output exception occurs
      */
-    public abstract void merge(MergeOperation<T> operation, MergeContext context)
-            throws IOException, InterruptedException;
+    public abstract void merge(MergeOperation<T> operation, MergeContext context);
 
     /**
      * Sets the children of the <code>Artifact</code>.

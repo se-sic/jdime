@@ -51,10 +51,6 @@ public interface MergeInterface<T extends Artifact<T>> {
      *         merge operation
      * @param context
      *         merge context
-     * @throws IOException
-     *         IOException
-     * @throws InterruptedException
-     *         InterruptedException
      */
-    void merge(MergeOperation<T> operation, MergeContext context) throws IOException, InterruptedException;
+    void merge(MergeOperation<T> operation, MergeContext context);
 }

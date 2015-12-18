@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,14 +54,9 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
      *
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<T> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+    public void merge(MergeOperation<T> operation, MergeContext context) {
         assert (operation != null);
         assert (context != null);
 
@@ -114,7 +108,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
 
                     // was deleted in right
-                    if (leftChild.hasChanges()) {
+                    if (leftChild.hasChanges(b)) {
                         // insertion-deletion-conflict
                         if (LOG.isLoggable(Level.FINEST)) {
                             LOG.finest(prefix(leftChild) + "has changes in subtree.");
@@ -158,8 +152,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
 
                     // was deleted in left
-                    if (rightChild.hasChanges()) {
-                        LOG.finest(() -> String.format("%shas changes in subtree.", prefix(finalRightChild)));
+                    if (rightChild.hasChanges(b)) {
+                        LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
 
                         // insertion-deletion-conflict
                         ConflictOperation<T> conflictOp = new ConflictOperation<>(

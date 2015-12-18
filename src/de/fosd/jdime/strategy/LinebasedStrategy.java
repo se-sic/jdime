@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -82,12 +83,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      *
      * @param operation <code>MergeOperation</code> that is executed by this strategy
      * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
         FileArtifact target = null;
 
@@ -110,7 +108,13 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
         LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
         long runtime, startTime = System.currentTimeMillis();
-        Process pr = pb.start();
+        Process pr;
+
+        try {
+            pr = pb.start();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not run '" + String.join(" ", cmd) + "'.", e);
+        }
 
         StringBuilder processOutput = new StringBuilder();
         StringBuilder processErrorOutput = new StringBuilder();
@@ -122,6 +126,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             while ((line = r.readLine()) != null) {
                 processOutput.append(line).append(ls);
             }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process output.");
         }
 
         try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
@@ -130,12 +136,19 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             while ((line = r.readLine()) != null) {
                 processErrorOutput.append(line).append(ls);
             }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process error output.");
         }
 
         context.append(processOutput.toString());
         context.appendError(processErrorOutput.toString());
 
-        pr.waitFor();
+        try {
+            pr.waitFor();
+        } catch (InterruptedException e) {
+            LOG.log(Level.WARNING, e, () -> "Interrupted while waiting for the external command to finish.");
+        }
+
         runtime = System.currentTimeMillis() - startTime;
 
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
