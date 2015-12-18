@@ -24,9 +24,9 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -46,10 +46,10 @@ import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
 import org.jastadd.extendj.ast.ClassDecl;
-import org.jastadd.extendj.ast.CompilationUnit;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
 import org.jastadd.extendj.ast.InterfaceDecl;
+import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
@@ -72,19 +72,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            program
      */
     private static void initParser(Program p) {
-        JavaParser parser = new JavaParser() {
-            @Override
-            public CompilationUnit parse(InputStream is, String fileName) throws IOException,
-                    beaver.Parser.Exception {
-                return new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
-            }
-        };
-        BytecodeReader bytecodeParser = new BytecodeReader() {
-            @Override
-            public CompilationUnit read(InputStream is, String fullName, Program p) throws IOException {
-                return new BytecodeParser(is, fullName).parse(null, null, p);
-            }
-        };
+        JavaParser parser = (is, fileName) -> new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
+        BytecodeReader bytecodeParser = (is, fullName, program) -> new BytecodeParser(is, fullName).parse(null, null, program);
 
         p.initJavaParser(parser);
         p.initBytecodeReader(bytecodeParser);
@@ -172,7 +161,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param artifact
      *            file artifact
      */
-    public ASTNodeArtifact(final FileArtifact artifact) throws IOException {
+    public ASTNodeArtifact(FileArtifact artifact) {
         assert (artifact != null);
 
         setRevision(artifact.getRevision());
@@ -182,7 +171,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             astnode = new ASTNode<>();
         } else {
             Program p = initProgram();
-            p.addSourceFile(artifact.getPath());
+
+            try {
+                p.addSourceFile(artifact.getPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             astnode = p;
         }
 
@@ -232,7 +227,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact addChild(final ASTNodeArtifact child) throws IOException {
+    public ASTNodeArtifact addChild(ASTNodeArtifact child) {
         LOG.finest(() -> String.format("%s.addChild(%s)", getId(), child.getId()));
 
         assert (this.exists());
@@ -254,7 +249,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createEmptyArtifact() {
+    public ASTNodeArtifact createEmptyArtifact() {
         ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
         emptyArtifact.setRevision(getRevision());
         return emptyArtifact;
@@ -329,6 +324,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             sb.append(Color.RED.toShell());
             sb.append(">>>>>>> ");
+            sb.append(Color.DEFAULT.toShell());
             sb.append(System.lineSeparator());
         } else if (isChoice()) {
             Set<String> conditions = getVariants().keySet();
@@ -348,6 +344,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 }
                 sb.append(Color.RED.toShell());
                 sb.append("#endif");
+                sb.append(Color.DEFAULT.toShell());
                 sb.append(System.lineSeparator());
 
             }
@@ -494,7 +491,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
 
@@ -609,11 +606,19 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             if (left != null) {
                 left.rebuildAST();
                 astnode.left = left.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
 
             if (right != null) {
                 right.rebuildAST();
                 astnode.right = right.astnode;
+            } else {
+                /* FIXME: this is actually a bug.
+                 * JDime should use an empty ASTNode with the correct revision information.
+                 */
             }
         }
 

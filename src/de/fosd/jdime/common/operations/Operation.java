@@ -67,13 +67,9 @@ public abstract class Operation<T extends Artifact<T>> {
      * Applies the operation.
      *
      * @param context
-     *            merge context
-     * @throws IOException
-     *             If an input or output exception occurs
-     * @throws InterruptedException
-     *             If a thread is interrupted
+     *         merge context
      */
-    public abstract void apply(MergeContext context) throws IOException, InterruptedException;
+    public abstract void apply(MergeContext context);
 
     /**
      * Returns the name of the operation.

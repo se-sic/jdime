@@ -60,8 +60,8 @@ public final class Main {
 
     private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
-    public static final String TOOLNAME = "jdime";
-    public static final String VERSION = "0.3.11-develop";
+    private static final String TOOLNAME = "jdime";
+    private static final String VERSION = "0.4.0-develop";
 
     /**
      * Prevent instantiation.

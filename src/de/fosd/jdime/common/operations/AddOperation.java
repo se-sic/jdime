@@ -22,7 +22,6 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
@@ -80,7 +79,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public void apply(MergeContext context) throws IOException {
+    public void apply(MergeContext context) {
         assert (artifact != null);
         assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 

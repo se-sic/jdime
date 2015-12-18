@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -59,14 +58,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
      *
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<T> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+    public void merge(MergeOperation<T> operation, MergeContext context) {
         logprefix = operation.getId() + " - ";
         MergeScenario<T> triple = operation.getMergeScenario();
         T left = triple.getLeft();
@@ -75,6 +69,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         T target = operation.getTarget();
 
         Revision l = left.getRevision();
+        Revision b = base.getRevision();
         Revision r = right.getRevision();
 
         if (!context.isDiffOnly() && !context.isPretend()) {
@@ -152,7 +147,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 LOG.finest(() -> String.format("%s has no children", prefix(left)));
                 LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
 
-                if (right.hasChanges()) {
+                if (right.hasChanges(b)) {
                     LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
                     for (T rightChild : right.getChildren()) {
@@ -174,7 +169,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 LOG.finest(() -> String.format("%s has no children", prefix(right)));
                 LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
 
-                if (left.hasChanges()) {
+                if (left.hasChanges(b)) {
                     LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
                     for (T leftChild : left.getChildren()) {
