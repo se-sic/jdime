@@ -28,6 +28,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'org.ajoberstar.grgit' version '1.3.2'
+    id "com.github.hierynomus.license" version "0.12.1"
 }
 
 sourceSets {
@@ -57,6 +58,20 @@ dependencies {
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
     testCompile 'junit:junit:4.12'
+}
+
+def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
+
+license {
+    header rootProject.file('LICENSE_HEADER')
+    mapping("fxml", "XML_STYLE")
+    strictCheck true
+
+    fileTree(testFilesDir).visit {
+        exclude it.getRelativePath().getPathString()
+    }
+
+    exclude "de/fosd/jdime/matcher/unordered/HungarianAlgorithm.java"
 }
 
 idea {
@@ -126,7 +141,6 @@ test {
 
 task getTestFiles {
     def gitURI = "https://github.com/xai/jdime-testfiles"
-    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
     group = 'verification'
