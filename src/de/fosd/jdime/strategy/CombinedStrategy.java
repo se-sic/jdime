@@ -48,12 +48,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      * TODO: high-level documentation
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         FileArtifact target = null;
 
         if (!context.isDiffOnly() && operation.getTarget() != null) {
@@ -103,11 +100,15 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 boolean targetExists = target.exists();
                 String targetFileName = target.getFullPath();
 
-                if (target.exists()) {
-                    target.remove();
-                }
+                try {
+                    if (target.exists()) {
+                        target.remove();
+                    }
 
-                target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                    target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             subContext = (MergeContext) context.clone();

@@ -22,7 +22,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,14 +53,9 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
      *
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<T> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+    public void merge(MergeOperation<T> operation, MergeContext context) {
         assert (operation != null);
         assert (context != null);
 
