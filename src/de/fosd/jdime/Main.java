@@ -60,8 +60,14 @@ public final class Main {
 
     private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
 
-    private static final String TOOLNAME = "jdime";
-    private static final String VERSION = "0.4.0-develop";
+    public static final String TOOLNAME = "jdime";
+    public static final String VERSION = "0.4.0-develop";
+
+    private static final String MODE_LIST = "list";
+    private static final String MODE_DUMPTREE = "dumptree";
+    private static final String MODE_DUMPGRAPH = "dumpgraph";
+    private static final String MODE_DUMPFILE = "dumpfile";
+    private static final String MODE_PRETTYPRINT = "prettyprint";
 
     /**
      * Prevent instantiation.
@@ -315,27 +321,27 @@ public final class Main {
             if (cmd.hasOption(CLI_MODE)) {
                 try {
                     switch (cmd.getOptionValue(CLI_MODE).toLowerCase()) {
-                        case "list":
+                        case MODE_LIST:
                             printStrategies();
                             return false;
-                        case "dumptree":
+                        case MODE_DUMPTREE:
                             // User only wants to display the ASTs
                             context.setMergeStrategy(MergeStrategy.parse("structured"));
                             context.setDumpTree(true);
                             context.setGuiDump(false);
                             break;
-                        case "dumpgraph":
+                        case MODE_DUMPGRAPH:
                             // User only wants to display the ASTs
                             context.setMergeStrategy(MergeStrategy.parse("structured"));
                             context.setDumpTree(true);
                             context.setGuiDump(true);
                             break;
-                        case "dumpfile":
+                        case MODE_DUMPFILE:
                             // User only wants to display the files
                             context.setMergeStrategy(MergeStrategy.parse("linebased"));
                             context.setDumpFiles(true);
                             break;
-                        case "prettyprint":
+                        case MODE_PRETTYPRINT:
                             // User wants to parse and pretty-print file
                             context.setMergeStrategy(MergeStrategy.parse("structured"));
                             context.setDumpFiles(true);
