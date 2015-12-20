@@ -158,12 +158,12 @@ public final class Main {
             Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
             String ls = System.lineSeparator();
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("%d crashes occurred while merging:\n", crashes.size()));
 
-            for (MergeScenario<?> scenario : crashes.keySet()) {
-                Throwable t = crashes.get(scenario);
-                sb.append("* ").append(t.toString()).append(ls);
-                sb.append("    ").append(scenario.toString().replace(" ", ls + "    ")).append(ls);
+            sb.append(String.format("%d crashes occurred while merging:%n", crashes.size()));
+
+            for (Map.Entry<MergeScenario<?>, Throwable> entry : crashes.entrySet()) {
+                sb.append("* ").append(entry.getValue().toString()).append(ls);
+                sb.append("    ").append(entry.getKey().toString().replace(" ", ls + "    ")).append(ls);
             }
 
             LOG.config(sb.toString());
