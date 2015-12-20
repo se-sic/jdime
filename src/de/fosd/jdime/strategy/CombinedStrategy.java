@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
@@ -106,7 +105,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                         target.remove();
                     }
 
-                    target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                    target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName), targetExists, isLeaf);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

@@ -446,8 +446,7 @@ public final class Main {
             }
 
             if (outputFileName != null) {
-                Revision mergeRev = new Revision("merge");
-                FileArtifact outArtifact = new FileArtifact(mergeRev, new File(outputFileName), true, targetIsFile);
+                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, new File(outputFileName), true, targetIsFile);
 
                 context.setOutputFile(outArtifact);
                 context.setPretend(false);

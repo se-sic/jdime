@@ -24,8 +24,6 @@
 package de.fosd.jdime.common;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -48,7 +46,6 @@ import org.jastadd.extendj.ast.ClassDecl;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
 import org.jastadd.extendj.ast.InterfaceDecl;
-import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
@@ -671,7 +668,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
                 : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
 
-        conflict.setRevision(new Revision("conflict"));
+        conflict.setRevision(MergeScenario.CONFLICT);
         conflict.setNumber(virtualcount++);
         conflict.setConflict(left, right);
 
@@ -684,7 +681,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact choice;
 
         choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
-        choice.setRevision(new Revision("choice"));
+        choice.setRevision(MergeScenario.CHOICE);
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);
         return choice;
