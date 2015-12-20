@@ -501,6 +501,7 @@ public final class Main {
     public static void merge(MergeContext context) throws IOException, InterruptedException {
         ArtifactList<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
+
         boolean conditional = context.isConditionalMerge();
         MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
 
