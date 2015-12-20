@@ -148,10 +148,10 @@ public final class Main {
             dumpFiles(context);
         } else {
             merge(context);
-        }
 
-        if (context.hasStatistics()) {
-            outputStatistics(context.getStatistics());
+            if (context.hasStatistics()) {
+                outputStatistics(context.getStatistics());
+            }
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
