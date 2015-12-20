@@ -176,7 +176,6 @@ public final class JDimeConfig {
     public static final String CLI_MODE = "m";
     public static final String CLI_OUTPUT = "o";
     public static final String CLI_RECURSIVE = "r";
-    public static final String CLI_SHOWCONFIG = "sc";
     public static final String CLI_STATS = "s";
     public static final String CLI_PRINT = "p";
     public static final String CLI_QUIET = "q";
@@ -322,14 +321,6 @@ public final class JDimeConfig {
         o = Option.builder(CLI_RECURSIVE)
                 .longOpt("recursive")
                 .desc("Merge directories recursively.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_SHOWCONFIG)
-                .longOpt("showconfig")
-                .desc("Print configuration information.")
                 .hasArg(false)
                 .build();
 

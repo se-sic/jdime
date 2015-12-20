@@ -404,11 +404,6 @@ public final class Main {
 
             context.setKeepGoing(cmd.hasOption(CLI_KEEPGOING));
 
-            if (cmd.hasOption(CLI_SHOWCONFIG)) {
-                showConfig(context);
-                return false;
-            }
-
             int numInputFiles = cmd.getArgList().size();
 
             if (!((context.isDumpTree() || context.isDumpFile()) || numInputFiles >= MergeType.MINFILES)) {
@@ -463,18 +458,6 @@ public final class Main {
         }
 
         return true;
-    }
-
-    /**
-     * Prints configuration information.
-     *
-     * @param context
-     *         merge context
-     */
-    private static void showConfig(final MergeContext context) {
-        assert (context != null);
-        System.out.println("Merge strategy: " + context.getMergeStrategy());
-        System.out.println();
     }
 
     /**
