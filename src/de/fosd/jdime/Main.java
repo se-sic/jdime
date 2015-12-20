@@ -304,7 +304,7 @@ public final class Main {
             }
 
             if (cmd.hasOption(CLI_VERSION)) {
-                version();
+                System.out.println(TOOLNAME + " VERSION " + VERSION);
                 return false;
             }
 
@@ -457,13 +457,6 @@ public final class Main {
         }
 
         return true;
-    }
-
-    /**
-     * Print version information.
-     */
-    private static void version() {
-        System.out.println(TOOLNAME + " VERSION " + VERSION);
     }
 
     /**
