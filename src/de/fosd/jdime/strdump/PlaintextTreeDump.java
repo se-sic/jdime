@@ -21,6 +21,16 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
      *
      * @param artifact
      *         the <code>Artifact</code> to dump to a <code>String</code>
+     */
+    public PlaintextTreeDump(T artifact) {
+        super(artifact);
+    }
+
+    /**
+     * Constructs a new <code>StringDumper</code> for the given <code>Artifact</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to dump to a <code>String</code>
      * @param findRoot
      *         whether to dump the root of the tree <code>artifact</code> is part of
      */
