@@ -3,7 +3,7 @@ package de.fosd.jdime.strdump;
 import de.fosd.jdime.common.Artifact;
 
 /**
- * Dumps the given <code>Artifact</code> in Graphviz format.
+ * Dumps the given <code>Artifact</code> tree in Graphviz format.
  *
  * @param <T>
  *         the type of the <code>Artifact</code>
