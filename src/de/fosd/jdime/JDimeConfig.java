@@ -25,6 +25,7 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Handler;
@@ -32,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
+import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
@@ -174,6 +176,7 @@ public final class JDimeConfig {
     public static final String CLI_KEEPGOING = "k";
     public static final String CLI_LOOKAHEAD = "lah";
     public static final String CLI_MODE = "m";
+    public static final String CLI_DUMP = "dmp";
     public static final String CLI_OUTPUT = "o";
     public static final String CLI_RECURSIVE = "r";
     public static final String CLI_STATS = "s";
@@ -308,6 +311,19 @@ public final class JDimeConfig {
                 .build();
 
         options.addOption(o);
+
+        {
+            String formats = Arrays.stream(DumpMode.values()).map(Enum::name).reduce("", (s, s2) -> s + " " + s2);
+
+            o = Option.builder(CLI_DUMP)
+                    .longOpt("dump")
+                    .desc("Dumps the inputs using one of the formats: " + formats)
+                    .hasArg()
+                    .argName("format")
+                    .build();
+
+            options.addOption(o);
+        }
 
         o = Option.builder(CLI_OUTPUT)
                 .longOpt("output")

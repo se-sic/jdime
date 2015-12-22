@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import de.fosd.jdime.common.ASTNodeArtifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -46,6 +48,11 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
+import de.fosd.jdime.strdump.DumpMode;
+import de.fosd.jdime.strdump.GraphvizTreeDump;
+import de.fosd.jdime.strdump.PlaintextTreeDump;
+import de.fosd.jdime.strdump.PrettyPrintDump;
+import de.fosd.jdime.strdump.TGFTreeDump;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
@@ -64,10 +71,6 @@ public final class Main {
     public static final String VERSION = "0.4.0-develop";
 
     private static final String MODE_LIST = "list";
-    private static final String MODE_DUMPTREE = "dumptree";
-    private static final String MODE_DUMPGRAPH = "dumpgraph";
-    private static final String MODE_DUMPFILE = "dumpfile";
-    private static final String MODE_PRETTYPRINT = "prettyprint";
 
     /**
      * Prevent instantiation.
@@ -148,11 +151,17 @@ public final class Main {
 
         }
 
-        if (context.isDumpTree()) {
-            dumpTrees(context);
-        } else if (context.isDumpFile()) {
-            dumpFiles(context);
+        if (context.getDumpMode() != DumpMode.NONE) {
+
+            for (FileArtifact artifact : context.getInputFiles()) {
+                dump(artifact, context.getDumpMode());
+            }
         } else {
+            if (context.getInputFiles().size() < MergeType.MINFILES) {
+                JDimeConfig.printCLIHelp();
+                return;
+            }
+
             merge(context);
 
             if (context.hasStatistics()) {
@@ -318,34 +327,24 @@ public final class Main {
                 setLogLevel(cmd.getOptionValue(CLI_LOG_LEVEL));
             }
 
+            if (cmd.hasOption(CLI_DUMP)) {
+
+                try {
+                    context.setDumpMode(DumpMode.valueOf(cmd.getOptionValue(CLI_DUMP).toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    LOG.log(Level.WARNING, e, () -> "Invalid dump format " + cmd.getOptionValue(CLI_DUMP));
+                    return false;
+                }
+            } else {
+                context.setDumpMode(DumpMode.NONE);
+            }
+
             if (cmd.hasOption(CLI_MODE)) {
                 try {
                     switch (cmd.getOptionValue(CLI_MODE).toLowerCase()) {
                         case MODE_LIST:
                             printStrategies();
                             return false;
-                        case MODE_DUMPTREE:
-                            // User only wants to display the ASTs
-                            context.setMergeStrategy(MergeStrategy.parse("structured"));
-                            context.setDumpTree(true);
-                            context.setGuiDump(false);
-                            break;
-                        case MODE_DUMPGRAPH:
-                            // User only wants to display the ASTs
-                            context.setMergeStrategy(MergeStrategy.parse("structured"));
-                            context.setDumpTree(true);
-                            context.setGuiDump(true);
-                            break;
-                        case MODE_DUMPFILE:
-                            // User only wants to display the files
-                            context.setMergeStrategy(MergeStrategy.parse("linebased"));
-                            context.setDumpFiles(true);
-                            break;
-                        case MODE_PRETTYPRINT:
-                            // User wants to parse and pretty-print file
-                            context.setMergeStrategy(MergeStrategy.parse("structured"));
-                            context.setDumpFiles(true);
-                            break;
                         default:
                             context.setMergeStrategy(MergeStrategy.parse(cmd.getOptionValue(CLI_MODE)));
                     }
@@ -403,13 +402,6 @@ public final class Main {
             }
 
             context.setKeepGoing(cmd.hasOption(CLI_KEEPGOING));
-
-            int numInputFiles = cmd.getArgList().size();
-
-            if (!((context.isDumpTree() || context.isDumpFile()) || numInputFiles >= MergeType.MINFILES)) {
-                JDimeConfig.printCLIHelp();
-                return false;
-            }
 
             // prepare the list of input files
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
@@ -495,34 +487,69 @@ public final class Main {
     }
 
     /**
-     * Mainly used for debugging purposes.
+     * Dumps the given <code>FileArtifact</code> using the <code>mode</code>.
      *
-     * @param context
-     *         merge context
-     * @throws IOException
-     *         If an input output exception occurs
+     * @param artifact
+     *         the <code>Artifact</code> to dump
+     * @param mode
+     *         the dump format
      */
-    @SuppressWarnings("unchecked")
-    private static void dumpTrees(final MergeContext context) throws IOException {
-        for (FileArtifact artifact : context.getInputFiles()) {
-            MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
-            System.out.println(strategy.dumpTree(artifact, context.isGuiDump()));
-        }
-    }
+    private static void dump(FileArtifact artifact, DumpMode mode) {
 
-    /**
-     * Mainly used for debugging purposes.
-     *
-     * @param context
-     *         merge context
-     * @throws IOException
-     *         If an input output exception occurs
-     */
-    @SuppressWarnings("unchecked")
-    private static void dumpFiles(final MergeContext context) throws IOException {
-        for (FileArtifact artifact : context.getInputFiles()) {
-            MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
-            System.out.println(strategy.dumpFile(artifact, context.isGuiDump()));
+        if (mode == DumpMode.NONE) {
+            return;
+        }
+
+        if (mode == DumpMode.FILE_DUMP) {
+            System.out.println(new PrettyPrintDump<>(artifact));
+        } else {
+            SecurityManager prevSecManager = System.getSecurityManager();
+            SecurityManager noExitManager = new SecurityManager() {
+                @Override
+                public void checkPermission(Permission perm) {
+                    // allow anything.
+                }
+
+                @Override
+                public void checkPermission(Permission perm, Object context) {
+                    // allow anything.
+                }
+
+                @Override
+                public void checkExit(int status) {
+                    super.checkExit(status);
+                    throw new SecurityException("Captured attempt to exit JVM.");
+                }
+            };
+
+            ASTNodeArtifact astArtifact;
+
+            System.setSecurityManager(noExitManager);
+
+            try {
+                astArtifact = new ASTNodeArtifact(artifact);
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not parse " + artifact + " to an ASTNodeArtifact.");
+                return;
+            } finally {
+                System.setSecurityManager(prevSecManager);
+            }
+
+            switch (mode) {
+
+                case PLAINTEXT_TREE:
+                    System.out.println(new PlaintextTreeDump<>(astArtifact));
+                    break;
+                case GRAPHVIZ_TREE:
+                    System.out.println(new GraphvizTreeDump<>(astArtifact));
+                    break;
+                case TGF_TREE:
+                    System.out.println(new TGFTreeDump<>(astArtifact));
+                    break;
+                case PRETTY_PRINT_DUMP:
+                    System.out.println(new PrettyPrintDump<>(astArtifact));
+                    break;
+            }
         }
     }
 }

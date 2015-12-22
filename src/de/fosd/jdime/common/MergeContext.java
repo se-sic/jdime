@@ -33,6 +33,7 @@ import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
+import de.fosd.jdime.strdump.DumpMode;
 
 /**
  * @author Olaf Lessenich
@@ -71,25 +72,12 @@ public class MergeContext implements Cloneable {
      */
     private boolean consecutive = false;
 
-    /**
-     * Whether to dump files instead of merging.
-     */
-    private boolean dumpFiles = false;
-
-    /**
-     * Whether to dump ASTs instead of merging.
-     */
-    private boolean dumpTree = false;
+    private DumpMode dumpMode;
 
     /**
      * Force overwriting of existing output files.
      */
     private boolean forceOverwriting = false;
-
-    /**
-     * Whether to use graphical output while dumping.
-     */
-    private boolean guiDump = false;
 
     /**
      * Input Files.
@@ -364,26 +352,12 @@ public class MergeContext implements Cloneable {
         this.diffOnly = diffOnly;
     }
 
-    /**
-     * @return the dumpFiles
-     */
-    public boolean isDumpFile() {
-        return dumpFiles;
+    public void setDumpMode(DumpMode dumpMode) {
+        this.dumpMode = dumpMode;
     }
 
-    /**
-     * @return the dumpTree
-     */
-    public boolean isDumpTree() {
-        return dumpTree;
-    }
-
-    /**
-     * @param dumpTree
-     *         the dumpTree to set
-     */
-    public void setDumpTree(boolean dumpTree) {
-        this.dumpTree = dumpTree;
+    public DumpMode getDumpMode() {
+        return dumpMode;
     }
 
     /**
@@ -403,21 +377,6 @@ public class MergeContext implements Cloneable {
      */
     public void setForceOverwriting(boolean forceOverwriting) {
         this.forceOverwriting = forceOverwriting;
-    }
-
-    /**
-     * @return the guiDump
-     */
-    public boolean isGuiDump() {
-        return guiDump;
-    }
-
-    /**
-     * @param guiDump
-     *         the guiDump to set
-     */
-    public void setGuiDump(boolean guiDump) {
-        this.guiDump = guiDump;
     }
 
     /**
@@ -498,14 +457,6 @@ public class MergeContext implements Cloneable {
     public void resetStreams() {
         stdIn = new StringWriter();
         stdErr = new StringWriter();
-    }
-
-    /**
-     * @param dumpFiles
-     *         the dumpFiles to set
-     */
-    public void setDumpFiles(boolean dumpFiles) {
-        this.dumpFiles = dumpFiles;
     }
 
     /**
