@@ -26,8 +26,6 @@ package de.fosd.jdime.strategy;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -179,31 +177,5 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String toString() {
         return "linebased";
-    }
-
-    /**
-     * Throws <code>UnsupportedOperationException</code>. You should use a structured strategy to dump a tree.
-     * 
-     * @param artifact
-     *            artifact to dump
-     * @param graphical
-     *            output option
-     */
-    @Override
-    public final String dumpTree(FileArtifact artifact, boolean graphical) {
-        throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
-    }
-
-    @Override
-    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
-        List<String> lines = Files.readAllLines(artifact.getFile().toPath(), StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder();
-
-        for (String line : lines) {
-            sb.append(line);
-            sb.append(System.lineSeparator());
-        }
-
-        return sb.toString();
     }
 }

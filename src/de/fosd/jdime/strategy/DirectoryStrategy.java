@@ -23,13 +23,11 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.merge.Merge;
 
@@ -89,17 +87,5 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public final String toString() {
         return "directory";
-    }
-
-    @Override
-    public final String dumpTree(final FileArtifact artifact,
-            final boolean graphical) throws IOException {
-        throw new NotYetImplementedException(this.getClass().getSimpleName() + ".dumpTree()");
-    }
-
-    @Override
-    public final String dumpFile(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        throw new NotYetImplementedException(this.getClass().getSimpleName() + ".dumpFile()");
     }
 }

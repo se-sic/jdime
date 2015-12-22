@@ -34,15 +34,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
@@ -274,45 +271,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
         return emptyFile;
-    }
-
-    @Override
-    protected final String dumpTree(final String indent) {
-        StringBuilder sb = new StringBuilder();
-
-        Matching<FileArtifact> m = null;
-        if (hasMatches()) {
-            Set<Revision> matchingRevisions = matches.keySet();
-
-            // print color code
-            String color = "";
-
-            for (Revision rev : matchingRevisions) {
-                m = getMatching(rev);
-                color = m.getHighlightColor().toShell();
-            }
-
-            sb.append(color);
-        }
-
-        sb.append(indent).append("(").append(getId()).append(") ");
-        sb.append(this);
-
-        if (hasMatches()) {
-            assert (m != null);
-            sb.append(" <=> (").append(m.getMatchingArtifact(this)).append(")");
-            sb.append(Color.DEFAULT.toShell());
-        }
-        sb.append(System.lineSeparator());
-
-        if (!isLeaf()) {
-            // children
-            for (FileArtifact child : getChildren()) {
-                sb.append(child.dumpTree(indent + "  "));
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override

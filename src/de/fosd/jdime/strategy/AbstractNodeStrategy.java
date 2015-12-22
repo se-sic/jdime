@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -76,25 +75,5 @@ public abstract class AbstractNodeStrategy<T extends Artifact<T>> extends MergeS
 
         LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
         merge.merge(operation, context);
-    }
-
-    @Override
-    public String dumpTree(T artifact, boolean graphical) {
-        return graphical ? dumpGraphVizTree(artifact) : artifact.dumpTree();
-    }
-
-    private String dumpGraphVizTree(T artifact) {
-        final String format = "digraph ast {%n" +
-                              "node [shape=ellipse];%n" +
-                              "nodesep=0.8;%n" +
-                              "%s" +
-                              "}";
-
-        return String.format(format, artifact.dumpGraphvizTree(true, 0));
-    }
-
-    @Override
-    public String dumpFile(T artifact, boolean graphical) {
-        return artifact.prettyPrint();
     }
 }

@@ -27,18 +27,16 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strdump.PlaintextTreeDump;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
@@ -268,104 +266,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         astnode.flushTreeCache();
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(dumpTree());
+            System.out.println(new PlaintextTreeDump<>(this, true));
         }
 
         return astnode.prettyPrint();
-    }
-
-    @Override
-    protected final String dumpTree(final String indent) {
-        assert (astnode != null);
-        StringBuilder sb = new StringBuilder();
-
-        // node itself
-        Matching<ASTNodeArtifact> m = null;
-
-        // color
-        if (!isConflict() && hasMatches()) {
-
-            Set<Revision> matchingRevisions = matches.keySet();
-
-            // print color code
-            String color = "";
-
-            for (Revision rev : matchingRevisions) {
-                m = getMatching(rev);
-                color = m.getHighlightColor().toShell();
-            }
-
-            sb.append(color);
-        }
-
-        if (isConflict()) {
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-            sb.append(Color.RED.toShell());
-            sb.append("<<<<<<< ");
-            sb.append(System.lineSeparator());
-            // children
-            if (left != null) {
-                sb.append(left.dumpTree(indent));
-            }
-            sb.append(Color.RED.toShell());
-            sb.append("======= ");
-            sb.append(System.lineSeparator());
-            // children
-            if (right != null) {
-                sb.append(right.dumpTree(indent));
-            }
-
-            sb.append(Color.RED.toShell());
-            sb.append(">>>>>>> ");
-            sb.append(Color.DEFAULT.toShell());
-            sb.append(System.lineSeparator());
-        } else if (isChoice()) {
-            Set<String> conditions = getVariants().keySet();
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-
-            for (String condition : conditions) {
-                sb.append(Color.RED.toShell());
-                sb.append("#ifdef " + condition);
-                sb.append(System.lineSeparator());
-                // children
-                ASTNodeArtifact variant = getVariants().get(condition);
-                if (variant != null) {
-                    sb.append(variant.dumpTree(indent));
-                }
-                sb.append(Color.RED.toShell());
-                sb.append("#endif");
-                sb.append(Color.DEFAULT.toShell());
-                sb.append(System.lineSeparator());
-
-            }
-        } else {
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-
-            if (hasMatches()) {
-                assert (m != null);
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest(m.toString());
-                    LOG.finest("Matching artifacts: " + m.getMatchingArtifact(this));
-                }
-                sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
-                sb.append(Color.DEFAULT.toShell());
-            }
-            sb.append(System.lineSeparator());
-
-            // children
-            for (ASTNodeArtifact child : getChildren()) {
-                sb.append(child.dumpTree(indent + "  "));
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override

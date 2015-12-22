@@ -43,7 +43,7 @@ import de.fosd.jdime.merge.MergeInterface;
  *         type of artifact
  * @author Olaf Lessenich
  */
-public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T>, DumpInterface<T> {
+public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
     private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
 

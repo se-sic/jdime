@@ -151,16 +151,4 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
     public final String toString() {
         return "combined";
     }
-
-    @Override
-    public final String dumpTree(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new StructuredStrategy().dumpTree(artifact, graphical);
-    }
-
-    @Override
-    public String dumpFile(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new LinebasedStrategy().dumpFile(artifact, graphical);
-    }
 }
