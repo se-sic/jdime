@@ -139,7 +139,7 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
             }
         } else {
             builder.append(indent).append("(").append(artifact.getId()).append(") ");
-            builder.append(this);
+            builder.append(getLabel.apply(artifact));
 
             if (artifact.hasMatches()) {
                 builder.append(" <=> (").append(m.getMatchingArtifact(artifact).getId()).append(")");
