@@ -14,10 +14,7 @@ import de.fosd.jdime.common.Artifact;
 public abstract class StringDumper<T extends Artifact<T>> {
 
     protected Function<T, String> getLabel;
-
     protected StringBuilder builder;
-    private boolean built;
-
     protected T artifact;
 
     /**
@@ -29,22 +26,13 @@ public abstract class StringDumper<T extends Artifact<T>> {
     public StringDumper(T artifact) {
         this.getLabel = Artifact::toString;
         this.builder = new StringBuilder();
-        this.built = false;
         this.artifact = artifact;
     }
 
-    protected abstract void buildString();
-
     /**
-     * Calls {@link #buildString()} if the <code>String</code> has not yet been built.
+     * Appends the <code>String</code> representation of the <code>artifact</code> to the <code>builder</code>.
      */
-    private void buildIfNeeded() {
-
-        if (!built) {
-            buildString();
-            built = true;
-        }
-    }
+    protected abstract void buildString();
 
     /**
      * Sets the function used to generate a label used for the <code>Artifacts</code> being dumped. Defaults to
@@ -59,7 +47,9 @@ public abstract class StringDumper<T extends Artifact<T>> {
 
     @Override
     public final String toString() {
-        buildIfNeeded();
+        builder.delete(0, builder.length());
+        buildString();
+
         return builder.toString();
     }
 }
