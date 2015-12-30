@@ -340,17 +340,18 @@ public final class Main {
             }
 
             if (cmd.hasOption(CLI_MODE)) {
-                try {
-                    switch (cmd.getOptionValue(CLI_MODE).toLowerCase()) {
-                        case MODE_LIST:
-                            printStrategies();
-                            return false;
-                        default:
-                            context.setMergeStrategy(MergeStrategy.parse(cmd.getOptionValue(CLI_MODE)));
-                    }
-                } catch (StrategyNotFoundException e) {
-                    LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
+                String mode = cmd.getOptionValue(CLI_MODE).toLowerCase();
+
+                if (MODE_LIST.equals(mode)) {
+                    printStrategies();
                     return false;
+                } else {
+                    try {
+                        context.setMergeStrategy(MergeStrategy.parse(mode));
+                    } catch (StrategyNotFoundException e) {
+                        LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
+                        return false;
+                    }
                 }
 
                 if (context.getMergeStrategy() == null) {
