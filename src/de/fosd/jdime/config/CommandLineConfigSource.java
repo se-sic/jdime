@@ -1,6 +1,7 @@
 package de.fosd.jdime.config;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import de.fosd.jdime.strdump.DumpMode;
@@ -11,6 +12,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+/**
+ * A <code>ConfigSource</code> backed by a <code>CommandLine</code> instance. Its {@link #getMapping(String)} method
+ * will (for both long and short option names) return the first argument to the option if it is set and has arguments
+ * or "true" for options that are set but have no arguments. Otherwise an empty Optional is returned.
+ * The left over arguments on the command line ({@link CommandLine#getArgList()}) can be retrieved using the key
+ * {@link #ARG_LIST}.
+ */
 public class CommandLineConfigSource extends ConfigSource {
 
     /*
@@ -39,16 +47,30 @@ public class CommandLineConfigSource extends ConfigSource {
     private Options options;
     private CommandLine cmdLine;
 
+    /**
+     * Constructs a new <code>CommandLineConfigSource</code> from the given <code>args</code>.
+     *
+     * @param args
+     *         the command line arguments to parse
+     * @throws ParseException
+     *         if there is an exception parsing the arguments
+     */
     public CommandLineConfigSource(String[] args) throws ParseException {
         this(args, DEFAULT_PRIORITY);
     }
 
+    /**
+     * Constructs a new <code>CommandLineConfigSource</code> from the given <code>args</code>.
+     *
+     * @param args
+     *         the command line arguments to parse
+     * @param priority
+     *         the priority for this <code>ConfigSource</code>
+     * @throws ParseException
+     *         if there is an exception parsing the arguments
+     */
     public CommandLineConfigSource(String[] args, int priority) throws ParseException {
-        this(args, priority, null, null);
-    }
-
-    public CommandLineConfigSource(String[] args, int priority, String prefix, String suffix) throws ParseException {
-        super(priority, prefix, suffix);
+        super(priority, null, null);
 
         this.options = buildCliOptions();
         this.cmdLine = new DefaultParser().parse(options, args);
@@ -207,8 +229,9 @@ public class CommandLineConfigSource extends ConfigSource {
     }
 
     /**
-     * When requesting the left over arguments of the commandline ({@link CommandLine#getArgList()}) using the key {@link #ARG_LIST} they are
-     * concatenated into one <code>String</code> using the separator string set by this method.
+     * When requesting the left over arguments of the commandline ({@link CommandLine#getArgList()}) using the key
+     * {@link #ARG_LIST} they are concatenated into one <code>String</code> using the separator string set by this
+     * method.
      *
      * @param argListSep
      *         the new separator
@@ -221,7 +244,13 @@ public class CommandLineConfigSource extends ConfigSource {
     protected Optional<String> getMapping(String key) {
 
         if (ARG_LIST.equals(key)) {
-            return Optional.of(String.join(argListSep, cmdLine.getArgList()));
+            List<String> argList = cmdLine.getArgList();
+
+            if (argList.isEmpty()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(String.join(argListSep, argList));
+            }
         }
 
         if (!options.hasOption(key)) {
