@@ -3,7 +3,6 @@ package de.fosd.jdime.config;
 import java.util.Arrays;
 import java.util.Optional;
 
-import de.fosd.jdime.common.NotYetImplementedException;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.sources.ConfigSource;
 import org.apache.commons.cli.CommandLine;
@@ -35,6 +34,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_VERSION = "v";
 
     public static final String ARG_LIST = "ARG_LIST";
+    private String argListSep = ",";
 
     private Options options;
     private CommandLine cmdLine;
@@ -196,8 +196,49 @@ public class CommandLineConfigSource extends ConfigSource {
         return options;
     }
 
+    /**
+     * Returns the separator used when concatenating the values from {@link CommandLine#getArgList()} before returning
+     * them in {@link #get(String)}.
+     *
+     * @return the current separator
+     */
+    public String getArgListSep() {
+        return argListSep;
+    }
+
+    /**
+     * When requesting the left over arguments of the commandline ({@link CommandLine#getArgList()}) using the key {@link #ARG_LIST} they are
+     * concatenated into one <code>String</code> using the separator string set by this method.
+     *
+     * @param argListSep
+     *         the new separator
+     */
+    public void setArgListSep(String argListSep) {
+        this.argListSep = argListSep;
+    }
+
     @Override
     protected Optional<String> getMapping(String key) {
-        throw new NotYetImplementedException();
+
+        if (ARG_LIST.equals(key)) {
+            return Optional.of(String.join(argListSep, cmdLine.getArgList()));
+        }
+
+        if (!options.hasOption(key)) {
+            return Optional.empty();
+        }
+
+        Option opt = options.getOption(key);
+        String optName = opt.getOpt();
+
+        if (!cmdLine.hasOption(optName)) {
+            return Optional.empty();
+        }
+
+        if (opt.hasArg()) {
+            return Optional.of(cmdLine.getOptionValue(optName));
+        } else {
+            return Optional.of("true");
+        }
     }
 }
