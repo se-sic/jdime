@@ -25,7 +25,6 @@ package de.fosd.jdime.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Handler;
@@ -34,22 +33,15 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
-import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 /**
  * Contains the singleton <code>Config</code> instance containing the configuration options for JDime. All
  * keys used for retrieving config options should be declared as static final <code>String</code>s in this class.
  */
-public final class JDimeConfig {
+public final class JDimeConfig extends Config {
 
     private static final Logger LOG = Logger.getLogger(JDimeConfig.class.getCanonicalName());
 
@@ -165,233 +157,45 @@ public final class JDimeConfig {
      */
     public static final String STATISTICS_XML_DEFAULT_NAME = "Statistics_XML.xml";
 
-    /*
-     * These constants define the (short) parameter names expected on the command line. Corresponding Options
-     * are constructed in buildCliOptions().
-     */
-    public static final String CLI_LOG_LEVEL = "log";
-    public static final String CLI_CONSECUTIVE = "c";
-    public static final String CLI_DIFFONLY = "d";
-    public static final String CLI_FORCE_OVERWRITE = "f";
-    public static final String CLI_HELP = "h";
-    public static final String CLI_KEEPGOING = "k";
-    public static final String CLI_LOOKAHEAD = "lah";
-    public static final String CLI_MODE = "m";
-    public static final String CLI_DUMP = "dmp";
-    public static final String CLI_OUTPUT = "o";
-    public static final String CLI_RECURSIVE = "r";
-    public static final String CLI_STATS = "s";
-    public static final String CLI_PRINT = "p";
-    public static final String CLI_QUIET = "q";
-    public static final String CLI_VERSION = "v";
-
     /**
-     * The singleton is implicitly synchronized because the <code>InstanceHolder</code> class is only initialized by
-     * the classloader when the {@link #getConfig()} method is first called.
+     * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If a
+     * <code>File</code> named {@value #CONFIG_FILE_NAME} in the current working directory does exist a
+     * <code>PropFileConfigSource</code> will be added for it.
      */
-    private static final class InstanceHolder {
-        private static final JDimeConfig INSTANCE = new JDimeConfig();
+    public JDimeConfig() {
+        addSource(new SysEnvConfigSource(1));
+        loadConfigFile(new File(CONFIG_FILE_NAME));
     }
 
     /**
-     * Returns the singleton <code>Config</code> instance containing the configuration options for JDime.
+     * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If
+     * <code>configFile</code> does exist a <code>PropFileConfigSource</code> will be added for it.
      *
-     * @return the <code>Config</code> instance
+     * @param configFile
+     *         the configuration property file
      */
-    public static Config getConfig() {
-        return InstanceHolder.INSTANCE.config;
+    public JDimeConfig(File configFile) {
+        addSource(new SysEnvConfigSource(1));
+        loadConfigFile(configFile);
     }
 
     /**
-     * Returns a <code>CommandLine</code> instance containing the parsed command line options.
+     * Checks whether the given file exists and if so adds a <code>PropFileConfigSource</code> for it.
      *
-     * @param args
-     *         the command line arguments to parse
-     * @return the resulting <code>CommandLine</code> instance
-     * @throws ParseException
-     *         if there is an exception parsing <code>args</code>
+     * @param configFile
+     *         the file to check
      */
-    public static CommandLine parseArgs(String[] args) throws ParseException {
-        return new DefaultParser().parse(InstanceHolder.INSTANCE.cliOptions, args);
-    }
-
-    /**
-     * Prints usage information and a help text about the command line options to <code>System.out</code>.
-     */
-    public static void printCLIHelp() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp(Main.TOOLNAME, InstanceHolder.INSTANCE.cliOptions, true);
-    }
-
-    private Config config;
-    private Options cliOptions;
-
-    /**
-     * Private constructor to prevent outside instantiation.
-     */
-    private JDimeConfig() {
-        config = new Config();
-        config.addSource(new SysEnvConfigSource(1));
-        loadConfigFile();
-        cliOptions = buildCliOptions();
-    }
-
-    /**
-     * Builds the <code>Options</code> instance describing the JDime command line configuration options.
-     *
-     * @return the <code>Options</code> instance
-     */
-    private Options buildCliOptions() {
-        Options options = new Options();
-        Option o;
-
-        o = Option.builder(CLI_LOG_LEVEL)
-                .longOpt("log-level")
-                .desc("Set the logging level to one of (OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL).")
-                .hasArg()
-                .argName("level")
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_CONSECUTIVE)
-                .longOpt("consecutive")
-                .desc("Requires diffonly mode. Treats versions as consecutive versions.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_DIFFONLY)
-                .longOpt("diffonly")
-                .desc("Only perform the diff stage.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_FORCE_OVERWRITE)
-                .longOpt("force-overwrite")
-                .desc("Force overwriting of output files.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_HELP)
-                .longOpt("help")
-                .desc("Print this message.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_KEEPGOING)
-                .longOpt("keepgoing")
-                .desc("Keep running after exceptions.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_LOOKAHEAD)
-                .longOpt("lookahead")
-                .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
-                .hasArg()
-                .argName("level")
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_MODE)
-                .longOpt("mode")
-                .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
-                        "prettyprint, nway)")
-                .hasArg()
-                .argName("mode")
-                .build();
-
-        options.addOption(o);
-
-        {
-            String formats = Arrays.stream(DumpMode.values()).map(Enum::name).reduce("", (s, s2) -> s + " " + s2);
-
-            o = Option.builder(CLI_DUMP)
-                    .longOpt("dump")
-                    .desc("Dumps the inputs using one of the formats: " + formats)
-                    .hasArg()
-                    .argName("format")
-                    .build();
-
-            options.addOption(o);
-        }
-
-        o = Option.builder(CLI_OUTPUT)
-                .longOpt("output")
-                .desc("Set the output directory/file.")
-                .hasArg()
-                .argName("file")
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_RECURSIVE)
-                .longOpt("recursive")
-                .desc("Merge directories recursively.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_STATS)
-                .longOpt("stats")
-                .desc("Collect statistical data about the merge.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_PRINT)
-                .longOpt("print")
-                .desc("(print/pretend) Prints the merge result to stdout instead of an output file.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_QUIET)
-                .longOpt("quiet")
-                .desc("Do not print the merge result to stdout.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        o = Option.builder(CLI_VERSION)
-                .longOpt("version")
-                .desc("Print the version information and exit.")
-                .hasArg(false)
-                .build();
-
-        options.addOption(o);
-
-        return options;
-    }
-
-    /**
-     * Checks whether the current working directory contains a file called {@value #CONFIG_FILE_NAME} and if so adds
-     * a <code>PropFileConfigSource</code> to <code>config</code>.
-     */
-    private void loadConfigFile() {
-        File configFile = new File(CONFIG_FILE_NAME);
+    private void loadConfigFile(File configFile) {
 
         if (configFile.exists()) {
 
             try {
-                config.addSource(new PropFileConfigSource(2, configFile));
+                addSource(new PropFileConfigSource(2, configFile));
             } catch (IOException e) {
                 LOG.log(Level.WARNING, e, () -> "Could not add a ConfigSource for " + configFile.getAbsolutePath());
             }
+        } else {
+            LOG.log(Level.WARNING, () -> String.format("%s can not be used as a config file as it does not exist.", configFile));
         }
     }
 

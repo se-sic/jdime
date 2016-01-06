@@ -40,9 +40,6 @@ import de.fosd.jdime.matcher.unordered.HungarianMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
-import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
-import static de.fosd.jdime.config.JDimeConfig.getConfig;
-
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
  * compute and store <code>Matching</code>s.
@@ -69,8 +66,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
 
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
-    private boolean useMCESubtreeMatcher;
-
     private int calls = 0;
     private int orderedCalls = 0;
     private int unorderedCalls = 0;
@@ -88,7 +83,6 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
         unorderedLabelMatcher = new UniqueLabelMatcher<>(this);
         orderedMatcher = new SimpleTreeMatcher<>(this);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(this);
-        useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
     @Override
@@ -120,7 +114,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
             return maxMatching;
         }
 
-        boolean fullyOrdered = useMCESubtreeMatcher;
+        boolean fullyOrdered = context.isUseMCESubtreeMatcher();
         boolean isOrdered = false;
         boolean uniqueLabels = true;
 

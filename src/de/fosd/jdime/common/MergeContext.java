@@ -23,22 +23,36 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import de.fosd.jdime.config.CommandLineConfigSource;
+import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
+
 /**
  * @author Olaf Lessenich
  */
 public class MergeContext implements Cloneable {
+
+    private static final Logger LOG = Logger.getLogger(MergeContext.class.getCanonicalName());
 
     /**
      * Do look at all nodes in the subtree even if the compared nodes are not
@@ -117,6 +131,8 @@ public class MergeContext implements Cloneable {
     private boolean collectStatistics = false;
     private Statistics statistics = null;
 
+    private boolean useMCESubtreeMatcher = false;
+
     /**
      * StdOut of a merge operation.
      */
@@ -140,13 +156,6 @@ public class MergeContext implements Cloneable {
     private Map<MergeScenario<?>, Throwable> crashes = new HashMap<>();
 
     /**
-     * Class constructor.
-     */
-    public MergeContext() {
-
-    }
-
-    /**
      * Returns the median of a list of long values.
      *
      * @param values
@@ -164,6 +173,97 @@ public class MergeContext implements Cloneable {
 
             return Math.round((lower + upper) / 2.0);
         }
+    }
+
+    /**
+     * Initializes the configuration options stored in the <code>MergeContext</code> from the given
+     * <code>JDimeConfig</code>.
+     *
+     * @param config
+     *         the <code>JDimeConfig</code> to query for config values
+     */
+    public void configureFrom(JDimeConfig config) {
+
+        setUseMCESubtreeMatcher(config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false));
+
+        config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
+            setDiffOnly(diffOnly);
+            config.getBoolean(CLI_CONSECUTIVE).ifPresent(this::setConsecutive);
+        });
+
+        config.get(CLI_LOOKAHEAD, val -> {
+            try {
+                return Optional.of(Integer.parseInt(val));
+            } catch (NumberFormatException e) {
+
+                if ("off".equals(val)) {
+                    return Optional.of(MergeContext.LOOKAHEAD_OFF);
+                } else if ("full".equals(val)) {
+                    return Optional.of(MergeContext.LOOKAHEAD_FULL);
+                } else {
+                    return Optional.empty();
+                }
+            }
+        }).ifPresent(this::setLookAhead);
+
+        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
+        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+
+        if (config.getBoolean(CLI_PRINT).orElse(false)) {
+            setPretend(true);
+            setQuiet(false);
+        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
+            setQuiet(true);
+        }
+
+        config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
+
+        config.get(CommandLineConfigSource.ARG_LIST, val -> {
+            String[] vals = val.split(CommandLineConfigSource.ARG_LIST_SEP);
+            return Optional.of(Arrays.asList(vals));
+        }).ifPresent(args -> {
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            char cond = 'A';
+
+            for (String fileName : args) {
+
+                try {
+                    FileArtifact newArtifact = new FileArtifact(new File(fileName));
+
+                    if (isConditionalMerge()) {
+                        newArtifact.setRevision(new Revision(String.valueOf(cond++)));
+                    }
+
+                    inputArtifacts.add(newArtifact);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.SEVERE, e, () -> "Input file not found.");
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, e, () -> "Input file could not be accessed.");
+                }
+            }
+
+            setInputFiles(inputArtifacts);
+        });
+
+        /*
+         * TODO[low priority]
+         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
+         * compatible with gnu merge call syntax.
+         */
+        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
+            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
+
+            try {
+                File out = new File(outputFileName);
+                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
+
+                setOutputFile(outArtifact);
+                setPretend(false);
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
+            }
+        });
     }
 
     /**
@@ -567,6 +667,25 @@ public class MergeContext implements Cloneable {
      */
     public void addCrash(MergeScenario<?> scenario, Throwable t) {
         crashes.put(scenario, t);
+    }
+
+    /**
+     * Returns whether to use the <code>MCESubtreeMatcher</code> during the matching phase of the merge.
+     *
+     * @return true iff the matcher should be used
+     */
+    public boolean isUseMCESubtreeMatcher() {
+        return useMCESubtreeMatcher;
+    }
+
+    /**
+     * Sets whether to use the <code>MCESubtreeMatcher</code>.
+     *
+     * @param useMCESubtreeMatcher
+     *         the new value
+     */
+    public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
+        this.useMCESubtreeMatcher = useMCESubtreeMatcher;
     }
 
     @Override

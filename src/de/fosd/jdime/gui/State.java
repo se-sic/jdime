@@ -34,7 +34,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 
 import de.fosd.jdime.config.JDimeConfig;
-import de.uni_passau.fim.seibt.kvconfig.Config;
 
 import static de.fosd.jdime.config.JDimeConfig.DEFAULT_ARGS;
 import static de.fosd.jdime.config.JDimeConfig.DEFAULT_BASE;
@@ -46,6 +45,8 @@ import static de.fosd.jdime.config.JDimeConfig.DEFAULT_RIGHT;
  * A Bean encapsulating the state of the gui at one point.
  */
 final class State {
+
+    private static final JDimeConfig config = new JDimeConfig();
 
     private List<Tab> treeViewTabs;
     private ObservableList<String> output;
@@ -66,7 +67,6 @@ final class State {
      */
     public static State defaultState() {
         State state = new State();
-        Config config = JDimeConfig.getConfig();
 
         state.treeViewTabs = new ArrayList<>();
         state.output = FXCollections.observableArrayList();

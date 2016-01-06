@@ -32,6 +32,8 @@ import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -43,8 +45,8 @@ import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -54,12 +56,24 @@ import de.fosd.jdime.strdump.GraphvizTreeDump;
 import de.fosd.jdime.strdump.PlaintextTreeDump;
 import de.fosd.jdime.strdump.PrettyPrintDump;
 import de.fosd.jdime.strdump.TGFTreeDump;
-import de.uni_passau.fim.seibt.kvconfig.Config;
-import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.JDimeConfig.*;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_DEFAULT_NAME;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_NAME;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_OUTPUT;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_OFF;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_STDOUT;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_USE_UNIQUE_FILES;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_DEFAULT_NAME;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_NAME;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_OUTPUT;
 
 /**
  * Contains the main method of the application.
@@ -72,6 +86,9 @@ public final class Main {
     public static final String VERSION = "0.4.0-develop";
 
     private static final String MODE_LIST = "list";
+
+    private static JDimeConfig config;
+    private static CommandLineConfigSource cmdLine;
 
     /**
      * Prevent instantiation.
@@ -159,7 +176,7 @@ public final class Main {
             }
         } else {
             if (context.getInputFiles().size() < MergeType.MINFILES) {
-                JDimeConfig.printCLIHelp();
+                printCLIHelp();
                 return;
             }
 
@@ -193,8 +210,6 @@ public final class Main {
      *         the <code>Statistics</code> to output
      */
     private static void outputStatistics(Statistics statistics) {
-        Config config = getConfig();
-
         String hrOut = config.get(STATISTICS_HR_OUTPUT).orElse(STATISTICS_OUTPUT_STDOUT);
         String xmlOut = config.get(STATISTICS_XML_OUTPUT).orElse(STATISTICS_OUTPUT_OFF);
 
@@ -303,152 +318,67 @@ public final class Main {
      * @param args
      *         command line arguments
      * @return true if program should continue
-     * @throws IOException
-     *         If an input output exception occurs
-     * @throws ParseException
-     *         If arguments cannot be parsed
      */
-    private static boolean parseCommandLineArgs(MergeContext context, String[] args) throws IOException, ParseException {
+    private static boolean parseCommandLineArgs(MergeContext context, String[] args) {
         LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
 
+        JDimeConfig config = new JDimeConfig();
+        CommandLineConfigSource cmdLine;
+
         try {
-            CommandLine cmd = JDimeConfig.parseArgs(args);
-
-            if (cmd.hasOption(CLI_HELP)) {
-                JDimeConfig.printCLIHelp();
-                return false;
-            }
-
-            if (cmd.hasOption(CLI_VERSION)) {
-                System.out.println(TOOLNAME + " VERSION " + VERSION);
-                return false;
-            }
-
-            if (cmd.hasOption(CLI_LOG_LEVEL)) {
-                setLogLevel(cmd.getOptionValue(CLI_LOG_LEVEL));
-            }
-
-            if (cmd.hasOption(CLI_DUMP)) {
-
-                try {
-                    context.setDumpMode(DumpMode.valueOf(cmd.getOptionValue(CLI_DUMP).toUpperCase()));
-                } catch (IllegalArgumentException e) {
-                    LOG.log(Level.WARNING, e, () -> "Invalid dump format " + cmd.getOptionValue(CLI_DUMP));
-                    return false;
-                }
-            } else {
-                context.setDumpMode(DumpMode.NONE);
-            }
-
-            if (cmd.hasOption(CLI_MODE)) {
-                String mode = cmd.getOptionValue(CLI_MODE).toLowerCase();
-
-                if (MODE_LIST.equals(mode)) {
-                    printStrategies();
-                    return false;
-                } else {
-                    try {
-                        context.setMergeStrategy(MergeStrategy.parse(mode));
-                    } catch (StrategyNotFoundException e) {
-                        LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
-                        return false;
-                    }
-                }
-
-                if (context.getMergeStrategy() == null) {
-                    JDimeConfig.printCLIHelp();
-                    return false;
-                }
-            }
-
-            if (cmd.hasOption(CLI_DIFFONLY)) {
-                context.setDiffOnly(true);
-
-                if (cmd.hasOption(CLI_CONSECUTIVE)) {
-                    context.setConsecutive(true);
-                }
-            }
-
-            if (cmd.hasOption(CLI_LOOKAHEAD)) {
-                String lookAheadValue = cmd.getOptionValue(CLI_LOOKAHEAD);
-
-                // initialize with the context's default.
-                int lookAhead = context.getLookAhead();
-
-                // parse the value provided by the user
-                try {
-                    lookAhead = Integer.parseInt(lookAheadValue);
-                } catch (NumberFormatException e) {
-                    switch (lookAheadValue) {
-                        case "off":
-                            break;
-                        case "full":
-                            lookAhead = MergeContext.LOOKAHEAD_FULL;
-                            break;
-                    }
-                }
-
-                context.setLookAhead(lookAhead);
-                LOG.finest(() -> "Lookahead = " + context.getLookAhead());
-            }
-
-            context.collectStatistics(cmd.hasOption(CLI_STATS));
-            context.setForceOverwriting(cmd.hasOption(CLI_FORCE_OVERWRITE));
-            context.setRecursive(cmd.hasOption(CLI_RECURSIVE));
-
-            if (cmd.hasOption(CLI_PRINT)) {
-                context.setPretend(true);
-                context.setQuiet(false);
-            } else if (cmd.hasOption(CLI_QUIET)) {
-                context.setQuiet(true);
-            }
-
-            context.setKeepGoing(cmd.hasOption(CLI_KEEPGOING));
-
-            // prepare the list of input files
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-
-            char cond = 'A';
-            boolean targetIsFile = true;
-
-            for (Object filename : cmd.getArgList()) {
-                try {
-                    FileArtifact newArtifact = new FileArtifact(new File((String) filename));
-
-                    if (context.isConditionalMerge()) {
-                        newArtifact.setRevision(new Revision(String.valueOf(cond++)));
-                    }
-
-                    if (targetIsFile) {
-                        targetIsFile = !newArtifact.isDirectory();
-                    }
-
-                    inputArtifacts.add(newArtifact);
-                } catch (FileNotFoundException e) {
-                    System.err.println("Input file not found: " + filename);
-                }
-            }
-
-            context.setInputFiles(inputArtifacts);
-
-            String outputFileName = null;
-            if (cmd.hasOption(CLI_OUTPUT)) {
-                // TODO[low priority]: The default should in a later,
-                // rock-stable version be changed to be overwriting file1 so
-                // that we are compatible with gnu merge call syntax
-                outputFileName = cmd.getOptionValue(CLI_OUTPUT);
-            }
-
-            if (outputFileName != null) {
-                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, new File(outputFileName), true, targetIsFile);
-
-                context.setOutputFile(outArtifact);
-                context.setPretend(false);
-            }
+            cmdLine = new CommandLineConfigSource(args, 3);
+            config.addSource(cmdLine);
         } catch (ParseException e) {
             LOG.log(Level.SEVERE, e, () -> "Arguments could not be parsed!");
             return false;
         }
+
+        Main.config = config;
+        Main.cmdLine = cmdLine;
+
+        if (config.getBoolean(CLI_HELP).orElse(false)) {
+            printCLIHelp();
+            return false;
+        }
+
+        if (config.getBoolean(CLI_VERSION).orElse(false)) {
+            System.out.println(TOOLNAME + " VERSION " + VERSION);
+            return false;
+        }
+
+        config.get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+
+        Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
+
+            try {
+                return Optional.of(DumpMode.valueOf(mode.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                LOG.log(Level.WARNING, e, () -> "Invalid dump format " + mode);
+                return Optional.of(DumpMode.NONE);
+            }
+        };
+
+        context.setDumpMode(config.get(CLI_DUMP, dmpModeParser).orElse(DumpMode.NONE));
+
+        Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
+
+        if (mode.isPresent()) {
+
+            if (MODE_LIST.equals(mode.get())) {
+                printStrategies();
+                return false;
+            } else {
+
+                try {
+                    context.setMergeStrategy(MergeStrategy.parse(mode.get()));
+                } catch (StrategyNotFoundException e) {
+                    LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
+                    return false;
+                }
+            }
+        }
+
+        context.configureFrom(config);
 
         return true;
     }
@@ -553,5 +483,13 @@ public final class Main {
                     break;
             }
         }
+    }
+
+    /**
+     * Prints usage information and a help text about the command line options to <code>System.out</code>.
+     */
+    private static void printCLIHelp() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp(Main.TOOLNAME, cmdLine.getOptions(), true);
     }
 }
