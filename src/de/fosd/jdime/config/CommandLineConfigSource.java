@@ -42,7 +42,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_VERSION = "v";
 
     public static final String ARG_LIST = "ARG_LIST";
-    private String argListSep = ",";
+    public static final String ARG_LIST_SEP = ",";
 
     private Options options;
     private CommandLine cmdLine;
@@ -219,25 +219,12 @@ public class CommandLineConfigSource extends ConfigSource {
     }
 
     /**
-     * Returns the separator used when concatenating the values from {@link CommandLine#getArgList()} before returning
-     * them in {@link #get(String)}.
+     * Returns the <code>Options</code> describing the command line options.
      *
-     * @return the current separator
+     * @return the <code>Options</code>
      */
-    public String getArgListSep() {
-        return argListSep;
-    }
-
-    /**
-     * When requesting the left over arguments of the commandline ({@link CommandLine#getArgList()}) using the key
-     * {@link #ARG_LIST} they are concatenated into one <code>String</code> using the separator string set by this
-     * method.
-     *
-     * @param argListSep
-     *         the new separator
-     */
-    public void setArgListSep(String argListSep) {
-        this.argListSep = argListSep;
+    public Options getOptions() {
+        return options;
     }
 
     @Override
@@ -249,7 +236,7 @@ public class CommandLineConfigSource extends ConfigSource {
             if (argList.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(String.join(argListSep, argList));
+                return Optional.of(String.join(ARG_LIST_SEP, argList));
             }
         }
 
