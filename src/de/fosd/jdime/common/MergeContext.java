@@ -100,11 +100,6 @@ public class MergeContext implements Cloneable {
     private FileArtifact outputFile;
 
     /**
-     * Timestamp of program start.
-     */
-    private long programStart;
-
-    /**
      * If true, the output is quiet.
      */
     private boolean quiet = false;
@@ -148,7 +143,7 @@ public class MergeContext implements Cloneable {
      * Class constructor.
      */
     public MergeContext() {
-        programStart = System.currentTimeMillis();
+
     }
 
     /**
@@ -272,13 +267,6 @@ public class MergeContext implements Cloneable {
      */
     public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
-    }
-
-    /**
-     * @return timestamp of program start
-     */
-    public long getProgramStart() {
-        return programStart;
     }
 
     /**
