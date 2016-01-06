@@ -73,14 +73,14 @@ import javafx.stage.Window;
 
 import de.uni_passau.fim.seibt.kvconfig.Config;
 
-import static de.fosd.jdime.JDimeConfig.ALLOW_INVALID;
-import static de.fosd.jdime.JDimeConfig.BUFFERED_LINES;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXEC;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
-import static de.fosd.jdime.JDimeConfig.getConfig;
+import static de.fosd.jdime.config.JDimeConfig.ALLOW_INVALID;
+import static de.fosd.jdime.config.JDimeConfig.BUFFERED_LINES;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_ARGS;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_BASE;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_JDIME_EXEC;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_LEFT;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_RIGHT;
+import static de.fosd.jdime.config.JDimeConfig.getConfig;
 
 /**
  * A simple JavaFX GUI for JDime.

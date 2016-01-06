@@ -45,6 +45,7 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
@@ -58,7 +59,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.JDimeConfig.*;
+import static de.fosd.jdime.config.JDimeConfig.*;
 
 /**
  * Contains the main method of the application.

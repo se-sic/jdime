@@ -40,8 +40,8 @@ import de.fosd.jdime.matcher.unordered.HungarianMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
-import static de.fosd.jdime.JDimeConfig.USE_MCESUBTREE_MATCHER;
-import static de.fosd.jdime.JDimeConfig.getConfig;
+import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static de.fosd.jdime.config.JDimeConfig.getConfig;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
