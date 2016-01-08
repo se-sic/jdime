@@ -40,6 +40,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_PRINT = "p";
     public static final String CLI_QUIET = "q";
     public static final String CLI_VERSION = "v";
+    public static final String CLI_PROP_FILE = "pf";
 
     public static final String ARG_LIST = "ARG_LIST";
     public static final String ARG_LIST_SEP = ",";
@@ -211,6 +212,15 @@ public class CommandLineConfigSource extends ConfigSource {
                 .longOpt("version")
                 .desc("Print the version information and exit.")
                 .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_PROP_FILE)
+                .longOpt("properties-file")
+                .desc("Set the path to the properties file to use for additional configuration options.")
+                .hasArg()
+                .argName("path")
                 .build();
 
         options.addOption(o);

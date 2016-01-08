@@ -60,11 +60,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
+import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_DEFAULT_NAME;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_NAME;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_OUTPUT;
@@ -322,16 +318,25 @@ public final class Main {
     private static boolean parseCommandLineArgs(MergeContext context, String[] args) {
         LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
 
-        JDimeConfig config = new JDimeConfig();
         CommandLineConfigSource cmdLine;
 
         try {
             cmdLine = new CommandLineConfigSource(args, 3);
-            config.addSource(cmdLine);
         } catch (ParseException e) {
             LOG.log(Level.SEVERE, e, () -> "Arguments could not be parsed!");
             return false;
         }
+
+        JDimeConfig config;
+        Optional<String> pFilePath = cmdLine.get(CLI_PROP_FILE);
+
+        if (pFilePath.isPresent()) {
+            config = new JDimeConfig(new File(pFilePath.get()));
+        } else {
+            config = new JDimeConfig();
+        }
+
+        config.addSource(cmdLine);
 
         Main.config = config;
         Main.cmdLine = cmdLine;
