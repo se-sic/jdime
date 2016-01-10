@@ -100,5 +100,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
     }
 
     @Override
-    public abstract String toString();
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

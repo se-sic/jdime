@@ -206,9 +206,4 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             System.setSecurityManager(systemSecurityManager);
         }
     }
-
-    @Override
-    public final String toString() {
-        return "structured";
-    }
 }

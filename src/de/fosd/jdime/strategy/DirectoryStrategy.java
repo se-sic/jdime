@@ -83,9 +83,4 @@ public class DirectoryStrategy extends MergeStrategy<FileArtifact> {
         LOG.finest(() -> String.format("Merging using operation %s and context %s", operation, context));
         merge.merge(operation, context);
     }
-
-    @Override
-    public final String toString() {
-        return "directory";
-    }
 }

@@ -192,9 +192,4 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
             }
         }
     }
-
-    @Override
-    public final String toString() {
-        return "nway";
-    }
 }

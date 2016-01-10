@@ -34,8 +34,8 @@ import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.strategy.ASTNodeStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.strategy.NodeStrategy;
 import de.fosd.jdime.strdump.PlaintextTreeDump;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
@@ -395,7 +395,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
 
-        MergeStrategy<ASTNodeArtifact> astNodeStrategy = new ASTNodeStrategy();
+        MergeStrategy<ASTNodeArtifact> astNodeStrategy = new NodeStrategy<>();
 
         LOG.fine(() -> "Using strategy: " + astNodeStrategy);
 

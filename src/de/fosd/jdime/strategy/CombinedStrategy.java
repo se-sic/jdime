@@ -146,9 +146,4 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             statistics.add(subStatistics);
         }
     }
-
-    @Override
-    public final String toString() {
-        return "combined";
-    }
 }

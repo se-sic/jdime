@@ -173,9 +173,4 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             statistics.addScenarioStatistics(scenarioStatistics);
         }
     }
-
-    @Override
-    public final String toString() {
-        return "linebased";
-    }
 }
