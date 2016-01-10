@@ -52,15 +52,16 @@ import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
-import de.fosd.jdime.strdump.GraphvizTreeDump;
-import de.fosd.jdime.strdump.PlaintextTreeDump;
-import de.fosd.jdime.strdump.PrettyPrintDump;
-import de.fosd.jdime.strdump.TGFTreeDump;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_DEFAULT_NAME;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_NAME;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_OUTPUT;
@@ -438,7 +439,7 @@ public final class Main {
         }
 
         if (mode == DumpMode.FILE_DUMP) {
-            System.out.println(new PrettyPrintDump<>(artifact));
+            System.out.println(artifact.dump(mode));
         } else {
             SecurityManager prevSecManager = System.getSecurityManager();
             SecurityManager noExitManager = new SecurityManager() {
@@ -472,21 +473,7 @@ public final class Main {
                 System.setSecurityManager(prevSecManager);
             }
 
-            switch (mode) {
-
-                case PLAINTEXT_TREE:
-                    System.out.println(new PlaintextTreeDump<>(astArtifact));
-                    break;
-                case GRAPHVIZ_TREE:
-                    System.out.println(new GraphvizTreeDump<>(astArtifact));
-                    break;
-                case TGF_TREE:
-                    System.out.println(new TGFTreeDump<>(astArtifact));
-                    break;
-                case PRETTY_PRINT_DUMP:
-                    System.out.println(new PrettyPrintDump<>(astArtifact));
-                    break;
-            }
+            System.out.println(astArtifact.dump(mode));
         }
     }
 

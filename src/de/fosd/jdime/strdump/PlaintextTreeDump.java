@@ -2,6 +2,7 @@ package de.fosd.jdime.strdump;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Revision;
@@ -10,52 +11,8 @@ import de.fosd.jdime.matcher.Matching;
 
 /**
  * Dumps the given <code>Artifact</code> tree as indented plaintext.
- *
- * @param <T>
- *         the type of the <code>Artifact</code>
  */
-public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
-
-    /**
-     * Constructs a new <code>StringDumper</code> for the given <code>Artifact</code>.
-     *
-     * @param artifact
-     *         the <code>Artifact</code> to dump to a <code>String</code>
-     */
-    public PlaintextTreeDump(T artifact) {
-        super(artifact);
-    }
-
-    /**
-     * Constructs a new <code>StringDumper</code> for the given <code>Artifact</code>.
-     *
-     * @param artifact
-     *         the <code>Artifact</code> to dump to a <code>String</code>
-     * @param findRoot
-     *         whether to dump the root of the tree <code>artifact</code> is part of
-     */
-    public PlaintextTreeDump(T artifact, boolean findRoot) {
-        super(findRoot ? findRoot(artifact) : artifact);
-    }
-
-    /**
-     * Returns the root of the tree <code>artifact</code> is part of.
-     *
-     * @param artifact
-     *         the <code>Artifact</code> whose trees root is to be returned
-     * @param <T>
-     *         the type of the <code>Artifact</code>
-     * @return the root of the tree
-     */
-    private static <T extends Artifact<T>> T findRoot(T artifact) {
-        T current = artifact;
-
-        while (current.getParent() != null) {
-            current = current.getParent();
-        }
-
-        return current;
-    }
+public class PlaintextTreeDump implements StringDumper {
 
     /**
      * Appends the plain-text tree representation of the given <code>artifact</code> and its children to the
@@ -66,7 +23,9 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
      * @param indent
      *         the indentation for the current level
      */
-    private void dumpTree(T artifact, String indent) {
+    private <T extends Artifact<T>> void dumpTree(StringBuilder builder, Artifact<T> artifact,
+                                                  Function<Artifact<T>, String> getLabel, String indent) {
+
         String ls = System.lineSeparator();
         Matching<T> m = null;
 
@@ -95,7 +54,7 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
 
             // children
             if (left != null) {
-                dumpTree(left, indent);
+                dumpTree(builder, left, getLabel, indent);
             }
 
             builder.append(Color.RED.toShell());
@@ -104,7 +63,7 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
 
             // children
             if (right != null) {
-                dumpTree(right, indent);
+                dumpTree(builder, right, getLabel, indent);
             }
 
             builder.append(Color.RED.toShell());
@@ -128,7 +87,7 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
                 T variant = artifact.getVariants().get(condition);
 
                 if (variant != null) {
-                    dumpTree(variant, indent);
+                    dumpTree(builder, variant, getLabel, indent);
                 }
 
                 builder.append(Color.RED.toShell());
@@ -150,13 +109,15 @@ public class PlaintextTreeDump<T extends Artifact<T>> extends StringDumper<T> {
 
             // children
             for (T child : artifact.getChildren()) {
-                dumpTree(child, indent + "  ");
+                dumpTree(builder, child, getLabel, indent + "  ");
             }
         }
     }
 
     @Override
-    protected void buildString() {
-        dumpTree(artifact, "");
+    public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
+        StringBuilder builder = new StringBuilder();
+        dumpTree(builder, artifact, getLabel, "");
+        return builder.toString();
     }
 }

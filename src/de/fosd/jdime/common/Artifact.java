@@ -30,12 +30,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.StatisticsInterface;
+import de.fosd.jdime.strdump.DumpMode;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -219,6 +221,31 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return Pretty-printed AST (source code)
      */
     public abstract String prettyPrint();
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>. Uses the
+     * {@link Artifact#toString()} method for producing labels for nodes.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @return the dump result
+     */
+    public String dump(DumpMode mode) {
+        return dump(mode, Artifact::toString);
+    }
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @param getLabel
+     *         the <code>Function</code> for producing labels for nodes
+     * @return the dump result
+     */
+    public String dump(DumpMode mode, Function<Artifact<T>, String> getLabel) {
+        return mode.getDumper().dump(this, getLabel);
+    }
 
     /**
      * Returns true if this artifact physically exists.
@@ -575,6 +602,21 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean isRoot() {
         return getParent() == null;
+    }
+
+    /**
+     * Returns the root node of the tree this <code>Artifact</code> is part of.
+     *
+     * @return the root node
+     */
+    public Artifact<T> findRoot() {
+        Artifact<T> current = this;
+
+        while (!current.isRoot()) {
+            current = current.getParent();
+        }
+
+        return current;
     }
 
     /**

@@ -32,7 +32,8 @@ import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.matcher.Matchings;
-import de.fosd.jdime.strdump.PlaintextTreeDump;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * TODO: this probably needs an interface to implement as well, as external tools might want to use it.
@@ -76,10 +77,10 @@ public class Diff<T extends Artifact<T>> {
 
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine(left.getRevision() + ".dumpTree():");
-            System.out.println(new PlaintextTreeDump<>(left));
+            System.out.println(left.dump(PLAINTEXT_TREE));
 
             LOG.fine(right.getRevision() + ".dumpTree():");
-            System.out.println(new PlaintextTreeDump<>(right));
+            System.out.println(right.dump(PLAINTEXT_TREE));
         }
 
         return matchings;

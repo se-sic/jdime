@@ -8,28 +8,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 
 /**
+ * Dumps the given <code>Artifact</code> tree using the TGF format.
  *
- *
- * @param <T>
+ * @see <href link="http://docs.yworks.com/yfiles/doc/developers-guide/tgf.html">TGF</href>
  */
-public class TGFTreeDump<T extends Artifact<T>> extends StringDumper<T> {
-
-    /**
-     * Constructs a new <code>StringDumper</code> for the given <code>Artifact</code>.
-     *
-     * @param artifact
-     *         the <code>Artifact</code> to dump to a <code>String</code>
-     */
-    public TGFTreeDump(T artifact) {
-        super(artifact);
-    }
+public class TGFTreeDump implements StringDumper {
 
     @Override
-    protected void buildString() {
+    public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
         AtomicInteger nextId = new AtomicInteger(); // an easy way to encapsulate an Integer for the lambdas
         Map<Artifact<T>, Integer> ids = new HashMap<>();
         List<String> nodeIDs = new ArrayList<>();
@@ -37,22 +28,20 @@ public class TGFTreeDump<T extends Artifact<T>> extends StringDumper<T> {
         Deque<Artifact<T>> q = new ArrayDeque<>(Collections.singleton(artifact));
 
         while (!q.isEmpty()) {
-            Artifact<T> artifact = q.removeFirst();
+            Artifact<T> current = q.removeFirst();
 
-            Integer fromId = ids.computeIfAbsent(artifact, a -> nextId.getAndIncrement());
-            nodeIDs.add(String.format("%d %s", fromId, artifact.toString()));
+            Integer fromId = ids.computeIfAbsent(current, a -> nextId.getAndIncrement());
+            nodeIDs.add(String.format("%d %s", fromId, current.toString()));
 
-            for (T t : artifact.getChildren()) {
+            for (T t : current.getChildren()) {
                 Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
                 connections.add(String.format("%d %d", fromId, toId));
             }
 
-            artifact.getChildren().forEach(q::addFirst);
+            current.getChildren().forEach(q::addFirst);
         }
 
         String ls = System.lineSeparator();
-        String rep = String.format("%s%n#%n%s", String.join(ls, nodeIDs), String.join(ls, connections));
-
-        builder.append(rep);
+        return String.format("%s%n#%n%s", String.join(ls, nodeIDs), String.join(ls, connections));
     }
 }

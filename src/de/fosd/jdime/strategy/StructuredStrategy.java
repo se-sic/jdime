@@ -37,8 +37,9 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
-import de.fosd.jdime.strdump.GraphvizTreeDump;
-import de.fosd.jdime.strdump.PlaintextTreeDump;
+
+import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -121,7 +122,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
-            PlaintextTreeDump<ASTNodeArtifact> targetDump = new PlaintextTreeDump<>(targetNode);
             targetNode.setRevision(left.getRevision());
             targetNode.renumberTree();
 
@@ -130,7 +130,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
             MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode, lCond, rCond);
 
-            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetDump));
+            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
@@ -142,7 +142,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.fine("Structured merge finished.");
 
             if (!context.isDiffOnly()) {
-                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetDump));
+                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             }
 
             LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
@@ -169,8 +169,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     String fileName = leftFile + ".dot";
                     LOG.fine("Dumping the target node tree to " + fileName);
 
-                    try (FileWriter file = new FileWriter(fileName)) {
-                        file.write(new GraphvizTreeDump<>(targetNode).toString());
+                    try (FileWriter fw = new FileWriter(fileName)) {
+                        fw.write(targetNode.dump(GRAPHVIZ_TREE));
                     }
                 }
 

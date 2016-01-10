@@ -38,7 +38,8 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Color;
 import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.strdump.PlaintextTreeDump;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -122,8 +123,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
         if (!((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left))) {
             LOG.severe(left.getId() + " and " + right.getId() + " have no matches.");
-            LOG.severe("left: " + new PlaintextTreeDump<>(left, true));
-            LOG.severe("right: " + new PlaintextTreeDump<>(right, true));
+            LOG.severe("left: " + left.findRoot().dump(PLAINTEXT_TREE));
+            LOG.severe("right: " + right.findRoot().dump(PLAINTEXT_TREE));
             throw new RuntimeException();
         }
 
@@ -207,7 +208,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
         if (LOG.isLoggable(Level.FINEST) && target != null) {
             LOG.finest(String.format("%s target.dumpTree() before merge:", logprefix));
-            System.out.println(new PlaintextTreeDump<>(target, true));
+            System.out.println(target.findRoot().dump(PLAINTEXT_TREE));
         }
 
         if (isOrdered) {

@@ -36,7 +36,6 @@ import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NodeStrategy;
-import de.fosd.jdime.strdump.PlaintextTreeDump;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
@@ -48,6 +47,8 @@ import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -266,7 +267,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         astnode.flushTreeCache();
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(new PlaintextTreeDump<>(this, true));
+            System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
         return astnode.prettyPrint();
