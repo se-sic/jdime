@@ -106,7 +106,7 @@ public class MergeContext implements Cloneable {
     /**
      * Strategy to apply for the merge.
      */
-    private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+    private MergeStrategy<FileArtifact> mergeStrategy = new LinebasedStrategy();
 
     /**
      * Output file.
@@ -336,7 +336,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the merge strategy
      */
-    public MergeStrategy<?> getMergeStrategy() {
+    public MergeStrategy<FileArtifact> getMergeStrategy() {
         return mergeStrategy;
     }
 
@@ -346,7 +346,7 @@ public class MergeContext implements Cloneable {
      * @param mergeStrategy
      *         merge strategy
      */
-    public void setMergeStrategy(MergeStrategy<?> mergeStrategy) {
+    public void setMergeStrategy(MergeStrategy<FileArtifact> mergeStrategy) {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {

@@ -605,9 +605,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
             
             throw new RuntimeException(message);
         }
-        
-        @SuppressWarnings("unchecked")
-        MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
+
+        MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
         
         if (isDirectory()) {
             strategy = new DirectoryStrategy();
