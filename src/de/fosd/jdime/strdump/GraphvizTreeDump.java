@@ -47,12 +47,12 @@ public class GraphvizTreeDump implements StringDumper {
 
                 // left alternative
                 dumpGraphvizTree(builder, left, getLabel, includeNumbers, virtualcount);
-                builder.append(virtualId).append("->").append(getGraphvizId(left, getLabel)).
+                builder.append(virtualId).append("->").append(getGraphvizId(left)).
                         append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(ls);
 
                 // right alternative
                 dumpGraphvizTree(builder, right, getLabel, includeNumbers, virtualcount);
-                builder.append(virtualId).append("->").append(getGraphvizId(right, getLabel)).
+                builder.append(virtualId).append("->").append(getGraphvizId(right)).
                         append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(ls);
             } else {
 
@@ -61,12 +61,12 @@ public class GraphvizTreeDump implements StringDumper {
                     T variant = artifact.getVariants().get(condition);
 
                     dumpGraphvizTree(builder, variant, getLabel, includeNumbers, virtualcount);
-                    builder.append(virtualId).append("->").append(getGraphvizId(variant, getLabel)).
+                    builder.append(virtualId).append("->").append(getGraphvizId(variant)).
                             append("[label=\"").append(condition).append("\"]").append(";").append(ls);
                 }
             }
         } else {
-            builder.append(getGraphvizId(artifact, getLabel)).append("[label=\"");
+            builder.append(getGraphvizId(artifact)).append("[label=\"");
 
             // node label
             if (includeNumbers) {
@@ -86,7 +86,7 @@ public class GraphvizTreeDump implements StringDumper {
 
             // children
             for (T child : artifact.getChildren()) {
-                String childId = getGraphvizId(child, getLabel);
+                String childId = getGraphvizId(child);
 
                 if (child.isConflict() || child.isChoice()) {
                     virtualcount++;
@@ -96,13 +96,13 @@ public class GraphvizTreeDump implements StringDumper {
                 dumpGraphvizTree(builder, child, getLabel, includeNumbers, virtualcount);
 
                 // edge
-                builder.append(getGraphvizId(artifact, getLabel)).append("->").append(childId).append(";").append(ls);
+                builder.append(getGraphvizId(artifact)).append("->").append(childId).append(";").append(ls);
             }
         }
     }
 
-    private <T extends Artifact<T>> String getGraphvizId(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
-        return "\"" + getLabel.apply(artifact) + "\"";
+    private <T extends Artifact<T>> String getGraphvizId(Artifact<T> artifact) {
+        return "\"" + artifact.getId() + "\"";
     }
 
     @Override
