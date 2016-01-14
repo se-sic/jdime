@@ -40,11 +40,11 @@ import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
-import de.fosd.jdime.strategy.DirectoryStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -592,7 +592,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return this.toString().equals(other.toString());
     }
 
-    
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         Objects.requireNonNull(operation, "operation must not be null!");
@@ -606,11 +605,15 @@ public class FileArtifact extends Artifact<FileArtifact> {
             throw new RuntimeException(message);
         }
 
-        MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
-        
         if (isDirectory()) {
-            strategy = new DirectoryStrategy();
+            Merge<FileArtifact> merge = new Merge<>();
+
+            LOG.finest(() -> "Merging directories " + operation.getMergeScenario());
+            merge.merge(operation, context);
         } else {
+            MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
+            MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
+
             String contentType = getContentType();
             LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
 
@@ -618,17 +621,19 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 LOG.fine(() -> "Skipping non-java file " + this);
                 return;
             }
-        }
 
-        LOG.config("Using strategy: " + strategy);
-        LOG.config(() -> "merge: " + this);
-        
-        strategy.merge(operation, context);
-        
-        if (!context.isQuiet() && context.hasOutput()) {
-            System.out.print(context.getStdIn());
+            if (context.hasStatistics()) {
+                context.getStatistics().setCurrentFileMergeScenario(scenario);
+            }
+
+            strategy.merge(operation, context);
+
+            if (!context.isQuiet() && context.hasOutput()) {
+                System.out.print(context.getStdIn());
+            }
+
+            context.resetStreams();
         }
-        context.resetStreams();
     }
 
     /**

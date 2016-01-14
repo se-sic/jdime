@@ -33,9 +33,8 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.NodeStrategy;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
@@ -396,10 +395,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
 
-        MergeStrategy<ASTNodeArtifact> astNodeStrategy = new NodeStrategy<>();
-
-        LOG.fine(() -> "Using strategy: " + astNodeStrategy);
-
         MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
         ASTNodeArtifact left = triple.getLeft();
         ASTNodeArtifact right = triple.getRight();
@@ -450,7 +445,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (safeMerge) {
-            astNodeStrategy.merge(operation, context);
+            Merge<ASTNodeArtifact> merge = new Merge<>();
+
+            LOG.finest(() -> "Merging ASTs " + operation.getMergeScenario());
+            merge.merge(operation, context);
         } else {
             LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
             LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
