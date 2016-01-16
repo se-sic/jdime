@@ -24,6 +24,7 @@
 package de.fosd.jdime.strategy;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.security.Permission;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -171,6 +172,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                     try (FileWriter fw = new FileWriter(fileName)) {
                         fw.write(targetNode.dump(GRAPHVIZ_TREE));
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, e, () -> "Can not write the graphviz representation of " + leftFile);
                     }
                 }
 
@@ -191,16 +194,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 scenarioStatistics.setRuntime(runtime);
 
                 statistics.addScenarioStatistics(scenarioStatistics);
-            }
-        } catch (SecurityException e) {
-            LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
-            context.addCrash(triple, e);
-        } catch (Throwable t) {
-            LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-            context.addCrash(triple, t);
-
-            if (!context.isKeepGoing()) {
-                throw new RuntimeException(t);
             }
         } finally {
             System.setSecurityManager(systemSecurityManager);

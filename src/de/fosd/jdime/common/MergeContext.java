@@ -99,9 +99,14 @@ public class MergeContext implements Cloneable {
     private ArtifactList<FileArtifact> inputFiles;
 
     /**
-     * If true, merging will be continued after exceptions.
+     * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
      */
     private boolean keepGoing = false;
+
+    /**
+     * If true, merge will be aborted if there is an exception merging files.
+     */
+    private boolean exitOnError = false;
 
     /**
      * Strategy to apply for the merge.
@@ -218,6 +223,8 @@ public class MergeContext implements Cloneable {
         }
 
         config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
+
+        config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
 
         config.get(CommandLineConfigSource.ARG_LIST, val -> {
             String[] vals = val.split(CommandLineConfigSource.ARG_LIST_SEP);
@@ -480,6 +487,25 @@ public class MergeContext implements Cloneable {
      */
     public void setKeepGoing(boolean keepGoing) {
         this.keepGoing = keepGoing;
+    }
+
+    /**
+     * Gets whether to abort the merge if merging a set of files fails.
+     *
+     * @return whether to abort
+     */
+    public boolean isExitOnError() {
+        return exitOnError;
+    }
+
+    /**
+     * Sets whether to abort the merge if merging a set of files fails.
+     *
+     * @param exitOnError
+     *         the new value
+     */
+    public void setExitOnError(boolean exitOnError) {
+        this.exitOnError = exitOnError;
     }
 
     /**

@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.AbortException;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
@@ -102,6 +103,9 @@ public final class Main {
 
         try {
             run(args);
+        } catch (AbortException e) {
+            LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
+            System.exit(1);
         } catch (Throwable e) {
             LOG.log(Level.SEVERE, e, () -> "Uncaught exception.");
             System.exit(1);

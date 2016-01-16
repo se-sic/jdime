@@ -45,6 +45,7 @@ import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
+import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -626,10 +627,32 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 context.getStatistics().setCurrentFileMergeScenario(scenario);
             }
 
-            strategy.merge(operation, context);
+            try {
+                strategy.merge(operation, context);
 
-            if (!context.isQuiet() && context.hasOutput()) {
-                System.out.print(context.getStdIn());
+                if (!context.isQuiet() && context.hasOutput()) {
+                    System.out.print(context.getStdIn());
+                }
+            } catch (RuntimeException e) {
+                context.addCrash(scenario, e);
+
+                LOG.log(Level.SEVERE, e, () -> {
+                    String ls = System.lineSeparator();
+                    String scStr = operation.getMergeScenario().toString(ls, true);
+                    return String.format("Exception while merging%n%s", scStr);
+                });
+
+                if (context.isExitOnError()) {
+                    throw new AbortException(e);
+                } else {
+
+                    if (!context.isKeepGoing() && !(strategy instanceof LinebasedStrategy)) {
+                        context.setMergeStrategy(MergeStrategy.parse(MergeStrategy.LINEBASED));
+
+                        context.resetStreams();
+                        merge(operation, context);
+                    }
+                }
             }
 
             context.resetStreams();
