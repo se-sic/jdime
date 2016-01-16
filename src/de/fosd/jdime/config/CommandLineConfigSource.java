@@ -41,6 +41,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_QUIET = "q";
     public static final String CLI_VERSION = "v";
     public static final String CLI_PROP_FILE = "pf";
+    public static final String CLI_EXIT_ON_ERROR = "eoe";
 
     public static final String ARG_LIST = "ARG_LIST";
     public static final String ARG_LIST_SEP = ",";
@@ -128,8 +129,8 @@ public class CommandLineConfigSource extends ConfigSource {
         options.addOption(o);
 
         o = Option.builder(CLI_KEEPGOING)
-                .longOpt("keepgoing")
-                .desc("Keep running after exceptions.")
+                .longOpt("keep-going")
+                .desc("Whether to skip a set of files if there is an exception merging them.")
                 .hasArg(false)
                 .build();
 
@@ -221,6 +222,15 @@ public class CommandLineConfigSource extends ConfigSource {
                 .desc("Set the path to the properties file to use for additional configuration options.")
                 .hasArg()
                 .argName("path")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_EXIT_ON_ERROR)
+                .longOpt("exit-on-error")
+                .desc("Whether to end the merge if there is an exception merging a set of files. If neither this " +
+                        "option nor keep-going is set the fallback line based strategy will be tried.")
+                .hasArg(false)
                 .build();
 
         options.addOption(o);
