@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -226,14 +227,15 @@ public class MergeContext implements Cloneable {
 
         config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
 
-        config.get(CommandLineConfigSource.ARG_LIST, val -> {
-            String[] vals = val.split(CommandLineConfigSource.ARG_LIST_SEP);
-            return Optional.of(Arrays.asList(vals));
-        }).ifPresent(args -> {
+        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
+
+        if (args.isPresent()) {
+            List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
+
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
             char cond = 'A';
 
-            for (String fileName : args) {
+            for (String fileName : paths) {
 
                 try {
                     FileArtifact newArtifact = new FileArtifact(new File(fileName));
@@ -244,14 +246,16 @@ public class MergeContext implements Cloneable {
 
                     inputArtifacts.add(newArtifact);
                 } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, e, () -> "Input file not found.");
+                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " not found.");
+                    throw new AbortException(e);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, e, () -> "Input file could not be accessed.");
+                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " could not be accessed.");
+                    throw new AbortException(e);
                 }
             }
 
             setInputFiles(inputArtifacts);
-        });
+        }
 
         /*
          * TODO[low priority]

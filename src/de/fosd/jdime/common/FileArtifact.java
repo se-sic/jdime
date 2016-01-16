@@ -143,18 +143,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 }
 
                 if (isLeaf) {
-                    file.createNewFile();
-                    LOG.finest(() -> "Created file" + file);
+                    if (file.createNewFile()) {
+                        LOG.finest(() -> "Created file" + file);
+                    } else {
+                        throw new IOException("Could not create " + file);
+                    }
                 } else {
-                    file.mkdir();
-                    LOG.finest(() -> "Created directory " + file);
+                    if (file.mkdir()) {
+                        LOG.finest(() -> "Created directory " + file);
+                    } else {
+                        throw new IOException("Could not create directory " + file);
+                    }
                 }
-
-                assert (file.exists());
-
             } else {
-                LOG.severe(() -> "File not found: " + file.getAbsolutePath());
-                throw new FileNotFoundException();
+                throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
             }
         }
 
