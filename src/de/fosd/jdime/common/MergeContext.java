@@ -23,21 +23,37 @@
  */
 package de.fosd.jdime.common;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import de.fosd.jdime.config.CommandLineConfigSource;
+import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
+import de.fosd.jdime.strdump.DumpMode;
+
+import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 
 /**
  * @author Olaf Lessenich
  */
 public class MergeContext implements Cloneable {
+
+    private static final Logger LOG = Logger.getLogger(MergeContext.class.getCanonicalName());
 
     /**
      * Do look at all nodes in the subtree even if the compared nodes are not
@@ -49,11 +65,6 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
-
-    /**
-     * Whether we are in bug-fixing mode.
-     */
-    private boolean bugfixing = false;
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -76,15 +87,7 @@ public class MergeContext implements Cloneable {
      */
     private boolean consecutive = false;
 
-    /**
-     * Whether to dump files instead of merging.
-     */
-    private boolean dumpFiles = false;
-
-    /**
-     * Whether to dump ASTs instead of merging.
-     */
-    private boolean dumpTree = false;
+    private DumpMode dumpMode;
 
     /**
      * Force overwriting of existing output files.
@@ -92,34 +95,29 @@ public class MergeContext implements Cloneable {
     private boolean forceOverwriting = false;
 
     /**
-     * Whether to use graphical output while dumping.
-     */
-    private boolean guiDump = false;
-
-    /**
      * Input Files.
      */
     private ArtifactList<FileArtifact> inputFiles;
 
     /**
-     * If true, merging will be continued after exceptions.
+     * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
      */
     private boolean keepGoing = false;
 
     /**
+     * If true, merge will be aborted if there is an exception merging files.
+     */
+    private boolean exitOnError = false;
+
+    /**
      * Strategy to apply for the merge.
      */
-    private MergeStrategy<?> mergeStrategy = new LinebasedStrategy();
+    private MergeStrategy<FileArtifact> mergeStrategy = new LinebasedStrategy();
 
     /**
      * Output file.
      */
     private FileArtifact outputFile;
-
-    /**
-     * Timestamp of program start.
-     */
-    private long programStart;
 
     /**
      * If true, the output is quiet.
@@ -138,6 +136,8 @@ public class MergeContext implements Cloneable {
 
     private boolean collectStatistics = false;
     private Statistics statistics = null;
+
+    private boolean useMCESubtreeMatcher = false;
 
     /**
      * StdOut of a merge operation.
@@ -162,13 +162,6 @@ public class MergeContext implements Cloneable {
     private Map<MergeScenario<?>, Throwable> crashes = new HashMap<>();
 
     /**
-     * Class constructor.
-     */
-    public MergeContext() {
-        programStart = System.currentTimeMillis();
-    }
-
-    /**
      * Returns the median of a list of long values.
      *
      * @param values
@@ -186,6 +179,102 @@ public class MergeContext implements Cloneable {
 
             return Math.round((lower + upper) / 2.0);
         }
+    }
+
+    /**
+     * Initializes the configuration options stored in the <code>MergeContext</code> from the given
+     * <code>JDimeConfig</code>.
+     *
+     * @param config
+     *         the <code>JDimeConfig</code> to query for config values
+     */
+    public void configureFrom(JDimeConfig config) {
+
+        setUseMCESubtreeMatcher(config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false));
+
+        config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
+            setDiffOnly(diffOnly);
+            config.getBoolean(CLI_CONSECUTIVE).ifPresent(this::setConsecutive);
+        });
+
+        config.get(CLI_LOOKAHEAD, val -> {
+            try {
+                return Optional.of(Integer.parseInt(val));
+            } catch (NumberFormatException e) {
+
+                if ("off".equals(val)) {
+                    return Optional.of(MergeContext.LOOKAHEAD_OFF);
+                } else if ("full".equals(val)) {
+                    return Optional.of(MergeContext.LOOKAHEAD_FULL);
+                } else {
+                    return Optional.empty();
+                }
+            }
+        }).ifPresent(this::setLookAhead);
+
+        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
+        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+
+        if (config.getBoolean(CLI_PRINT).orElse(false)) {
+            setPretend(true);
+            setQuiet(false);
+        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
+            setQuiet(true);
+        }
+
+        config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
+
+        config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
+
+        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
+
+        if (args.isPresent()) {
+            List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
+
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            char cond = 'A';
+
+            for (String fileName : paths) {
+
+                try {
+                    FileArtifact newArtifact = new FileArtifact(new File(fileName));
+
+                    if (isConditionalMerge()) {
+                        newArtifact.setRevision(new Revision(String.valueOf(cond++)));
+                    }
+
+                    inputArtifacts.add(newArtifact);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " not found.");
+                    throw new AbortException(e);
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " could not be accessed.");
+                    throw new AbortException(e);
+                }
+            }
+
+            setInputFiles(inputArtifacts);
+        }
+
+        /*
+         * TODO[low priority]
+         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
+         * compatible with gnu merge call syntax.
+         */
+        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
+            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
+
+            try {
+                File out = new File(outputFileName);
+                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
+
+                setOutputFile(outArtifact);
+                setPretend(false);
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
+            }
+        });
     }
 
     /**
@@ -258,7 +347,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the merge strategy
      */
-    public MergeStrategy<?> getMergeStrategy() {
+    public MergeStrategy<FileArtifact> getMergeStrategy() {
         return mergeStrategy;
     }
 
@@ -268,7 +357,7 @@ public class MergeContext implements Cloneable {
      * @param mergeStrategy
      *         merge strategy
      */
-    public void setMergeStrategy(MergeStrategy<?> mergeStrategy) {
+    public void setMergeStrategy(MergeStrategy<FileArtifact> mergeStrategy) {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {
@@ -289,13 +378,6 @@ public class MergeContext implements Cloneable {
      */
     public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
-    }
-
-    /**
-     * @return timestamp of program start
-     */
-    public long getProgramStart() {
-        return programStart;
     }
 
     /**
@@ -355,15 +437,6 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Returns whether bugfixing mode is enabled.
-     *
-     * @return true if bugfixing mode is enabled
-     */
-    public boolean isBugfixing() {
-        return bugfixing;
-    }
-
-    /**
      * @return the diffOnly
      */
     public boolean isDiffOnly() {
@@ -378,26 +451,12 @@ public class MergeContext implements Cloneable {
         this.diffOnly = diffOnly;
     }
 
-    /**
-     * @return the dumpFiles
-     */
-    public boolean isDumpFile() {
-        return dumpFiles;
+    public void setDumpMode(DumpMode dumpMode) {
+        this.dumpMode = dumpMode;
     }
 
-    /**
-     * @return the dumpTree
-     */
-    public boolean isDumpTree() {
-        return dumpTree;
-    }
-
-    /**
-     * @param dumpTree
-     *         the dumpTree to set
-     */
-    public void setDumpTree(boolean dumpTree) {
-        this.dumpTree = dumpTree;
+    public DumpMode getDumpMode() {
+        return dumpMode;
     }
 
     /**
@@ -420,21 +479,6 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return the guiDump
-     */
-    public boolean isGuiDump() {
-        return guiDump;
-    }
-
-    /**
-     * @param guiDump
-     *         the guiDump to set
-     */
-    public void setGuiDump(boolean guiDump) {
-        this.guiDump = guiDump;
-    }
-
-    /**
      * @return the keepGoing
      */
     public boolean isKeepGoing() {
@@ -447,6 +491,25 @@ public class MergeContext implements Cloneable {
      */
     public void setKeepGoing(boolean keepGoing) {
         this.keepGoing = keepGoing;
+    }
+
+    /**
+     * Gets whether to abort the merge if merging a set of files fails.
+     *
+     * @return whether to abort
+     */
+    public boolean isExitOnError() {
+        return exitOnError;
+    }
+
+    /**
+     * Sets whether to abort the merge if merging a set of files fails.
+     *
+     * @param exitOnError
+     *         the new value
+     */
+    public void setExitOnError(boolean exitOnError) {
+        this.exitOnError = exitOnError;
     }
 
     /**
@@ -512,21 +575,6 @@ public class MergeContext implements Cloneable {
     public void resetStreams() {
         stdIn = new StringWriter();
         stdErr = new StringWriter();
-    }
-
-    /**
-     * Enables bugfixing mode.
-     */
-    public void setBugfixing() {
-        bugfixing = true;
-    }
-
-    /**
-     * @param dumpFiles
-     *         the dumpFiles to set
-     */
-    public void setDumpFiles(boolean dumpFiles) {
-        this.dumpFiles = dumpFiles;
     }
 
     /**
@@ -649,6 +697,25 @@ public class MergeContext implements Cloneable {
      */
     public void addCrash(MergeScenario<?> scenario, Throwable t) {
         crashes.put(scenario, t);
+    }
+
+    /**
+     * Returns whether to use the <code>MCESubtreeMatcher</code> during the matching phase of the merge.
+     *
+     * @return true iff the matcher should be used
+     */
+    public boolean isUseMCESubtreeMatcher() {
+        return useMCESubtreeMatcher;
+    }
+
+    /**
+     * Sets whether to use the <code>MCESubtreeMatcher</code>.
+     *
+     * @param useMCESubtreeMatcher
+     *         the new value
+     */
+    public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
+        this.useMCESubtreeMatcher = useMCESubtreeMatcher;
     }
 
     @Override

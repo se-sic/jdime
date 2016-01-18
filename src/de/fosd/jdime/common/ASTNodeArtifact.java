@@ -24,23 +24,17 @@
 package de.fosd.jdime.common;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.strategy.ASTNodeStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
@@ -49,10 +43,11 @@ import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
 import org.jastadd.extendj.ast.InterfaceDecl;
 import org.jastadd.extendj.ast.JavaParser;
-import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -271,104 +266,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         astnode.flushTreeCache();
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(dumpTree());
+            System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
         return astnode.prettyPrint();
-    }
-
-    @Override
-    protected final String dumpTree(final String indent) {
-        assert (astnode != null);
-        StringBuilder sb = new StringBuilder();
-
-        // node itself
-        Matching<ASTNodeArtifact> m = null;
-
-        // color
-        if (!isConflict() && hasMatches()) {
-
-            Set<Revision> matchingRevisions = matches.keySet();
-
-            // print color code
-            String color = "";
-
-            for (Revision rev : matchingRevisions) {
-                m = getMatching(rev);
-                color = m.getHighlightColor().toShell();
-            }
-
-            sb.append(color);
-        }
-
-        if (isConflict()) {
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-            sb.append(Color.RED.toShell());
-            sb.append("<<<<<<< ");
-            sb.append(System.lineSeparator());
-            // children
-            if (left != null) {
-                sb.append(left.dumpTree(indent));
-            }
-            sb.append(Color.RED.toShell());
-            sb.append("======= ");
-            sb.append(System.lineSeparator());
-            // children
-            if (right != null) {
-                sb.append(right.dumpTree(indent));
-            }
-
-            sb.append(Color.RED.toShell());
-            sb.append(">>>>>>> ");
-            sb.append(Color.DEFAULT.toShell());
-            sb.append(System.lineSeparator());
-        } else if (isChoice()) {
-            Set<String> conditions = getVariants().keySet();
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-
-            for (String condition : conditions) {
-                sb.append(Color.RED.toShell());
-                sb.append("#ifdef " + condition);
-                sb.append(System.lineSeparator());
-                // children
-                ASTNodeArtifact variant = getVariants().get(condition);
-                if (variant != null) {
-                    sb.append(variant.dumpTree(indent));
-                }
-                sb.append(Color.RED.toShell());
-                sb.append("#endif");
-                sb.append(Color.DEFAULT.toShell());
-                sb.append(System.lineSeparator());
-
-            }
-        } else {
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-
-            if (hasMatches()) {
-                assert (m != null);
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest(m.toString());
-                    LOG.finest("Matching artifacts: " + m.getMatchingArtifact(this));
-                }
-                sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
-                sb.append(Color.DEFAULT.toShell());
-            }
-            sb.append(System.lineSeparator());
-
-            // children
-            for (ASTNodeArtifact child : getChildren()) {
-                sb.append(child.dumpTree(indent + "  "));
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override
@@ -494,10 +395,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
 
-        MergeStrategy<ASTNodeArtifact> astNodeStrategy = new ASTNodeStrategy();
-
-        LOG.fine(() -> "Using strategy: " + astNodeStrategy);
-
         MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
         ASTNodeArtifact left = triple.getLeft();
         ASTNodeArtifact right = triple.getRight();
@@ -548,7 +445,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (safeMerge) {
-            astNodeStrategy.merge(operation, context);
+            Merge<ASTNodeArtifact> merge = new Merge<>();
+
+            LOG.finest(() -> "Merging ASTs " + operation.getMergeScenario());
+            merge.merge(operation, context);
         } else {
             LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
             LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
@@ -671,7 +571,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
                 : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
 
-        conflict.setRevision(new Revision("conflict"));
+        conflict.setRevision(MergeScenario.CONFLICT);
         conflict.setNumber(virtualcount++);
         conflict.setConflict(left, right);
 
@@ -684,7 +584,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact choice;
 
         choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
-        choice.setRevision(new Revision("choice"));
+        choice.setRevision(MergeScenario.CHOICE);
         choice.setNumber(virtualcount++);
         choice.setChoice(condition, artifact);
         return choice;

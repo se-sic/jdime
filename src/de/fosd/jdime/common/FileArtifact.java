@@ -34,20 +34,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
-import de.fosd.jdime.strategy.DirectoryStrategy;
+import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -145,18 +143,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 }
 
                 if (isLeaf) {
-                    file.createNewFile();
-                    LOG.finest(() -> "Created file" + file);
+                    if (file.createNewFile()) {
+                        LOG.finest(() -> "Created file" + file);
+                    } else {
+                        throw new IOException("Could not create " + file);
+                    }
                 } else {
-                    file.mkdir();
-                    LOG.finest(() -> "Created directory " + file);
+                    if (file.mkdir()) {
+                        LOG.finest(() -> "Created directory " + file);
+                    } else {
+                        throw new IOException("Could not create directory " + file);
+                    }
                 }
-
-                assert (file.exists());
-
             } else {
-                LOG.severe(() -> "File not found: " + file.getAbsolutePath());
-                throw new FileNotFoundException();
+                throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
             }
         }
 
@@ -274,45 +274,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
         return emptyFile;
-    }
-
-    @Override
-    protected final String dumpTree(final String indent) {
-        StringBuilder sb = new StringBuilder();
-
-        Matching<FileArtifact> m = null;
-        if (hasMatches()) {
-            Set<Revision> matchingRevisions = matches.keySet();
-
-            // print color code
-            String color = "";
-
-            for (Revision rev : matchingRevisions) {
-                m = getMatching(rev);
-                color = m.getHighlightColor().toShell();
-            }
-
-            sb.append(color);
-        }
-
-        sb.append(indent).append("(").append(getId()).append(") ");
-        sb.append(this);
-
-        if (hasMatches()) {
-            assert (m != null);
-            sb.append(" <=> (").append(m.getMatchingArtifact(this)).append(")");
-            sb.append(Color.DEFAULT.toShell());
-        }
-        sb.append(System.lineSeparator());
-
-        if (!isLeaf()) {
-            // children
-            for (FileArtifact child : getChildren()) {
-                sb.append(child.dumpTree(indent + "  "));
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override
@@ -634,7 +595,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return this.toString().equals(other.toString());
     }
 
-    
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         Objects.requireNonNull(operation, "operation must not be null!");
@@ -647,13 +607,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
             
             throw new RuntimeException(message);
         }
-        
-        @SuppressWarnings("unchecked")
-        MergeStrategy<FileArtifact> strategy = (MergeStrategy<FileArtifact>) context.getMergeStrategy();
-        
+
         if (isDirectory()) {
-            strategy = new DirectoryStrategy();
+            Merge<FileArtifact> merge = new Merge<>();
+
+            LOG.finest(() -> "Merging directories " + operation.getMergeScenario());
+            merge.merge(operation, context);
         } else {
+            MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
+            MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
+
             String contentType = getContentType();
             LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
 
@@ -661,17 +624,41 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 LOG.fine(() -> "Skipping non-java file " + this);
                 return;
             }
-        }
 
-        LOG.config("Using strategy: " + strategy);
-        LOG.config(() -> "merge: " + this);
-        
-        strategy.merge(operation, context);
-        
-        if (!context.isQuiet() && context.hasOutput()) {
-            System.out.print(context.getStdIn());
+            if (context.hasStatistics()) {
+                context.getStatistics().setCurrentFileMergeScenario(scenario);
+            }
+
+            try {
+                strategy.merge(operation, context);
+
+                if (!context.isQuiet() && context.hasOutput()) {
+                    System.out.print(context.getStdIn());
+                }
+            } catch (RuntimeException e) {
+                context.addCrash(scenario, e);
+
+                LOG.log(Level.SEVERE, e, () -> {
+                    String ls = System.lineSeparator();
+                    String scStr = operation.getMergeScenario().toString(ls, true);
+                    return String.format("Exception while merging%n%s", scStr);
+                });
+
+                if (context.isExitOnError()) {
+                    throw new AbortException(e);
+                } else {
+
+                    if (!context.isKeepGoing() && !(strategy instanceof LinebasedStrategy)) {
+                        context.setMergeStrategy(MergeStrategy.parse(MergeStrategy.LINEBASED));
+
+                        context.resetStreams();
+                        merge(operation, context);
+                    }
+                }
+            }
+
+            context.resetStreams();
         }
-        context.resetStreams();
     }
 
     /**

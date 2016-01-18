@@ -23,22 +23,21 @@
  */
 package de.fosd.jdime.common;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matching;
 import de.fosd.jdime.stats.StatisticsInterface;
+import de.fosd.jdime.strdump.DumpMode;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -89,12 +88,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Left side of a conflict.
      */
-    T left = null;
+    protected T left = null;
 
     /**
      * Right side of a conflict.
      */
-    T right = null;
+    protected T right = null;
 
     /**
      * Whether this artifact represents a conflict.
@@ -217,159 +216,36 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract T createEmptyArtifact();
 
     /**
-     * Finds the root artifact and calls <code>dumpTree()</code> on it.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @return <code>dumpTree()</code> of root artifact
-     */
-    public String dumpRootTree() {
-        if (getParent() != null) {
-            return getParent().dumpRootTree();
-        } else {
-            return dumpTree();
-        }
-    }
-
-    /**
-     * Returns the structure of the artifact as indented plain text.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @return artifact structure as indented plain text
-     */
-    public String dumpTree() {
-        return dumpTree("");
-    }
-
-    /**
-     * Returns the structure of the artifact as indented plain text.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @param indent
-     *            String used to indent the current artifact
-     *
-     * @return artifact structure as indented plain text
-     */
-    protected abstract String dumpTree(String indent);
-
-    /**
-     * Returns the tree with this node as its root in TGF format.
-     *
-     * @return the .tgf String
-     */
-    public String dumpTGF() {
-        AtomicInteger nextId = new AtomicInteger(); // an easy way to encapsulate an Integer for the lambdas
-        Map<Artifact<T>, Integer> ids = new HashMap<>();
-        List<String> nodeIDs = new ArrayList<>();
-        List<String> connections = new ArrayList<>();
-        Deque<Artifact<T>> q = new ArrayDeque<>(Collections.singleton(this));
-
-        while (!q.isEmpty()) {
-            Artifact<T> artifact = q.removeFirst();
-
-            Integer fromId = ids.computeIfAbsent(artifact, a -> nextId.getAndIncrement());
-            nodeIDs.add(String.format("%d %s", fromId, artifact.toString()));
-
-            for (T t : artifact.getChildren()) {
-                Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
-                connections.add(String.format("%d %d", fromId, toId));
-            }
-
-            artifact.getChildren().forEach(q::addFirst);
-        }
-
-        String ls = System.lineSeparator();
-        return String.format("%s%n#%n%s", String.join(ls, nodeIDs), String.join(ls, connections));
-    }
-
-    /**
-     * Returns the AST in dot-format. {@link #toString()} will be used to label the nodes.
-     *
-     * @param includeNumbers
-     *            include node number in label if true
-     * @return AST in dot-format.
-     */
-    public String dumpGraphvizTree(boolean includeNumbers, int virtualcount) {
-        StringBuilder sb = new StringBuilder();
-
-        if (isConflict() || isChoice()) {
-            // insert virtual node
-            String virtualId = "\"c" + virtualcount + "\"";
-            String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
-            String virtualColor = isConflict() ? "red" : "blue";
-            sb.append(virtualId);
-            sb.append("[label=").append(virtualLabel);
-            sb.append(", fillcolor = ").append(virtualColor);
-            sb.append(", style = filled]").append(System.lineSeparator());
-
-            if (isConflict()) {
-                // left alternative
-                sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-                sb.append(virtualId).append("->").append(getGraphvizId(left)).
-                        append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-
-                // right alternative
-                sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-                sb.append(virtualId).append("->").append(getGraphvizId(right)).
-                        append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-            } else {
-                // choice node
-                for (String condition : getVariants().keySet()) {
-                    Artifact<T> variant = getVariants().get(condition);
-                    sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
-                    sb.append(virtualId).append("->").append(getGraphvizId(variant)).
-                            append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
-                }
-            }
-        } else {
-            sb.append(getGraphvizId(this)).append("[label=\"");
-
-            // node label
-            if (includeNumbers) {
-                sb.append("(").append(getNumber()).append(") ");
-            }
-
-            sb.append(toString());
-
-            sb.append("\"");
-
-            if (hasMatches()) {
-                sb.append(", fillcolor = green, style = filled");
-            }
-
-            sb.append("];");
-            sb.append(System.lineSeparator());
-
-            // children
-            for (Artifact<T> child : getChildren()) {
-                String childId = getGraphvizId(child);
-                if (child.isConflict() || child.isChoice()) {
-                    virtualcount++;
-                    childId = "\"c" + virtualcount + "\"";
-                }
-
-                sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
-
-                // edge
-                sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private String getGraphvizId(Artifact<T> artifact) {
-        return "\"" + artifact.getId() + "\"";
-    }
-
-    /**
      * Pretty-prints the <code>Artifact</code> to source code.
      *
      * @return Pretty-printed AST (source code)
      */
     public abstract String prettyPrint();
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>. Uses the
+     * {@link Artifact#toString()} method for producing labels for nodes.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @return the dump result
+     */
+    public String dump(DumpMode mode) {
+        return dump(mode, Artifact::toString);
+    }
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @param getLabel
+     *         the <code>Function</code> for producing labels for nodes
+     * @return the dump result
+     */
+    public String dump(DumpMode mode, Function<Artifact<T>, String> getLabel) {
+        return mode.getDumper().dump(this, getLabel);
+    }
 
     /**
      * Returns true if this artifact physically exists.
@@ -425,6 +301,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public Matching<T> getMatching(Revision rev) {
         return matches == null ? null : matches.get(rev);
+    }
+
+    /**
+     * Returns an unmodifiable view of the map used to store the <code>Matchings</code> of this <code>Artifact</code>.
+     *
+     * @return the matchings
+     */
+    public Map<Revision, Matching<T>> getMatches() {
+        return Collections.unmodifiableMap(matches);
     }
 
     /**
@@ -720,6 +605,21 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Returns the root node of the tree this <code>Artifact</code> is part of.
+     *
+     * @return the root node
+     */
+    public Artifact<T> findRoot() {
+        Artifact<T> current = this;
+
+        while (!current.isRoot()) {
+            current = current.getParent();
+        }
+
+        return current;
+    }
+
+    /**
      * Returns true, if this <code>Artifact</code> matches another <code>Artifact</code>.
      *
      * @param other
@@ -770,6 +670,24 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         this.conflict = true;
         this.left = left;
         this.right = right;
+    }
+
+    /**
+     * Returns the left alternative of a conflict.
+     *
+     * @return the left <code>Artifact</code>
+     */
+    public T getLeft() {
+        return left;
+    }
+
+    /**
+     * Returns the right alternative of a conflict.
+     *
+     * @return the right <code>Artifact</code>
+     */
+    public T getRight() {
+        return right;
     }
 
     /**

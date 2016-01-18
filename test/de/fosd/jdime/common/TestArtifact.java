@@ -23,8 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
-
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 
@@ -71,12 +69,8 @@ public class TestArtifact extends Artifact<TestArtifact> {
     public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) {
         return null;
     }
-    public TestArtifact createEmptyArtifact() {
-        return null;
-    }
 
-    @Override
-    protected String dumpTree(String indent) {
+    public TestArtifact createEmptyArtifact() {
         return null;
     }
 
