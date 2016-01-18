@@ -85,6 +85,9 @@ public final class Main {
 
     private static final String MODE_LIST = "list";
 
+    private static final int EXIT_ABORTED = 2;
+    private static final int EXIT_FAILURE = 1;
+
     private static JDimeConfig config;
     private static CommandLineConfigSource cmdLine;
 
@@ -105,10 +108,10 @@ public final class Main {
             run(args);
         } catch (AbortException e) {
             LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
-            System.exit(1);
+            System.exit(EXIT_ABORTED);
         } catch (Throwable e) {
             LOG.log(Level.SEVERE, e, () -> "Uncaught exception.");
-            System.exit(1);
+            System.exit(EXIT_FAILURE);
         }
     }
 
