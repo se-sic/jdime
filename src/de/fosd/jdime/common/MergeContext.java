@@ -294,9 +294,7 @@ public class MergeContext implements Cloneable {
      *         String to append
      */
     public void append(String s) {
-        if (stdIn != null) {
-            stdIn.append(s);
-        }
+        stdIn.append(s);
     }
 
     /**
@@ -306,22 +304,7 @@ public class MergeContext implements Cloneable {
      *         String to append
      */
     public void appendError(String s) {
-        if (stdErr != null) {
-            stdErr.append(s);
-        }
-    }
-
-    /**
-     * Appends a line to the saved stderr buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendErrorLine(String line) {
-        if (stdErr != null) {
-            stdErr.append(line);
-            stdErr.append(System.getProperty("line.separator"));
-        }
+        stdErr.append(s);
     }
 
     /**
@@ -331,10 +314,19 @@ public class MergeContext implements Cloneable {
      *         to be appended
      */
     public void appendLine(String line) {
-        if (stdIn != null) {
-            stdIn.append(line);
-            stdIn.append(System.lineSeparator());
-        }
+        stdIn.append(line);
+        stdIn.append(System.lineSeparator());
+    }
+
+    /**
+     * Appends a line to the saved stderr buffer.
+     *
+     * @param line
+     *         to be appended
+     */
+    public void appendErrorLine(String line) {
+        stdErr.append(line);
+        stdErr.append(System.lineSeparator());
     }
 
     /**
