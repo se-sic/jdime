@@ -25,8 +25,8 @@ package de.fosd.jdime.common;
 
 import java.io.File;
 
-import de.fosd.jdime.JDimeConfig;
 import de.fosd.jdime.JDimeTest;
+import de.fosd.jdime.config.JDimeConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

@@ -25,6 +25,7 @@ package de.fosd.jdime.common;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,9 @@ public class MergeScenario<T extends Artifact<T>> {
     public static final Revision BASE = new Revision("base");
     public static final Revision RIGHT = new Revision("right");
     public static final Revision TARGET = new Revision("target");
+    public static final Revision MERGE = new Revision("merge");
+    public static final Revision CONFLICT = new Revision("conflict");
+    public static final Revision CHOICE = new Revision("choice");
 
     private MergeType mergeType;
     private Map<Revision, T> artifacts;
@@ -97,6 +101,17 @@ public class MergeScenario<T extends Artifact<T>> {
         for (T artifact : inputArtifacts) {
             artifacts.put(artifact.getRevision(), artifact);
         }
+    }
+
+    /**
+     * Performs a shallow copy (the actual Artifacts that are part of the MergeScenario will not be copied).
+     *
+     * @param toCopy
+     *         the <code>MergeScenario</code> to copy
+     */
+    public MergeScenario(MergeScenario<T> toCopy) {
+        this.mergeType = toCopy.mergeType;
+        this.artifacts = new HashMap<>(toCopy.artifacts);
     }
 
     /**

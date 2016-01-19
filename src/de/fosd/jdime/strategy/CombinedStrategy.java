@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
@@ -75,7 +74,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
         long startTime = System.currentTimeMillis();
 
-        MergeContext subContext = (MergeContext) context.clone();
+        MergeContext subContext = new MergeContext(context);
         MergeStrategy<FileArtifact> strategy = new LinebasedStrategy();
 
         subContext.setOutputFile(null);
@@ -106,13 +105,13 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                         target.remove();
                     }
 
-                    target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                    target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName), targetExists, isLeaf);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
 
-            subContext = (MergeContext) context.clone();
+            subContext = new MergeContext(context);
             strategy = new StructuredStrategy();
             subContext.setOutputFile(null);
             subContext.setMergeStrategy(strategy);
@@ -146,22 +145,5 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             scenarioStats.setRuntime(runtime);
             statistics.add(subStatistics);
         }
-    }
-
-    @Override
-    public final String toString() {
-        return "combined";
-    }
-
-    @Override
-    public final String dumpTree(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new StructuredStrategy().dumpTree(artifact, graphical);
-    }
-
-    @Override
-    public String dumpFile(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new LinebasedStrategy().dumpFile(artifact, graphical);
     }
 }

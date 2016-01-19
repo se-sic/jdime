@@ -31,7 +31,6 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.JDimeConfig;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.matching.Color;
@@ -43,9 +42,7 @@ import de.fosd.jdime.matcher.ordered.simpleTree.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
-
-import static de.fosd.jdime.JDimeConfig.USE_MCESUBTREE_MATCHER;
-import static de.fosd.jdime.JDimeConfig.getConfig;
+import de.fosd.jdime.strdump.DumpMode;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -74,8 +71,6 @@ public class Matcher<T extends Artifact<T>> {
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
     private static final String ID = Matcher.class.getSimpleName();
 
-    private boolean useMCESubtreeMatcher;
-
     private int calls = 0;
     private int orderedCalls = 0;
     private int unorderedCalls = 0;
@@ -99,7 +94,6 @@ public class Matcher<T extends Artifact<T>> {
         unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
         orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
-        useMCESubtreeMatcher = getConfig().getBoolean(USE_MCESUBTREE_MATCHER).orElse(false);
     }
 
     /**
@@ -116,8 +110,8 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        int leftLAH = JDimeConfig.getLookahead(left.getType()).orElse(context.getLookAhead());
-        int rightLAH = JDimeConfig.getLookahead(right.getType()).orElse(context.getLookAhead());
+        int leftLAH = context.getLookahead(left.getType());
+        int rightLAH = context.getLookahead(right.getType());
 
         if (leftLAH != MergeContext.LOOKAHEAD_FULL && leftLAH != MergeContext.LOOKAHEAD_OFF) {
             leftLAH += 1;
@@ -142,10 +136,10 @@ public class Matcher<T extends Artifact<T>> {
 
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dumpTree());
+            System.out.println(left.dump(DumpMode.PLAINTEXT_TREE));
 
             LOG.fine(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dumpTree());
+            System.out.println(right.dump(DumpMode.PLAINTEXT_TREE));
         }
 
         return matchings;
@@ -222,11 +216,11 @@ public class Matcher<T extends Artifact<T>> {
                 }
             }
         } else {
-            leftLAH = JDimeConfig.getLookahead(left.getType()).orElse(context.getLookAhead());
-            rightLAH = JDimeConfig.getLookahead(right.getType()).orElse(context.getLookAhead());
+            leftLAH = context.getLookahead(left.getType());
+            rightLAH = context.getLookahead(right.getType());
         }
 
-        boolean fullyOrdered = useMCESubtreeMatcher;
+        boolean fullyOrdered = context.isUseMCESubtreeMatcher();
         boolean isOrdered = false;
         boolean uniqueLabels = true;
 

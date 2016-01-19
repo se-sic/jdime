@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;

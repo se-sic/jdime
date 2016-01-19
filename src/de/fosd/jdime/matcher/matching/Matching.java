@@ -77,6 +77,20 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     }
 
     /**
+     * Performs a shallow copy (the matched <code>Artifact</code>s will not be copied).
+     *
+     * @param toCopy
+     *         the <code>Matching</code> to copy
+     */
+    public Matching(Matching<T> toCopy) {
+        this.algorithm = toCopy.algorithm;
+        this.highlightColor = toCopy.highlightColor;
+        this.matchedArtifacts = UnorderedTuple.of(toCopy.matchedArtifacts.getX(), toCopy.matchedArtifacts.getY());
+        this.percentage = toCopy.percentage;
+        this.score = toCopy.score;
+    }
+
+    /**
      * Returns the left <code>Artifact</code> of the matching.
      *
      * @return the left <code>Artifact</code>

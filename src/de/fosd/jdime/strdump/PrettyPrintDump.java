@@ -21,40 +21,19 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.strategy;
+package de.fosd.jdime.strdump;
 
-import java.io.IOException;
+import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 
 /**
- * @author Olaf Lessenich
- *
- * @param <T>
+ * Dumps an <code>Artifact</code> using its {@link Artifact#prettyPrint()} method.
  */
-public interface DumpInterface<T extends Artifact<T>> {
+public class PrettyPrintDump implements StringDumper {
 
-    /**
-     * TODO: documentation
-     *
-     * @param artifact
-     *            artifact to dump
-     * @param graphical
-     *            output option
-     * @throws IOException
-     *             IOException
-     */
-    String dumpTree(final T artifact, final boolean graphical) throws IOException;
-    
-    /**
-     * TODO: documentation
-     *
-     * @param artifact
-     *            artifact to dump
-     * @param graphical
-     *            output option
-     * @throws IOException
-     *             IOException
-     */
-    String dumpFile(final T artifact, final boolean graphical) throws IOException;
+    @Override
+    public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
+        return artifact.prettyPrint();
+    }
 }

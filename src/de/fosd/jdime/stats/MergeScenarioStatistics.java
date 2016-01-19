@@ -75,6 +75,58 @@ public class MergeScenarioStatistics {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>MergeScenarioStatistics</code> to copy
+     */
+    public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
+        this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
+
+        this.matchings = new HashSet<>();
+
+        for (Matching<?> matching : toCopy.matchings) {
+            this.matchings.add(new Matching<>(matching));
+        }
+
+        this.levelStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : toCopy.levelStatistics.entrySet()) {
+            Map<KeyEnums.Level, ElementStatistics> map = new HashMap<>();
+
+            for (Map.Entry<KeyEnums.Level, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                map.put(subEntry.getKey(), new ElementStatistics(subEntry.getValue()));
+            }
+
+            this.levelStatistics.put(entry.getKey(), map);
+        }
+
+        this.typeStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : toCopy.typeStatistics.entrySet()) {
+            Map<KeyEnums.Type, ElementStatistics> map = new HashMap<>();
+
+            for (Map.Entry<KeyEnums.Type, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                map.put(subEntry.getKey(), new ElementStatistics(subEntry.getValue()));
+            }
+
+            this.typeStatistics.put(entry.getKey(), map);
+        }
+
+        this.mergeStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, MergeStatistics> entry : toCopy.mergeStatistics.entrySet()) {
+            this.mergeStatistics.put(entry.getKey(), new MergeStatistics(entry.getValue()));
+        }
+
+        this.lineStatistics = new ElementStatistics(toCopy.lineStatistics);
+        this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
+        this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
+        this.conflicts = toCopy.conflicts;
+        this.runtime = toCopy.runtime;
+    }
+
+    /**
      * Returns the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for.
      *
      * @return the <code>MergeScenario</code>

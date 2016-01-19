@@ -54,6 +54,19 @@ public class MergeStatistics {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>MergeStatistics</code> to copy
+     */
+    public MergeStatistics(MergeStatistics toCopy) {
+        this.numChunks = toCopy.numChunks;
+        this.avgChunkSize = toCopy.avgChunkSize;
+        this.maxASTDepth = toCopy.maxASTDepth;
+        this.maxNumChildren = toCopy.maxNumChildren;
+    }
+
+    /**
      * Returns the number of chunks.
      *
      * @return the number of chunks
