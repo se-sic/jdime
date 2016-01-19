@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
 
 public interface StatisticsInterface {
@@ -115,7 +116,7 @@ public interface StatisticsInterface {
      * @return the resulting <code>MergeScenarioStatistics</code>
      */
     static MergeScenarioStatistics getASTStatistics(Artifact<?> artifact, Revision otherRev) {
-        MergeScenarioStatistics statistics = new MergeScenarioStatistics(null);
+        MergeScenarioStatistics statistics = new MergeScenarioStatistics((MergeScenario<?>) null);
         List<ElementStatistics> elementStats = new ArrayList<>();
         List<Artifact<?>> preOrder = new ArrayList<>();
 
