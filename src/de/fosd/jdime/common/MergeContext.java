@@ -216,7 +216,7 @@ public class MergeContext implements Cloneable {
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;
         this.collectStatistics = toCopy.collectStatistics;
-        this.statistics = new Statistics(toCopy.statistics);
+        this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
 
         this.stdErr = new StringWriter();
