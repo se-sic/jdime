@@ -27,9 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,30 +67,33 @@ public class MergeContext implements Cloneable {
     /**
      * Whether merge inserts choice nodes instead of direct merging.
      */
-    private boolean conditionalMerge = false;
+    private boolean conditionalMerge;
 
     /**
      * Whether conditional merge should be performed outside of methods.
      */
-    private boolean conditionalOutsideMethods = true;
+    private boolean conditionalOutsideMethods;
 
     /**
      * Whether to run only the diff.
      */
-    private boolean diffOnly = false;
+    private boolean diffOnly;
 
     /**
      * Whether to treat two input versions as consecutive versions in the
      * revision history.
      */
-    private boolean consecutive = false;
+    private boolean consecutive;
 
+    /**
+     * If set the input <code>Artifact</code>s will be dumped in the given format instead of merging.
+     */
     private DumpMode dumpMode;
 
     /**
      * Force overwriting of existing output files.
      */
-    private boolean forceOverwriting = false;
+    private boolean forceOverwriting;
 
     /**
      * Input Files.
@@ -102,17 +103,17 @@ public class MergeContext implements Cloneable {
     /**
      * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
      */
-    private boolean keepGoing = false;
+    private boolean keepGoing;
 
     /**
      * If true, merge will be aborted if there is an exception merging files.
      */
-    private boolean exitOnError = false;
+    private boolean exitOnError;
 
     /**
      * Strategy to apply for the merge.
      */
-    private MergeStrategy<FileArtifact> mergeStrategy = new LinebasedStrategy();
+    private MergeStrategy<FileArtifact> mergeStrategy;
 
     /**
      * Output file.
@@ -122,32 +123,34 @@ public class MergeContext implements Cloneable {
     /**
      * If true, the output is quiet.
      */
-    private boolean quiet = false;
+    private boolean quiet;
 
     /**
      * If true, output is not written to an output file.
      */
-    private boolean pretend = true;
+    private boolean pretend;
 
     /**
      * Merge directories recursively. Can be set with the '-r' argument.
      */
-    private boolean recursive = false;
-
-    private boolean collectStatistics = false;
-    private Statistics statistics = null;
-
-    private boolean useMCESubtreeMatcher = false;
+    private boolean recursive;
 
     /**
-     * StdOut of a merge operation.
+     * Whether to collect statistics after merging.
      */
-    private StringWriter stdErr = new StringWriter();
+    private boolean collectStatistics;
+    private Statistics statistics;
 
     /**
-     * StdIn of a merge operation.
+     * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
-    private StringWriter stdIn = new StringWriter();
+    private boolean useMCESubtreeMatcher;
+
+    /**
+     * The standard out/error streams used during the merge.
+     */
+    private StringWriter stdErr;
+    private StringWriter stdIn;
 
     /**
      * How many levels to keep searching for matches in the subtree if the
@@ -158,27 +161,34 @@ public class MergeContext implements Cloneable {
      * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
      * The default ist to do no look-ahead matching.
      */
-    private int lookAhead = MergeContext.LOOKAHEAD_OFF;
-    private Map<MergeScenario<?>, Throwable> crashes = new HashMap<>();
+    private int lookAhead;
+    private Map<MergeScenario<?>, Throwable> crashes;
 
     /**
-     * Returns the median of a list of long values.
-     *
-     * @param values
-     *         list of values for which to compute the median
-     * @return median
+     * Constructs a new <code>MergeContext</code> initializing all options to their default values.
      */
-    public static long median(ArrayList<Long> values) {
-        Collections.sort(values);
-
-        if (values.size() % 2 == 1) {
-            return values.get((values.size() + 1) / 2 - 1);
-        } else {
-            double lower = values.get(values.size() / 2 - 1);
-            double upper = values.get(values.size() / 2);
-
-            return Math.round((lower + upper) / 2.0);
-        }
+    public MergeContext() {
+        this.conditionalMerge = false;
+        this.conditionalOutsideMethods = true;
+        this.diffOnly = false;
+        this.consecutive = false;
+        this.dumpMode = DumpMode.NONE;
+        this.forceOverwriting = false;
+        this.inputFiles = new ArtifactList<>();
+        this.keepGoing = false;
+        this.exitOnError = false;
+        this.mergeStrategy = new LinebasedStrategy();
+        this.outputFile = null;
+        this.quiet = false;
+        this.pretend = true;
+        this.recursive = false;
+        this.collectStatistics = false;
+        this.statistics = null;
+        this.useMCESubtreeMatcher = false;
+        this.stdErr = new StringWriter();
+        this.stdIn = new StringWriter();
+        this.lookAhead = MergeContext.LOOKAHEAD_OFF;
+        this.crashes = new HashMap<>();
     }
 
     /**
