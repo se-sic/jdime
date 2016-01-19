@@ -80,8 +80,7 @@ public class MergeContext implements Cloneable {
     private boolean diffOnly;
 
     /**
-     * Whether to treat two input versions as consecutive versions in the
-     * revision history.
+     * Whether to treat two input versions as consecutive versions in the revision history.
      */
     private boolean consecutive;
 
@@ -330,15 +329,19 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return the inputFiles
+     * Returns the input files for the merge.
+     *
+     * @return the input files
      */
     public ArtifactList<FileArtifact> getInputFiles() {
         return inputFiles;
     }
 
     /**
+     * Sets the input files to the new value.
+     *
      * @param inputFiles
-     *         the inputFiles to set
+     *         the new input files
      */
     public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
@@ -363,11 +366,13 @@ public class MergeContext implements Cloneable {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {
-            conditionalMerge = true;
+            setConditionalMerge(true);
         }
     }
 
     /**
+     * Returns the output file for the merge.
+     *
      * @return the outputFile
      */
     public FileArtifact getOutputFile() {
@@ -375,8 +380,10 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Sets the output file to the new value.
+     *
      * @param outputFile
-     *         the outputFile to set
+     *         the new output file
      */
     public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
@@ -390,6 +397,16 @@ public class MergeContext implements Cloneable {
      */
     public Statistics getStatistics() {
         return statistics;
+    }
+
+    /**
+     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
+     * {@link #getStatistics()}.
+     *
+     * @return whether statistical data should be collected
+     */
+    public boolean hasStatistics() {
+        return collectStatistics;
     }
 
     /**
@@ -416,7 +433,7 @@ public class MergeContext implements Cloneable {
      * @return true if stdErr is not empty
      */
     public boolean hasErrors() {
-        return stdErr != null && stdErr.getBuffer().length() != 0;
+        return stdErr.getBuffer().length() != 0;
     }
 
     /**
@@ -425,29 +442,23 @@ public class MergeContext implements Cloneable {
      * @return true if stdIn is not empty
      */
     public boolean hasOutput() {
-        return stdIn != null && stdIn.getBuffer().length() != 0;
+        return stdIn.getBuffer().length() != 0;
     }
 
     /**
-     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
-     * {@link #getStatistics()}.
+     * Returns whether to only perform the diff stage of the merge.
      *
-     * @return whether statistical data should be collected
-     */
-    public boolean hasStatistics() {
-        return collectStatistics;
-    }
-
-    /**
-     * @return the diffOnly
+     * @return true iff only the diff stage shall be performed
      */
     public boolean isDiffOnly() {
         return diffOnly;
     }
 
     /**
+     * Sets whether to only perform the diff stage of the merge.
+     *
      * @param diffOnly
-     *         whether to run only diff
+     *         whether to diff only
      */
     public void setDiffOnly(boolean diffOnly) {
         this.diffOnly = diffOnly;
@@ -492,15 +503,19 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return the keepGoing
+     * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
+     *
+     * @return true iff the merge should keep going
      */
     public boolean isKeepGoing() {
         return keepGoing;
     }
 
     /**
+     * Sets whether to keep going to the new value.
+     *
      * @param keepGoing
-     *         the keepGoing to set
+     *         whether to keep going
      */
     public void setKeepGoing(boolean keepGoing) {
         this.keepGoing = keepGoing;
@@ -605,15 +620,19 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return whether consecutive diffing
+     * Whether to treat two input versions as consecutive versions in the revision history.
+     *
+     * @return true iff two input versions should be treated as consecutive
      */
     public boolean isConsecutive() {
         return consecutive;
     }
 
     /**
+     * Sets whether to do consecutive merging.
+     *
      * @param consecutive
-     *         consecutive diffing
+     *         whether to do consecutive merging
      */
     public void setConsecutive(boolean consecutive) {
         this.consecutive = consecutive;
@@ -627,13 +646,23 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Whether merge inserts choice nodes instead of direct merging of artifact.
+     * Whether merge the given artifact inserts choice nodes instead of direct merging.
+     *
+     * @param artifact
+     *         the artifact to check
+     * @return true iff conditional merge is enabled for the given artifact
      */
     public boolean isConditionalMerge(Artifact<?> artifact) {
-        return conditionalMerge && (conditionalOutsideMethods ||
-                artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
+        return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && (
+                (ASTNodeArtifact) artifact).isWithinMethod());
     }
 
+    /**
+     * Sets whether to insert choice nodes instead of direct merging where appropriate.
+     *
+     * @param conditionalMerge
+     *         the new value
+     */
     public void setConditionalMerge(boolean conditionalMerge) {
         this.conditionalMerge = conditionalMerge;
     }
@@ -654,6 +683,11 @@ public class MergeContext implements Cloneable {
         return lookAhead;
     }
 
+    /**
+     * Returns whether lookahead is enabled.
+     *
+     * @return true iff lookahead is enabled
+     */
     public boolean isLookAhead() {
         return lookAhead != MergeContext.LOOKAHEAD_OFF;
     }
