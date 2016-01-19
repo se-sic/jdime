@@ -48,6 +48,20 @@ public class ElementStatistics {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>ElementStatistics</code> to copy
+     */
+    public ElementStatistics(ElementStatistics toCopy) {
+        this.total = toCopy.total;
+        this.numAdded = toCopy.numAdded;
+        this.numMerged = toCopy.numMerged;
+        this.numDeleted = toCopy.numDeleted;
+        this.numOccurInConflict = toCopy.numOccurInConflict;
+    }
+
+    /**
      * Increments the total by the given amount.
      *
      * @param by the amount to add

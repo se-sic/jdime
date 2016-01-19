@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
@@ -188,6 +189,45 @@ public class MergeContext implements Cloneable {
         this.stdIn = new StringWriter();
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.crashes = new HashMap<>();
+    }
+
+    /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>MergeContext</code> to copy
+     */
+    public MergeContext(MergeContext toCopy) {
+        this.conditionalMerge = toCopy.conditionalMerge;
+        this.conditionalOutsideMethods = toCopy.conditionalOutsideMethods;
+        this.diffOnly = toCopy.diffOnly;
+        this.consecutive = toCopy.consecutive;
+        this.dumpMode = toCopy.dumpMode;
+        this.forceOverwriting = toCopy.forceOverwriting;
+
+        this.inputFiles = new ArtifactList<>();
+        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::clone).collect(Collectors.toList()));
+
+        this.keepGoing = toCopy.keepGoing;
+        this.exitOnError = toCopy.exitOnError;
+        this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
+        this.outputFile = (toCopy.outputFile != null) ? toCopy.outputFile.clone() : null;
+        this.quiet = toCopy.quiet;
+        this.pretend = toCopy.pretend;
+        this.recursive = toCopy.recursive;
+        this.collectStatistics = toCopy.collectStatistics;
+        this.statistics = new Statistics(toCopy.statistics);
+        this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
+
+        this.stdErr = new StringWriter();
+        this.stdErr.append(toCopy.stdErr.toString());
+
+        this.stdIn = new StringWriter();
+        this.stdIn.append(toCopy.stdIn.toString());
+
+        this.lookAhead = toCopy.lookAhead;
+
+        this.crashes = new HashMap<>(toCopy.crashes);
     }
 
     /**
@@ -764,21 +804,5 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
-    }
-
-    @Override
-    public Object clone() {
-        MergeContext clone = new MergeContext();
-        clone.forceOverwriting = forceOverwriting;
-        clone.mergeStrategy = mergeStrategy;
-        clone.inputFiles = inputFiles;
-        clone.outputFile = outputFile;
-        clone.quiet = quiet;
-        clone.recursive = recursive;
-        clone.collectStatistics = collectStatistics;
-        clone.keepGoing = keepGoing;
-        clone.diffOnly = diffOnly;
-        clone.lookAhead = lookAhead;
-        return clone;
     }
 }
