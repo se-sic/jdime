@@ -451,12 +451,23 @@ public class MergeContext implements Cloneable {
         this.diffOnly = diffOnly;
     }
 
-    public void setDumpMode(DumpMode dumpMode) {
-        this.dumpMode = dumpMode;
-    }
-
+    /**
+     * Returns the <code>DumpMode</code> if it is set.
+     *
+     * @return the <code>DumpMode</code>
+     */
     public DumpMode getDumpMode() {
         return dumpMode;
+    }
+
+    /**
+     * Sets the <code>DumpMode</code> to the new value.
+     *
+     * @param dumpMode
+     *         the new <code>DumpMode</code>
+     */
+    public void setDumpMode(DumpMode dumpMode) {
+        this.dumpMode = dumpMode;
     }
 
     /**
@@ -617,7 +628,8 @@ public class MergeContext implements Cloneable {
      * Whether merge inserts choice nodes instead of direct merging of artifact.
      */
     public boolean isConditionalMerge(Artifact<?> artifact) {
-        return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
+        return conditionalMerge && (conditionalOutsideMethods ||
+                artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
     }
 
     public void setConditionalMerge(boolean conditionalMerge) {
