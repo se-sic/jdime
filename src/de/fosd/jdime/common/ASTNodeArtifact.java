@@ -557,7 +557,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
         }
 
-        assert (isConflict() || getNumChildren() == astnode.getNumChildNoTransform());
+        if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
+            throw new RuntimeException("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
+                    "This is either a bug in ExtendJ or in JDime!");
+        }
     }
 
     @Override
