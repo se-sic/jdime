@@ -156,6 +156,28 @@ public class Statistics {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>Statistics</code> to copy
+     */
+    public Statistics(Statistics toCopy) {
+
+        if (toCopy.currentFileMergeScenario != null) {
+            this.currentFileMergeScenario = new MergeScenario<>(toCopy.currentFileMergeScenario);
+        }
+
+        this.scenarioStatistics = new HashMap<>();
+
+        for (Map.Entry<MergeScenario<?>, MergeScenarioStatistics> entry : toCopy.scenarioStatistics.entrySet()) {
+            MergeScenario<?> mScenario = new MergeScenario<>(entry.getKey());
+            MergeScenarioStatistics mStats = new MergeScenarioStatistics(entry.getValue());
+
+            this.scenarioStatistics.put(mScenario, mStats);
+        }
+    }
+
+    /**
      * Gets the <code>MergeScenarioStatistics</code> for the current <code>FileArtifact</code>
      * <code>MergeScenario</code>.
      *

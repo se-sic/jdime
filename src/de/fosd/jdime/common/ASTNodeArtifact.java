@@ -406,7 +406,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         try {
             numChildNoTransform = target.astnode.getClass().newInstance().getNumChildNoTransform();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
 
         if (!isRoot() && numChildNoTransform > 0) {

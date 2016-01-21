@@ -74,7 +74,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
         long startTime = System.currentTimeMillis();
 
-        MergeContext subContext = (MergeContext) context.clone();
+        MergeContext subContext = new MergeContext(context);
         MergeStrategy<FileArtifact> strategy = new LinebasedStrategy();
 
         subContext.setOutputFile(null);
@@ -111,7 +111,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 }
             }
 
-            subContext = (MergeContext) context.clone();
+            subContext = new MergeContext(context);
             strategy = new StructuredStrategy();
             subContext.setOutputFile(null);
             subContext.setMergeStrategy(strategy);

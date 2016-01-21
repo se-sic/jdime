@@ -27,15 +27,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
@@ -69,30 +68,32 @@ public class MergeContext implements Cloneable {
     /**
      * Whether merge inserts choice nodes instead of direct merging.
      */
-    private boolean conditionalMerge = false;
+    private boolean conditionalMerge;
 
     /**
      * Whether conditional merge should be performed outside of methods.
      */
-    private boolean conditionalOutsideMethods = true;
+    private boolean conditionalOutsideMethods;
 
     /**
      * Whether to run only the diff.
      */
-    private boolean diffOnly = false;
+    private boolean diffOnly;
 
     /**
-     * Whether to treat two input versions as consecutive versions in the
-     * revision history.
+     * Whether to treat two input versions as consecutive versions in the revision history.
      */
-    private boolean consecutive = false;
+    private boolean consecutive;
 
+    /**
+     * If set the input <code>Artifact</code>s will be dumped in the given format instead of merging.
+     */
     private DumpMode dumpMode;
 
     /**
      * Force overwriting of existing output files.
      */
-    private boolean forceOverwriting = false;
+    private boolean forceOverwriting;
 
     /**
      * Input Files.
@@ -102,17 +103,17 @@ public class MergeContext implements Cloneable {
     /**
      * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
      */
-    private boolean keepGoing = false;
+    private boolean keepGoing;
 
     /**
      * If true, merge will be aborted if there is an exception merging files.
      */
-    private boolean exitOnError = false;
+    private boolean exitOnError;
 
     /**
      * Strategy to apply for the merge.
      */
-    private MergeStrategy<FileArtifact> mergeStrategy = new LinebasedStrategy();
+    private MergeStrategy<FileArtifact> mergeStrategy;
 
     /**
      * Output file.
@@ -122,32 +123,34 @@ public class MergeContext implements Cloneable {
     /**
      * If true, the output is quiet.
      */
-    private boolean quiet = false;
+    private boolean quiet;
 
     /**
      * If true, output is not written to an output file.
      */
-    private boolean pretend = true;
+    private boolean pretend;
 
     /**
      * Merge directories recursively. Can be set with the '-r' argument.
      */
-    private boolean recursive = false;
-
-    private boolean collectStatistics = false;
-    private Statistics statistics = null;
-
-    private boolean useMCESubtreeMatcher = false;
+    private boolean recursive;
 
     /**
-     * StdOut of a merge operation.
+     * Whether to collect statistics after merging.
      */
-    private StringWriter stdErr = new StringWriter();
+    private boolean collectStatistics;
+    private Statistics statistics;
 
     /**
-     * StdIn of a merge operation.
+     * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
-    private StringWriter stdIn = new StringWriter();
+    private boolean useMCESubtreeMatcher;
+
+    /**
+     * The standard out/error streams used during the merge.
+     */
+    private StringWriter stdErr;
+    private StringWriter stdIn;
 
     /**
      * How many levels to keep searching for matches in the subtree if the
@@ -158,27 +161,73 @@ public class MergeContext implements Cloneable {
      * LOOKAHEAD_FULL, the matcher will look at the entire subtree.
      * The default ist to do no look-ahead matching.
      */
-    private int lookAhead = MergeContext.LOOKAHEAD_OFF;
-    private Map<MergeScenario<?>, Throwable> crashes = new HashMap<>();
+    private int lookAhead;
+    private Map<MergeScenario<?>, Throwable> crashes;
 
     /**
-     * Returns the median of a list of long values.
-     *
-     * @param values
-     *         list of values for which to compute the median
-     * @return median
+     * Constructs a new <code>MergeContext</code> initializing all options to their default values.
      */
-    public static long median(ArrayList<Long> values) {
-        Collections.sort(values);
+    public MergeContext() {
+        this.conditionalMerge = false;
+        this.conditionalOutsideMethods = true;
+        this.diffOnly = false;
+        this.consecutive = false;
+        this.dumpMode = DumpMode.NONE;
+        this.forceOverwriting = false;
+        this.inputFiles = new ArtifactList<>();
+        this.keepGoing = false;
+        this.exitOnError = false;
+        this.mergeStrategy = new LinebasedStrategy();
+        this.outputFile = null;
+        this.quiet = false;
+        this.pretend = true;
+        this.recursive = false;
+        this.collectStatistics = false;
+        this.statistics = null;
+        this.useMCESubtreeMatcher = false;
+        this.stdErr = new StringWriter();
+        this.stdIn = new StringWriter();
+        this.lookAhead = MergeContext.LOOKAHEAD_OFF;
+        this.crashes = new HashMap<>();
+    }
 
-        if (values.size() % 2 == 1) {
-            return values.get((values.size() + 1) / 2 - 1);
-        } else {
-            double lower = values.get(values.size() / 2 - 1);
-            double upper = values.get(values.size() / 2);
+    /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>MergeContext</code> to copy
+     */
+    public MergeContext(MergeContext toCopy) {
+        this.conditionalMerge = toCopy.conditionalMerge;
+        this.conditionalOutsideMethods = toCopy.conditionalOutsideMethods;
+        this.diffOnly = toCopy.diffOnly;
+        this.consecutive = toCopy.consecutive;
+        this.dumpMode = toCopy.dumpMode;
+        this.forceOverwriting = toCopy.forceOverwriting;
 
-            return Math.round((lower + upper) / 2.0);
-        }
+        this.inputFiles = new ArtifactList<>();
+        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::clone).collect(Collectors.toList()));
+
+        this.keepGoing = toCopy.keepGoing;
+        this.exitOnError = toCopy.exitOnError;
+        this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
+        this.outputFile = (toCopy.outputFile != null) ? toCopy.outputFile.clone() : null;
+        this.quiet = toCopy.quiet;
+        this.pretend = toCopy.pretend;
+        this.recursive = toCopy.recursive;
+        this.collectStatistics = toCopy.collectStatistics;
+        this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
+        this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
+
+        this.stdErr = new StringWriter();
+        this.stdErr.append(toCopy.stdErr.toString());
+
+        this.stdIn = new StringWriter();
+        this.stdIn.append(toCopy.stdIn.toString());
+
+        this.lookAhead = toCopy.lookAhead;
+
+        this.crashes = new HashMap<>(toCopy.crashes);
     }
 
     /**
@@ -284,9 +333,7 @@ public class MergeContext implements Cloneable {
      *         String to append
      */
     public void append(String s) {
-        if (stdIn != null) {
-            stdIn.append(s);
-        }
+        stdIn.append(s);
     }
 
     /**
@@ -296,22 +343,7 @@ public class MergeContext implements Cloneable {
      *         String to append
      */
     public void appendError(String s) {
-        if (stdErr != null) {
-            stdErr.append(s);
-        }
-    }
-
-    /**
-     * Appends a line to the saved stderr buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendErrorLine(String line) {
-        if (stdErr != null) {
-            stdErr.append(line);
-            stdErr.append(System.getProperty("line.separator"));
-        }
+        stdErr.append(s);
     }
 
     /**
@@ -321,22 +353,35 @@ public class MergeContext implements Cloneable {
      *         to be appended
      */
     public void appendLine(String line) {
-        if (stdIn != null) {
-            stdIn.append(line);
-            stdIn.append(System.lineSeparator());
-        }
+        stdIn.append(line);
+        stdIn.append(System.lineSeparator());
     }
 
     /**
-     * @return the inputFiles
+     * Appends a line to the saved stderr buffer.
+     *
+     * @param line
+     *         to be appended
+     */
+    public void appendErrorLine(String line) {
+        stdErr.append(line);
+        stdErr.append(System.lineSeparator());
+    }
+
+    /**
+     * Returns the input files for the merge.
+     *
+     * @return the input files
      */
     public ArtifactList<FileArtifact> getInputFiles() {
         return inputFiles;
     }
 
     /**
+     * Sets the input files to the new value.
+     *
      * @param inputFiles
-     *         the inputFiles to set
+     *         the new input files
      */
     public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
@@ -361,11 +406,13 @@ public class MergeContext implements Cloneable {
         this.mergeStrategy = mergeStrategy;
 
         if (mergeStrategy instanceof NWayStrategy) {
-            conditionalMerge = true;
+            setConditionalMerge(true);
         }
     }
 
     /**
+     * Returns the output file for the merge.
+     *
      * @return the outputFile
      */
     public FileArtifact getOutputFile() {
@@ -373,8 +420,10 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Sets the output file to the new value.
+     *
      * @param outputFile
-     *         the outputFile to set
+     *         the new output file
      */
     public void setOutputFile(FileArtifact outputFile) {
         this.outputFile = outputFile;
@@ -388,6 +437,16 @@ public class MergeContext implements Cloneable {
      */
     public Statistics getStatistics() {
         return statistics;
+    }
+
+    /**
+     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
+     * {@link #getStatistics()}.
+     *
+     * @return whether statistical data should be collected
+     */
+    public boolean hasStatistics() {
+        return collectStatistics;
     }
 
     /**
@@ -414,7 +473,7 @@ public class MergeContext implements Cloneable {
      * @return true if stdErr is not empty
      */
     public boolean hasErrors() {
-        return stdErr != null && stdErr.getBuffer().length() != 0;
+        return stdErr.getBuffer().length() != 0;
     }
 
     /**
@@ -423,40 +482,45 @@ public class MergeContext implements Cloneable {
      * @return true if stdIn is not empty
      */
     public boolean hasOutput() {
-        return stdIn != null && stdIn.getBuffer().length() != 0;
+        return stdIn.getBuffer().length() != 0;
     }
 
     /**
-     * Returns whether statistical data should be collected using the <code>Statistics</code> object returned by
-     * {@link #getStatistics()}.
+     * Returns whether to only perform the diff stage of the merge.
      *
-     * @return whether statistical data should be collected
-     */
-    public boolean hasStatistics() {
-        return collectStatistics;
-    }
-
-    /**
-     * @return the diffOnly
+     * @return true iff only the diff stage shall be performed
      */
     public boolean isDiffOnly() {
         return diffOnly;
     }
 
     /**
+     * Sets whether to only perform the diff stage of the merge.
+     *
      * @param diffOnly
-     *         whether to run only diff
+     *         whether to diff only
      */
     public void setDiffOnly(boolean diffOnly) {
         this.diffOnly = diffOnly;
     }
 
-    public void setDumpMode(DumpMode dumpMode) {
-        this.dumpMode = dumpMode;
-    }
-
+    /**
+     * Returns the <code>DumpMode</code> if it is set.
+     *
+     * @return the <code>DumpMode</code>
+     */
     public DumpMode getDumpMode() {
         return dumpMode;
+    }
+
+    /**
+     * Sets the <code>DumpMode</code> to the new value.
+     *
+     * @param dumpMode
+     *         the new <code>DumpMode</code>
+     */
+    public void setDumpMode(DumpMode dumpMode) {
+        this.dumpMode = dumpMode;
     }
 
     /**
@@ -479,15 +543,19 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return the keepGoing
+     * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
+     *
+     * @return true iff the merge should keep going
      */
     public boolean isKeepGoing() {
         return keepGoing;
     }
 
     /**
+     * Sets whether to keep going to the new value.
+     *
      * @param keepGoing
-     *         the keepGoing to set
+     *         whether to keep going
      */
     public void setKeepGoing(boolean keepGoing) {
         this.keepGoing = keepGoing;
@@ -592,15 +660,19 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * @return whether consecutive diffing
+     * Whether to treat two input versions as consecutive versions in the revision history.
+     *
+     * @return true iff two input versions should be treated as consecutive
      */
     public boolean isConsecutive() {
         return consecutive;
     }
 
     /**
+     * Sets whether to do consecutive merging.
+     *
      * @param consecutive
-     *         consecutive diffing
+     *         whether to do consecutive merging
      */
     public void setConsecutive(boolean consecutive) {
         this.consecutive = consecutive;
@@ -614,12 +686,23 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Whether merge inserts choice nodes instead of direct merging of artifact.
+     * Whether merge the given artifact inserts choice nodes instead of direct merging.
+     *
+     * @param artifact
+     *         the artifact to check
+     * @return true iff conditional merge is enabled for the given artifact
      */
     public boolean isConditionalMerge(Artifact<?> artifact) {
-        return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && ((ASTNodeArtifact) artifact).isWithinMethod());
+        return conditionalMerge && (conditionalOutsideMethods || artifact instanceof ASTNodeArtifact && (
+                (ASTNodeArtifact) artifact).isWithinMethod());
     }
 
+    /**
+     * Sets whether to insert choice nodes instead of direct merging where appropriate.
+     *
+     * @param conditionalMerge
+     *         the new value
+     */
     public void setConditionalMerge(boolean conditionalMerge) {
         this.conditionalMerge = conditionalMerge;
     }
@@ -640,6 +723,11 @@ public class MergeContext implements Cloneable {
         return lookAhead;
     }
 
+    /**
+     * Returns whether lookahead is enabled.
+     *
+     * @return true iff lookahead is enabled
+     */
     public boolean isLookAhead() {
         return lookAhead != MergeContext.LOOKAHEAD_OFF;
     }
@@ -716,21 +804,5 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
-    }
-
-    @Override
-    public Object clone() {
-        MergeContext clone = new MergeContext();
-        clone.forceOverwriting = forceOverwriting;
-        clone.mergeStrategy = mergeStrategy;
-        clone.inputFiles = inputFiles;
-        clone.outputFile = outputFile;
-        clone.quiet = quiet;
-        clone.recursive = recursive;
-        clone.collectStatistics = collectStatistics;
-        clone.keepGoing = keepGoing;
-        clone.diffOnly = diffOnly;
-        clone.lookAhead = lookAhead;
-        return clone;
     }
 }

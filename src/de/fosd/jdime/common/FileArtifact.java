@@ -635,6 +635,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 if (!context.isQuiet() && context.hasOutput()) {
                     System.out.print(context.getStdIn());
                 }
+            } catch (AbortException e) {
+                throw e; // AbortExceptions must always cause the merge to be aborted
             } catch (RuntimeException e) {
                 context.addCrash(scenario, e);
 
@@ -649,10 +651,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 } else {
 
                     if (!context.isKeepGoing() && !(strategy instanceof LinebasedStrategy)) {
+                        LOG.severe(() -> "Falling back to line based strategy.");
                         context.setMergeStrategy(MergeStrategy.parse(MergeStrategy.LINEBASED));
 
                         context.resetStreams();
                         merge(operation, context);
+                    } else {
+                        LOG.severe(() -> "Skipping " + scenario);
                     }
                 }
             }

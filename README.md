@@ -29,7 +29,6 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
-* gradle (http://www.gradle.org/) __>=2.2__
 * git (http://git-scm.com/)
 
 __Debian/Ubuntu:__  
@@ -37,11 +36,9 @@ __Debian/Ubuntu:__
 
 __Redhat/Fedora:__  
 `yum install git`  
-glpk-java has to be installed manually
 
 __Suse/OpenSuse:__  
-`zypper install git`  
-glpk-java has to be installed manually  
+`zypper install git`
 
 ## Installation:
 Clone the repository using `git clone $URL`.
@@ -55,6 +52,6 @@ After running `./gradlew installDist`, the directory `build/install/JDime/bin` w
 ## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows: 
 
-`JDime -mode [unstructured|structured|autotuning] -output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
+`JDime --mode [unstructured|structured|autotuning] --output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
 
-Run `JDime -help` to show more extensive usage information.
+Run `JDime --help` to show more extensive usage information.
