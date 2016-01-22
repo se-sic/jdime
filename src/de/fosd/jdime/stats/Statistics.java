@@ -78,6 +78,7 @@ public class Statistics {
         serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
         serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
 
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
         serializer.omitField(Matching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
@@ -123,6 +124,7 @@ public class Statistics {
 
         serializer.registerConverter(new Converter() {
 
+            private static final String CLASS_ATTR = "class";
             private static final String TYPE_ATTR = "type";
             private static final String ID_ATTR = "id";
 
@@ -130,7 +132,8 @@ public class Statistics {
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 Artifact<?> artifact = (Artifact<?>) source;
 
-                writer.addAttribute(TYPE_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(CLASS_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(TYPE_ATTR, artifact.getType().name());
                 writer.addAttribute(ID_ATTR, artifact.getId());
             }
 
