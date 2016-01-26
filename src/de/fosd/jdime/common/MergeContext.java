@@ -268,7 +268,7 @@ public class MergeContext implements Cloneable {
 
         for (KeyEnums.Type type : KeyEnums.Type.values()) {
             Optional<Integer> lah = config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name());
-            lah.ifPresent(val -> lookAheads.put(type, val));
+            lah.ifPresent(val -> setLookAhead(type, val));
         }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
@@ -773,6 +773,18 @@ public class MergeContext implements Cloneable {
      */
     public void setLookAhead(int lookAhead) {
         this.lookAhead = lookAhead;
+    }
+
+    /**
+     * Sets the specific lookahead for the given type.
+     *
+     * @param type
+     *         the type whose lookahead is to be set
+     * @param lookAhead
+     *         the lookahead for the type
+     */
+    public void setLookAhead(KeyEnums.Type type, int lookAhead) {
+        lookAheads.put(type, lookAhead);
     }
 
     /**
