@@ -590,4 +590,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         choice.setChoice(condition, artifact);
         return choice;
     }
+
+    /**
+     * Inspects an artifact. This can be used to retrieve information about a single artifact.
+     */
+    public String inspect() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<prettyPrint startLine=" + astnode.location() + ">");
+        sb.append(prettyPrint());
+        sb.append("</prettyPrint>");
+        sb.append("<dump startElement=" + getNumber() + ">");
+        sb.append(dump(PLAINTEXT_TREE));
+        sb.append("</dump>");
+        return sb.toString();
+    }
 }

@@ -59,6 +59,7 @@ import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
@@ -173,7 +174,9 @@ public final class Main {
 
         }
 
-        if (context.getDumpMode() != DumpMode.NONE) {
+        if (context.isInspect()) {
+            inspectElement(context.getInputFiles().get(0), context.getInspectArtifact());
+        } else if (context.getDumpMode() != DumpMode.NONE) {
 
             for (FileArtifact artifact : context.getInputFiles()) {
                 dump(artifact, context.getDumpMode());
@@ -371,6 +374,8 @@ public final class Main {
             }
         };
 
+        context.setInspectArtifact(config.getInteger(CLI_INSPECT).orElse(0));
+
         context.setDumpMode(config.get(CLI_DUMP, dmpModeParser).orElse(DumpMode.NONE));
 
         Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
@@ -482,6 +487,16 @@ public final class Main {
 
             System.out.println(astArtifact.dump(mode));
         }
+    }
+
+    /**
+     * Inspects an artifact.
+     *
+     * @param artifact FileArtifact of the source file
+     * @param number number of the AST element that should be inspected
+     */
+    private static void inspectElement(FileArtifact artifact, int number) {
+        System.out.println(new ASTNodeArtifact(artifact).find("null:" + number).inspect());
     }
 
     /**

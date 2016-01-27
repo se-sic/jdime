@@ -55,6 +55,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_HELP = "h";
     public static final String CLI_KEEPGOING = "k";
     public static final String CLI_LOOKAHEAD = "lah";
+    public static final String CLI_INSPECT = "i";
     public static final String CLI_MODE = "m";
     public static final String CLI_DUMP = "dmp";
     public static final String CLI_OUTPUT = "o";
@@ -164,6 +165,15 @@ public class CommandLineConfigSource extends ConfigSource {
                 .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
                 .hasArg()
                 .argName("level")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_INSPECT)
+                .longOpt("inspect")
+                .desc("Inspect an AST element. Supply number of element.")
+                .hasArg()
+                .argName("element")
                 .build();
 
         options.addOption(o);
