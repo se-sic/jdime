@@ -496,7 +496,7 @@ public final class Main {
      * @param number number of the AST element that should be inspected
      */
     private static void inspectElement(FileArtifact artifact, int number) {
-        System.out.println(new ASTNodeArtifact(artifact).find("null:" + number).inspect());
+        System.out.println(((ASTNodeArtifact) new ASTNodeArtifact(artifact).find("null:" + number)).inspect());
     }
 
     /**

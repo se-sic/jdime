@@ -804,11 +804,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param id id of the artifact that should be found
      * @return artifact iff found, null otherwise
      */
-    public T find(String id) {
-        T result = null;
+    public Artifact<T> find(String id) {
+        Artifact<T> result = null;
 
         if (getId().equals(id)) {
-            result = (T) this;
+            result = this;
         }
 
         for (T child : children) {
