@@ -107,7 +107,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public Optional<Supplier<String>> getUniqueLabel() {
-        return Optional.of(() -> label);
+        return Optional.empty();
     }
 
     @Override
