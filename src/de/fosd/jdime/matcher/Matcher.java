@@ -374,8 +374,12 @@ public class Matcher<T extends Artifact<T>> {
                 T left = matching.getLeft();
                 T right = matching.getRight();
 
-                if (false) {
-                // if (context.getLookAhead() == LOOKAHEAD_OFF && !left.matches(right)) {
+                KeyEnums.Type rType = right.getType();
+                KeyEnums.Type lType = left.getType();
+
+                if (context.getLookahead(lType) == LOOKAHEAD_OFF && context.getLookahead(rType) == LOOKAHEAD_OFF &&
+                        !left.matches(right)) {
+
                     String format = "Tried to store a non-lookahead matching between %s and %s that do not match.";
                     String msg = String.format(format, left.getId(), right.getId());
                     throw new RuntimeException(msg);
