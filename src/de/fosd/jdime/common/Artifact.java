@@ -797,4 +797,28 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public HashMap<String, T> getVariants() {
         return variants;
     }
+
+    /**
+     * Searches for an artifact using its id. If the artifact can't be found, null is returned.
+     *
+     * @param id id of the artifact that should be found
+     * @return artifact iff found, null otherwise
+     */
+    public Artifact<T> find(String id) {
+        Artifact<T> result = null;
+
+        if (getId().equals(id)) {
+            result = this;
+        }
+
+        for (T child : children) {
+            if (result != null) {
+                break;
+            }
+
+            result = child.find(id);
+        }
+
+        return result;
+    }
 }

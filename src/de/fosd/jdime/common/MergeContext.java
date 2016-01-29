@@ -92,6 +92,11 @@ public class MergeContext implements Cloneable {
     private DumpMode dumpMode;
 
     /**
+     * The number of an artifact that should be inspected. If this is set, no merge will be executed.
+     */
+    private int inspectArtifact;
+
+    /**
      * Force overwriting of existing output files.
      */
     private boolean forceOverwriting;
@@ -842,5 +847,31 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
+    }
+
+    /**
+     * Returns the number of the artifact that should be inspected.
+     *
+     * @return number of artifact that should be inspected
+     */
+    public int getInspectArtifact() {
+        return inspectArtifact;
+    }
+
+    /**
+     * Sets the artifact that should be inspected.
+     * If this is set, no merge will be executed.
+     *
+     * @param inspectArtifact number of the artifact that should be inspected.
+     */
+    public void setInspectArtifact(int inspectArtifact) {
+        this.inspectArtifact = inspectArtifact;
+    }
+
+    /**
+     * Whether to inspect an artifact instead of merging.
+     */
+    public boolean isInspect() {
+        return inspectArtifact > 0;
     }
 }

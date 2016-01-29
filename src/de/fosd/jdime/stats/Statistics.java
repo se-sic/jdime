@@ -124,7 +124,7 @@ public class Statistics {
 
         serializer.registerConverter(new Converter() {
 
-            private static final String CLASS_ATTR = "class";
+            private static final String SUBCLASS_ATTR = "subclass";
             private static final String TYPE_ATTR = "type";
             private static final String ID_ATTR = "id";
 
@@ -132,7 +132,7 @@ public class Statistics {
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 Artifact<?> artifact = (Artifact<?>) source;
 
-                writer.addAttribute(CLASS_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(SUBCLASS_ATTR, artifact.getClass().getSimpleName());
                 writer.addAttribute(TYPE_ATTR, artifact.getType().name());
                 writer.addAttribute(ID_ATTR, artifact.getId());
             }
