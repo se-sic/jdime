@@ -64,5 +64,5 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements MatcherIn
      * Compares <code>left</code> and <code>right</code> while considering the order of the elements important.
      */
     @Override
-    public abstract Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH);
+    public abstract Matchings<T> match(MergeContext context, T left, T right);
 }

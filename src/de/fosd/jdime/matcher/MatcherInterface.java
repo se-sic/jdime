@@ -43,11 +43,6 @@ public interface MatcherInterface<T extends Artifact<T>> {
 
     /**
      * Returns a <code>Set</code> of <code>Matching</code>s for the provided <code>Artifact</code>s.
-     * <p>
-     * The lookahead determines how many levels to descend searching for matches in the subtree if the currently
-     * compared nodes do not match. If there are no matches within the specified number of levels, do not look for
-     * matches deeper in the subtree. If this is set to LOOKAHEAD_OFF, the matcher will stop looking for subtree matches
-     * if two nodes do not match. If this is set to LOOKAHEAD_FULL, the matcher will look at the entire subtree.
      *
      * @param context
      *         the <code>MergeContext</code> of the merge operation
@@ -55,11 +50,7 @@ public interface MatcherInterface<T extends Artifact<T>> {
      *         the left <code>Artifact</code> to compare
      * @param right
      *         the right <code>Artifact</code> to compare
-     * @param leftLAH
-     *         the lookahead for the left tree
-     * @param rightLAH
-     *         the lookahead for the right tree
      * @return a <code>Set</code> of <code>Matching</code>s
      */
-    Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH);
+    Matchings<T> match(MergeContext context, T left, T right);
 }

@@ -28,10 +28,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
+import static de.fosd.jdime.stats.KeyEnums.Type.TRY;
 
 /**
  * Contains methods for constructing <code>TestArtifact</code> trees
@@ -149,6 +154,59 @@ public final class TestTrees {
         return Tuple.of(classLeft, classRight);
     }
 
+    /**
+     * Returns two simple test trees. They contain Statements enclosed in a TRY node an a renamed method.
+     *
+     * @return the trees
+     */
+    public static Tuple<TestArtifact, TestArtifact> tryTree() {
+        TestArtifact classLeft = new TestArtifact("Class1", KeyEnums.Type.CLASS);
+        TestArtifact classRight = new TestArtifact("Class1", KeyEnums.Type.CLASS);
+
+        TestArtifact m1Left = new TestArtifact("Method1", METHOD);
+        TestArtifact m2Left = new TestArtifact("Method2", METHOD);
+
+        TestArtifact m1Right = new TestArtifact("Method1", METHOD);
+        TestArtifact m2Right = new TestArtifact("Method2#", METHOD);
+
+        TestArtifact sTryLeft = new TestArtifact("Try", TRY);
+        TestArtifact s1Left = new TestArtifact("Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Left = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+
+        TestArtifact s3Left = new TestArtifact("Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Left = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+
+        TestArtifact s1Right = new TestArtifact("Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Right = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+
+        TestArtifact s3Right = new TestArtifact("Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Right = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+
+        classLeft.addChild(m1Left);
+        classLeft.addChild(m2Left);
+
+        m1Left.addChild(sTryLeft);
+        sTryLeft.addChild(s1Left);
+        sTryLeft.addChild(s2Left);
+
+        m2Left.addChild(s3Left);
+        m2Left.addChild(s4Left);
+
+        classRight.addChild(m1Right);
+        classRight.addChild(m2Right);
+
+        m1Right.addChild(s1Right);
+        m1Right.addChild(s2Right);
+
+        m2Right.addChild(s3Right);
+        m2Right.addChild(s4Right);
+
+        classLeft.setRevision(MergeScenario.LEFT, true);
+        classRight.setRevision(MergeScenario.RIGHT, true);
+
+        return Tuple.of(classLeft, classRight);
+    }
+
     private static class MatchContext<T extends Artifact<T>> {
 
         private MergeContext mergeContext;
@@ -217,17 +275,20 @@ public final class TestTrees {
     }
 
     public static void main(String[] args) {
-        Tuple<TestArtifact, TestArtifact> tests = simpleTree();
+        Tuple<TestArtifact, TestArtifact> tests = tryTree();
 
         MergeContext mergeContext = new MergeContext();
-        MatchContext<TestArtifact> conn = new MatchContext<>(mergeContext);
+        mergeContext.setLookAhead(TRY, MergeContext.LOOKAHEAD_FULL);
+        mergeContext.setLookAhead(METHOD, MergeContext.LOOKAHEAD_FULL);
+        mergeContext.setUseMCESubtreeMatcher(true);
 
-        getToBeMatched(conn, tests.getX(), tests.getY());
+        Matcher<TestArtifact> matcher = new Matcher<>();
 
-        conn.getToBeMatched().forEach(t -> System.out.println(String.format("(%s, %s)", t.getX(), t.getY())));
-    }
+        Matchings<TestArtifact> matches = matcher.match(mergeContext, tests.getX(), tests.getY(), Color.BLUE);
 
-    public static <T extends Artifact<T>> void getToBeMatched(MatchContext<T> con, T left, T right) {
+        System.out.println(tests.getX().dump(DumpMode.PLAINTEXT_TREE, a -> ""));
+        System.out.println(tests.getY().dump(DumpMode.PLAINTEXT_TREE, a -> ""));
 
+        matches.stream().forEachOrdered(System.out::println);
     }
 }

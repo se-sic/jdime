@@ -27,13 +27,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.LookAheadMatching;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
@@ -42,7 +45,12 @@ import de.fosd.jdime.matcher.ordered.simpleTree.SimpleTreeMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
+
+import static de.fosd.jdime.common.MergeContext.LOOKAHEAD_OFF;
+import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
+import static de.fosd.jdime.stats.KeyEnums.Type.TRY;
 
 /**
  * A <code>Matcher</code> is used to compare two <code>Artifacts</code> and to
@@ -86,8 +94,8 @@ public class Matcher<T extends Artifact<T>> {
     public Matcher() {
 
         // no method reference because this syntax makes setting a breakpoint for debugging easier
-        MatcherInterface<T> rootMatcher = (context, left, right, leftLAH, rightLAH) -> {
-            return match(context, left, right, leftLAH, rightLAH);
+        MatcherInterface<T> rootMatcher = (context, left, right) -> {
+            return match(context, left, right);
         };
 
         unorderedMatcher = new HungarianMatcher<>(rootMatcher);
@@ -110,18 +118,7 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        int leftLAH = context.getLookahead(left.getType());
-        int rightLAH = context.getLookahead(right.getType());
-
-        if (leftLAH != MergeContext.LOOKAHEAD_FULL && leftLAH != MergeContext.LOOKAHEAD_OFF) {
-            leftLAH += 1;
-        }
-
-        if (rightLAH != MergeContext.LOOKAHEAD_FULL && rightLAH != MergeContext.LOOKAHEAD_OFF) {
-            rightLAH += 1;
-        }
-
-        Matchings<T> matchings = match(context, left, right, leftLAH, rightLAH);
+        Matchings<T> matchings = match(context, left, right);
         Matching<T> matching = matchings.get(left, right).get();
 
         LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
@@ -146,9 +143,9 @@ public class Matcher<T extends Artifact<T>> {
     }
 
     /**
-     * @see MatcherInterface#match(MergeContext, Artifact, Artifact, int, int)
+     * @see MatcherInterface#match(MergeContext, Artifact, Artifact)
      */
-    private Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
+    private Matchings<T> match(MergeContext context, T left, T right) {
 
         if (left.isConflict()) {
             Matchings<T> m = Matchings.of(left, right, 0);
@@ -174,7 +171,7 @@ public class Matcher<T extends Artifact<T>> {
                     return String.format("%s.match(%s, %s)", name, variant.getId(), right.getId());
                 });
 
-                Matchings<T> cur = match(context, variant, right, leftLAH, rightLAH);
+                Matchings<T> cur = match(context, variant, right);
                 Matching<T> highest = cur.get(variant, right).get();
                 variantMatches.put(highest.getScore(), cur);
             }
@@ -190,7 +187,21 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         if (!left.matches(right)) {
-            if (leftLAH == 0 && rightLAH == 0) {
+            Optional<UnorderedTuple<T, T>> resumeTuple = findResumeTuple(context, left, right);
+
+            if (resumeTuple.isPresent()) {
+                UnorderedTuple<T, T> toMatch = resumeTuple.get();
+
+                Matchings<T> subMatchings = getMatchings(context, toMatch.getX(), toMatch.getY());
+                Matching<T> subMatching = subMatchings.get(toMatch.getX(), toMatch.getY()).orElseThrow(() -> new RuntimeException("Hilfe"));
+
+                Matching<T> lookAheadMatching = new LookAheadMatching<>(subMatching, left, right);
+
+                subMatchings.remove(subMatching);
+                subMatchings.add(lookAheadMatching);
+
+                return subMatchings;
+            } else {
                 /*
                  * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
                  * subtrees and return early to save time.
@@ -205,21 +216,13 @@ public class Matcher<T extends Artifact<T>> {
                 m.get(left, right).get().setAlgorithm(ID);
 
                 return m;
-            } else {
-
-                if (leftLAH > 0) {
-                    leftLAH -= 1;
-                }
-
-                if (rightLAH > 0) {
-                    rightLAH -= 1;
-                }
             }
-        } else {
-            leftLAH = context.getLookahead(left.getType());
-            rightLAH = context.getLookahead(right.getType());
         }
 
+        return getMatchings(context, left, right);
+    }
+
+    private Matchings<T> getMatchings(MergeContext context, T left, T right) {
         boolean fullyOrdered = context.isUseMCESubtreeMatcher();
         boolean isOrdered = false;
         boolean uniqueLabels = true;
@@ -233,7 +236,7 @@ public class Matcher<T extends Artifact<T>> {
 
             node.getChildren().forEach(wait::offer);
         }
-        
+
         for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
             T leftChild = left.getChild(i);
 
@@ -264,24 +267,75 @@ public class Matcher<T extends Artifact<T>> {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
-            return mceSubtreeMatcher.match(context, left, right, leftLAH, rightLAH);
+            return mceSubtreeMatcher.match(context, left, right);
         }
-        
+
         if (isOrdered) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
-            return orderedMatcher.match(context, left, right, leftLAH, rightLAH);
+            return orderedMatcher.match(context, left, right);
         } else {
             unorderedCalls++;
 
             if (uniqueLabels) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
-                return unorderedLabelMatcher.match(context, left, right, leftLAH, rightLAH);
+                return unorderedLabelMatcher.match(context, left, right);
             } else {
                 logMatcherUse(unorderedMatcher.getClass(), left, right);
-                return unorderedMatcher.match(context, left, right, leftLAH, rightLAH);
+                return unorderedMatcher.match(context, left, right);
             }
+        }
+    }
+
+    private Optional<UnorderedTuple<T, T>> findResumeTuple(MergeContext context, T left, T right) {
+
+        if (!context.isLookAhead()) {
+            return Optional.empty();
+        }
+
+        KeyEnums.Type lType = left.getType();
+        KeyEnums.Type rType = right.getType();
+        int leftLAH = context.getLookahead(lType);
+        int rightLAH = context.getLookahead(rType);
+
+        if (leftLAH == LOOKAHEAD_OFF && rightLAH == LOOKAHEAD_OFF) {
+            return Optional.empty();
+        }
+
+        if (lType == METHOD && rType == METHOD) {
+            assert leftLAH != LOOKAHEAD_OFF && rightLAH != LOOKAHEAD_OFF;
+            return Optional.of(UnorderedTuple.of(left, right));
+        } else if (lType == TRY) {
+            Optional<T> resume = lookAhead(left, right);
+
+            if (resume.isPresent()) {
+                return Optional.of(UnorderedTuple.of(resume.get(), right));
+            } else {
+                return Optional.empty();
+            }
+        } else if (rType == TRY) {
+            Optional<T> resume = lookAhead(right, left);
+
+            if (resume.isPresent()) {
+                return Optional.of(UnorderedTuple.of(left, resume.get()));
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<T> lookAhead(T tree, T nodeToFind) {
+
+        if (tree.matches(nodeToFind)) {
+            return Optional.of(tree);
+        } else {
+            return tree.getChildren().stream().map(c -> lookAhead(c, nodeToFind))
+                                              .filter(Optional::isPresent)
+                                              .findFirst()
+                                              .orElse(Optional.empty());
         }
     }
 
@@ -320,7 +374,8 @@ public class Matcher<T extends Artifact<T>> {
                 T left = matching.getLeft();
                 T right = matching.getRight();
 
-                if (context.getLookAhead() == MergeContext.LOOKAHEAD_OFF && !left.matches(right)) {
+                if (false) {
+                // if (context.getLookAhead() == LOOKAHEAD_OFF && !left.matches(right)) {
                     String format = "Tried to store a non-lookahead matching between %s and %s that do not match.";
                     String msg = String.format(format, left.getId(), right.getId());
                     throw new RuntimeException(msg);

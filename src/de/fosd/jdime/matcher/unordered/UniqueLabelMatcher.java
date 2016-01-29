@@ -68,7 +68,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
      * TODO: this needs explanation, I'll fix it soon.
      */
     @Override
-    public final Matchings<T> match(final MergeContext context, final T left, final T right, int leftLAH, int rightLAH) {
+    public final Matchings<T> match(final MergeContext context, final T left, final T right) {
         int rootMatching = left.matches(right) ? 1 : 0;
 
         if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
@@ -107,7 +107,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
                     done = true;
                 }
             } else if (c == 0) {
-                Matchings<T> childMatching = matcher.match(context, leftChild, rightChild, leftLAH, rightLAH);
+                Matchings<T> childMatching = matcher.match(context, leftChild, rightChild);
                 Matching<T> matching = childMatching.get(leftChild, rightChild).get();
 
                 childrenMatchings.add(childMatching);

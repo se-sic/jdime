@@ -36,7 +36,7 @@ import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 
 /**
  * A <code>OrderedMatcher</code> that uses the <code>BalancedSequence</code> class to match <code>Artifact</code>s.
- * Its {@link #match(MergeContext, Artifact, Artifact, int, int)} method assumes that the given <code>Artifact</code>s
+ * Its {@link MatcherInterface#match(MergeContext, Artifact, Artifact)} method assumes that the given <code>Artifact</code>s
  * may be interpreted as ordered trees whose nodes are labeled via their {@link Artifact#matches(Artifact)} method.
  *
  * @param <T>
@@ -60,21 +60,9 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
     }
 
     @Override
-    public Matchings<T> match(MergeContext context, T left, T right, int leftLAH, int rightLAH) {
-        BalancedSequence<T> lSeq;
-        BalancedSequence<T> rSeq;
-
-        if (leftLAH == MergeContext.LOOKAHEAD_FULL) {
-            lSeq = new BalancedSequence<>(left);
-        } else {
-            lSeq = new BalancedSequence<>(left, leftLAH);
-        }
-
-        if (rightLAH == MergeContext.LOOKAHEAD_FULL) {
-            rSeq = new BalancedSequence<>(right);
-        } else {
-            rSeq = new BalancedSequence<>(right, rightLAH);
-        }
+    public Matchings<T> match(MergeContext context, T left, T right) {
+        BalancedSequence<T> lSeq = new BalancedSequence<>(left);
+        BalancedSequence<T> rSeq = new BalancedSequence<>(right);
 
         lSeq.setDecompositionCache(decompositionCache);
         rSeq.setDecompositionCache(decompositionCache);
@@ -87,7 +75,7 @@ public class MCESubtreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
 
         for (T lChild : left.getChildren()) {
             for (T rChild : right.getChildren()) {
-                matchings.addAll(matcher.match(context, lChild, rChild, leftLAH, rightLAH));
+                matchings.addAll(matcher.match(context, lChild, rChild));
             }
         }
 
