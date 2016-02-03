@@ -189,7 +189,29 @@ public class PlaintextTreeDump implements StringDumper {
             return;
         }
 
-        builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
+        if (artifact.hasMatches()) {
+            Iterator<Map.Entry<Revision, Matching<T>>> it = artifact.getMatches().entrySet().iterator();
+            Map.Entry<Revision, Matching<T>> firstEntry = it.next();
+
+            builder.append(firstEntry.getValue().getHighlightColor().toShell()).append(prefix);
+
+            appendArtifact(artifact, getLabel, builder);
+
+            builder.append(" <=> ");
+            appendArtifact(firstEntry.getValue().getMatchingArtifact(artifact), getLabel, builder);
+
+            it.forEachRemaining(entry -> {
+                builder.append(entry.getValue().getHighlightColor().toShell()).append(prefix);
+                appendArtifact(entry.getValue().getMatchingArtifact(artifact), getLabel, builder);
+            });
+
+            builder.append(Color.DEFAULT.toShell());
+        } else {
+            builder.append(prefix);
+            appendArtifact(artifact, getLabel, builder);
+        }
+
+        builder.append(LS);
 
         for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
             Artifact<T> next = it.next();
