@@ -160,17 +160,36 @@ public class PlaintextTreeDump implements StringDumper {
     private <T extends Artifact<T>> void dumpTree(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
                                                   String prefix, String childPrefix, StringBuilder builder) {
 
-        builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
+        if (artifact.isConflict()) {
+            Artifact<T> left = artifact.getLeft();
+            Artifact<T> right = artifact.getRight();
 
-        for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
-            Artifact<T> next = it.next();
+            String emptyPrefix = replicate(" ", childPrefix.length());
+            String emptyChildPrefix = emptyPrefix + "    ";
 
-            builder.append(childPrefix);
+            builder.append(Color.RED.toShell());
+            builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
 
-            if (it.hasNext()) {
-                dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
-            } else {
-                dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
+            builder.append("<<<<<<<").append(LS);
+            dumpTree(left, getLabel, emptyPrefix, emptyChildPrefix, builder);
+            builder.append("=======").append(LS);
+            dumpTree(right, getLabel, emptyPrefix, emptyChildPrefix, builder);
+            builder.append(">>>>>>>").append(LS);
+
+            builder.append(Color.DEFAULT.toShell());
+        } else {
+            builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
+
+            for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
+                Artifact<T> next = it.next();
+
+                builder.append(childPrefix);
+
+                if (it.hasNext()) {
+                    dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
+                } else {
+                    dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
+                }
             }
         }
     }
@@ -194,6 +213,19 @@ public class PlaintextTreeDump implements StringDumper {
         builder.append(getLabel.apply(artifact));
     }
 
+    /**
+     * Replicates the given <code>String</code> <code>n</code> times and returns the concatenation.
+     *
+     * @param s
+     *         the <code>String</code> to replicate
+     * @param n
+     *         the number of replications
+     * @return the concatenation
+     */
+    private static String replicate(String s, int n) {
+        return new String(new char[n]).replace("\0", s).intern();
+    }
+
     @Override
     public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
         StringBuilder builder = new StringBuilder();
@@ -203,7 +235,7 @@ public class PlaintextTreeDump implements StringDumper {
         int lastLS = builder.lastIndexOf(LS);
 
         if (lastLS != -1) {
-            builder.delete(lastLS, builder.length());
+            builder.delete(lastLS, lastLS + LS.length());
         }
 
         return builder.toString();
