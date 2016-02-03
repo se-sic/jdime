@@ -187,7 +187,7 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         if (!left.matches(right)) {
-            Optional<UnorderedTuple<T, T>> resumeTuple = findResumeTuple(context, left, right);
+            Optional<UnorderedTuple<T, T>> resumeTuple = lookAhead(context, left, right);
 
             if (resumeTuple.isPresent()) {
                 UnorderedTuple<T, T> toMatch = resumeTuple.get();
@@ -288,7 +288,7 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
-    private Optional<UnorderedTuple<T, T>> findResumeTuple(MergeContext context, T left, T right) {
+    private Optional<UnorderedTuple<T, T>> lookAhead(MergeContext context, T left, T right) {
 
         if (!context.isLookAhead()) {
             return Optional.empty();
@@ -307,7 +307,7 @@ public class Matcher<T extends Artifact<T>> {
             assert leftLAH != LOOKAHEAD_OFF && rightLAH != LOOKAHEAD_OFF;
             return Optional.of(UnorderedTuple.of(left, right));
         } else if (lType == TRY) {
-            Optional<T> resume = lookAhead(left, right);
+            Optional<T> resume = findMatchingNode(left, right, leftLAH);
 
             if (resume.isPresent()) {
                 return Optional.of(UnorderedTuple.of(resume.get(), right));
@@ -315,7 +315,7 @@ public class Matcher<T extends Artifact<T>> {
                 return Optional.empty();
             }
         } else if (rType == TRY) {
-            Optional<T> resume = lookAhead(right, left);
+            Optional<T> resume = findMatchingNode(right, left, rightLAH);
 
             if (resume.isPresent()) {
                 return Optional.of(UnorderedTuple.of(left, resume.get()));
@@ -327,16 +327,37 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
-    private Optional<T> lookAhead(T tree, T nodeToFind) {
+    /**
+     * Performs a depth first search of the given <code>tree</code> and returns the first node matching
+     * <code>nodeToFind</code> as per the {@link Artifact#matches(Artifact)} method.
+     *
+     * @param tree
+     *         the tree to search in
+     * @param nodeToFind
+     *         the node to find a match for
+     * @param maxDepth
+     *         the maximum depth of nodes to consider (root is a depth 0)
+     * @return optionally a matching node for <code>nodeToFind</code>
+     */
+    private Optional<T> findMatchingNode(T tree, T nodeToFind, int maxDepth) {
+
+        if (maxDepth < 0) {
+            return Optional.empty();
+        }
 
         if (tree.matches(nodeToFind)) {
             return Optional.of(tree);
-        } else {
-            return tree.getChildren().stream().map(c -> lookAhead(c, nodeToFind))
-                                              .filter(Optional::isPresent)
-                                              .findFirst()
-                                              .orElse(Optional.empty());
         }
+
+        for (T child : tree.getChildren()) {
+            Optional<T> matchingNode = findMatchingNode(child, nodeToFind, maxDepth - 1);
+
+            if (matchingNode.isPresent()) {
+                return matchingNode;
+            }
+        }
+
+        return Optional.empty();
     }
 
     /**
