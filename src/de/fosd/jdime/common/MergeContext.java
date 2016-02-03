@@ -59,7 +59,7 @@ public class MergeContext implements Cloneable {
      * Do look at all nodes in the subtree even if the compared nodes are not
      * equal.
      */
-    public static final int LOOKAHEAD_FULL = -1;
+    public static final int LOOKAHEAD_FULL = Integer.MAX_VALUE;
 
     /**
      * Stop looking for subtree matches if the two nodes compared are not equal.
