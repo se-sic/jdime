@@ -160,36 +160,46 @@ public class PlaintextTreeDump implements StringDumper {
     private <T extends Artifact<T>> void dumpTree(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
                                                   String prefix, String childPrefix, StringBuilder builder) {
 
-        if (artifact.isConflict()) {
-            Artifact<T> left = artifact.getLeft();
-            Artifact<T> right = artifact.getRight();
-
+        if (artifact.isChoice() || artifact.isConflict()) {
             String emptyPrefix = replicate(" ", childPrefix.length());
             String emptyChildPrefix = emptyPrefix + "    ";
 
             builder.append(Color.RED.toShell());
             builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
 
-            builder.append("<<<<<<<").append(LS);
-            dumpTree(left, getLabel, emptyPrefix, emptyChildPrefix, builder);
-            builder.append("=======").append(LS);
-            dumpTree(right, getLabel, emptyPrefix, emptyChildPrefix, builder);
-            builder.append(">>>>>>>").append(LS);
+            if (artifact.isChoice()) {
+
+                for (Map.Entry<String, T> entry : artifact.getVariants().entrySet()) {
+                    builder.append("#ifdef ").append(entry.getKey()).append(LS);
+                    dumpTree(entry.getValue(), getLabel, emptyPrefix, emptyChildPrefix, builder);
+                    builder.append("#endif").append(LS);
+                }
+            } else if (artifact.isConflict()) {
+                Artifact<T> left = artifact.getLeft();
+                Artifact<T> right = artifact.getRight();
+
+                builder.append("<<<<<<<").append(LS);
+                dumpTree(left, getLabel, emptyPrefix, emptyChildPrefix, builder);
+                builder.append("=======").append(LS);
+                dumpTree(right, getLabel, emptyPrefix, emptyChildPrefix, builder);
+                builder.append(">>>>>>>").append(LS);
+            }
 
             builder.append(Color.DEFAULT.toShell());
-        } else {
-            builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
+            return;
+        }
 
-            for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
-                Artifact<T> next = it.next();
+        builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
 
-                builder.append(childPrefix);
+        for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
+            Artifact<T> next = it.next();
 
-                if (it.hasNext()) {
-                    dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
-                } else {
-                    dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
-                }
+            builder.append(childPrefix);
+
+            if (it.hasNext()) {
+                dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
+            } else {
+                dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
             }
         }
     }
