@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.strdump;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -36,6 +37,8 @@ import de.fosd.jdime.matcher.Matching;
  * Dumps the given <code>Artifact</code> tree as indented plaintext.
  */
 public class PlaintextTreeDump implements StringDumper {
+
+    private static final String LS = System.lineSeparator();
 
     /**
      * Appends the plain-text tree representation of the given <code>artifact</code> and its children to the
@@ -137,10 +140,72 @@ public class PlaintextTreeDump implements StringDumper {
         }
     }
 
+    /**
+     * Appends a plaintext representation of the tree with <code>artifact</code> at its root to the given
+     * <code>builder</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to dump
+     * @param getLabel
+     *         the <code>Function</code> to use for producing a label an <code>Artifact</code>
+     * @param prefix
+     *         the prefix to append before the given <code>artifact</code>
+     * @param childPrefix
+     *         the prefix to append before all children of the given <code>artifact</code>
+     * @param builder
+     *         the <code>StringBuilder</code> to append to
+     * @param <T>
+     *         the type of the <code>Artifact</code>
+     */
+    private <T extends Artifact<T>> void dumpTree(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
+                                                  String prefix, String childPrefix, StringBuilder builder) {
+
+        builder.append(prefix); appendArtifact(artifact, getLabel, builder); builder.append(LS);
+
+        for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
+            Artifact<T> next = it.next();
+
+            builder.append(childPrefix);
+
+            if (it.hasNext()) {
+                dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
+            } else {
+                dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
+            }
+        }
+    }
+
+    /**
+     * Appends the representation of the given <code>Artifact</code> to the <code>builder</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to append to the <code>builder</code>
+     * @param getLabel
+     *         the <code>Function</code> to use for producing a label for the <code>Artifact</code>
+     * @param builder
+     *         the <code>StringBuilder</code> to append to
+     * @param <T>
+     *         the type of the <code>Artifact</code>
+     */
+    private <T extends Artifact<T>> void appendArtifact(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
+                                                        StringBuilder builder) {
+
+        builder.append("(").append(artifact.getId()).append(") ");
+        builder.append(getLabel.apply(artifact));
+    }
+
     @Override
     public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
         StringBuilder builder = new StringBuilder();
-        dumpTree(builder, artifact, getLabel, "");
+
+        dumpTree(artifact, getLabel, "", "", builder);
+
+        int lastLS = builder.lastIndexOf(LS);
+
+        if (lastLS != -1) {
+            builder.delete(lastLS, builder.length());
+        }
+
         return builder.toString();
     }
 }
