@@ -212,6 +212,7 @@ public class MergeContext implements Cloneable {
         this.diffOnly = toCopy.diffOnly;
         this.consecutive = toCopy.consecutive;
         this.dumpMode = toCopy.dumpMode;
+        this.inspectArtifact = toCopy.inspectArtifact;
         this.forceOverwriting = toCopy.forceOverwriting;
 
         this.inputFiles = new ArtifactList<>();
