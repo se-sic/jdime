@@ -29,7 +29,6 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
-* gradle (http://www.gradle.org/) __>=2.2__
 * git (http://git-scm.com/)
 
 __Debian/Ubuntu:__  
@@ -37,11 +36,9 @@ __Debian/Ubuntu:__
 
 __Redhat/Fedora:__  
 `yum install git`  
-glpk-java has to be installed manually
 
 __Suse/OpenSuse:__  
 `zypper install git`  
-glpk-java has to be installed manually  
 
 ## Installation:
 Clone the repository using `git clone $URL`.
