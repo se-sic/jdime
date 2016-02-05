@@ -55,6 +55,8 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-cli:commons-cli:1.3.1'
     compile 'com.thoughtworks.xstream:xstream:1.4.8'
+    compile 'org.python:jython-standalone:2.7.0'
+    compile 'org.pygments:pygments:2.1'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
     testCompile 'junit:junit:4.12'
