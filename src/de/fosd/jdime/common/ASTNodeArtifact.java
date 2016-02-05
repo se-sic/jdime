@@ -49,7 +49,6 @@ import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
-import org.python.util.PythonInterpreter;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -594,29 +593,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     /**
      * Inspects an artifact. This can be used to retrieve information about a single artifact.
-     * The output is in HTML.
      */
     public String inspect() {
-        /*
-         * FIXME: Replace with something actually sane
-         *
-         * This is probably one of my uglier hacks and should definitely be
-         * replaced before merging into master. I just needed something to
-         * work with real fast and went for pygments ...
-         */
-
-        StringBuilder sb = new StringBuilder();
-
-        PythonInterpreter interpreter = new PythonInterpreter();
-        interpreter.set("code", prettyPrint());
-        interpreter.exec("from pygments import highlight\n"
-                + "from pygments.lexers import JavaLexer\n"
-                + "from pygments.formatters import HtmlFormatter\n\n"
-                + "result = highlight(code, JavaLexer(), HtmlFormatter(style=\"monokai\", full=True))");
-        sb.append(interpreter.get("result", String.class));
-
-        // TODO: implement HTML_TREE dump
-        //sb.append(dump(PLAINTEXT_TREE));
-        return sb.toString();
+        return prettyPrint();
     }
 }
