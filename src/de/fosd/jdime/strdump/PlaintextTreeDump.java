@@ -117,10 +117,12 @@ public class PlaintextTreeDump implements StringDumper {
 
             builder.append(childPrefix);
 
+            char c = next.hasChildren() ? '┬' : '─';
+
             if (it.hasNext()) {
-                dumpTree(next, getLabel, "|-- ", childPrefix + "|   ", builder);
+                dumpTree(next, getLabel, "├──" + c, childPrefix + "│  ", builder);
             } else {
-                dumpTree(next, getLabel, "`-- ", childPrefix + "    ", builder);
+                dumpTree(next, getLabel, "└──" + c, childPrefix + "   ", builder);
             }
         }
     }
