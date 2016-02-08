@@ -100,7 +100,8 @@ public class PlaintextTreeDump implements StringDumper {
             appendArtifact(firstEntry.getValue().getMatchingArtifact(artifact), getLabel, builder);
 
             it.forEachRemaining(entry -> {
-                builder.append(entry.getValue().getHighlightColor().toShell()).append(prefix);
+                builder.append(Color.DEFAULT.toShell()).append(", ");
+                builder.append(entry.getValue().getHighlightColor().toShell());
                 appendArtifact(entry.getValue().getMatchingArtifact(artifact), getLabel, builder);
             });
 
