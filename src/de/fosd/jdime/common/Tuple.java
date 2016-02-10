@@ -26,6 +26,8 @@ package de.fosd.jdime.common;
 /**
  * A generic tuple.
  *
+ * FIXME: hashCode() and equals() should be implemented.
+ *
  * @author Olaf Lessenich
  *
  * @param <X> type of first element
