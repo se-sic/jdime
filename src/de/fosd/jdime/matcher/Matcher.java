@@ -183,7 +183,7 @@ public class Matcher<T extends Artifact<T>> implements MatchingInterface<T> {
      */
     private void logMatcherUse(Class<?> c, T left, T right) {
         LOG.finest(() -> {
-            String matcherName = c.getClass().getSimpleName();
+            String matcherName = c.getSimpleName();
             return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
         });
     }
