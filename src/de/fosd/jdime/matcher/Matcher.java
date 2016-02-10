@@ -193,7 +193,11 @@ public class Matcher<T extends Artifact<T>> {
             return maxMatching;
         }
 
-        // check whether trees are identical
+        /*
+         * Before firing up potentially expensive matching algorithms, we check whether the trees are identical.
+         * To avoid redundant calls, we save the matchings reported by EqualityMatcher and perform lookups on
+         * subsequent runs.
+         */
         if (!equalityMatchings.get(left, right).isPresent()) {
             logMatcherUse(equalityMatcher.getClass(), left, right);
             equalityMatchings.addAll(equalityMatcher.match(context, left, right));
