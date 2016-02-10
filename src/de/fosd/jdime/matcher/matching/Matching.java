@@ -199,6 +199,15 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     }
 
     /**
+     * Returns true iff the nodes have fully matched, i.e., 100 percent of the trees has been matched.
+     *
+     * @return true iff trees have fully been matched
+     */
+    public boolean hasFullyMatched() {
+        return percentage == 1.0;
+    }
+
+    /**
      * Returns a <code>String</code> describing the algorithm that found the matching.
      *
      * @return the algorithm description

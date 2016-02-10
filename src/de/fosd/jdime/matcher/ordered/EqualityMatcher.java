@@ -72,10 +72,9 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
             if (childMatchings.get(leftChild, rightChild).isPresent()) {
                 Matching<T> childMatching = childMatchings.get(leftChild, rightChild).get();
-                int childScore = childMatching.getScore();
 
-                if (childScore == leftChild.getTreeSize()) {
-                    score += childScore;
+                if (childMatching.hasFullyMatched()) {
+                    score += childMatching.getScore();
                 } else {
                     identicalSubtree = false;
                 }
