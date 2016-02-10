@@ -193,8 +193,6 @@ public class Matcher<T extends Artifact<T>> {
             return maxMatching;
         }
 
-        calls++;
-
         // check whether trees are identical
         if (!equalityMatchings.get(left, right).isPresent()) {
             logMatcherUse(equalityMatcher.getClass(), left, right);
@@ -202,6 +200,7 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         if (equalityMatchings.get(left, right).isPresent() && equalityMatchings.get(left, right).get().getScore() == left.getTreeSize()) {
+            calls++;
             equalityCalls++;
             LOG.finest(() -> String.format("%s: found equal trees with score: %s", equalityMatcher.getClass().getSimpleName(), left.getTreeSize()));
             return equalityMatchings;
@@ -285,6 +284,7 @@ public class Matcher<T extends Artifact<T>> {
             }
         }
 
+        calls++;
 
         if (fullyOrdered) {
             orderedCalls++;
@@ -444,7 +444,9 @@ public class Matcher<T extends Artifact<T>> {
      * @return a log of the call counts
      */
     private String getLog() {
-        //assert (calls == unorderedCalls + orderedCalls + equalityCalls) : "Wrong sum for matcher calls";
-        return "Matcher calls (all/ordered/unordered): " + calls + "/" + orderedCalls + "/" + unorderedCalls;
+        assert (calls == unorderedCalls + orderedCalls + equalityCalls)
+                : String.format("Wrong sum for matcher calls: %d + %d + %d != %d",
+                unorderedCalls, orderedCalls, equalityCalls, calls);
+        return "Matcher calls (all/ordered/unordered/equality): " + calls + "/" + orderedCalls + "/" + unorderedCalls + "/" + equalityCalls;
     }
 }
