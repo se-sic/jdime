@@ -89,7 +89,7 @@ public class Matcher<T extends Artifact<T>> {
     private UnorderedMatcher<T> unorderedLabelMatcher;
     private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
-    private OrderedMatcher<T> equalityMatcher;
+    private EqualityMatcher<T> equalityMatcher;
 
     private Matchings<T> equalityMatchings;
 
@@ -205,7 +205,7 @@ public class Matcher<T extends Artifact<T>> {
             calls++;
             equalityCalls++;
             LOG.finest(() -> String.format("%s: found equal trees with score: %s", equalityMatcher.getClass().getSimpleName(), left.getTreeSize()));
-            return equalityMatchings;
+            return equalityMatcher.filterMatchings(equalityMatchings, left, right);
         } else {
             LOG.finest(() -> String.format("%s: found differing trees", equalityMatcher.getClass().getSimpleName()));
         }

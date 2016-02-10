@@ -93,7 +93,6 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
                 String format = "%s - Trees are NOT equal: (%s, %s)";
                 return String.format(format, id, left.getId(), right.getId());
             });
-
         }
 
         matchings.addAll(Matchings.of(left, right, score));
@@ -103,5 +102,36 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
         }
 
         return matchings;
+    }
+
+    /**
+     * Filter a precomputed set of <code>Matchings</code>.
+     *
+     * The result is a set that only contains <code>Matchings</code> for the
+     * trees of the specified <code>Artifact</code>s.
+     * If the trees have not fully matched, an empty <code>Matchings</code> is returned.
+     *
+     * @param matchings set of precomputed matchings
+     * @param left left artifact
+     * @param right right artifact
+     * @return filtered subset of matchings, empty if left and right have not fully matched
+     *
+     */
+    public Matchings<T> filterMatchings(Matchings<T> matchings, T left, T right) {
+        Matchings<T> filtered = new Matchings<>();
+
+        if (matchings.get(left, right).isPresent()) {
+            Matching<T> rootMatching = matchings.get(left, right).get();
+
+            if (rootMatching.hasFullyMatched()) {
+                filtered.add(rootMatching);
+
+                for (int i = 0; i < left.getNumChildren(); i++) {
+                    filtered.addAll(filterMatchings(matchings, left.getChild(i), right.getChild(i)));
+                }
+            }
+        }
+
+        return filtered;
     }
 }
