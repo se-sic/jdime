@@ -201,7 +201,9 @@ public class Matcher<T extends Artifact<T>> {
         if (!equalityMatchings.get(left, right).isPresent()) {
             logMatcherUse(equalityMatcher.getClass(), left, right);
             equalityMatchings.addAll(equalityMatcher.match(context, left, right));
-        } else if (equalityMatchings.get(left, right).get().hasFullyMatched()) {
+        }
+
+        if (equalityMatchings.get(left, right).get().hasFullyMatched()) {
             calls++;
             equalityCalls++;
             LOG.finest(() -> String.format("%s: found equal trees with score: %s", equalityMatcher.getClass().getSimpleName(), left.getTreeSize()));
