@@ -48,6 +48,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     private UnorderedTuple<T, T> matchedArtifacts;
     private float percentage;
     private int score;
+    private boolean fullyMatched;
 
     /**
      * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
@@ -193,8 +194,10 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
 
         if (left == null || right == null) {
             percentage = 0;
+            fullyMatched = false;
         } else {
             percentage = (2 * (float) score) / (left.getTreeSize() + right.getTreeSize());
+            fullyMatched = (2 * score) == (left.getTreeSize() + right.getTreeSize());
         }
     }
 
@@ -204,7 +207,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      * @return true iff trees have fully been matched
      */
     public boolean hasFullyMatched() {
-        return percentage == 1.0;
+        return fullyMatched;
     }
 
     /**
