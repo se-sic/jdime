@@ -25,6 +25,7 @@ package de.fosd.jdime.matcher;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
@@ -89,9 +90,9 @@ public class Matcher<T extends Artifact<T>> {
     private UnorderedMatcher<T> unorderedLabelMatcher;
     private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
-    private EqualityMatcher<T> equalityMatcher;
 
-    private Matchings<T> equalityMatchings;
+    private UnorderedTuple<T, T> lookupTuple;
+    private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
 
     /**
      * Constructs a new <code>Matcher</code>.
@@ -107,8 +108,9 @@ public class Matcher<T extends Artifact<T>> {
         unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
         orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
-        equalityMatcher = new EqualityMatcher<>(rootMatcher);
-        equalityMatchings = new Matchings<>();
+
+        lookupTuple = UnorderedTuple.of(null, null);
+        trivialMatches = new HashMap<>();
     }
 
     /**
@@ -125,6 +127,11 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
+        trivialMatches.clear();
+
+        Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
+        trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+
         Matchings<T> matchings = match(context, left, right);
         Matching<T> matching = matchings.get(left, right).get();
 
@@ -198,18 +205,14 @@ public class Matcher<T extends Artifact<T>> {
          * To avoid redundant calls, we save the matchings reported by EqualityMatcher and perform lookups on
          * subsequent runs.
          */
-        if (!equalityMatchings.get(left, right).isPresent()) {
-            logMatcherUse(equalityMatcher.getClass(), left, right);
-            equalityMatchings.addAll(equalityMatcher.match(context, left, right));
-        }
+        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(left, right);
 
-        if (equalityMatchings.get(left, right).get().hasFullyMatched()) {
+        if (trivialMatches.isPresent()) {
             calls++;
             equalityCalls++;
-            LOG.finest(() -> String.format("%s: found equal trees with score: %s", equalityMatcher.getClass().getSimpleName(), left.getTreeSize()));
-            return equalityMatcher.filterMatchings(equalityMatchings, left, right);
-        } else {
-            LOG.finest(() -> String.format("%s: found differing trees", equalityMatcher.getClass().getSimpleName()));
+            logMatcherUse(EqualityMatcher.class, left, right);
+
+            return trivialMatches.get();
         }
 
         if (!left.matches(right)) {
@@ -246,6 +249,41 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         return getMatchings(context, left, right);
+    }
+
+    /**
+     * Returns the trivial Matchings if <code>left</code> and <code>right</code> are exactly equal as determined by
+     * the <code>EqualityMatcher</code>.
+     *
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return the <code>Matchings</code>
+     */
+    private Optional<Matchings<T>> getTrivialMatchings(T left, T right) {
+        lookupTuple.setX(left);
+        lookupTuple.setY(right);
+
+        if (trivialMatches.containsKey(lookupTuple)) {
+            Matchings<T> matchings = new Matchings<>();
+
+            matchings.add(trivialMatches.get(lookupTuple));
+
+            Iterator<T> lIt = left.getChildren().iterator();
+            Iterator<T> rIt = right.getChildren().iterator();
+
+            while (lIt.hasNext() && rIt.hasNext()) {
+                matchings.addAll(getTrivialMatchings(lIt.next(), rIt.next()).get());
+            }
+
+            lookupTuple.setX(null);
+            lookupTuple.setY(null);
+
+            return Optional.of(matchings);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private Matchings<T> getMatchings(MergeContext context, T left, T right) {
