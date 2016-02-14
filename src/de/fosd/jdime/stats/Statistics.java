@@ -52,6 +52,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.matching.LookAheadMatching;
 import de.fosd.jdime.matcher.matching.Matching;
 
 /**
@@ -79,7 +80,9 @@ public class Statistics {
         serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
 
         serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
         serializer.omitField(Matching.class, "highlightColor");
+        serializer.omitField(LookAheadMatching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
 
