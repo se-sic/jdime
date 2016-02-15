@@ -82,7 +82,6 @@ public class Statistics {
         serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
         serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
         serializer.omitField(Matching.class, "highlightColor");
-        serializer.omitField(LookAheadMatching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
 
