@@ -23,7 +23,11 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
@@ -47,9 +51,10 @@ import de.fosd.jdime.matcher.matching.Matchings;
  * @author Olaf Lessenich
  */
 public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
-    
+
     private static final String ID = EqualityMatcher.class.getSimpleName();
-    
+    private static final Collector<Integer, ?, Integer> SUM_IDENTITY = Collectors.summingInt(i -> i);
+
     /**
      * Constructs a new <code>EqualityMatcher</code>.<br/>
      * This matcher does not use the parent matcher to dispatch further calls.
@@ -64,6 +69,7 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
     public Matchings<T> match(MergeContext context, T left, T right) {
         Matchings<T> matchings = new Matchings<>();
 
+        List<Matching<T>> directChildMatchings = new ArrayList<>();
         Iterator<T> lIt = left.getChildren().iterator();
         Iterator<T> rIt = right.getChildren().iterator();
 
@@ -73,13 +79,19 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
             T l = lIt.next();
             T r = rIt.next();
             Matchings<T> childMatchings = match(context, l, r);
+            Optional<Matching<T>> directChildMatching = childMatchings.get(l, r);
+
+            if (directChildMatching.isPresent()) {
+                directChildMatchings.add(directChildMatching.get());
+            } else {
+                allMatched = false;
+            }
 
             matchings.addAll(childMatchings);
-            allMatched &= childMatchings.get(l, r).isPresent();
         }
 
         if (allMatched && left.getNumChildren() == right.getNumChildren() && left.matches(right)) {
-            Integer sumScore = matchings.stream().map(Matching::getScore).collect(Collectors.summingInt(i -> i));
+            Integer sumScore = directChildMatchings.stream().map(Matching::getScore).collect(SUM_IDENTITY);
 
             LOG.finer(() -> {
                 String format = "%s - Trees are equal: (%s, %s)";
