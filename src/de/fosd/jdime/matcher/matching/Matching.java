@@ -196,8 +196,11 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
             percentage = 0;
             fullyMatched = false;
         } else {
-            percentage = (2 * (float) score) / (left.getTreeSize() + right.getTreeSize());
-            fullyMatched = (2 * score) == (left.getTreeSize() + right.getTreeSize());
+            int lSize = left.getTreeSize();
+            int rSize = right.getTreeSize();
+
+            percentage = (2 * (float) score) / (lSize + rSize);
+            fullyMatched = (2 * score) == (lSize + rSize);
         }
     }
 
