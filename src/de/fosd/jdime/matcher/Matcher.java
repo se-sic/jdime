@@ -25,15 +25,17 @@ package de.fosd.jdime.matcher;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.matching.Color;
@@ -94,6 +96,12 @@ public class Matcher<T extends Artifact<T>> {
     private UnorderedTuple<T, T> lookupTuple;
     private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
 
+    private Set<Artifact<T>> orderedChildren;
+    private Set<Artifact<T>> uniquelyLabeledChildren;
+    private Set<Artifact<T>> fullyOrdered;
+
+    private Set<Artifact<T>> cachedRoots;
+
     /**
      * Constructs a new <code>Matcher</code>.
      */
@@ -111,6 +119,10 @@ public class Matcher<T extends Artifact<T>> {
 
         lookupTuple = UnorderedTuple.of(null, null);
         trivialMatches = new HashMap<>();
+        orderedChildren = new HashSet<>();
+        uniquelyLabeledChildren = new HashSet<>();
+        fullyOrdered = new HashSet<>();
+        cachedRoots = new HashSet<>();
     }
 
     /**
@@ -127,10 +139,7 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        trivialMatches.clear();
-
-        Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
-        trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        cache(context, left, right);
 
         Matchings<T> matchings = match(context, left, right);
         Matching<T> matching = matchings.get(left, right).get();
@@ -154,6 +163,44 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         return matchings;
+    }
+
+    private void cache(MergeContext context, T left, T right) {
+        trivialMatches.clear();
+
+        if (!cachedRoots.contains(left) || !cachedRoots.contains(right)) {
+            Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
+            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        }
+
+        if (!cachedRoots.contains(left)) {
+            cacheOrderingAndLabeling(left);
+        }
+
+        if (!cachedRoots.contains(right)) {
+            cacheOrderingAndLabeling(right);
+        }
+
+        cachedRoots.add(left);
+        cachedRoots.add(right);
+    }
+
+    private void cacheOrderingAndLabeling(T artifact) {
+        ArtifactList<T> children = artifact.getChildren();
+
+        children.forEach(this::cacheOrderingAndLabeling);
+
+        if (children.stream().map(Artifact::getUniqueLabel).allMatch(Optional::isPresent)) {
+            uniquelyLabeledChildren.add(artifact);
+        }
+
+        if (children.stream().allMatch(Artifact::isOrdered)) {
+            orderedChildren.add(artifact);
+        }
+
+        if (children.stream().allMatch(fullyOrdered::contains) && artifact.isOrdered()) {
+            fullyOrdered.add(artifact);
+        }
     }
 
     /**
@@ -287,55 +334,27 @@ public class Matcher<T extends Artifact<T>> {
     }
 
     private Matchings<T> getMatchings(MergeContext context, T left, T right) {
+        boolean fullyOrderedChildren = false;
 
-        boolean fullyOrdered = context.isUseMCESubtreeMatcher();
-        boolean isOrdered = false;
-        boolean uniqueLabels = true;
-
-        Queue<T> wait = new LinkedList<>(left.getChildren());
-        wait.addAll(right.getChildren());
-
-        while (fullyOrdered && !wait.isEmpty()) {
-            T node = wait.poll();
-            fullyOrdered = node.isOrdered();
-
-            node.getChildren().forEach(wait::offer);
+        if (context.isUseMCESubtreeMatcher()) {
+            Stream<T> lCStr = left.getChildren().stream();
+            Stream<T> rCStr = right.getChildren().stream();
+            fullyOrderedChildren = lCStr.allMatch(fullyOrdered::contains) && rCStr.allMatch(fullyOrdered::contains);
         }
 
-        for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
-            T leftChild = left.getChild(i);
-
-            if (leftChild.isOrdered()) {
-                isOrdered = true;
-            }
-
-            if (!uniqueLabels || !leftChild.getUniqueLabel().isPresent()) {
-                uniqueLabels = false;
-            }
-        }
-
-        for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
-            T rightChild = right.getChild(i);
-
-            if (rightChild.isOrdered()) {
-                isOrdered = true;
-            }
-
-            if (!uniqueLabels || !rightChild.getUniqueLabel().isPresent()) {
-                uniqueLabels = false;
-            }
-        }
+        boolean onlyOrderedChildren = orderedChildren.contains(left) && orderedChildren.contains(right);
+        boolean onlyLabeledChildren = uniquelyLabeledChildren.contains(left) && uniquelyLabeledChildren.contains(right);
 
         calls++;
 
-        if (fullyOrdered) {
+        if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             return mceSubtreeMatcher.match(context, left, right);
         }
 
-        if (isOrdered) {
+        if (onlyOrderedChildren) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
@@ -343,7 +362,7 @@ public class Matcher<T extends Artifact<T>> {
         } else {
             unorderedCalls++;
 
-            if (uniqueLabels) {
+            if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
                 return unorderedLabelMatcher.match(context, left, right);
             } else {
