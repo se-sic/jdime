@@ -264,7 +264,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
-        return astnode.prettyPrint();
+        String indent = isRoot() ? "" : astnode.extractIndent();
+        return indent + astnode.prettyPrint();
     }
 
     @Override
