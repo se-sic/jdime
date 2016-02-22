@@ -133,6 +133,13 @@ distributions {
     }
 }
 
+installDist {
+
+    if (project.hasProperty('distDir')) {
+        destinationDir = file(project.property('distDir'))
+    }
+}
+
 run {
     main = 'de.fosd.jdime.gui.GUI'
 }
