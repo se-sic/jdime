@@ -95,6 +95,7 @@ public class Matcher<T extends Artifact<T>> {
 
     private UnorderedTuple<T, T> lookupTuple;
     private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
+    private EqualityMatcher<T> equalityMatcher;
 
     private Set<Artifact<T>> orderedChildren;
     private Set<Artifact<T>> uniquelyLabeledChildren;
@@ -119,6 +120,7 @@ public class Matcher<T extends Artifact<T>> {
 
         lookupTuple = UnorderedTuple.of(null, null);
         trivialMatches = new HashMap<>();
+        equalityMatcher = new EqualityMatcher<>(null);
         orderedChildren = new HashSet<>();
         uniquelyLabeledChildren = new HashSet<>();
         fullyOrdered = new HashSet<>();
@@ -252,7 +254,7 @@ public class Matcher<T extends Artifact<T>> {
          * To avoid redundant calls, we save the matchings reported by EqualityMatcher and perform lookups on
          * subsequent runs.
          */
-        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(left, right);
+        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(context, left, right);
 
         if (trivialMatches.isPresent()) {
             calls++;
@@ -302,15 +304,22 @@ public class Matcher<T extends Artifact<T>> {
      * Returns the trivial Matchings if <code>left</code> and <code>right</code> are exactly equal as determined by
      * the <code>EqualityMatcher</code>.
      *
+     * @param context
+     *         the <code>MergeContext</code>
      * @param left
      *         the left tree
      * @param right
      *         the right tree
      * @return the <code>Matchings</code>
      */
-    private Optional<Matchings<T>> getTrivialMatchings(T left, T right) {
+    private Optional<Matchings<T>> getTrivialMatchings(MergeContext context, T left, T right) {
         lookupTuple.setX(left);
         lookupTuple.setY(right);
+
+        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
+            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
+            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        }
 
         if (trivialMatches.containsKey(lookupTuple)) {
             Matchings<T> matchings = new Matchings<>();
@@ -321,7 +330,7 @@ public class Matcher<T extends Artifact<T>> {
             Iterator<T> rIt = right.getChildren().iterator();
 
             while (lIt.hasNext() && rIt.hasNext()) {
-                matchings.addAll(getTrivialMatchings(lIt.next(), rIt.next()).get());
+                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
             }
 
             lookupTuple.setX(null);

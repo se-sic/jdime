@@ -24,14 +24,17 @@
 package de.fosd.jdime.matcher.ordered;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -55,6 +58,8 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
     private static final String ID = EqualityMatcher.class.getSimpleName();
     private static final Collector<Integer, ?, Integer> SUM_IDENTITY = Collectors.summingInt(i -> i);
 
+    private Set<UnorderedTuple<T, T>> didNotMatch;
+
     /**
      * Constructs a new <code>EqualityMatcher</code>.<br/>
      * This matcher does not use the parent matcher to dispatch further calls.
@@ -63,6 +68,7 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
      */
     public EqualityMatcher(MatcherInterface<T> matcher) {
         super(matcher);
+        this.didNotMatch = new HashSet<>();
     }
 
     @Override
@@ -92,14 +98,14 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
         if (allMatched && left.getNumChildren() == right.getNumChildren() && left.matches(right)) {
             Integer sumScore = directChildMatchings.stream().map(Matching::getScore).collect(SUM_IDENTITY);
+            matchings.add(new Matching<>(left, right, sumScore + 1));
 
             LOG.finer(() -> {
                 String format = "%s - Trees are equal: (%s, %s)";
                 return String.format(format, ID, left.getId(), right.getId());
             });
-
-            matchings.add(new Matching<>(left, right, sumScore + 1));
         } else {
+            didNotMatch.add(UnorderedTuple.of(left, right));
 
             LOG.finer(() -> {
                 String format = "%s - Trees are NOT equal: (%s, %s)";
@@ -110,5 +116,19 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
         matchings.stream().forEach(m -> m.setAlgorithm(ID));
 
         return matchings;
+    }
+
+    /**
+     * Returns whether this <code>EqualityMatcher</code> determined (in a previous run of
+     * {@link #match(MergeContext, Artifact, Artifact)}) that the given pair of <code>Artifact</code>s do not
+     * exactly match.
+     *
+     * @param artifacts
+     *         the pair of <code>Artifact</code>s to check
+     * @return true if the given <code>Artifact</code>s were checked by the <code>EqualityMatcher</code> and did not
+     *          match
+     */
+    public boolean didNotMatch(UnorderedTuple<T, T> artifacts) {
+        return didNotMatch.contains(artifacts);
     }
 }
