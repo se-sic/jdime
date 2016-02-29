@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.KeyEnums.Type;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -95,6 +96,11 @@ public class MergeContext implements Cloneable {
      * The number of an artifact that should be inspected. If this is set, no merge will be executed.
      */
     private int inspectArtifact;
+
+    /**
+     * The scope of inspection.
+     */
+    private KeyEnums.Type inspectionScope;
 
     /**
      * Force overwriting of existing output files.
@@ -213,6 +219,7 @@ public class MergeContext implements Cloneable {
         this.consecutive = toCopy.consecutive;
         this.dumpMode = toCopy.dumpMode;
         this.inspectArtifact = toCopy.inspectArtifact;
+        this.inspectionScope = toCopy.inspectionScope;
         this.forceOverwriting = toCopy.forceOverwriting;
 
         this.inputFiles = new ArtifactList<>();
@@ -861,6 +868,15 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns the scope of inspection.
+     *
+     * @return scope of inspection
+     */
+    public KeyEnums.Type getInspectionScope() {
+        return inspectionScope;
+    }
+
+    /**
      * Sets the artifact that should be inspected.
      * If this is set, no merge will be executed.
      *
@@ -868,6 +884,15 @@ public class MergeContext implements Cloneable {
      */
     public void setInspectArtifact(int inspectArtifact) {
         this.inspectArtifact = inspectArtifact;
+    }
+
+    /**
+     * Sets the scope of inspection.
+     *
+     * @param scope scope of inspection
+     */
+    public void setInspectionScope(KeyEnums.Type scope) {
+        this.inspectionScope = scope;
     }
 
     /**

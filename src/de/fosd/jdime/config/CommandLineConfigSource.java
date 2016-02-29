@@ -55,7 +55,8 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_HELP = "h";
     public static final String CLI_KEEPGOING = "k";
     public static final String CLI_LOOKAHEAD = "lah";
-    public static final String CLI_INSPECT = "i";
+    public static final String CLI_INSPECT_ELEMENT = "ie";
+    public static final String CLI_INSPECT_METHOD = "im";
     public static final String CLI_MODE = "m";
     public static final String CLI_DUMP = "dmp";
     public static final String CLI_OUTPUT = "o";
@@ -169,9 +170,18 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_INSPECT)
-                .longOpt("inspect")
+        o = Option.builder(CLI_INSPECT_ELEMENT)
+                .longOpt("inspect-element")
                 .desc("Inspect an AST element. Supply number of element.")
+                .hasArg()
+                .argName("element")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_INSPECT_METHOD)
+                .longOpt("inspect-method")
+                .desc("Inspect the method of an AST element. Supply number of element.")
                 .hasArg()
                 .argName("element")
                 .build();

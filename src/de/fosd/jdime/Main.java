@@ -49,6 +49,7 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
@@ -59,7 +60,8 @@ import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
@@ -175,7 +177,8 @@ public final class Main {
         }
 
         if (context.isInspect()) {
-            inspectElement(context.getInputFiles().get(0), context.getInspectArtifact());
+            inspectElement(context.getInputFiles().get(0), context.getInspectArtifact(),
+                    context.getInspectionScope());
         } else if (context.getDumpMode() != DumpMode.NONE) {
 
             for (FileArtifact artifact : context.getInputFiles()) {
@@ -374,7 +377,17 @@ public final class Main {
             }
         };
 
-        context.setInspectArtifact(config.getInteger(CLI_INSPECT).orElse(0));
+        Optional<Integer> inspectElement = config.getInteger(CLI_INSPECT_ELEMENT);
+        KeyEnums.Type scope = null;
+
+        if (inspectElement.isPresent()) {
+            scope = KeyEnums.Type.NODE;
+        } else if ((inspectElement = config.getInteger(CLI_INSPECT_METHOD)).isPresent()) {
+            scope = KeyEnums.Type.METHOD;
+        }
+
+        context.setInspectArtifact(inspectElement.orElse(0));
+        context.setInspectionScope(scope);
 
         context.setDumpMode(config.get(CLI_DUMP, dmpModeParser).orElse(DumpMode.NONE));
 
@@ -495,8 +508,17 @@ public final class Main {
      * @param artifact FileArtifact of the source file
      * @param number number of the AST element that should be inspected
      */
-    private static void inspectElement(FileArtifact artifact, int number) {
-        System.out.println(((ASTNodeArtifact) new ASTNodeArtifact(artifact).find("null:" + number)).inspect());
+    private static void inspectElement(FileArtifact artifact, int number, KeyEnums.Type scope) {
+        ASTNodeArtifact element = ((ASTNodeArtifact) new ASTNodeArtifact(artifact).find("null:" + number));
+
+        if (scope != KeyEnums.Type.NODE) {
+            // walk tree upwards until scope fits
+            while (scope != element.getType() && !element.isRoot()) {
+                element = element.getParent();
+            }
+        }
+
+        System.out.println(element.inspect());
     }
 
     /**
