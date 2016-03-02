@@ -47,6 +47,8 @@ import de.fosd.jdime.common.UnorderedTuple;
  */
 public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 
+    private final UnorderedTuple<T, T> tuple = UnorderedTuple.of(null, null);
+
     /**
      * Creates a new <code>Matchings</code> instance containing a single <code>Matching</code> that matches
      * <code>left</code> and <code>right</code> with the given <code>score</code>.
@@ -113,7 +115,15 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
      * @return optionally the <code>Matching</code> matching the given <code>artifacts</code>
      */
     public Optional<Matching<T>> get(T left, T right) {
-        return get(UnorderedTuple.of(left, right));
+        tuple.setX(left);
+        tuple.setY(right);
+
+        Optional<Matching<T>> matching = get(tuple);
+
+        tuple.setX(null);
+        tuple.setY(null);
+
+        return matching;
     }
 
     /**
@@ -145,7 +155,15 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
      * @return optionally the matching score for the given <code>artifacts</code>
      */
     public Optional<Integer> getScore(T left, T right) {
-        return getScore(UnorderedTuple.of(left, right));
+        tuple.setX(left);
+        tuple.setY(right);
+
+        Optional<Integer> matching = getScore(tuple);
+
+        tuple.setX(null);
+        tuple.setY(null);
+
+        return matching;
     }
 
     /**

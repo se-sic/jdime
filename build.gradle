@@ -31,6 +31,10 @@ plugins {
     id "com.github.hierynomus.license" version "0.12.1"
 }
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 sourceSets {
     main {
         java {
@@ -126,6 +130,13 @@ distributions {
                 from(config)
             }
         }
+    }
+}
+
+installDist {
+
+    if (project.hasProperty('distDir')) {
+        destinationDir = file(project.property('distDir'))
     }
 }
 

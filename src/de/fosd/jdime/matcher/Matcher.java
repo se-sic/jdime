@@ -25,14 +25,17 @@ package de.fosd.jdime.matcher;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.matching.Color;
@@ -89,9 +92,16 @@ public class Matcher<T extends Artifact<T>> {
     private UnorderedMatcher<T> unorderedLabelMatcher;
     private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
+
+    private UnorderedTuple<T, T> lookupTuple;
+    private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
     private EqualityMatcher<T> equalityMatcher;
 
-    private Matchings<T> equalityMatchings;
+    private Set<Artifact<T>> orderedChildren;
+    private Set<Artifact<T>> uniquelyLabeledChildren;
+    private Set<Artifact<T>> fullyOrdered;
+
+    private Set<Artifact<T>> cachedRoots;
 
     /**
      * Constructs a new <code>Matcher</code>.
@@ -107,8 +117,14 @@ public class Matcher<T extends Artifact<T>> {
         unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
         orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
-        equalityMatcher = new EqualityMatcher<>(rootMatcher);
-        equalityMatchings = new Matchings<>();
+
+        lookupTuple = UnorderedTuple.of(null, null);
+        trivialMatches = new HashMap<>();
+        equalityMatcher = new EqualityMatcher<>(null);
+        orderedChildren = new HashSet<>();
+        uniquelyLabeledChildren = new HashSet<>();
+        fullyOrdered = new HashSet<>();
+        cachedRoots = new HashSet<>();
     }
 
     /**
@@ -125,6 +141,8 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
+        cache(context, left, right);
+
         Matchings<T> matchings = match(context, left, right);
         Matching<T> matching = matchings.get(left, right).get();
 
@@ -147,6 +165,44 @@ public class Matcher<T extends Artifact<T>> {
         }
 
         return matchings;
+    }
+
+    private void cache(MergeContext context, T left, T right) {
+        trivialMatches.clear();
+
+        if (!cachedRoots.contains(left) || !cachedRoots.contains(right)) {
+            Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
+            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        }
+
+        if (!cachedRoots.contains(left)) {
+            cacheOrderingAndLabeling(left);
+        }
+
+        if (!cachedRoots.contains(right)) {
+            cacheOrderingAndLabeling(right);
+        }
+
+        cachedRoots.add(left);
+        cachedRoots.add(right);
+    }
+
+    private void cacheOrderingAndLabeling(T artifact) {
+        ArtifactList<T> children = artifact.getChildren();
+
+        children.forEach(this::cacheOrderingAndLabeling);
+
+        if (children.stream().map(Artifact::getUniqueLabel).allMatch(Optional::isPresent)) {
+            uniquelyLabeledChildren.add(artifact);
+        }
+
+        if (children.stream().allMatch(Artifact::isOrdered)) {
+            orderedChildren.add(artifact);
+        }
+
+        if (children.stream().allMatch(fullyOrdered::contains) && artifact.isOrdered()) {
+            fullyOrdered.add(artifact);
+        }
     }
 
     /**
@@ -198,16 +254,14 @@ public class Matcher<T extends Artifact<T>> {
          * To avoid redundant calls, we save the matchings reported by EqualityMatcher and perform lookups on
          * subsequent runs.
          */
-        if (!equalityMatchings.get(left, right).isPresent()) {
-            logMatcherUse(equalityMatcher.getClass(), left, right);
-            equalityMatchings.addAll(equalityMatcher.match(context, left, right));
-        } else if (equalityMatchings.get(left, right).get().hasFullyMatched()) {
+        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(context, left, right);
+
+        if (trivialMatches.isPresent()) {
             calls++;
             equalityCalls++;
-            LOG.finest(() -> String.format("%s: found equal trees with score: %s", equalityMatcher.getClass().getSimpleName(), left.getTreeSize()));
-            return equalityMatcher.filterMatchings(equalityMatchings, left, right);
-        } else {
-            LOG.finest(() -> String.format("%s: found differing trees", equalityMatcher.getClass().getSimpleName()));
+            logMatcherUse(EqualityMatcher.class, left, right);
+
+            return trivialMatches.get();
         }
 
         if (!left.matches(right)) {
@@ -246,56 +300,70 @@ public class Matcher<T extends Artifact<T>> {
         return getMatchings(context, left, right);
     }
 
+    /**
+     * Returns the trivial Matchings if <code>left</code> and <code>right</code> are exactly equal as determined by
+     * the <code>EqualityMatcher</code>.
+     *
+     * @param context
+     *         the <code>MergeContext</code>
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return the <code>Matchings</code>
+     */
+    private Optional<Matchings<T>> getTrivialMatchings(MergeContext context, T left, T right) {
+        lookupTuple.setX(left);
+        lookupTuple.setY(right);
+
+        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
+            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
+            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        }
+
+        if (trivialMatches.containsKey(lookupTuple)) {
+            Matchings<T> matchings = new Matchings<>();
+
+            matchings.add(trivialMatches.get(lookupTuple));
+
+            Iterator<T> lIt = left.getChildren().iterator();
+            Iterator<T> rIt = right.getChildren().iterator();
+
+            while (lIt.hasNext() && rIt.hasNext()) {
+                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
+            }
+
+            lookupTuple.setX(null);
+            lookupTuple.setY(null);
+
+            return Optional.of(matchings);
+        } else {
+            return Optional.empty();
+        }
+    }
+
     private Matchings<T> getMatchings(MergeContext context, T left, T right) {
+        boolean fullyOrderedChildren = false;
 
-        boolean fullyOrdered = context.isUseMCESubtreeMatcher();
-        boolean isOrdered = false;
-        boolean uniqueLabels = true;
-
-        Queue<T> wait = new LinkedList<>(left.getChildren());
-        wait.addAll(right.getChildren());
-
-        while (fullyOrdered && !wait.isEmpty()) {
-            T node = wait.poll();
-            fullyOrdered = node.isOrdered();
-
-            node.getChildren().forEach(wait::offer);
+        if (context.isUseMCESubtreeMatcher()) {
+            Stream<T> lCStr = left.getChildren().stream();
+            Stream<T> rCStr = right.getChildren().stream();
+            fullyOrderedChildren = lCStr.allMatch(fullyOrdered::contains) && rCStr.allMatch(fullyOrdered::contains);
         }
 
-        for (int i = 0; !isOrdered && i < left.getNumChildren(); i++) {
-            T leftChild = left.getChild(i);
-
-            if (leftChild.isOrdered()) {
-                isOrdered = true;
-            }
-
-            if (!uniqueLabels || !leftChild.getUniqueLabel().isPresent()) {
-                uniqueLabels = false;
-            }
-        }
-
-        for (int i = 0; !isOrdered && i < right.getNumChildren(); i++) {
-            T rightChild = right.getChild(i);
-
-            if (rightChild.isOrdered()) {
-                isOrdered = true;
-            }
-
-            if (!uniqueLabels || !rightChild.getUniqueLabel().isPresent()) {
-                uniqueLabels = false;
-            }
-        }
+        boolean onlyOrderedChildren = orderedChildren.contains(left) && orderedChildren.contains(right);
+        boolean onlyLabeledChildren = uniquelyLabeledChildren.contains(left) && uniquelyLabeledChildren.contains(right);
 
         calls++;
 
-        if (fullyOrdered) {
+        if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             return mceSubtreeMatcher.match(context, left, right);
         }
 
-        if (isOrdered) {
+        if (onlyOrderedChildren) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
@@ -303,7 +371,7 @@ public class Matcher<T extends Artifact<T>> {
         } else {
             unorderedCalls++;
 
-            if (uniqueLabels) {
+            if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
                 return unorderedLabelMatcher.match(context, left, right);
             } else {

@@ -23,8 +23,18 @@
  */
 package de.fosd.jdime.matcher.ordered;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -45,6 +55,11 @@ import de.fosd.jdime.matcher.matching.Matchings;
  */
 public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
 
+    private static final String ID = EqualityMatcher.class.getSimpleName();
+    private static final Collector<Integer, ?, Integer> SUM_IDENTITY = Collectors.summingInt(i -> i);
+
+    private Set<UnorderedTuple<T, T>> didNotMatch;
+
     /**
      * Constructs a new <code>EqualityMatcher</code>.<br/>
      * This matcher does not use the parent matcher to dispatch further calls.
@@ -53,85 +68,67 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
      */
     public EqualityMatcher(MatcherInterface<T> matcher) {
         super(matcher);
+        this.didNotMatch = new HashSet<>();
     }
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right) {
-        String id = getClass().getSimpleName();
-
         Matchings<T> matchings = new Matchings<>();
-        int score = 0;
-        boolean identicalSubtree = true;
 
-        for (int i = 0; i < Math.min(left.getNumChildren(), right.getNumChildren()); i++) {
-            T leftChild = left.getChild(i);
-            T rightChild = right.getChild(i);
+        List<Matching<T>> directChildMatchings = new ArrayList<>();
+        Iterator<T> lIt = left.getChildren().iterator();
+        Iterator<T> rIt = right.getChildren().iterator();
 
-            Matchings<T> childMatchings = match(context, leftChild, rightChild);
-            matchings.addAll(childMatchings);
+        boolean allMatched = true;
 
-            if (childMatchings.get(leftChild, rightChild).isPresent()) {
-                Matching<T> childMatching = childMatchings.get(leftChild, rightChild).get();
+        while (lIt.hasNext() && rIt.hasNext()) {
+            T l = lIt.next();
+            T r = rIt.next();
+            Matchings<T> childMatchings = match(context, l, r);
+            Optional<Matching<T>> directChildMatching = childMatchings.get(l, r);
 
-                if (childMatching.hasFullyMatched()) {
-                    score += childMatching.getScore();
-                } else {
-                    identicalSubtree = false;
-                }
+            if (directChildMatching.isPresent()) {
+                directChildMatchings.add(directChildMatching.get());
+            } else {
+                allMatched = false;
             }
+
+            matchings.addAll(childMatchings);
         }
 
-        if (left.matches(right) && left.getNumChildren() == right.getNumChildren() && identicalSubtree) {
-            LOG.finest(() -> {
+        if (allMatched && left.getNumChildren() == right.getNumChildren() && left.matches(right)) {
+            Integer sumScore = directChildMatchings.stream().map(Matching::getScore).collect(SUM_IDENTITY);
+            matchings.add(new Matching<>(left, right, sumScore + 1));
+
+            LOG.finer(() -> {
                 String format = "%s - Trees are equal: (%s, %s)";
-                return String.format(format, id, left.getId(), right.getId());
+                return String.format(format, ID, left.getId(), right.getId());
             });
-
-            score++;
         } else {
-            LOG.finest(() -> {
+            didNotMatch.add(UnorderedTuple.of(left, right));
+
+            LOG.finer(() -> {
                 String format = "%s - Trees are NOT equal: (%s, %s)";
-                return String.format(format, id, left.getId(), right.getId());
+                return String.format(format, ID, left.getId(), right.getId());
             });
         }
 
-        matchings.addAll(Matchings.of(left, right, score));
-
-        for (Matching<T> matching : matchings) {
-            matching.setAlgorithm(id);
-        }
+        matchings.stream().forEach(m -> m.setAlgorithm(ID));
 
         return matchings;
     }
 
     /**
-     * Filter a precomputed set of <code>Matchings</code>.
+     * Returns whether this <code>EqualityMatcher</code> determined (in a previous run of
+     * {@link #match(MergeContext, Artifact, Artifact)}) that the given pair of <code>Artifact</code>s do not
+     * exactly match.
      *
-     * The result is a set that only contains <code>Matchings</code> for the
-     * trees of the specified <code>Artifact</code>s.
-     * If the trees have not fully matched, an empty <code>Matchings</code> is returned.
-     *
-     * @param matchings set of precomputed matchings
-     * @param left left artifact
-     * @param right right artifact
-     * @return filtered subset of matchings, empty if left and right have not fully matched
-     *
+     * @param artifacts
+     *         the pair of <code>Artifact</code>s to check
+     * @return true if the given <code>Artifact</code>s were checked by the <code>EqualityMatcher</code> and did not
+     *          match
      */
-    public Matchings<T> filterMatchings(Matchings<T> matchings, T left, T right) {
-        Matchings<T> filtered = new Matchings<>();
-
-        if (matchings.get(left, right).isPresent()) {
-            Matching<T> rootMatching = matchings.get(left, right).get();
-
-            if (rootMatching.hasFullyMatched()) {
-                filtered.add(rootMatching);
-
-                for (int i = 0; i < left.getNumChildren(); i++) {
-                    filtered.addAll(filterMatchings(matchings, left.getChild(i), right.getChild(i)));
-                }
-            }
-        }
-
-        return filtered;
+    public boolean didNotMatch(UnorderedTuple<T, T> artifacts) {
+        return didNotMatch.contains(artifacts);
     }
 }
