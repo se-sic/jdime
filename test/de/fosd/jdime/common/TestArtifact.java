@@ -58,7 +58,10 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
-        return null;
+        TestArtifact conflict = new TestArtifact("Conflict", KeyEnums.Type.NODE);
+        conflict.setConflict(left, right);
+
+        return conflict;
     }
 
     @Override

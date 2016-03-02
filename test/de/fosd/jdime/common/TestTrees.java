@@ -28,12 +28,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
 import static de.fosd.jdime.stats.KeyEnums.Type.TRY;
@@ -205,6 +207,41 @@ public final class TestTrees {
         classRight.setRevision(MergeScenario.RIGHT, true);
 
         return Tuple.of(classLeft, classRight);
+    }
+
+    private static TestArtifact conflictTree() {
+        TestArtifact clazz = new TestArtifact("Class", CLASS);
+        TestArtifact method = new TestArtifact("Method", CLASS);
+
+        TestArtifact lBody = new TestArtifact("Body", NODE);
+        TestArtifact rBody = new TestArtifact("Body", NODE);
+
+        TestArtifact sTryLeft = new TestArtifact("Try", TRY);
+        TestArtifact s1Left = new TestArtifact("Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Left = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+
+        TestArtifact s3Left = new TestArtifact("Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Left = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+
+        TestArtifact s1Right = new TestArtifact("Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Right = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+
+        TestArtifact s3Right = new TestArtifact("Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Right = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+
+        clazz.addChild(method);
+        method.addChild(clazz.createConflictArtifact(lBody, rBody));
+
+        lBody.addChild(sTryLeft);
+        sTryLeft.addChild(s1Left); sTryLeft.addChild(s2Left);
+        lBody.addChild(s3Left); lBody.addChild(s4Left);
+
+        rBody.addChild(s1Right);
+        rBody.addChild(s2Right);
+        rBody.addChild(s3Right);
+        rBody.addChild(s4Right);
+
+        return clazz;
     }
 
     private static class MatchContext<T extends Artifact<T>> {
