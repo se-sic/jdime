@@ -250,6 +250,7 @@ public final class Main {
                 break;
             case STATISTICS_OUTPUT_STDOUT:
                 statistics.printXML(System.out);
+                System.out.println();
                 break;
             default: {
                 File f = new File(xmlOut);
