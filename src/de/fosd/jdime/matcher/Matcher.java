@@ -167,6 +167,16 @@ public class Matcher<T extends Artifact<T>> {
         return matchings;
     }
 
+    /**
+     * Computes some results used during the matching of <code>left</code> and <code>right</code> and caches them.
+     *
+     * @param context
+     *         the current <code>MergeContext</code>
+     * @param left
+     *         the left node to be matched
+     * @param right
+     *         the right node to be matched
+     */
     private void cache(MergeContext context, T left, T right) {
         trivialMatches.clear();
 
@@ -187,6 +197,14 @@ public class Matcher<T extends Artifact<T>> {
         cachedRoots.add(right);
     }
 
+    /**
+     * Caches (recursively for every artifact in the tree under <code>artifact</code>) the ordering
+     * (whether the artifact itself is ordered, its children are ordered or the whole tree with <code>artifact</code>
+     * at its root is ordered) and whether the the artifact has uniquely labeled children.
+     *
+     * @param artifact
+     *         the <code>artifact</code> for which results are to be cached
+     */
     private void cacheOrderingAndLabeling(T artifact) {
         ArtifactList<T> children = artifact.getChildren();
 
@@ -342,6 +360,18 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
+    /**
+     * Determines which <code>Matcher</code> to use for matching <code>left</code> and <code>right</code> and returns
+     * the resulting <code>Matchings</code>.
+     *
+     * @param context
+     *         the <code>MergeContext</code>
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return the <code>Matchings</code>
+     */
     private Matchings<T> getMatchings(MergeContext context, T left, T right) {
         boolean fullyOrderedChildren = false;
 
@@ -381,6 +411,23 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
+    /**
+     * If <code>left</code> and <code>right</code> do not match, this method attempts to find two <code>Artifacts</code>
+     * (children of <code>left</code> and <code>right</code>) with which to resume matching the two trees. Depending
+     * on the type of the <code>Artifact</code>s a different lookahead will be performed. E.g. in the case of two
+     * METHOD <code>Artifact</code>s they themselves will be returned to try and detect renamings. If one of them is
+     * a TRY <code>Artifact</code>, the method will attempt to find a node matching the other and return them as a
+     * tuple. This is an attempt to find code that was surrounded by a try/catch block.
+     *
+     * @param context
+     *         the <code>MergeContext</code>
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return optionally the two <code>Artifact</code>s to try and match instead of <code>left</code> and
+     *          <code>right</code>
+     */
     private Optional<UnorderedTuple<T, T>> lookAhead(MergeContext context, T left, T right) {
 
         if (!context.isLookAhead()) {
