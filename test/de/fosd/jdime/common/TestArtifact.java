@@ -32,17 +32,20 @@ import de.fosd.jdime.stats.KeyEnums;
  */
 public class TestArtifact extends Artifact<TestArtifact> {
 
-    private static int nextID = 0;
-
-    private int id;
+    private static final Revision testRevision = new Revision("TEST");
 
     public TestArtifact() {
-        this.id = nextID++;
+        this(testRevision);
+    }
+
+    public TestArtifact(Revision rev) {
+        super(rev);
         this.children = new ArtifactList<>();
     }
 
     public TestArtifact(int id) {
-        this.id = id;
+        super(testRevision);
+        this.setNumber(id);
         this.children = new ArtifactList<>();
     }
 
@@ -55,7 +58,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public TestArtifact clone() {
         TestArtifact clone = new TestArtifact();
-        clone.id = id;
+        clone.setNumber(getNumber());
         clone.children = children;
         return clone;
     }
@@ -70,7 +73,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
         return null;
     }
 
-    public TestArtifact createEmptyArtifact() {
+    public TestArtifact createEmptyArtifact(Revision revision) {
         return null;
     }
 
@@ -91,7 +94,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String getId() {
-        return String.valueOf(id);
+        return String.valueOf(getNumber());
     }
 
     @Override
@@ -101,12 +104,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
         TestArtifact that = (TestArtifact) o;
 
-        return id == that.id;
+        return getNumber() == that.getNumber();
     }
 
     @Override
     public int hashCode() {
-        return id;
+        return getNumber();
     }
 
     @Override
@@ -131,7 +134,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public boolean matches(TestArtifact other) {
-        return id == other.id;
+        return getNumber() == other.getNumber();
     }
 
     @Override
@@ -141,12 +144,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": " + String.valueOf(id);
+        return getClass().getSimpleName() + ": " + String.valueOf(getNumber());
     }
 
     @Override
     public int compareTo(TestArtifact o) {
-        return id - o.id;
+        return getNumber() - o.getNumber();
     }
 
     @Override

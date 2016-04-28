@@ -38,6 +38,7 @@ import static org.junit.Assert.fail;
  */
 public class ASTNodeArtifactTest extends JDimeTest {
 
+    private static Revision testRevision = new Revision("TEST");
     private static File testFile;
 
     @BeforeClass
@@ -49,7 +50,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
     @Test
     public void testASTNodeArtifactFileArtifact() {
         try {
-            new ASTNodeArtifact(new FileArtifact(testFile));
+            new ASTNodeArtifact(new FileArtifact(testRevision, testFile));
         } catch (Exception e) {
             fail(e.toString());
         }
@@ -68,7 +69,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
     @Test
     public void testPrettyPrint() {
         try {
-            ASTNodeArtifact artifact = new ASTNodeArtifact(new FileArtifact(testFile));
+            ASTNodeArtifact artifact = new ASTNodeArtifact(new FileArtifact(testRevision, testFile));
             String prettyPrinted = artifact.prettyPrint();
 
             assertEquals(prettyPrintExpected, prettyPrinted);

@@ -39,6 +39,7 @@ import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -111,15 +112,13 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 long cmdStart = System.currentTimeMillis();
 
                 targetNode = ASTNodeArtifact.createProgram(merged);
-                targetNode.setRevision(merged.getRevision(), true);
-                targetNode.renumberTree();
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest("Plaintext tree dump of target node:");
                     System.out.println(targetNode.dump(PLAINTEXT_TREE));
                 }
 
-                MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(), next);
+                MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(BASE), next);
 
                 MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
                         merged.getRevision().getName(), next.getRevision().getName());

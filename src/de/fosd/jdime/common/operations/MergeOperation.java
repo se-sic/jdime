@@ -37,6 +37,8 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
+
 /**
  * The operation merges <code>Artifact</code>s.
  *
@@ -110,7 +112,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
             if (numArtifacts == MergeType.TWOWAY_FILES) {
                 left = inputArtifacts.get(0);
-                base = left.createEmptyArtifact();
+                base = left.createEmptyArtifact(BASE);
                 right = inputArtifacts.get(1);
                 mergeType = MergeType.TWOWAY;
                 LOG.finest("Created TWO-way scenario");
@@ -202,7 +204,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
                 artifact.mergeOpStatistics(mScenarioStatistics, context);
             } else {
                 mergeScenario.getArtifacts().entrySet().stream().map(Map.Entry::getValue)
-                        .filter(a -> !a.getRevision().equals(MergeScenario.BASE))
+                        .filter(a -> !a.getRevision().equals(BASE))
                         .forEach(a -> {
                             mScenarioStatistics.getTypeStatistics(a.getRevision(), a.getType()).incrementNumMerged();
                             mScenarioStatistics.getLevelStatistics(a.getRevision(), a.getLevel()).incrementNumMerged();

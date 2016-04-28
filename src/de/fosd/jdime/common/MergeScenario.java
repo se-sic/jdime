@@ -57,9 +57,7 @@ public class MergeScenario<T extends Artifact<T>> {
     private Map<Revision, T> artifacts;
 
     /**
-     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario. For all
-     * <code>Artifact</code>s the <code>Revision</code> will be (recursively) set to the appropriate static constant
-     * defined in this class.
+     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario.
      *
      * @param mergeType
      *         the <code>MergeType</code> for this <code>MergeScenario</code>
@@ -78,10 +76,6 @@ public class MergeScenario<T extends Artifact<T>> {
 
         this.artifacts = new LinkedHashMap<>();
         this.mergeType = mergeType;
-
-        left.setRevision(LEFT, true);
-        base.setRevision(BASE, true);
-        right.setRevision(RIGHT, true);
 
         this.artifacts.put(left.getRevision(), left);
         this.artifacts.put(base.getRevision(), base);

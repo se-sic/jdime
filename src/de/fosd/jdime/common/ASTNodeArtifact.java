@@ -90,19 +90,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            artifact to create program from
      * @return ASTNodeArtifact
      */
-    public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
+    public static ASTNodeArtifact createProgram(ASTNodeArtifact artifact) {
         assert (artifact.astnode != null);
         assert (artifact.astnode instanceof Program);
 
         Program old = (Program) artifact.astnode;
         Program program;
+
         try {
             program = old.clone();
         } catch (CloneNotSupportedException e) {
             program = new Program();
         }
 
-        ASTNodeArtifact p = new ASTNodeArtifact(program, null);
+        ASTNodeArtifact p = new ASTNodeArtifact(artifact.getRevision(), program);
         p.deleteChildren();
 
         return p;
@@ -113,22 +114,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      */
     private ASTNode<?> astnode = null;
 
-    /**
-     * Constructor class.
-     */
-    private ASTNodeArtifact() {
+    private ASTNodeArtifact(Revision revision) {
+        super(revision);
+
         this.astnode = new ASTNode<>();
-        this.initializeChildren();
+        initializeChildren();
     }
 
-    /**
-     * @param astnode
-     *            astnode
-     */
-    private ASTNodeArtifact(final ASTNode<?> astnode, Revision revision) {
-        assert (astnode != null);
+    private ASTNodeArtifact(Revision revision, ASTNode<?> astnode) {
+        super(revision);
+
         this.astnode = astnode;
-        setRevision(revision);
         initializeChildren();
     }
 
@@ -136,9 +132,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i), getRevision());
+                ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), astnode.getChild(i));
                 child.setParent(this);
-                child.setRevision(getRevision());
                 children.add(child);
                 if (!child.initialized) {
                     child.initializeChildren();
@@ -156,9 +151,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            file artifact
      */
     public ASTNodeArtifact(FileArtifact artifact) {
-        assert (artifact != null);
-
-        setRevision(artifact.getRevision());
+        super(artifact.getRevision());
 
         ASTNode<?> astnode;
         if (artifact.isEmpty()) {
@@ -177,7 +170,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         this.astnode = astnode;
         initializeChildren();
-        renumberTree();
 
         LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
     }
@@ -198,7 +190,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact(astnode.clone(), getRevision());
+            clone = new ASTNodeArtifact(getRevision(), astnode.clone());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
@@ -243,10 +235,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public ASTNodeArtifact createEmptyArtifact() {
-        ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
-        emptyArtifact.setRevision(getRevision());
-        return emptyArtifact;
+    public ASTNodeArtifact createEmptyArtifact(Revision revision) {
+        return new ASTNodeArtifact(revision);
     }
 
     public void deleteChildren() {
@@ -569,27 +559,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
-        ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
-                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
+    public ASTNodeArtifact createConflictArtifact(ASTNodeArtifact left, ASTNodeArtifact right) {
+        ASTNodeArtifact conflict;
 
-        conflict.setRevision(MergeScenario.CONFLICT);
-        conflict.setNumber(virtualcount++);
+        if (left != null) {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, left.astnode.treeCopyNoTransform());
+        } else {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, right.astnode.treeCopyNoTransform());
+        }
+
         conflict.setConflict(left, right);
 
         return conflict;
     }
 
     @Override
-    public final ASTNodeArtifact createChoiceArtifact(final String condition, final ASTNodeArtifact artifact) {
+    public ASTNodeArtifact createChoiceArtifact(String condition, ASTNodeArtifact artifact) {
         LOG.fine("Creating choice node");
-        ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
-        choice.setRevision(MergeScenario.CHOICE);
-        choice.setNumber(virtualcount++);
+        ASTNodeArtifact choice = new ASTNodeArtifact(MergeScenario.CHOICE, artifact.astnode.treeCopyNoTransform());
         choice.setChoice(condition, artifact);
+
         return choice;
     }
 }

@@ -29,9 +29,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -280,25 +282,43 @@ public class MergeContext implements Cloneable {
 
         if (args.isPresent()) {
             List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
-
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-            char cond = 'A';
 
-            for (String fileName : paths) {
+            Supplier<Revision> revSupplier;
 
-                try {
-                    FileArtifact newArtifact = new FileArtifact(new File(fileName));
+            if (isConditionalMerge()) {
+                revSupplier = new Supplier<Revision>() {
+                    private char cond = 'A';
 
-                    if (isConditionalMerge()) {
-                        newArtifact.setRevision(new Revision(String.valueOf(cond++)));
+                    @Override
+                    public Revision get() {
+                        return new Revision(String.valueOf(cond++));
                     }
+                };
 
-                    inputArtifacts.add(newArtifact);
+            } else {
+                Iterator<Revision> revs;
+
+                if (paths.size() == MergeType.TWOWAY_FILES) {
+                    revs = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator();
+                } else if (paths.size() == MergeType.THREEWAY_FILES) {
+                    revs = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator();
+                } else {
+                    throw new AbortException(String.format("Invalid number (%d) of input artifacts.", paths.size()));
+                }
+
+                revSupplier = revs::next;
+            }
+
+            for (String path : paths) {
+                try {
+                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(path));
+                    inputArtifacts.add(artifact);
                 } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " not found.");
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", path));
                     throw new AbortException(e);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " could not be accessed.");
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", path));
                     throw new AbortException(e);
                 }
             }

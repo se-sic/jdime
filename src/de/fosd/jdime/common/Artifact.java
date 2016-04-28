@@ -30,6 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,34 +53,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
-    /**
-     * Used to renumber artifacts.
-     * This number is mainly used for debugging purposes or when drawing the tree.
-     */
-    private static int count = 1;
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     * @param artifact
-     *            root of the tree to renumber
-     */
-    private static void renumber(final Artifact<?> artifact) {
-        artifact.number = count;
-        count++;
-        for (int i = 0; i < artifact.getNumChildren(); i++) {
-            renumber(artifact.getChild(i));
-        }
-    }
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     */
-    public void renumberTree() {
-        Artifact.count = 1;
-        renumber(this);
-    }
+    private static final Map<Revision, AtomicInteger> ids = new ConcurrentHashMap<>();
 
     /**
      * Children of the artifact.
@@ -121,13 +96,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     private boolean merged;
 
     /**
-     * Number used to identify the artifact.
-     */
-    private int number = -1;
-
-    protected static int virtualcount = 1;
-
-    /**
      * Parent artifact.
      */
     private T parent;
@@ -136,6 +104,32 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * Revision the artifact belongs to.
      */
     private Revision revision;
+
+    /**
+     * Number used to identify the artifact.
+     */
+    private int number;
+
+    /**
+     * Constructs a new <code>Artifact</code>.
+     *
+     * @param rev the <code>Revision</code> for the <code>Artifact</code>
+     */
+    public Artifact(Revision rev) {
+        this.revision = rev;
+        this.number = nextID(rev);
+    }
+
+    /**
+     * Returns the next unused ID for the given {@link Revision}.
+     *
+     * @param rev
+     *         the {@link Revision} amongst whose artifacts the ID should be unused
+     * @return the next unused ID
+     */
+    private static int nextID(Revision rev) {
+        return ids.computeIfAbsent(rev, r -> new AtomicInteger()).getAndIncrement();
+    }
 
     /**
      * Adds a child.
@@ -211,9 +205,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
      * base <code>Artifact</code> is empty.
      *
-     * @return empty <code>Artifact</code>
+     * @param revision
+     *         the <code>Revision</code> for the artifact
+     * @return an empty artifact
      */
-    public abstract T createEmptyArtifact();
+    public abstract T createEmptyArtifact(Revision revision);
 
     /**
      * Pretty-prints the <code>Artifact</code> to source code.

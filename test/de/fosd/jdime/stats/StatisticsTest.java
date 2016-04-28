@@ -61,9 +61,9 @@ public class StatisticsTest extends JDimeTest {
         ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
         String filePath = "SimpleTests/Bag/Bag.java";
 
-        inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
-        inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
-        inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.LEFT, file(leftDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.BASE, file(baseDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.RIGHT, file(rightDir, filePath)));
 
         context.setMergeStrategy(MergeStrategy.parse("structured"));
         context.setInputFiles(inputArtifacts);

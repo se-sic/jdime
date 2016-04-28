@@ -36,6 +36,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.common.MergeScenario.LEFT;
+import static de.fosd.jdime.common.MergeScenario.MERGE;
+import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -72,9 +76,9 @@ public class MergeTest extends JDimeTest {
         try {
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-            inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
-            inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
-            inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
+            inputArtifacts.add(new FileArtifact(LEFT, file(leftDir, filePath)));
+            inputArtifacts.add(new FileArtifact(BASE, file(baseDir, filePath)));
+            inputArtifacts.add(new FileArtifact(RIGHT, file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
                 context.setMergeStrategy(MergeStrategy.parse(strategy));
@@ -83,7 +87,7 @@ public class MergeTest extends JDimeTest {
                 File out = Files.createTempFile("jdime-tests", ".java").toFile();
                 out.deleteOnExit();
 
-                context.setOutputFile(new FileArtifact(out));
+                context.setOutputFile(new FileArtifact(MERGE, out));
 
                 Main.merge(context);
 
