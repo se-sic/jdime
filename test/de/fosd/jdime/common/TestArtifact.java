@@ -23,6 +23,10 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 
@@ -32,17 +36,12 @@ import de.fosd.jdime.stats.KeyEnums;
  */
 public class TestArtifact extends Artifact<TestArtifact> {
 
-    private static int nextID = 0;
+    private String label;
+    private KeyEnums.Type type;
 
-    private int id;
-
-    public TestArtifact() {
-        this.id = nextID++;
-        this.children = new ArtifactList<>();
-    }
-
-    public TestArtifact(int id) {
-        this.id = id;
+    public TestArtifact(String label, KeyEnums.Type type) {
+        this.label = label;
+        this.type = type;
         this.children = new ArtifactList<>();
     }
 
@@ -54,15 +53,15 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact clone() {
-        TestArtifact clone = new TestArtifact();
-        clone.id = id;
-        clone.children = children;
-        return clone;
+        throw new NotYetImplementedException();
     }
 
     @Override
     public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
-        return null;
+        TestArtifact conflict = new TestArtifact("Conflict", KeyEnums.Type.NODE);
+        conflict.setConflict(left, right);
+
+        return conflict;
     }
 
     @Override
@@ -91,27 +90,27 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String getId() {
-        return String.valueOf(id);
+        return getRevision() + " : " + label;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
+        if (!super.equals(o)) return false;
         TestArtifact that = (TestArtifact) o;
-
-        return id == that.id;
+        return Objects.equals(label, that.label) &&
+                type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return id;
+        return Objects.hash(super.hashCode(), label, type);
     }
 
     @Override
-    public boolean hasUniqueLabels() {
-        return true;
+    public Optional<Supplier<String>> getUniqueLabel() {
+        return Optional.empty();
     }
 
     @Override
@@ -126,12 +125,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public boolean isOrdered() {
-        return true;
+        return type != KeyEnums.Type.METHOD;
     }
 
     @Override
     public boolean matches(TestArtifact other) {
-        return id == other.id;
+        return this.type == other.type && this.label.equals(other.label);
     }
 
     @Override
@@ -141,17 +140,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": " + String.valueOf(id);
-    }
-
-    @Override
-    public int compareTo(TestArtifact o) {
-        return id - o.id;
+        return getId() + " (" + type + ")";
     }
 
     @Override
     public KeyEnums.Type getType() {
-        return null;
+        return type;
     }
 
     @Override

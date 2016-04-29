@@ -21,7 +21,9 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.matching;
+
+import java.util.Objects;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
@@ -44,14 +46,9 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
     private Color highlightColor;
 
     private UnorderedTuple<T, T> matchedArtifacts;
+    private float percentage;
     private int score;
-
-    /**
-     * Constructs a new empty <code>Matching</code> with score 0.
-     */
-    public Matching() {
-        this(null, null, 0);
-    }
+    private boolean fullyMatched;
 
     /**
      * Constructs a new <code>Matching</code> between the two given <code>T</code>s.
@@ -71,8 +68,27 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      * @param score the score of the matching
      */
     public Matching(UnorderedTuple<T, T> matchedArtifacts, int score) {
+        Objects.requireNonNull(matchedArtifacts);
+        Objects.requireNonNull(matchedArtifacts.getX());
+        Objects.requireNonNull(matchedArtifacts.getY());
+
         this.matchedArtifacts = matchedArtifacts;
         this.score = score;
+        calculatePercentage();
+    }
+
+    /**
+     * Performs a shallow copy (the matched <code>Artifact</code>s will not be copied).
+     *
+     * @param toCopy
+     *         the <code>Matching</code> to copy
+     */
+    public Matching(Matching<T> toCopy) {
+        this.algorithm = toCopy.algorithm;
+        this.highlightColor = toCopy.highlightColor;
+        this.matchedArtifacts = UnorderedTuple.of(toCopy.matchedArtifacts.getX(), toCopy.matchedArtifacts.getY());
+        this.percentage = toCopy.percentage;
+        this.score = toCopy.score;
     }
 
     /**
@@ -135,6 +151,8 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
         } else if (right.getId().equals(artifact.getId())) {
             matchedArtifacts.setY(artifact);
         }
+
+        calculatePercentage();
     }
 
     /**
@@ -153,6 +171,46 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
      */
     public void setScore(int score) {
         this.score = score;
+        calculatePercentage();
+    }
+
+    /**
+     * Returns a float from [0, 1] describing the percentual match between the matched <code>Artifact</code>s.
+     * The percentage is calculated as (2 * score) / (left.getTreeSize() + right.getTreeSize()).
+     *
+     * @return the matching percentage
+     */
+    public float getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * Sets the <code>percentage</code> field to (2 * score) / (left.getTreeSize() + right.getTreeSize()) or 0 if
+     * <code>left</code> or <code>right</code> is <code>null</code>.
+     */
+    private void calculatePercentage() {
+        T left = getLeft();
+        T right = getRight();
+
+        if (left == null || right == null) {
+            percentage = 0;
+            fullyMatched = false;
+        } else {
+            int lSize = left.getTreeSize();
+            int rSize = right.getTreeSize();
+
+            percentage = (2 * (float) score) / (lSize + rSize);
+            fullyMatched = (2 * score) == (lSize + rSize);
+        }
+    }
+
+    /**
+     * Returns true iff the nodes have fully matched, i.e., 100 percent of the trees has been matched.
+     *
+     * @return true iff trees have fully been matched
+     */
+    public boolean hasFullyMatched() {
+        return fullyMatched;
     }
 
     /**
@@ -193,7 +251,8 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
 
     @Override
     public String toString() {
-        return String.format("(%s, %s) = %d", getLeft().getId(), getRight().getId(), score);
+        int percentage = (int) (getPercentage() * 100);
+        return String.format("(%s, %s) = %d (%d%%)", getLeft().getId(), getRight().getId(), score, percentage);
     }
 
     @Override

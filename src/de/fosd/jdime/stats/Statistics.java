@@ -33,6 +33,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -51,6 +52,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.matching.LookAheadMatching;
+import de.fosd.jdime.matcher.matching.Matching;
 
 /**
  * A collection of <code>MergeScenarioStatistics</code> containing collected statistics about
@@ -71,10 +74,15 @@ public class Statistics {
         serializer.useAttributeFor(Revision.class, "name");
 
         serializer.alias(Statistics.class.getSimpleName().toLowerCase(), Statistics.class);
+        serializer.omitField(Statistics.class, "currentFileMergeScenario");
         serializer.addImplicitMap(Statistics.class, "scenarioStatistics", MergeScenarioStatistics.class, "mergeScenario");
 
         serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
         serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
+
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
+        serializer.omitField(Matching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
 
@@ -119,6 +127,7 @@ public class Statistics {
 
         serializer.registerConverter(new Converter() {
 
+            private static final String SUBCLASS_ATTR = "subclass";
             private static final String TYPE_ATTR = "type";
             private static final String ID_ATTR = "id";
 
@@ -126,7 +135,8 @@ public class Statistics {
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 Artifact<?> artifact = (Artifact<?>) source;
 
-                writer.addAttribute(TYPE_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(SUBCLASS_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(TYPE_ATTR, artifact.getType().name());
                 writer.addAttribute(ID_ATTR, artifact.getId());
             }
 
@@ -333,7 +343,14 @@ public class Statistics {
      *         the <code>PrintStream</code> to write to
      */
     public void print(PrintStream ps) {
-        getScenarioStatistics().forEach(statistics -> statistics.print(ps));
+
+        for (Iterator<MergeScenarioStatistics> it = getScenarioStatistics().iterator(); it.hasNext(); ) {
+            it.next().print(ps);
+
+            if (it.hasNext()) {
+                ps.println();
+            }
+        }
     }
 
     /**

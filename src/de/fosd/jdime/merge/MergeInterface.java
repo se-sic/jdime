@@ -43,7 +43,7 @@ public interface MergeInterface<T extends Artifact<T>> {
      * <p>
      * The source and target <code>Artifacts</code> are extracted from the <code>MergeOperation</code>. It is determined
      * what kind of merge (e.g., two-way or three-way) has to be done. The source <code>Artifacts</code> are compared to
-     * each other using implementations of <code>MatchingInterface</code>. Finally, a unified <code>Artifact</code> is
+     * each other using the <code>Matcher</code>. Finally, a unified <code>Artifact</code> is
      * created, the target <code>Artifact</code>. Therefore, it should be considered by the merge implementation whether
      * the order of elements is significant or not.
      *

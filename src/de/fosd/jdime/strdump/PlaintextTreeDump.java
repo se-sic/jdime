@@ -29,8 +29,8 @@ import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matching;
 
 /**
  * Dumps the given <code>Artifact</code> tree as indented plaintext.

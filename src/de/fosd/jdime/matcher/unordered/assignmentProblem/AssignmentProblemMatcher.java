@@ -21,14 +21,15 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.MatcherInterface;
+import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 
 /**
  * <code>UnorderedMatcher</code> that solves the assignment problem, which
@@ -40,15 +41,15 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
-    private String id = getClass().getSimpleName();
+    private static final String ID = AssignmentProblemMatcher.class.getSimpleName();
 
     /**
-     * Constructs a new <code>AssignmentProblemMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>AssignmentProblemMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatcherInterface</code>
      */
-    public AssignmentProblemMatcher(final Matcher<T> matcher) {
+    public AssignmentProblemMatcher(MatcherInterface<T> matcher) {
         super(matcher);
     }
 
@@ -58,31 +59,8 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
      * TODO: this really needs documentation. I'll soon take care of that.
      */
     @Override
-    public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
+    public final Matchings<T> match(final MergeContext context, final T left, final T right) {
         int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
-                /*
-                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
-                 * subtrees and return early to save time.
-                 */
-
-                LOG.finest(() -> {
-                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-                    return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
-                });
-
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
-                m.get(left, right).get().setAlgorithm(id);
-
-                return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
-            }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
-        }
 
         // number of first-level subtrees of t1
         int m = left.getNumChildren();
@@ -92,7 +70,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
 
         if (m == 0 || n == 0) {
             Matchings<T> matchings = Matchings.of(left, right, rootMatching);
-            matchings.get(left, right).get().setAlgorithm(id);
+            matchings.get(left, right).get().setAlgorithm(ID);
 
             return matchings;
         }
@@ -113,7 +91,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
             childT1 = left.getChild(i);
             for (int j = 0; j < n; j++) {
                 childT2 = right.getChild(j);
-                Matchings<T> w = matcher.match(context, childT1, childT2, lookAhead);
+                Matchings<T> w = matcher.match(context, childT1, childT2);
                 Matching<T> matching = w.get(childT1, childT2).get();
                 matchings[i][j] = Tuple.of(matching.getScore(), w);
             }
