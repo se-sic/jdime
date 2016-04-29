@@ -95,6 +95,7 @@ public class Matcher<T extends Artifact<T>> {
 
     private UnorderedTuple<T, T> lookupTuple;
     private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
+    private EqualityMatcher<T> equalityMatcher;
 
     private Set<Artifact<T>> orderedChildren;
     private Set<Artifact<T>> uniquelyLabeledChildren;
@@ -119,6 +120,7 @@ public class Matcher<T extends Artifact<T>> {
 
         lookupTuple = UnorderedTuple.of(null, null);
         trivialMatches = new HashMap<>();
+        equalityMatcher = new EqualityMatcher<>(null);
         orderedChildren = new HashSet<>();
         uniquelyLabeledChildren = new HashSet<>();
         fullyOrdered = new HashSet<>();
@@ -165,6 +167,16 @@ public class Matcher<T extends Artifact<T>> {
         return matchings;
     }
 
+    /**
+     * Computes some results used during the matching of <code>left</code> and <code>right</code> and caches them.
+     *
+     * @param context
+     *         the current <code>MergeContext</code>
+     * @param left
+     *         the left node to be matched
+     * @param right
+     *         the right node to be matched
+     */
     private void cache(MergeContext context, T left, T right) {
         trivialMatches.clear();
 
@@ -185,6 +197,14 @@ public class Matcher<T extends Artifact<T>> {
         cachedRoots.add(right);
     }
 
+    /**
+     * Caches (recursively for every artifact in the tree under <code>artifact</code>) the ordering
+     * (whether the artifact itself is ordered, its children are ordered or the whole tree with <code>artifact</code>
+     * at its root is ordered) and whether the the artifact has uniquely labeled children.
+     *
+     * @param artifact
+     *         the <code>artifact</code> for which results are to be cached
+     */
     private void cacheOrderingAndLabeling(T artifact) {
         ArtifactList<T> children = artifact.getChildren();
 
@@ -252,7 +272,7 @@ public class Matcher<T extends Artifact<T>> {
          * To avoid redundant calls, we save the matchings reported by EqualityMatcher and perform lookups on
          * subsequent runs.
          */
-        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(left, right);
+        Optional<Matchings<T>> trivialMatches = getTrivialMatchings(context, left, right);
 
         if (trivialMatches.isPresent()) {
             calls++;
@@ -302,15 +322,22 @@ public class Matcher<T extends Artifact<T>> {
      * Returns the trivial Matchings if <code>left</code> and <code>right</code> are exactly equal as determined by
      * the <code>EqualityMatcher</code>.
      *
+     * @param context
+     *         the <code>MergeContext</code>
      * @param left
      *         the left tree
      * @param right
      *         the right tree
      * @return the <code>Matchings</code>
      */
-    private Optional<Matchings<T>> getTrivialMatchings(T left, T right) {
+    private Optional<Matchings<T>> getTrivialMatchings(MergeContext context, T left, T right) {
         lookupTuple.setX(left);
         lookupTuple.setY(right);
+
+        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
+            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
+            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+        }
 
         if (trivialMatches.containsKey(lookupTuple)) {
             Matchings<T> matchings = new Matchings<>();
@@ -321,7 +348,7 @@ public class Matcher<T extends Artifact<T>> {
             Iterator<T> rIt = right.getChildren().iterator();
 
             while (lIt.hasNext() && rIt.hasNext()) {
-                matchings.addAll(getTrivialMatchings(lIt.next(), rIt.next()).get());
+                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
             }
 
             lookupTuple.setX(null);
@@ -333,6 +360,18 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
+    /**
+     * Determines which <code>Matcher</code> to use for matching <code>left</code> and <code>right</code> and returns
+     * the resulting <code>Matchings</code>.
+     *
+     * @param context
+     *         the <code>MergeContext</code>
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return the <code>Matchings</code>
+     */
     private Matchings<T> getMatchings(MergeContext context, T left, T right) {
         boolean fullyOrderedChildren = false;
 
@@ -372,6 +411,23 @@ public class Matcher<T extends Artifact<T>> {
         }
     }
 
+    /**
+     * If <code>left</code> and <code>right</code> do not match, this method attempts to find two <code>Artifacts</code>
+     * (children of <code>left</code> and <code>right</code>) with which to resume matching the two trees. Depending
+     * on the type of the <code>Artifact</code>s a different lookahead will be performed. E.g. in the case of two
+     * METHOD <code>Artifact</code>s they themselves will be returned to try and detect renamings. If one of them is
+     * a TRY <code>Artifact</code>, the method will attempt to find a node matching the other and return them as a
+     * tuple. This is an attempt to find code that was surrounded by a try/catch block.
+     *
+     * @param context
+     *         the <code>MergeContext</code>
+     * @param left
+     *         the left tree
+     * @param right
+     *         the right tree
+     * @return optionally the two <code>Artifact</code>s to try and match instead of <code>left</code> and
+     *          <code>right</code>
+     */
     private Optional<UnorderedTuple<T, T>> lookAhead(MergeContext context, T left, T right) {
 
         if (!context.isLookAhead()) {

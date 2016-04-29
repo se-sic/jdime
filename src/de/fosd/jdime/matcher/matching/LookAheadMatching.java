@@ -26,12 +26,40 @@ package de.fosd.jdime.matcher.matching;
 import java.util.Objects;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.matcher.Matcher;
 
+/**
+ * This <code>Matching</code> is used by the <code>Matcher</code> if lookahead is enabled. The concrete
+ * <code>Matcher</code>s (like the <code>SimpleTreeMatcher</code>) always expect a <code>Matching</code> for the pair
+ * of <code>Artifact</code>s that they passed to the {@link Matcher#match(MergeContext, Artifact, Artifact)}. However
+ * when lookahead is enabled, we may instead find a <code>Matching</code> for children of the <code>Artifact</code>s that
+ * were passed in. To ensure that the concrete <code>Matcher</code>s work correctly and that the <code>Matching</code>
+ * between the children is added in {@link Matcher#storeMatchings(MergeContext, Matchings, Color)} this class overloads
+ * some methods of the <code>Matching</code> base class.
+ *
+ * @param <T>
+ *         the type of <code>Artifact</code>
+ */
 public class LookAheadMatching<T extends Artifact<T>> extends Matching<T> {
 
     private UnorderedTuple<T, T> lookAheadFrom;
 
+    /**
+     * Constructs a new <code>LookAheadMatching</code>. For the sake of the concrete <code>Matcher</code>s this class
+     * 'pretends' to match the artifacts <code>lookAheadLeft</code> and <code>lookAheadRight</code>. These
+     * <code>Artifact</code>s will be used for {@link #getMatchedArtifacts()}, {@link #equals(Object)} and
+     * {@link #hashCode()}. The {@link #getLeft()} and {@link #getRight()} methods however will return the
+     * <code>Artifact</code>s that were really matched.
+     *
+     * @param realMatching
+     *         the <code>Artifact</code>s that were matched
+     * @param lookAheadLeft
+     *         the left <code>Artifact</code> for which lookahead matching was used
+     * @param lookAheadRight
+     *         the right <code>Artifact</code> for which lookahead matching was used
+     */
     public LookAheadMatching(Matching<T> realMatching, T lookAheadLeft, T lookAheadRight) {
         super(realMatching.getLeft(), realMatching.getRight(), realMatching.getScore());
         this.lookAheadFrom = UnorderedTuple.of(lookAheadLeft, lookAheadRight);
