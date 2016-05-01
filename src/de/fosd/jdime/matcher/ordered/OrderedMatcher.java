@@ -28,8 +28,8 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.MatchingInterface;
-import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.MatcherInterface;
+import de.fosd.jdime.matcher.matching.Matchings;
 
 /**
  * <code>OrderedMatcher</code>s consider the order of the elements they match important when comparing
@@ -39,22 +39,22 @@ import de.fosd.jdime.matcher.Matchings;
  *         the type of the <code>Artifact</code>s
  * @author Olaf Lessenich
  */
-public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingInterface<T> {
+public abstract class OrderedMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
     protected static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
 
     /**
      * The matcher is used for recursive matching calls. It can determine whether the order of artifacts is essential.
      */
-    Matcher<T> matcher;
+    protected MatcherInterface<T> matcher;
 
     /**
      * Constructs a new <code>OrderedMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatcherInterface</code>
      */
-    public OrderedMatcher(Matcher<T> matcher) {
+    public OrderedMatcher(MatcherInterface<T> matcher) {
         this.matcher = matcher;
     }
 
@@ -64,5 +64,5 @@ public abstract class OrderedMatcher<T extends Artifact<T>> implements MatchingI
      * Compares <code>left</code> and <code>right</code> while considering the order of the elements important.
      */
     @Override
-    public abstract Matchings<T> match(MergeContext context, T left, T right, int lookAhead);
+    public abstract Matchings<T> match(MergeContext context, T left, T right);
 }

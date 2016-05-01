@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import java.util.Arrays;
 

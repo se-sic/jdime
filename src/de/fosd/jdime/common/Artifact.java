@@ -26,18 +26,22 @@ package de.fosd.jdime.common;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
 
@@ -88,7 +92,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Map to store matches.
      */
-    LinkedHashMap<Revision, Matching<T>> matches = null;
+    protected Map<Revision, Matching<T>> matches;
 
     /**
      * Whether the artifact has been already merged.
@@ -116,6 +120,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param rev the <code>Revision</code> for the <code>Artifact</code>
      */
     public Artifact(Revision rev) {
+        this.matches = new LinkedHashMap<>();
         this.revision = rev;
         this.number = nextID(rev);
     }
@@ -147,10 +152,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         matching to be added
      */
     public void addMatching(Matching<T> matching) {
-        if (matches == null) {
-            matches = new LinkedHashMap<>();
-        }
-
         matches.put(matching.getMatchingArtifact(this).getRevision(), matching);
     }
 
@@ -162,11 +163,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     @SuppressWarnings("unchecked")
     public void cloneMatches(T other) {
-
-        if (other.matches == null) {
-            return;
-        }
-
         matches = new LinkedHashMap<>();
 
         for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
@@ -296,7 +292,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return <code>Matching</code> with <code>Revision</code>
      */
     public Matching<T> getMatching(Revision rev) {
-        return matches == null ? null : matches.get(rev);
+        return matches.get(rev);
+    }
+
+    /**
+     * Returns all <code>Matching</code>s added for this <code>Artifact</code>.
+     *
+     * @return the <code>Matching</code>s
+     */
+    public Set<Matching<T>> getMatchings() {
+        return new HashSet<>(matches.values());
     }
 
     /**
@@ -449,12 +454,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         Artifact<?> artifact = (Artifact<?>) o;
 
-        return Objects.equals(getId(), artifact.getId());
+        return number == artifact.number &&
+                Objects.equals(revision, artifact.revision);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId());
+        return Objects.hash(number, revision);
     }
 
     /**
@@ -463,7 +469,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return true if the <code>Artifact</code> has matches
      */
     public boolean hasMatches() {
-        return matches != null && !matches.isEmpty();
+        return !matches.isEmpty();
     }
 
     /**
@@ -474,11 +480,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
      */
     public final boolean hasMatching(Revision rev) {
-        boolean hasMatching = matches != null && matches.containsKey(rev);
+        boolean hasMatching = matches.containsKey(rev);
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(getId() + ".hasMatching(" + rev + ")");
-            if (matches != null) {
+            if (!matches.isEmpty()) {
                 for (Revision r : matches.keySet()) {
                     LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
                     LOG.finest("hasMatching(" + r + ") = " + hasMatching);
@@ -510,11 +516,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public final boolean hasMatching(T other) {
         Revision otherRev = other.getRevision();
-        boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        boolean hasMatching = matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
-            if (matches != null) {
+            if (!matches.isEmpty()) {
                 for (Revision r : matches.keySet()) {
                     LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
                     LOG.finest("hasMatching(" + r + ") = " + hasMatching);
@@ -537,12 +543,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether this <code>Artifact</code> has unique labels.
-     * If this is the case, a more efficient <code>UnorderedMatcher</code> can be used.
+     * Returns a <code>Supplier</code> producing a unique label for this <code>Artifact</code> or an empty optional
+     * if there is no such label. If there is a unique label a more efficient <code>UnorderedMatcher</code> can be used.
      *
-     * @return whether the <code>Artifact</code> has unique labels
+     * @return optionally a <code>Supplier</code> producing a unique label
      */
-    public abstract boolean hasUniqueLabels();
+    public abstract Optional<Supplier<String>> getUniqueLabel();
 
     /**
      * Returns true if the <code>Artifact</code> is a conflict node.
@@ -623,15 +629,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return true, if the <code>Artifact</code>s match
      */
     public abstract boolean matches(T other);
-
-    /**
-     * Returns true if matches were previously computed.
-     *
-     * @return true if matches were already computed
-     */
-    public boolean matchingComputed(Revision rev) {
-        return matches != null && hasMatching(rev);
-    }
 
     /**
      * Performs a merge on the provided merge triple.
@@ -778,10 +775,39 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     @Override
     public abstract String toString();
 
+    @Override
+    public final int compareTo(T o) {
+        return getId().compareTo(o.getId());
+    }
+
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
      */
     public HashMap<String, T> getVariants() {
         return variants;
+    }
+
+    /**
+     * Searches for an artifact using its id. If the artifact can't be found, null is returned.
+     *
+     * @param id id of the artifact that should be found
+     * @return artifact iff found, null otherwise
+     */
+    public Artifact<T> find(String id) {
+        Artifact<T> result = null;
+
+        if (getId().equals(id)) {
+            result = this;
+        }
+
+        for (T child : children) {
+            if (result != null) {
+                break;
+            }
+
+            result = child.find(id);
+        }
+
+        return result;
     }
 }

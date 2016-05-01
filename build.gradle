@@ -75,7 +75,7 @@ license {
         exclude it.getRelativePath().getPathString()
     }
 
-    exclude "de/fosd/jdime/matcher/unordered/HungarianAlgorithm.java"
+    exclude "de/fosd/jdime/matcher/unordered/assignmentProblem/HungarianAlgorithm.java"
 }
 
 idea {
@@ -133,6 +133,13 @@ distributions {
     }
 }
 
+installDist {
+
+    if (project.hasProperty('distDir')) {
+        destinationDir = file(project.property('distDir'))
+    }
+}
+
 run {
     main = 'de.fosd.jdime.gui.GUI'
 }
@@ -164,9 +171,11 @@ task getTestFiles {
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
-        def status = grgit.branch.status(name: 'master')
 
+        grgit.fetch()
+        def status = grgit.branch.status(name: 'master')
         grgit.close()
+
         return status.behindCount == 0
     }
 
@@ -174,7 +183,7 @@ task getTestFiles {
         if (testFilesDir.exists()) {
             def grgit = Grgit.open(dir: testFilesDir)
 
-            grgit.pull()
+            grgit.merge(head: 'origin/master')
             grgit.close()
         } else {
             Grgit.clone(dir: testFilesDir, uri: gitURI).close()

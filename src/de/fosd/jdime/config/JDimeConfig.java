@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
+import de.fosd.jdime.stats.KeyEnums;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
@@ -156,6 +157,12 @@ public final class JDimeConfig extends Config {
      * The default name pattern when {@link #STATISTICS_XML_NAME} is not given.
      */
     public static final String STATISTICS_XML_DEFAULT_NAME = "Statistics_XML.xml";
+
+    /**
+     * This prefix followed by one of the names of the variants in {@link KeyEnums.Type} can be used to define the
+     * lookahead to be applied when encountering non-matching nodes of the given type.
+     */
+    public static final String LOOKAHEAD_PREFIX = "LAH_";
 
     /**
      * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If a

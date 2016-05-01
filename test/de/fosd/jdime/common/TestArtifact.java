@@ -23,6 +23,9 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 
@@ -34,18 +37,17 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     private static final Revision testRevision = new Revision("TEST");
 
-    public TestArtifact() {
-        this(testRevision);
+    private String label;
+    private KeyEnums.Type type;
+
+    public TestArtifact(String label, KeyEnums.Type type) {
+        this(testRevision, label, type);
     }
 
-    public TestArtifact(Revision rev) {
+    public TestArtifact(Revision rev, String label, KeyEnums.Type type) {
         super(rev);
-        this.children = new ArtifactList<>();
-    }
-
-    public TestArtifact(int id) {
-        super(testRevision);
-        this.setNumber(id);
+        this.label = label;
+        this.type = type;
         this.children = new ArtifactList<>();
     }
 
@@ -57,15 +59,15 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact clone() {
-        TestArtifact clone = new TestArtifact();
-        clone.setNumber(getNumber());
-        clone.children = children;
-        return clone;
+        throw new NotYetImplementedException();
     }
 
     @Override
     public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
-        return null;
+        TestArtifact conflict = new TestArtifact(MergeScenario.CONFLICT, "Conflict", KeyEnums.Type.NODE);
+        conflict.setConflict(left, right);
+
+        return conflict;
     }
 
     @Override
@@ -94,27 +96,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String getId() {
-        return String.valueOf(getNumber());
+        return String.format("%s : %s : %d", getRevision(), label, getNumber());
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TestArtifact that = (TestArtifact) o;
-
-        return getNumber() == that.getNumber();
-    }
-
-    @Override
-    public int hashCode() {
-        return getNumber();
-    }
-
-    @Override
-    public boolean hasUniqueLabels() {
-        return true;
+    public Optional<Supplier<String>> getUniqueLabel() {
+        return Optional.empty();
     }
 
     @Override
@@ -129,12 +116,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public boolean isOrdered() {
-        return true;
+        return type != KeyEnums.Type.METHOD;
     }
 
     @Override
     public boolean matches(TestArtifact other) {
-        return getNumber() == other.getNumber();
+        return this.type == other.type && this.label.equals(other.label);
     }
 
     @Override
@@ -144,17 +131,12 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": " + String.valueOf(getNumber());
-    }
-
-    @Override
-    public int compareTo(TestArtifact o) {
-        return getNumber() - o.getNumber();
+        return getId() + " (" + type + ")";
     }
 
     @Override
     public KeyEnums.Type getType() {
-        return null;
+        return type;
     }
 
     @Override

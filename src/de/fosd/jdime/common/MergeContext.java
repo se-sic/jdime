@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -60,7 +61,7 @@ public class MergeContext implements Cloneable {
      * Do look at all nodes in the subtree even if the compared nodes are not
      * equal.
      */
-    public static final int LOOKAHEAD_FULL = -1;
+    public static final int LOOKAHEAD_FULL = Integer.MAX_VALUE;
 
     /**
      * Stop looking for subtree matches if the two nodes compared are not equal.
@@ -91,6 +92,16 @@ public class MergeContext implements Cloneable {
      * If set the input <code>Artifact</code>s will be dumped in the given format instead of merging.
      */
     private DumpMode dumpMode;
+
+    /**
+     * The number of an artifact that should be inspected. If this is set, no merge will be executed.
+     */
+    private int inspectArtifact;
+
+    /**
+     * The scope of inspection.
+     */
+    private KeyEnums.Type inspectionScope;
 
     /**
      * Force overwriting of existing output files.
@@ -164,6 +175,8 @@ public class MergeContext implements Cloneable {
      * The default ist to do no look-ahead matching.
      */
     private int lookAhead;
+    private Map<KeyEnums.Type, Integer> lookAheads;
+
     private Map<MergeScenario<?>, Throwable> crashes;
 
     /**
@@ -190,6 +203,7 @@ public class MergeContext implements Cloneable {
         this.stdErr = new StringWriter();
         this.stdIn = new StringWriter();
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
+        this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
     }
 
@@ -205,6 +219,8 @@ public class MergeContext implements Cloneable {
         this.diffOnly = toCopy.diffOnly;
         this.consecutive = toCopy.consecutive;
         this.dumpMode = toCopy.dumpMode;
+        this.inspectArtifact = toCopy.inspectArtifact;
+        this.inspectionScope = toCopy.inspectionScope;
         this.forceOverwriting = toCopy.forceOverwriting;
 
         this.inputFiles = new ArtifactList<>();
@@ -228,6 +244,7 @@ public class MergeContext implements Cloneable {
         this.stdIn.append(toCopy.stdIn.toString());
 
         this.lookAhead = toCopy.lookAhead;
+        this.lookAheads = new HashMap<>(toCopy.lookAheads);
 
         this.crashes = new HashMap<>(toCopy.crashes);
     }
@@ -262,6 +279,11 @@ public class MergeContext implements Cloneable {
                 }
             }
         }).ifPresent(this::setLookAhead);
+
+        for (KeyEnums.Type type : KeyEnums.Type.values()) {
+            Optional<Integer> lah = config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name());
+            lah.ifPresent(val -> setLookAhead(type, val));
+        }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
         config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
@@ -311,14 +333,16 @@ public class MergeContext implements Cloneable {
             }
 
             for (String path : paths) {
+                String fileName = path.trim();
+
                 try {
-                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(path));
+                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(fileName));
                     inputArtifacts.add(artifact);
                 } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", path));
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", fileName));
                     throw new AbortException(e);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", path));
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", fileName));
                     throw new AbortException(e);
                 }
             }
@@ -744,12 +768,28 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns the specific lookahead for the given type or the generic lookahead as returned by
+     * {@link #getLookAhead()}.
+     *
+     * @param type
+     *         the type to get the lookahead for
+     * @return the lookahead
+     */
+    public int getLookahead(KeyEnums.Type type) {
+        if (lookAheads.containsKey(type)) {
+            return lookAheads.containsKey(type) ? lookAheads.get(type) : LOOKAHEAD_OFF;
+        } else {
+            return lookAhead;
+        }
+    }
+
+    /**
      * Returns whether lookahead is enabled.
      *
      * @return true iff lookahead is enabled
      */
     public boolean isLookAhead() {
-        return lookAhead != MergeContext.LOOKAHEAD_OFF;
+        return !lookAheads.isEmpty() || lookAhead != MergeContext.LOOKAHEAD_OFF;
     }
 
     /**
@@ -767,6 +807,18 @@ public class MergeContext implements Cloneable {
      */
     public void setLookAhead(int lookAhead) {
         this.lookAhead = lookAhead;
+    }
+
+    /**
+     * Sets the specific lookahead for the given type.
+     *
+     * @param type
+     *         the type whose lookahead is to be set
+     * @param lookAhead
+     *         the lookahead for the type
+     */
+    public void setLookAhead(KeyEnums.Type type, int lookAhead) {
+        lookAheads.put(type, lookAhead);
     }
 
     /**
@@ -824,5 +876,49 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
+    }
+
+    /**
+     * Returns the number of the artifact that should be inspected.
+     *
+     * @return number of artifact that should be inspected
+     */
+    public int getInspectArtifact() {
+        return inspectArtifact;
+    }
+
+    /**
+     * Returns the scope of inspection.
+     *
+     * @return scope of inspection
+     */
+    public KeyEnums.Type getInspectionScope() {
+        return inspectionScope;
+    }
+
+    /**
+     * Sets the artifact that should be inspected.
+     * If this is set, no merge will be executed.
+     *
+     * @param inspectArtifact number of the artifact that should be inspected.
+     */
+    public void setInspectArtifact(int inspectArtifact) {
+        this.inspectArtifact = inspectArtifact;
+    }
+
+    /**
+     * Sets the scope of inspection.
+     *
+     * @param scope scope of inspection
+     */
+    public void setInspectionScope(KeyEnums.Type scope) {
+        this.inspectionScope = scope;
+    }
+
+    /**
+     * Whether to inspect an artifact instead of merging.
+     */
+    public boolean isInspect() {
+        return inspectArtifact > 0;
     }
 }

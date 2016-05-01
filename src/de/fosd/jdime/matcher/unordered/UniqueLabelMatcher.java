@@ -25,14 +25,15 @@ package de.fosd.jdime.matcher.unordered;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.MatcherInterface;
+import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.matcher.matching.Matchings;
 
 /**
  * TODO: This needs more explanation.
@@ -43,13 +44,21 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<T> {
 
+    private static final String ID = UniqueLabelMatcher.class.getSimpleName();
+
+    private final Comparator<T> comp = (o1, o2) -> {
+
+        // we expect that the Artifacts have a unique label, if they do not an exception is to be expected
+        return o1.getUniqueLabel().get().get().compareTo(o2.getUniqueLabel().get().get());
+    };
+
     /**
-     * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatcherInterface</code>
      */
-    public UniqueLabelMatcher(Matcher<T> matcher) {
+    public UniqueLabelMatcher(MatcherInterface<T> matcher) {
         super(matcher);
     }
 
@@ -59,36 +68,12 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
      * TODO: this needs explanation, I'll fix it soon.
      */
     @Override
-    public final Matchings<T> match(final MergeContext context, final T left, final T right, int lookAhead) {
-        String id = getClass().getSimpleName();
+    public final Matchings<T> match(final MergeContext context, final T left, final T right) {
         int rootMatching = left.matches(right) ? 1 : 0;
-
-        if (rootMatching == 0) {
-            if (lookAhead == 0) {
-                /*
-                 * The roots do not match and we cannot use the look-ahead feature.  We therefore ignore the rest of the
-                 * subtrees and return early to save time.
-                 */
-
-                LOG.finest(() -> {
-                    String format = "%s - early return while matching %s and %s (LookAhead = %d)";
-                    return String.format(format, id, left.getId(), right.getId(), context.getLookAhead());
-                });
-
-                Matchings<T> m = Matchings.of(left, right, rootMatching);
-                m.get(left, right).get().setAlgorithm(id);
-
-                return m;
-            } else if (lookAhead > 0) {
-                lookAhead = lookAhead - 1;
-            }
-        } else if (context.isLookAhead()) {
-            lookAhead = context.getLookAhead();
-        }
 
         if (left.getNumChildren() == 0 || right.getNumChildren() == 0) {
             Matchings<T> m = Matchings.of(left, right, rootMatching);
-            m.get(left, right).get().setAlgorithm(id);
+            m.get(left, right).get().setAlgorithm(ID);
 
             return m;
         }
@@ -97,8 +82,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         List<T> leftChildren = left.getChildren();
         List<T> rightChildren = right.getChildren();
 
-        Collections.sort(leftChildren);
-        Collections.sort(rightChildren);
+        Collections.sort(leftChildren, comp);
+        Collections.sort(rightChildren, comp);
 
         Iterator<T> leftIt = leftChildren.iterator();
         Iterator<T> rightIt = rightChildren.iterator();
@@ -108,7 +93,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 
         boolean done = false;
         while (!done) {
-            int c = leftChild.compareTo(rightChild);
+            int c = comp.compare(leftChild, rightChild);
             if (c < 0) {
                 if (leftIt.hasNext()) {
                     leftChild = leftIt.next();
@@ -122,7 +107,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
                     done = true;
                 }
             } else if (c == 0) {
-                Matchings<T> childMatching = matcher.match(context, leftChild, rightChild, lookAhead);
+                Matchings<T> childMatching = matcher.match(context, leftChild, rightChild);
                 Matching<T> matching = childMatching.get(leftChild, rightChild).get();
 
                 childrenMatchings.add(childMatching);
@@ -138,6 +123,7 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         }
 
         Matchings<T> result = Matchings.of(left, right, sum + rootMatching);
+        result.get(left, right).get().setAlgorithm(ID);
         result.addAllMatchings(childrenMatchings);
 
         return result;

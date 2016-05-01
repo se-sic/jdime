@@ -23,8 +23,6 @@
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
-
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 

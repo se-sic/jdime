@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,8 +48,10 @@ import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
+import org.jastadd.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
+import static de.fosd.jdime.strdump.DumpMode.PRETTY_PRINT_DUMP;
 
 /**
  * @author Olaf Lessenich
@@ -226,15 +230,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final int compareTo(final ASTNodeArtifact o) {
-        if (hasUniqueLabels()) {
-            return astnode.dumpString().compareTo(o.astnode.dumpString());
-        } else {
-            throw new RuntimeException("This artifact is not comparable.");
-        }
-    }
-
-    @Override
     public ASTNodeArtifact createEmptyArtifact(Revision revision) {
         return new ASTNodeArtifact(revision);
     }
@@ -259,7 +254,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
-        return astnode.prettyPrint();
+        String indent = isRoot() ? "" : astnode.extractIndent();
+        return indent + astnode.prettyPrint();
     }
 
     @Override
@@ -278,6 +274,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             return KeyEnums.Type.METHOD;
         } else if (isClass()) {
             return KeyEnums.Type.CLASS;
+        } else if (astnode instanceof TryStmt){
+            return KeyEnums.Type.TRY;
         } else {
             return KeyEnums.Type.NODE;
         }
@@ -330,9 +328,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final boolean hasUniqueLabels() {
-        return ImportDecl.class.isAssignableFrom(astnode.getClass())
-                || Literal.class.isAssignableFrom(astnode.getClass());
+    public Optional<Supplier<String>> getUniqueLabel() {
+        boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())
+                            || Literal.class.isAssignableFrom(astnode.getClass());
+
+        return hasLabel ? Optional.of(() -> astnode.dumpString()) : Optional.empty();
     }
 
     @Override
@@ -581,5 +581,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         choice.setChoice(condition, artifact);
 
         return choice;
+    }
+
+    /**
+     * Inspects an artifact. This can be used to retrieve information about a single artifact.
+     */
+    public String inspect() {
+        return dump(PRETTY_PRINT_DUMP);
     }
 }

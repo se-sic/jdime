@@ -36,8 +36,9 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matching;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -78,22 +79,22 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             Objects.requireNonNull(target, "target must not be null!");
         }
 
-        Diff<T> diff = new Diff<>();
-
+        Matcher<T> matcher = new Matcher<>();
         Matching<T> m;
-        if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
+
+        if (!left.hasMatching(r) && !right.hasMatching(l)) {
             if (!base.isEmpty()) {
                 // 3-way merge
 
                 // diff base left
-                m = diff.compare(context, base, left, Color.GREEN).get(base, left).get();
+                m = matcher.match(context, base, left, Color.GREEN).get(base, left).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), left.getId()));
                 }
 
                 // diff base right
-                m = diff.compare(context, base, right, Color.GREEN).get(base, right).get();
+                m = matcher.match(context, base, right, Color.GREEN).get(base, right).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), right.getId()));
@@ -101,11 +102,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             // diff left right
-            m = diff.compare(context, left, right, Color.BLUE).get(left, right).get();
+            m = matcher.match(context, left, right, Color.BLUE).get(left, right).get();
 
-            // TODO: compute and write diff stats
-            if (context.isDiffOnly() && left.isRoot()
-                    && left instanceof ASTNodeArtifact) {
+            if (context.isDiffOnly() && left.isRoot() && left instanceof ASTNodeArtifact) {
                 assert (right.isRoot());
                 return;
             }

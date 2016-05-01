@@ -21,11 +21,12 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher;
+package de.fosd.jdime.matcher.matching;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
@@ -46,6 +46,8 @@ import de.fosd.jdime.common.UnorderedTuple;
  *         the type of the <code>Artifact</code>s
  */
 public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
+
+    private final UnorderedTuple<T, T> tuple = UnorderedTuple.of(null, null);
 
     /**
      * Creates a new <code>Matchings</code> instance containing a single <code>Matching</code> that matches
@@ -113,7 +115,15 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
      * @return optionally the <code>Matching</code> matching the given <code>artifacts</code>
      */
     public Optional<Matching<T>> get(T left, T right) {
-        return get(UnorderedTuple.of(left, right));
+        tuple.setX(left);
+        tuple.setY(right);
+
+        Optional<Matching<T>> matching = get(tuple);
+
+        tuple.setX(null);
+        tuple.setY(null);
+
+        return matching;
     }
 
     /**
@@ -145,7 +155,15 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
      * @return optionally the matching score for the given <code>artifacts</code>
      */
     public Optional<Integer> getScore(T left, T right) {
-        return getScore(UnorderedTuple.of(left, right));
+        tuple.setX(left);
+        tuple.setY(right);
+
+        Optional<Integer> matching = getScore(tuple);
+
+        tuple.setX(null);
+        tuple.setY(null);
+
+        return matching;
     }
 
     /**
@@ -172,9 +190,11 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
         forEach(matching -> {
             UnorderedTuple<T, T> artifacts = matching.getMatchedArtifacts();
             BiFunction<Artifact<T>, List<Matching<T>>, List<Matching<T>>> adder = (artifact, list) -> {
+
                 if (list == null) {
                     list = new ArrayList<>();
                 }
+
                 list.add(matching);
 
                 return list;
@@ -184,10 +204,30 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
             matchings.compute(artifacts.getY(), adder);
         });
 
-        Set<Matching<T>> filtered = matchings.entrySet()
-                                             .stream()
-                                             .map(entry -> Collections.max(entry.getValue(), (o1, o2) -> o1.getScore() - o2.getScore()))
-                                             .collect(Collectors.toSet());
+        Set<Matching<T>> filtered = new HashSet<>();
+        Set<Artifact<T>> computed = new HashSet<>();
+        Comparator<Matching<T>> comp = (o1, o2) -> Float.compare(o1.getPercentage(), o2.getPercentage());
+
+        for (Map.Entry<Artifact<T>, List<Matching<T>>> entry : matchings.entrySet()) {
+            Collections.sort(entry.getValue(), comp.reversed());
+
+            for (Matching<T> max : entry.getValue()) {
+
+                if (max.getScore() == 0) {
+                    break;
+                }
+
+                T left = max.getLeft();
+                T right = max.getRight();
+
+                if (!computed.contains(left) && !computed.contains(right)) {
+                    filtered.add(max);
+                    computed.add(left);
+                    computed.add(right);
+                    break;
+                }
+            }
+        }
 
         Matchings<T> res = new Matchings<>();
         res.addAll(filtered);

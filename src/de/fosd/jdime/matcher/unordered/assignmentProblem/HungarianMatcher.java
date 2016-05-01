@@ -21,16 +21,16 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.matcher.unordered;
+package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.Matching;
-import de.fosd.jdime.matcher.Matchings;
+import de.fosd.jdime.matcher.MatcherInterface;
+import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.matcher.matching.Matchings;
 
 /**
  * This unordered matcher uses the hungarian algorithm to solve the assignment
@@ -47,18 +47,17 @@ import de.fosd.jdime.matcher.Matchings;
  */
 public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMatcher<T> {
 
-    private String id = getClass().getSimpleName();
+    private static final String ID = HungarianMatcher.class.getSimpleName();
 
     /**
-     * Constructs a new <code>HungarianMatcher</code> using the given <code>Matcher</code> for recursive calls.
+     * Constructs a new <code>HungarianMatcher</code> using the given <code>matcher</code> for recursive calls.
      *
      * @param matcher
-     *         the parent <code>Matcher</code>
+     *         the parent <code>MatcherInterface</code>
      */
-    public HungarianMatcher(final Matcher<T> matcher) {
+    public HungarianMatcher(MatcherInterface<T> matcher) {
         super(matcher);
     }
-
 
     /**
      * {@inheritDoc}
@@ -111,7 +110,7 @@ public class HungarianMatcher<T extends Artifact<T>> extends AssignmentProblemMa
         }
 
         Matching<T> matching = new Matching<>(left, right, score + rootMatching);
-        matching.setAlgorithm(id);
+        matching.setAlgorithm(ID);
 
         Matchings<T> result = new Matchings<>();
         result.add(matching);
