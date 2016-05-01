@@ -77,6 +77,7 @@ public class History {
             }
 
             @Override
+            @SuppressWarnings("unchecked")
             public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
                 return new History((ObservableList<State>) context.convertAnother(reader, ObservableList.class));
             }
