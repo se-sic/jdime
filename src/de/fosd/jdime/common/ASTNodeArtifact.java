@@ -558,8 +558,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
+            StringBuilder elements = new StringBuilder();
+            for (Revision r : getMatches().keySet()) {
+                if (elements.length() > 0) {
+                    elements.append(", ");
+                }
+                elements.append(getMatching(r).getMatchingArtifact(this).getId());
+            }
+
             throw new RuntimeException("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
-                    "This is either a bug in ExtendJ or in JDime!");
+                    "This is either a bug in ExtendJ or in JDime! Inspect AST element " +
+                    getId() + " (" + elements.toString() + ") to look into this issue.");
         }
     }
 
