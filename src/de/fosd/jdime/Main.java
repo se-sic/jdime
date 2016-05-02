@@ -66,15 +66,7 @@ import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_DEFAULT_NAME;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_NAME;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_HR_OUTPUT;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_OFF;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_STDOUT;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_OUTPUT_USE_UNIQUE_FILES;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_DEFAULT_NAME;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_NAME;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_OUTPUT;
+import static de.fosd.jdime.config.JDimeConfig.*;
 
 /**
  * Contains the main method of the application.
@@ -362,7 +354,14 @@ public final class Main {
         }
 
         if (config.getBoolean(CLI_VERSION).orElse(false)) {
-            System.out.println(TOOLNAME + " VERSION " + VERSION);
+            Optional<String> commit = config.get(JDIME_COMMIT);
+
+            if (commit.isPresent()) {
+                System.out.printf("%s version %s commit %s%n", TOOLNAME, VERSION, commit.get());
+            } else {
+                System.out.printf("%s version %s%n", TOOLNAME, VERSION);
+            }
+
             return false;
         }
 

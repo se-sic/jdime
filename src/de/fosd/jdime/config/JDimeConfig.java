@@ -165,6 +165,12 @@ public final class JDimeConfig extends Config {
     public static final String LOOKAHEAD_PREFIX = "LAH_";
 
     /**
+     * The commit that was checked out at the time JDime was built. The build script will add this value to
+     * JDime.properties.
+     */
+    public static final String JDIME_COMMIT = "JDIME_COMMIT";
+
+    /**
      * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If a
      * <code>File</code> named {@value #CONFIG_FILE_NAME} in the current working directory does exist a
      * <code>PropFileConfigSource</code> will be added for it.
