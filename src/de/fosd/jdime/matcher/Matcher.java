@@ -210,11 +210,11 @@ public class Matcher<T extends Artifact<T>> {
 
         children.forEach(this::cacheOrderingAndLabeling);
 
-        if (children.stream().map(Artifact::getUniqueLabel).allMatch(Optional::isPresent)) {
+        if (children.stream().map(T::getUniqueLabel).allMatch(Optional::isPresent)) {
             uniquelyLabeledChildren.add(artifact);
         }
 
-        if (children.stream().allMatch(Artifact::isOrdered)) {
+        if (children.stream().allMatch(T::isOrdered)) {
             orderedChildren.add(artifact);
         }
 

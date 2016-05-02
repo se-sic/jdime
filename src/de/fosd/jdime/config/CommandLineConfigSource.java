@@ -199,7 +199,7 @@ public class CommandLineConfigSource extends ConfigSource {
         options.addOption(o);
 
         {
-            String formats = Arrays.stream(DumpMode.values()).map(Enum::name).reduce("", (s, s2) -> s + " " + s2);
+            String formats = Arrays.stream(DumpMode.values()).map(DumpMode::name).reduce("", (s, s2) -> s + " " + s2);
 
             o = Option.builder(CLI_DUMP)
                     .longOpt("dump")

@@ -35,7 +35,7 @@ __Debian/Ubuntu:__
 `apt-get install git`
 
 __Redhat/Fedora:__  
-`yum install git`  
+`yum install git`
 
 __Suse/OpenSuse:__  
 `zypper install git`
