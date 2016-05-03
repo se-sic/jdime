@@ -272,15 +272,26 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     public String prettyPrint() {
         assert (astnode != null);
 
-        rebuildAST();
-        astnode.flushCaches();
-        astnode.flushTreeCache();
+        try {
+            rebuildAST();
+            astnode.flushCaches();
+            astnode.flushTreeCache();
+        } catch (Exception e) {
+            LOG.severe("Exception caught during prettyPrint(): " + e);
+            LOG.log(Level.SEVERE, e.getMessage(), e);
+        }
 
         if (LOG.isLoggable(Level.FINEST)) {
             System.out.println(dumpTree());
         }
 
-        return astnode.prettyPrint();
+        String prettyprint = astnode.prettyPrint();
+
+        if (prettyprint.trim().length() == 0) {
+            throw new RuntimeException("Error: Could not pretty-print file!");
+        }
+
+        return prettyprint;
     }
 
     @Override
@@ -663,7 +674,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
         }
 
-        assert (isConflict() || getNumChildren() == astnode.getNumChildNoTransform());
+        if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
+            LOG.severe("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
+                    "This is either a bug in ExtendJ or in JDime! Inspect AST element.");
+        }
     }
 
     @Override
