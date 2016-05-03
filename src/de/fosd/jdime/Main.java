@@ -47,7 +47,6 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
@@ -62,9 +61,7 @@ import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
 import static de.fosd.jdime.config.JDimeConfig.*;
 
@@ -84,7 +81,6 @@ public final class Main {
     private static final int EXIT_FAILURE = 1;
 
     private static JDimeConfig config;
-    private static CommandLineConfigSource cmdLine;
 
     /**
      * Prevent instantiation.
@@ -323,30 +319,17 @@ public final class Main {
      * @return true if program should continue
      */
     private static boolean parseCommandLineArgs(MergeContext context, String[] args) {
-        LOG.fine(() -> "Parsing command line arguments: " + Arrays.toString(args));
-
-        CommandLineConfigSource cmdLine;
+        JDimeConfig config;
 
         try {
-            cmdLine = new CommandLineConfigSource(args, 3);
+            config = new JDimeConfig(args);
         } catch (ParseException e) {
-            LOG.log(Level.SEVERE, e, () -> "Arguments could not be parsed!");
+            System.err.println("Failed to parse the command line arguments " + Arrays.toString(args));
+            System.exit(EXIT_FAILURE);
             return false;
         }
 
-        JDimeConfig config;
-        Optional<String> pFilePath = cmdLine.get(CLI_PROP_FILE);
-
-        if (pFilePath.isPresent()) {
-            config = new JDimeConfig(new File(pFilePath.get()));
-        } else {
-            config = new JDimeConfig();
-        }
-
-        config.addSource(cmdLine);
-
         Main.config = config;
-        Main.cmdLine = cmdLine;
 
         if (config.getBoolean(CLI_HELP).orElse(false)) {
             printCLIHelp();
@@ -364,8 +347,6 @@ public final class Main {
 
             return false;
         }
-
-        config.get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
 
         Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
 
@@ -526,6 +507,6 @@ public final class Main {
      */
     private static void printCLIHelp() {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp(Main.TOOLNAME, cmdLine.getOptions(), true);
+        formatter.printHelp(Main.TOOLNAME, config.getCmdLine().getOptions(), true);
     }
 }
