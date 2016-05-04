@@ -222,7 +222,7 @@ public final class JDimeConfig extends Config {
      *         the command line arguments
      */
     private void addConfigSources(String[] args) throws ParseException {
-        this.cmdLine = new CommandLineConfigSource(args, 3);
+        addSource(cmdLine = new CommandLineConfigSource(args, 3));
         get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
 
         loadConfigFile(cmdLine.get(CLI_PROP_FILE).map(File::new).orElse(new File(CONFIG_FILE_NAME)));
