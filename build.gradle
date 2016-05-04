@@ -85,20 +85,8 @@ idea {
     }
 }
 
-def configFile = file('JDime.properties')
 def loggingConfigFile = file('JDimeLogging.properties')
-
-task config {
-    if (configFile.exists()) {
-        inputs.files(configFile)
-        outputs.files(configFile)
-    }
-
-    if (loggingConfigFile.exists()) {
-        inputs.files(loggingConfigFile)
-        outputs.files(loggingConfigFile)
-    }
-}
+def configFile = file('JDime.properties')
 
 def loggingOpt = "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"
 def defaultOpts = ["-Xmx2048m", "-ea"]
@@ -117,17 +105,38 @@ task guiScripts(type: CreateStartScripts) {
     classpath = startScripts.classpath
 }
 
-distributions {
-    main {
-        contents.with {
-            def binDir = 'bin'
+distributions.with {
+    main.with {
+        def binDir = 'bin'
 
+        contents {
             into(binDir) {
                 from(guiScripts)
                 fileMode = 0755
             }
-            into(binDir) {
-                from(config)
+        }
+
+        contents {
+            into binDir, {
+                from project.projectDir, {
+                    include configFile.name
+
+                    def getHeadCommit = {
+                        def grgit = Grgit.open(dir: project.projectDir)
+                        def head = grgit.head();
+
+                        grgit.close()
+                        head.id
+                    }
+
+                    expand([
+                            commit: getHeadCommit()
+                    ])
+                }
+
+                from project.projectDir, {
+                    include loggingConfigFile.name
+                }
             }
         }
     }
