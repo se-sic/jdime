@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -125,7 +126,34 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         <code>file</code> cannot be created.
      */
     public FileArtifact(Revision revision, File file, boolean create, boolean createFile) throws IOException {
-        super(revision);
+        this(revision, new AtomicInteger(0)::getAndIncrement, file, create, createFile);
+    }
+
+    /**
+     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
+     * If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be added
+     * as children to this <code>FileArtifact</code>.
+     *
+     * @param revision
+     *         the <code>Revision</code> the artifact belongs to
+     * @param number
+     *         supplies first the number for this artifact and then in DFS order the number for its children
+     * @param file
+     *         the <code>File</code> in which the artifact is stored
+     * @param create
+     *         whether to create that <code>file</code> if it does not exist
+     * @param createFile
+     *         whether to create a file (instead of a directory), ignored if <code>create</code>
+     *         is <code>false</code>
+     * @throws FileNotFoundException
+     *         if <code>file</code> does not exist and <code>create</code> is <code>false</code>
+     * @throws IOException
+     *         if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to
+     *         {@link java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but
+     *         <code>file</code> cannot be created.
+     */
+    private FileArtifact(Revision revision, Supplier<Integer> number, File file, boolean create, boolean createFile) throws IOException {
+        super(revision, number.get());
 
         if (!file.exists()) {
             if (create) {
@@ -156,13 +184,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         if (isDirectory()) {
             children = new ArtifactList<>();
-            children.addAll(getDirContent());
+            children.addAll(getDirContent(number));
             Collections.sort(children); //TODO relies on FileArtifact having a compareTo method, we will have to use a Comparator when merging with feature/lookahead
         } else {
             children = null;
         }
-
-        // TODO log the important (!) things happening during Artifact creation
     }
 
     @Override
@@ -304,9 +330,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * by this <code>FileArtifact</code>. If this <code>FileArtifact</code> does not represent a directory, an empty
      * list is returned.
      *
+     * @param number
+     *         the number <code>Supplier</code> to be passed to the new <code>FileArtifact</code>s
      * @return <code>FileArtifacts</code> representing the children of this directory
      */
-    private List<FileArtifact> getDirContent() {
+    private List<FileArtifact> getDirContent(Supplier<Integer> number) {
         File[] files = file.listFiles();
 
         if (files == null || files.length == 0) {
@@ -319,8 +347,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
         for (File f : files) {
 
             try {
-                FileArtifact child = new FileArtifact(getRevision(), f);
+                FileArtifact child = new FileArtifact(getRevision(), number, f, false, false);
+
                 child.setParent(this);
+                artifacts.add(child);
             } catch (IOException e) {
                 LOG.log(Level.WARNING, e, () -> "Could not create the FileArtifact for " + f);
             }

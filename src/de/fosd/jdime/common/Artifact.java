@@ -30,10 +30,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -56,8 +54,6 @@ import de.fosd.jdime.strdump.DumpMode;
 public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface {
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
-
-    private static final Map<Revision, AtomicInteger> ids = new ConcurrentHashMap<>();
 
     /**
      * Children of the artifact.
@@ -117,23 +113,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Constructs a new <code>Artifact</code>.
      *
-     * @param rev the <code>Revision</code> for the <code>Artifact</code>
+     * @param rev
+     *         the <code>Revision</code> for the <code>Artifact</code>
+     * @param number
+     *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
      */
-    public Artifact(Revision rev) {
+    protected Artifact(Revision rev, int number) {
         this.matches = new LinkedHashMap<>();
         this.revision = rev;
-        this.number = nextID(rev);
-    }
-
-    /**
-     * Returns the next unused ID for the given {@link Revision}.
-     *
-     * @param rev
-     *         the {@link Revision} amongst whose artifacts the ID should be unused
-     * @return the next unused ID
-     */
-    private static int nextID(Revision rev) {
-        return ids.computeIfAbsent(rev, r -> new AtomicInteger()).getAndIncrement();
+        this.number = number;
     }
 
     /**
@@ -323,6 +311,29 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Sets the number of all <code>Artifact</code>s contained in the same tree as this <code>Artifact</code> to their
+     * index in a DFS traversal of the tree.
+     */
+    public void renumberTree() {
+        findRoot().renumber(new AtomicInteger()::getAndIncrement);
+    }
+
+    /**
+     * Sets the number of this <code>Artifact</code> to the first <code>Integer</code> supplied by <code>number</code>
+     * and then calls this method for all children with the given <code>number</code>.
+     *
+     * @param number
+     *         the supplier for the new numbers
+     */
+    private void renumber(Supplier<Integer> number) {
+        this.number = number.get();
+
+        for (Artifact<T> child : children) {
+            child.renumber(number);
+        }
+    }
+
+    /**
      * Returns the number of children the <code>Artifact</code> has.
      *
      * @return number of children
@@ -440,27 +451,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean hasChildren() {
         return getNumChildren() > 0;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Artifact<?> artifact = (Artifact<?>) o;
-
-        return number == artifact.number &&
-                Objects.equals(revision, artifact.revision);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(number, revision);
     }
 
     /**

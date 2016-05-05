@@ -99,6 +99,8 @@ public final class TestTrees {
         t16.addChild(t17);
         t16.addChild(t18);
 
+        t.renumberTree();
+
         return t;
     }
 
@@ -151,6 +153,9 @@ public final class TestTrees {
         m2Right.addChild(s5Right);
         m3Right.addChild(s6Right);
 
+        classLeft.renumberTree();
+        classRight.renumberTree();
+
         return Tuple.of(classLeft, classRight);
     }
 
@@ -201,6 +206,9 @@ public final class TestTrees {
         m2Right.addChild(s3Right);
         m2Right.addChild(s4Right);
 
+        classLeft.renumberTree();
+        classRight.renumberTree();
+
         return Tuple.of(classLeft, classRight);
     }
 
@@ -235,6 +243,8 @@ public final class TestTrees {
         rBody.addChild(s2Right);
         rBody.addChild(s3Right);
         rBody.addChild(s4Right);
+
+        clazz.renumberTree();
 
         return clazz;
     }

@@ -45,7 +45,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     public TestArtifact(Revision rev, String label, KeyEnums.Type type) {
-        super(rev);
+        super(rev, 0);
         this.label = label;
         this.type = type;
         this.children = new ArtifactList<>();
