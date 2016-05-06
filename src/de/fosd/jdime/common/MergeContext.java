@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +46,11 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.common.MergeScenario.LEFT;
+import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.common.MergeType.THREEWAY_FILES;
+import static de.fosd.jdime.common.MergeType.TWOWAY_FILES;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 
@@ -67,6 +71,44 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
+
+    /**
+     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...'ZZ',...
+     */
+    private static final Supplier<Revision> SUCC_REV_SUPPLIER = new Supplier<Revision>() {
+        private static final char A = 'A';
+        private static final char Z = 'Z';
+        private static final int NUM = Z - A + 1;
+
+        private char[] name = {A};
+
+        @Override
+        public Revision get() {
+            Revision rev = new Revision(String.valueOf(name));
+
+            for (int i = name.length - 1; i >= 0 && inc(i--);) {
+                if (i < 0) {
+                    name = new char[name.length + 1];
+                    Arrays.fill(name, A);
+                }
+            }
+
+            return rev;
+        }
+
+        /**
+         * Increments the <code>char</code> at the given index in the <code>name</code> array mod <code>NUM</code> and
+         * returns whether there was an overflow back to <code>A</code>.
+         *
+         * @param i
+         *         the index to increment
+         * @return whether there was an overflow
+         */
+        private boolean inc(int i) {
+            name[i] = (char) (((name[i] - A + 1) % NUM) + A);
+            return name[i] == A;
+        }
+    };
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -309,27 +351,16 @@ public class MergeContext implements Cloneable {
             Supplier<Revision> revSupplier;
 
             if (isConditionalMerge()) {
-                revSupplier = new Supplier<Revision>() {
-                    private char cond = 'A';
-
-                    @Override
-                    public Revision get() {
-                        return new Revision(String.valueOf(cond++));
-                    }
-                };
-
+                revSupplier = SUCC_REV_SUPPLIER;
             } else {
-                Iterator<Revision> revs;
 
-                if (paths.size() == MergeType.TWOWAY_FILES) {
-                    revs = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator();
-                } else if (paths.size() == MergeType.THREEWAY_FILES) {
-                    revs = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator();
+                if (paths.size() == TWOWAY_FILES) {
+                    revSupplier = Arrays.asList(LEFT, RIGHT).iterator()::next;
+                } else if (paths.size() == THREEWAY_FILES) {
+                    revSupplier = Arrays.asList(LEFT, BASE, RIGHT).iterator()::next;
                 } else {
-                    throw new AbortException(String.format("Invalid number (%d) of input artifacts.", paths.size()));
+                    revSupplier = SUCC_REV_SUPPLIER;
                 }
-
-                revSupplier = revs::next;
             }
 
             for (String path : paths) {
