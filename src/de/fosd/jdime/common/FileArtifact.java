@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,8 +54,11 @@ import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.comparator.CompositeFileComparator;
 
 import static java.util.logging.Level.SEVERE;
+import static org.apache.commons.io.comparator.DirectoryFileComparator.DIRECTORY_COMPARATOR;
+import static org.apache.commons.io.comparator.NameFileComparator.NAME_COMPARATOR;
 
 /**
  * This class represents an artifact of a program.
@@ -80,6 +84,21 @@ public class FileArtifact extends Artifact<FileArtifact> {
         mimeMap = new MimetypesFileTypeMap();
         mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
     }
+
+    /**
+     * A <code>Comparator</code> to compare <code>FileArtifact</code>s by their <code>File</code>s. It considers
+     * all directories smaller than files and otherwise compares by the file name.
+     */
+    private static final Comparator<FileArtifact> comp = new Comparator<FileArtifact>() {
+
+        @SuppressWarnings("unchecked")
+        private Comparator<File> c = new CompositeFileComparator(DIRECTORY_COMPARATOR, NAME_COMPARATOR);
+
+        @Override
+        public int compare(FileArtifact o1, FileArtifact o2) {
+            return c.compare(o1.getFile(), o2.getFile());
+        }
+    };
 
     /**
      * File in which the artifact is stored.
@@ -185,7 +204,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isDirectory()) {
             children = new ArtifactList<>();
             children.addAll(getDirContent(number));
-            Collections.sort(children); //TODO relies on FileArtifact having a compareTo method, we will have to use a Comparator when merging with feature/lookahead
+            Collections.sort(children, comp);
         } else {
             children = null;
         }
@@ -229,7 +248,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         }
 
         children.add(added);
-        Collections.sort(children); //TODO relies on FileArtifact having a compareTo method, we will have to use a Comparator when merging with feature/lookahead
+        Collections.sort(children, comp);
 
         return added;
     }
@@ -337,8 +356,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
     private List<FileArtifact> getDirContent(Supplier<Integer> number) {
         File[] files = file.listFiles();
 
-        if (files == null || files.length == 0) {
+        if (files == null) {
             LOG.warning(() -> String.format("Tried to get the directory contents of %s which is not a directory.", this));
+            return Collections.emptyList();
+        } else if (files.length == 0) {
             return Collections.emptyList();
         }
 
