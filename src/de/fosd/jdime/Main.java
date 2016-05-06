@@ -464,7 +464,7 @@ public final class Main {
             return;
         }
 
-        if (mode == DumpMode.FILE_DUMP) {
+        if (mode == DumpMode.FILE_DUMP || artifact.isDirectory()) {
             System.out.println(artifact.dump(mode));
         } else {
             SecurityManager prevSecManager = System.getSecurityManager();
