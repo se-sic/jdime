@@ -778,26 +778,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Searches for an artifact using its id. If the artifact can't be found, null is returned.
+     * Attempts to find an <code>Artifact</code> with the given number in the <code>Artifact</code> tree with this
+     * <code>Artifact</code> at its root.
      *
-     * @param id id of the artifact that should be found
-     * @return artifact iff found, null otherwise
+     * @param number
+     *         the number of the <code>Artifact</code> to find
+     * @return optionally the <code>Artifact</code> with the sought number
      */
-    public Artifact<T> find(String id) {
-        Artifact<T> result = null;
-
-        if (getId().equals(id)) {
-            result = this;
+    public Optional<Artifact<T>> find(int number) {
+        if (this.number == number) {
+            return Optional.of(this);
         }
 
-        for (T child : children) {
-            if (result != null) {
-                break;
-            }
-
-            result = child.find(id);
-        }
-
-        return result;
+        return children.stream().map(c -> c.find(number)).filter(Optional::isPresent).findFirst().map(Optional::get);
     }
 }

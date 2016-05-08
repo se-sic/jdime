@@ -52,7 +52,6 @@ import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
-import static de.fosd.jdime.strdump.DumpMode.PRETTY_PRINT_DUMP;
 
 /**
  * @author Olaf Lessenich
@@ -619,12 +618,5 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         choice.setChoice(condition, artifact);
 
         return choice;
-    }
-
-    /**
-     * Inspects an artifact. This can be used to retrieve information about a single artifact.
-     */
-    public String inspect() {
-        return dump(PRETTY_PRINT_DUMP);
     }
 }
