@@ -73,7 +73,7 @@ public class MergeContext implements Cloneable {
     public static final int LOOKAHEAD_OFF = 0;
 
     /**
-     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...'ZZ',...
+     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
      */
     private static final Supplier<Revision> SUCC_REV_SUPPLIER = new Supplier<Revision>() {
         private static final char A = 'A';
