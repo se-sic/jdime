@@ -287,7 +287,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final boolean exists() {
-        assert (file != null);
         return file.exists();
     }
 
@@ -410,7 +409,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return absolute part of the artifact
      */
     public final String getFullPath() {
-        assert (file != null);
         return file.getAbsolutePath();
     }
 
@@ -425,7 +423,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return path of the artifact
      */
     public final String getPath() {
-        assert (file != null);
         return file.getPath();
     }
 
@@ -700,7 +697,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final String toString() {
-        assert (file != null);
         return file.getName();
     }
 
@@ -710,9 +706,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @param str the <code>String</code> to write
      */
     public void write(String str) {
-        assert (file != null);
-        assert (str != null);
-
         if (file.getParentFile() != null && !file.getParentFile().exists()) {
 
             try {
@@ -742,7 +735,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public final String getContent() {
 
         try {
-            return file == null ? "" : FileUtils.readFileToString(file);
+            return FileUtils.readFileToString(file);
         } catch (IOException e) {
             LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
             return "";
