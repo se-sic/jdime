@@ -25,10 +25,12 @@ package de.fosd.jdime.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
@@ -37,6 +39,10 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
+import org.apache.commons.cli.ParseException;
+
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOG_LEVEL;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PROP_FILE;
 
 /**
  * Contains the singleton <code>Config</code> instance containing the configuration options for JDime. All
@@ -165,25 +171,65 @@ public final class JDimeConfig extends Config {
     public static final String LOOKAHEAD_PREFIX = "LAH_";
 
     /**
-     * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If a
-     * <code>File</code> named {@value #CONFIG_FILE_NAME} in the current working directory does exist a
-     * <code>PropFileConfigSource</code> will be added for it.
+     * The commit that was checked out at the time JDime was built. The build script will add this value to
+     * JDime.properties.
+     */
+    public static final String JDIME_COMMIT = "JDIME_COMMIT";
+
+    /**
+     * Values used for configuring the <code>LogManager</code> in case configuration via the external .properties file
+     * fails.
+     */
+    private static final String LOGGING_CONFIG_FILE_PROPERTY = "java.util.logging.config.file";
+    private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
+
+    private CommandLineConfigSource cmdLine;
+
+    /**
+     * Constructs a new <code>JDimeConfig</code> that assumes no command line arguments were given.
      */
     public JDimeConfig() {
-        addSource(new SysEnvConfigSource(1));
-        loadConfigFile(new File(CONFIG_FILE_NAME));
+        checkLoggingConfig();
+
+        try {
+            addConfigSources(new String[] {});
+        } catch (ParseException ignored) {
+            // the ParseException will not be thrown for an empty arguments array
+        }
     }
 
     /**
-     * Constructs a new <code>JDimeConfig</code>. A <code>SysEnvConfigSource</code> will be added. If
-     * <code>configFile</code> does exist a <code>PropFileConfigSource</code> will be added for it.
+     * Constructs a new <code>JDimeConfig</code>. A <code>CommandLineConfigSource</code> will be added for the
+     * given command line arguments. Furthermore a <code>PropFileConfigSource</code> will be added referencing
+     * the file specified on the command line or the default properties file (if it exists). Lastly a
+     * <code>SysEnvConfigSource</code> will also be added with the lowest priority of all. The constructor will also
+     * set the log level using {@link #setLogLevel(String)}.
      *
-     * @param configFile
-     *         the configuration property file
+     * @param args
+     *         the command line arguments
+     * @throws ParseException
+     *         if there is an exception parsing the command line arguments
      */
-    public JDimeConfig(File configFile) {
+    public JDimeConfig(String[] args) throws ParseException {
+        checkLoggingConfig();
+        addConfigSources(args);
+    }
+
+    /**
+     * Adds the three <code>ConfigSource</code>s.
+     *
+     * @param args
+     *         the command line arguments
+     */
+    private void addConfigSources(String[] args) throws ParseException {
+        addSource(cmdLine = new CommandLineConfigSource(args, 3));
+        get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+
+        loadConfigFile(cmdLine.get(CLI_PROP_FILE).map(File::new).orElse(new File(CONFIG_FILE_NAME)));
+        get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+
         addSource(new SysEnvConfigSource(1));
-        loadConfigFile(configFile);
+        get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
     }
 
     /**
@@ -203,6 +249,39 @@ public final class JDimeConfig extends Config {
             }
         } else {
             LOG.log(Level.WARNING, () -> String.format("%s can not be used as a config file as it does not exist.", configFile));
+        }
+    }
+
+    /**
+     * Returns the <code>CommandLineConfigSource</code> used by this <code>JDimeConfig</code> to retrieve options
+     * from the command line.
+     *
+     * @return the <code>ConfigSource</code>
+     */
+    public CommandLineConfigSource getCmdLine() {
+        return cmdLine;
+    }
+
+    /**
+     * The system property <code>java.util.logging.config.file</code> is set by the script starting JDime to the
+     * relative path <code>JDimeLogging.properties</code>. If the working directory is not the directory in which the
+     * <code>JDimeLogging.properties</code> file is located then the <code>LogManager</code> will not be correctly
+     * configured. In this case this method configures the <code>LogManager</code> using the default logging
+     * configuration. This will ensure that there is a suitably configured <code>ConsoleHandler</code> and that
+     * {@link #setLogLevel(String)} works as intended regardless of the working directory.
+     */
+    private static void checkLoggingConfig() {
+        String logConfigProperty = System.getProperty(LOGGING_CONFIG_FILE_PROPERTY);
+
+        if (logConfigProperty == null || !(new File(logConfigProperty).exists())) {
+            InputStream config = JDimeConfig.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE);
+
+            try {
+                LogManager.getLogManager().readConfiguration(config);
+            } catch (IOException e) {
+                System.err.println("Could not configure the LogManager.");
+                e.printStackTrace();
+            }
         }
     }
 

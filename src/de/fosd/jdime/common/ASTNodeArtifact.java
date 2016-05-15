@@ -283,16 +283,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     public String prettyPrint() {
         assert (astnode != null);
 
-        rebuildAST();
-        astnode.flushCaches();
-        astnode.flushTreeCache();
+        try {
+            rebuildAST();
+            astnode.flushCaches();
+            astnode.flushTreeCache();
+        } catch (Exception e) {
+            LOG.severe("Exception caught during prettyPrint(): " + e);
+            LOG.log(Level.SEVERE, e.getMessage(), e);
+        }
 
         if (LOG.isLoggable(Level.FINEST)) {
             System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
         String indent = isRoot() ? "" : astnode.extractIndent();
-        return indent + astnode.prettyPrint();
+        String prettyprint = indent + astnode.prettyPrint();
+
+        if (prettyprint.trim().length() == 0) {
+            throw new RuntimeException("Error: Could not pretty-print file!");
+        }
+
+        return prettyprint;
     }
 
     @Override
@@ -585,8 +596,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
-            throw new RuntimeException("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
-                    "This is either a bug in ExtendJ or in JDime!");
+            StringBuilder elements = new StringBuilder();
+            for (Revision r : getMatches().keySet()) {
+                if (elements.length() > 0) {
+                    elements.append(", ");
+                }
+                elements.append(getMatching(r).getMatchingArtifact(this).getId());
+            }
+
+            LOG.severe("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
+                    "This is either a bug in ExtendJ or in JDime! Inspect AST element " +
+                    getId() + " (" + elements.toString() + ") to look into this issue.");
         }
     }
 
