@@ -39,6 +39,8 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
+
 /**
  * @author Olaf Lessenich
  *
@@ -322,7 +324,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                     MergeType childType = mBase == null ? MergeType.TWOWAY
                             : MergeType.THREEWAY;
-                    T baseChild = mBase == null ? leftChild.createEmptyArtifact()
+                    T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(leftChild);
                     T targetChild = target == null ? null : target.addChild(leftChild.clone());
                     if (targetChild != null) {

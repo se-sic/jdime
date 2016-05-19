@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -39,13 +40,17 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.stats.KeyEnums.Type;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.common.MergeScenario.LEFT;
+import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.common.MergeType.THREEWAY_FILES;
+import static de.fosd.jdime.common.MergeType.TWOWAY_FILES;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 
@@ -66,6 +71,44 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
+
+    /**
+     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
+     */
+    private static final Supplier<Revision> SUCC_REV_SUPPLIER = new Supplier<Revision>() {
+        private static final char A = 'A';
+        private static final char Z = 'Z';
+        private static final int NUM = Z - A + 1;
+
+        private char[] name = {A};
+
+        @Override
+        public Revision get() {
+            Revision rev = new Revision(String.valueOf(name));
+
+            for (int i = name.length - 1; i >= 0 && inc(i--);) {
+                if (i < 0) {
+                    name = new char[name.length + 1];
+                    Arrays.fill(name, A);
+                }
+            }
+
+            return rev;
+        }
+
+        /**
+         * Increments the <code>char</code> at the given index in the <code>name</code> array mod <code>NUM</code> and
+         * returns whether there was an overflow back to <code>A</code>.
+         *
+         * @param i
+         *         the index to increment
+         * @return whether there was an overflow
+         */
+        private boolean inc(int i) {
+            name[i] = (char) (((name[i] - A + 1) % NUM) + A);
+            return name[i] == A;
+        }
+    };
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -303,26 +346,34 @@ public class MergeContext implements Cloneable {
 
         if (args.isPresent()) {
             List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
-
             ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-            char cond = 'A';
 
-            for (String name : paths) {
-                String fileName = name.trim();
+            Supplier<Revision> revSupplier;
+
+            if (isConditionalMerge()) {
+                revSupplier = SUCC_REV_SUPPLIER;
+            } else {
+
+                if (paths.size() == TWOWAY_FILES) {
+                    revSupplier = Arrays.asList(LEFT, RIGHT).iterator()::next;
+                } else if (paths.size() == THREEWAY_FILES) {
+                    revSupplier = Arrays.asList(LEFT, BASE, RIGHT).iterator()::next;
+                } else {
+                    revSupplier = SUCC_REV_SUPPLIER;
+                }
+            }
+
+            for (String path : paths) {
+                String fileName = path.trim();
 
                 try {
-                    FileArtifact newArtifact = new FileArtifact(new File(fileName));
-
-                    if (isConditionalMerge()) {
-                        newArtifact.setRevision(new Revision(String.valueOf(cond++)));
-                    }
-
-                    inputArtifacts.add(newArtifact);
+                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(fileName));
+                    inputArtifacts.add(artifact);
                 } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " not found.");
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", fileName));
                     throw new AbortException(e);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> "Input file " + fileName + " could not be accessed.");
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", fileName));
                     throw new AbortException(e);
                 }
             }

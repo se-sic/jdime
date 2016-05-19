@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.common;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -36,10 +35,17 @@ import de.fosd.jdime.stats.KeyEnums;
  */
 public class TestArtifact extends Artifact<TestArtifact> {
 
+    private static final Revision testRevision = new Revision("TEST");
+
     private String label;
     private KeyEnums.Type type;
 
     public TestArtifact(String label, KeyEnums.Type type) {
+        this(testRevision, label, type);
+    }
+
+    public TestArtifact(Revision rev, String label, KeyEnums.Type type) {
+        super(rev, 0);
         this.label = label;
         this.type = type;
         this.children = new ArtifactList<>();
@@ -58,7 +64,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
-        TestArtifact conflict = new TestArtifact("Conflict", KeyEnums.Type.NODE);
+        TestArtifact conflict = new TestArtifact(MergeScenario.CONFLICT, "Conflict", KeyEnums.Type.NODE);
         conflict.setConflict(left, right);
 
         return conflict;
@@ -69,7 +75,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
         return null;
     }
 
-    public TestArtifact createEmptyArtifact() {
+    public TestArtifact createEmptyArtifact(Revision revision) {
         return null;
     }
 
@@ -90,22 +96,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public String getId() {
-        return getRevision() + " : " + label;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        TestArtifact that = (TestArtifact) o;
-        return Objects.equals(label, that.label) &&
-                type == that.type;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), label, type);
+        return String.format("%s : %s : %d", getRevision(), label, getNumber());
     }
 
     @Override

@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +52,6 @@ import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
-import static de.fosd.jdime.strdump.DumpMode.PRETTY_PRINT_DUMP;
 
 /**
  * @author Olaf Lessenich
@@ -78,6 +78,34 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     /**
+     * Parses the content of the given <code>FileArtifact</code> to an AST. If the <code>artifact</code> is empty,
+     * an empty <code>ASTNode</code> obtained via {@link ASTNode#ASTNode()} will be returned.
+     *
+     * @param artifact
+     *         the <code>FileArtifact</code> to parse
+     * @return the root of the resulting AST
+     */
+    private static ASTNode<?> parse(FileArtifact artifact) {
+        ASTNode<?> astNode;
+
+        if (artifact.isEmpty()) {
+            astNode = new ASTNode<>();
+        } else {
+            Program p = initProgram();
+
+            try {
+                p.addSourceFile(artifact.getPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            astNode = p;
+        }
+
+        return astNode;
+    }
+
+    /**
      * Initializes a program.
      *
      * @return program
@@ -94,19 +122,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            artifact to create program from
      * @return ASTNodeArtifact
      */
-    public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
+    public static ASTNodeArtifact createProgram(ASTNodeArtifact artifact) {
         assert (artifact.astnode != null);
         assert (artifact.astnode instanceof Program);
 
         Program old = (Program) artifact.astnode;
         Program program;
+
         try {
             program = old.clone();
         } catch (CloneNotSupportedException e) {
             program = new Program();
         }
 
-        ASTNodeArtifact p = new ASTNodeArtifact(program, null);
+        ASTNodeArtifact p = new ASTNodeArtifact(artifact.getRevision(), program);
         p.deleteChildren();
 
         return p;
@@ -118,72 +147,72 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private ASTNode<?> astnode = null;
 
     /**
-     * Constructor class.
+     * Constructs a new <code>ASTNodeArtifact</code> (tree) representing the AST of the code in <code>artifact</code>.
+     * All members of the tree will be in the same <code>Revision</code> as <code>artifact</code>.
+     *
+     * @param artifact
+     *         the <code>FileArtifact</code> containing the code to be parsed
      */
-    private ASTNodeArtifact() {
-        this.astnode = new ASTNode<>();
-        this.initializeChildren();
+    public ASTNodeArtifact(FileArtifact artifact) {
+        this(artifact.getRevision(), new AtomicInteger()::getAndIncrement, parse(artifact));
     }
 
     /**
-     * @param astnode
-     *            astnode
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating an empty <code>ASTNode</code> obtained via
+     * {@link ASTNode#ASTNode()}.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
      */
-    private ASTNodeArtifact(final ASTNode<?> astnode, Revision revision) {
-        assert (astnode != null);
-        this.astnode = astnode;
-        setRevision(revision);
-        initializeChildren();
+    private ASTNodeArtifact(Revision revision) {
+        this(revision, new AtomicInteger()::getAndIncrement, new ASTNode<>());
     }
 
-    private void initializeChildren() {
+    /**
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating the given <code>ASTNode</code>. Children
+     * <code>ASTNodeArtifact</code>s for all the children of <code>astNode</code> will be added.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
+     * @param astNode
+     *         the <code>ASTNode</code> to encapsulate
+     */
+    private ASTNodeArtifact(Revision revision, ASTNode<?> astNode) {
+        this(revision, new AtomicInteger()::getAndIncrement, astNode);
+    }
+
+    /**
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating the given <code>ASTNode</code>. Children
+     * <code>ASTNodeArtifact</code>s for all the children of <code>astNode</code> will be added.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
+     * @param number
+     *         supplies first the number for this artifact and then in DFS order the number for its children
+     * @param astNode
+     *         the <code>ASTNode</code> to encapsulate
+     */
+    private ASTNodeArtifact(Revision revision, Supplier<Integer> number, ASTNode<?> astNode) {
+        super(revision, number.get());
+
+        this.astnode = astNode;
+        initializeChildren(number);
+    }
+
+    private void initializeChildren(Supplier<Integer> number) {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i), getRevision());
+                ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
                 child.setParent(this);
-                child.setRevision(getRevision());
                 children.add(child);
                 if (!child.initialized) {
-                    child.initializeChildren();
+                    child.initializeChildren(number);
                 }
             }
         }
         setChildren(children);
         initialized = true;
-    }
-
-    /**
-     * Constructs an ASTNodeArtifact from a FileArtifact.
-     *
-     * @param artifact
-     *            file artifact
-     */
-    public ASTNodeArtifact(FileArtifact artifact) {
-        assert (artifact != null);
-
-        setRevision(artifact.getRevision());
-
-        ASTNode<?> astnode;
-        if (artifact.isEmpty()) {
-            astnode = new ASTNode<>();
-        } else {
-            Program p = initProgram();
-
-            try {
-                p.addSourceFile(artifact.getPath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            astnode = p;
-        }
-
-        this.astnode = astnode;
-        initializeChildren();
-        renumberTree();
-
-        LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
     }
 
     /**
@@ -202,7 +231,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact(astnode.clone(), getRevision());
+            clone = new ASTNodeArtifact(getRevision(), astnode.clone());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
@@ -238,10 +267,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public ASTNodeArtifact createEmptyArtifact() {
-        ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
-        emptyArtifact.setRevision(getRevision());
-        return emptyArtifact;
+    public ASTNodeArtifact createEmptyArtifact(Revision revision) {
+        return new ASTNodeArtifact(revision);
     }
 
     public void deleteChildren() {
@@ -589,34 +616,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
-        ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
-                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
+    public ASTNodeArtifact createConflictArtifact(ASTNodeArtifact left, ASTNodeArtifact right) {
+        ASTNodeArtifact conflict;
 
-        conflict.setRevision(MergeScenario.CONFLICT);
-        conflict.setNumber(virtualcount++);
+        if (left != null) {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, left.astnode.treeCopyNoTransform());
+        } else {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, right.astnode.treeCopyNoTransform());
+        }
+
         conflict.setConflict(left, right);
 
         return conflict;
     }
 
     @Override
-    public final ASTNodeArtifact createChoiceArtifact(final String condition, final ASTNodeArtifact artifact) {
+    public ASTNodeArtifact createChoiceArtifact(String condition, ASTNodeArtifact artifact) {
         LOG.fine("Creating choice node");
-        ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
-        choice.setRevision(MergeScenario.CHOICE);
-        choice.setNumber(virtualcount++);
+        ASTNodeArtifact choice = new ASTNodeArtifact(MergeScenario.CHOICE, artifact.astnode.treeCopyNoTransform());
         choice.setChoice(condition, artifact);
-        return choice;
-    }
 
-    /**
-     * Inspects an artifact. This can be used to retrieve information about a single artifact.
-     */
-    public String inspect() {
-        return dump(PRETTY_PRINT_DUMP);
+        return choice;
     }
 }

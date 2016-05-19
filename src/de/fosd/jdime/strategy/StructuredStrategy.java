@@ -123,8 +123,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
-            targetNode.setRevision(left.getRevision());
-            targetNode.renumberTree();
 
             String lCond = left.getRevision().getName();
             String rCond = right.getRevision().getName();

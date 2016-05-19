@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,35 +54,6 @@ import de.fosd.jdime.strdump.DumpMode;
 public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, StatisticsInterface {
 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
-
-    /**
-     * Used to renumber artifacts.
-     * This number is mainly used for debugging purposes or when drawing the tree.
-     */
-    private static int count = 1;
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     * @param artifact
-     *            root of the tree to renumber
-     */
-    private static void renumber(final Artifact<?> artifact) {
-        artifact.number = count;
-        count++;
-        for (int i = 0; i < artifact.getNumChildren(); i++) {
-            renumber(artifact.getChild(i));
-        }
-    }
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     */
-    public void renumberTree() {
-        Artifact.count = 1;
-        renumber(this);
-    }
 
     /**
      * Children of the artifact.
@@ -126,13 +96,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     private boolean merged;
 
     /**
-     * Number used to identify the artifact.
-     */
-    private int number = -1;
-
-    protected static int virtualcount = 1;
-
-    /**
      * Parent artifact.
      */
     private T parent;
@@ -143,10 +106,22 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     private Revision revision;
 
     /**
-     * Constructs a new <code>Artifact</code>.
+     * Number used to identify the artifact.
      */
-    public Artifact() {
+    private int number;
+
+    /**
+     * Constructs a new <code>Artifact</code>.
+     *
+     * @param rev
+     *         the <code>Revision</code> for the <code>Artifact</code>
+     * @param number
+     *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
+     */
+    protected Artifact(Revision rev, int number) {
         this.matches = new LinkedHashMap<>();
+        this.revision = rev;
+        this.number = number;
     }
 
     /**
@@ -214,9 +189,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
      * base <code>Artifact</code> is empty.
      *
-     * @return empty <code>Artifact</code>
+     * @param revision
+     *         the <code>Revision</code> for the artifact
+     * @return an empty artifact
      */
-    public abstract T createEmptyArtifact();
+    public abstract T createEmptyArtifact(Revision revision);
 
     /**
      * Pretty-prints the <code>Artifact</code> to source code.
@@ -331,6 +308,29 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public int getNumber() {
         return number;
+    }
+
+    /**
+     * Sets the number of all <code>Artifact</code>s contained in the same tree as this <code>Artifact</code> to their
+     * index in a DFS traversal of the tree.
+     */
+    public void renumberTree() {
+        findRoot().renumber(new AtomicInteger()::getAndIncrement);
+    }
+
+    /**
+     * Sets the number of this <code>Artifact</code> to the first <code>Integer</code> supplied by <code>number</code>
+     * and then calls this method for all children with the given <code>number</code>.
+     *
+     * @param number
+     *         the supplier for the new numbers
+     */
+    private void renumber(Supplier<Integer> number) {
+        this.number = number.get();
+
+        for (Artifact<T> child : children) {
+            child.renumber(number);
+        }
     }
 
     /**
@@ -451,27 +451,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean hasChildren() {
         return getNumChildren() > 0;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Artifact<?> artifact = (Artifact<?>) o;
-
-        return number == artifact.number &&
-                Objects.equals(revision, artifact.revision);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(number, revision);
     }
 
     /**
@@ -799,26 +778,18 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Searches for an artifact using its id. If the artifact can't be found, null is returned.
+     * Attempts to find an <code>Artifact</code> with the given number in the <code>Artifact</code> tree with this
+     * <code>Artifact</code> at its root.
      *
-     * @param id id of the artifact that should be found
-     * @return artifact iff found, null otherwise
+     * @param number
+     *         the number of the <code>Artifact</code> to find
+     * @return optionally the <code>Artifact</code> with the sought number
      */
-    public Artifact<T> find(String id) {
-        Artifact<T> result = null;
-
-        if (getId().equals(id)) {
-            result = this;
+    public Optional<Artifact<T>> find(int number) {
+        if (this.number == number) {
+            return Optional.of(this);
         }
 
-        for (T child : children) {
-            if (result != null) {
-                break;
-            }
-
-            result = child.find(id);
-        }
-
-        return result;
+        return children.stream().map(c -> c.find(number)).filter(Optional::isPresent).findFirst().map(Optional::get);
     }
 }

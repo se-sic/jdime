@@ -34,6 +34,8 @@ import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.common.MergeScenario.LEFT;
+import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
@@ -97,6 +99,8 @@ public final class TestTrees {
         t16.addChild(t17);
         t16.addChild(t18);
 
+        t.renumberTree();
+
         return t;
     }
 
@@ -106,28 +110,28 @@ public final class TestTrees {
      * @return the trees
      */
     public static Tuple<TestArtifact, TestArtifact> simpleTree() {
-        TestArtifact classLeft = new TestArtifact("Class1", KeyEnums.Type.CLASS);
-        TestArtifact classRight = new TestArtifact("Class1", KeyEnums.Type.CLASS);
+        TestArtifact classLeft = new TestArtifact(LEFT, "Class1", KeyEnums.Type.CLASS);
+        TestArtifact classRight = new TestArtifact(RIGHT, "Class1", KeyEnums.Type.CLASS);
 
-        TestArtifact m1Left = new TestArtifact("Method1", METHOD);
-        TestArtifact m2Left = new TestArtifact("Method2", METHOD);
+        TestArtifact m1Left = new TestArtifact(LEFT, "Method1", METHOD);
+        TestArtifact m2Left = new TestArtifact(LEFT, "Method2", METHOD);
 
-        TestArtifact m1Right = new TestArtifact("Method1", METHOD);
-        TestArtifact m2Right = new TestArtifact("Method2", METHOD);
-        TestArtifact m3Right = new TestArtifact("Method3", METHOD);
+        TestArtifact m1Right = new TestArtifact(RIGHT,"Method1", METHOD);
+        TestArtifact m2Right = new TestArtifact(RIGHT,"Method2", METHOD);
+        TestArtifact m3Right = new TestArtifact(RIGHT,"Method3", METHOD);
 
-        TestArtifact s1Left = new TestArtifact("Statement1", KeyEnums.Type.NODE);
-        TestArtifact s2Left = new TestArtifact("Statement2", KeyEnums.Type.NODE);
-        TestArtifact s3Left = new TestArtifact("Statement3", KeyEnums.Type.NODE);
-        TestArtifact s4Left = new TestArtifact("Statement4", KeyEnums.Type.NODE);
-        TestArtifact s5Left = new TestArtifact("Statement5", KeyEnums.Type.NODE);
+        TestArtifact s1Left = new TestArtifact(LEFT, "Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Left = new TestArtifact(LEFT, "Statement2", KeyEnums.Type.NODE);
+        TestArtifact s3Left = new TestArtifact(LEFT, "Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Left = new TestArtifact(LEFT, "Statement4", KeyEnums.Type.NODE);
+        TestArtifact s5Left = new TestArtifact(LEFT, "Statement5", KeyEnums.Type.NODE);
 
-        TestArtifact s1Right = new TestArtifact("Statement1", KeyEnums.Type.NODE);
-        TestArtifact s2Right = new TestArtifact("Statement2", KeyEnums.Type.NODE);
-        TestArtifact s3Right = new TestArtifact("Statement3", KeyEnums.Type.NODE);
-        TestArtifact s4Right = new TestArtifact("Statement4", KeyEnums.Type.NODE);
-        TestArtifact s5Right = new TestArtifact("Statement5", KeyEnums.Type.NODE);
-        TestArtifact s6Right = new TestArtifact("Statement6", KeyEnums.Type.NODE);
+        TestArtifact s1Right = new TestArtifact(RIGHT, "Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Right = new TestArtifact(RIGHT, "Statement2", KeyEnums.Type.NODE);
+        TestArtifact s3Right = new TestArtifact(RIGHT, "Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Right = new TestArtifact(RIGHT, "Statement4", KeyEnums.Type.NODE);
+        TestArtifact s5Right = new TestArtifact(RIGHT, "Statement5", KeyEnums.Type.NODE);
+        TestArtifact s6Right = new TestArtifact(RIGHT, "Statement6", KeyEnums.Type.NODE);
 
         classLeft.addChild(m1Left);
         classLeft.addChild(m2Left);
@@ -149,8 +153,8 @@ public final class TestTrees {
         m2Right.addChild(s5Right);
         m3Right.addChild(s6Right);
 
-        classLeft.setRevision(MergeScenario.LEFT, true);
-        classRight.setRevision(MergeScenario.RIGHT, true);
+        classLeft.renumberTree();
+        classRight.renumberTree();
 
         return Tuple.of(classLeft, classRight);
     }
@@ -161,27 +165,27 @@ public final class TestTrees {
      * @return the trees
      */
     public static Tuple<TestArtifact, TestArtifact> tryTree() {
-        TestArtifact classLeft = new TestArtifact("Class1", KeyEnums.Type.CLASS);
-        TestArtifact classRight = new TestArtifact("Class1", KeyEnums.Type.CLASS);
+        TestArtifact classLeft = new TestArtifact(LEFT, "Class1", KeyEnums.Type.CLASS);
+        TestArtifact classRight = new TestArtifact(RIGHT, "Class1", KeyEnums.Type.CLASS);
 
-        TestArtifact m1Left = new TestArtifact("Method1", METHOD);
-        TestArtifact m2Left = new TestArtifact("Method2", METHOD);
+        TestArtifact m1Left = new TestArtifact(LEFT, "Method1", METHOD);
+        TestArtifact m2Left = new TestArtifact(LEFT, "Method2", METHOD);
 
-        TestArtifact m1Right = new TestArtifact("Method1", METHOD);
-        TestArtifact m2Right = new TestArtifact("Method2#", METHOD);
+        TestArtifact m1Right = new TestArtifact(RIGHT, "Method1", METHOD);
+        TestArtifact m2Right = new TestArtifact(RIGHT, "Method2#", METHOD);
 
-        TestArtifact sTryLeft = new TestArtifact("Try", TRY);
-        TestArtifact s1Left = new TestArtifact("Statement1", KeyEnums.Type.NODE);
-        TestArtifact s2Left = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+        TestArtifact sTryLeft = new TestArtifact(LEFT, "Try", TRY);
+        TestArtifact s1Left = new TestArtifact(LEFT, "Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Left = new TestArtifact(LEFT, "Statement2", KeyEnums.Type.NODE);
 
-        TestArtifact s3Left = new TestArtifact("Statement3", KeyEnums.Type.NODE);
-        TestArtifact s4Left = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+        TestArtifact s3Left = new TestArtifact(LEFT, "Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Left = new TestArtifact(LEFT, "Statement4", KeyEnums.Type.NODE);
 
-        TestArtifact s1Right = new TestArtifact("Statement1", KeyEnums.Type.NODE);
-        TestArtifact s2Right = new TestArtifact("Statement2", KeyEnums.Type.NODE);
+        TestArtifact s1Right = new TestArtifact(RIGHT, "Statement1", KeyEnums.Type.NODE);
+        TestArtifact s2Right = new TestArtifact(RIGHT, "Statement2", KeyEnums.Type.NODE);
 
-        TestArtifact s3Right = new TestArtifact("Statement3", KeyEnums.Type.NODE);
-        TestArtifact s4Right = new TestArtifact("Statement4", KeyEnums.Type.NODE);
+        TestArtifact s3Right = new TestArtifact(RIGHT, "Statement3", KeyEnums.Type.NODE);
+        TestArtifact s4Right = new TestArtifact(RIGHT, "Statement4", KeyEnums.Type.NODE);
 
         classLeft.addChild(m1Left);
         classLeft.addChild(m2Left);
@@ -202,8 +206,8 @@ public final class TestTrees {
         m2Right.addChild(s3Right);
         m2Right.addChild(s4Right);
 
-        classLeft.setRevision(MergeScenario.LEFT, true);
-        classRight.setRevision(MergeScenario.RIGHT, true);
+        classLeft.renumberTree();
+        classRight.renumberTree();
 
         return Tuple.of(classLeft, classRight);
     }
@@ -239,6 +243,8 @@ public final class TestTrees {
         rBody.addChild(s2Right);
         rBody.addChild(s3Right);
         rBody.addChild(s4Right);
+
+        clazz.renumberTree();
 
         return clazz;
     }

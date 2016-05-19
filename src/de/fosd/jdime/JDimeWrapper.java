@@ -61,13 +61,14 @@ public class JDimeWrapper {
         // prepare the list of input files
         ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-        for (Object filename : args) {
+        for (String filename : args) {
             try {
-                FileArtifact newArtifact = new FileArtifact(new File((String) filename));
+                File file = new File(filename);
 
-                // set the revision name, this will be used as condition for ifdefs
+                // the revision name, this will be used as condition for ifdefs
                 // as an example, I'll just use the filenames
-                newArtifact.setRevision(new Revision(FilenameUtils.getBaseName(newArtifact.getPath())));
+                Revision rev = new Revision(FilenameUtils.getBaseName(file.getPath()));
+                FileArtifact newArtifact = new FileArtifact(rev, file);
 
                 inputArtifacts.add(newArtifact);
             } catch (FileNotFoundException e) {
