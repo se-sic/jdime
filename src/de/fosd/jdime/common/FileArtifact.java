@@ -397,7 +397,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
             list.add(this);
         } else if (isDirectory()) {
-            children.forEach(c -> getJavaFiles(list));
+            children.forEach(c -> c.getJavaFiles(list));
         }
 
         return list;
