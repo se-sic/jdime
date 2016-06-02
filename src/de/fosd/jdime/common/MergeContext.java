@@ -221,6 +221,10 @@ public class MergeContext implements Cloneable {
 
     private Map<MergeScenario<?>, Throwable> crashes;
 
+    // TODO add a switch for simple/flexible macthing
+    // TODO replace with proper configuration values, add to (copy)constructor, getter/setter, cmdline config
+    public float wr = 0, wn = 0, wa = 0, ws = 0;
+
     /**
      * Constructs a new <code>MergeContext</code> initializing all options to their default values.
      */
