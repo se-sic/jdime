@@ -11,7 +11,6 @@ import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class CostModelMatcherTest {
 
@@ -25,7 +24,7 @@ public class CostModelMatcherTest {
 
     @Before
     public void setUp() throws Exception {
-        matcher = new CostModelMatcher<TestArtifact>();
+        matcher = new CostModelMatcher<>();
 
         l1 = new TestArtifact(LEFT, "A", NODE);
         l2 = new TestArtifact(LEFT, "B", NODE);
@@ -74,7 +73,7 @@ public class CostModelMatcherTest {
     }
 
     @Test
-    public void flexibleA() throws Exception {
+    public void paperA() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
         expected.add(new Matching<>(l1, r1, 0));
@@ -92,16 +91,26 @@ public class CostModelMatcherTest {
     }
 
     @Test
-    public void flexibleB() throws Exception {
-        fail("Need to figure out what matchings are actually expected, the figure in the paper is ambiguous.");
-
+    public void paperB() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
+
+        expected.add(new Matching<>(l1, r1, 0));
+
+        expected.add(new Matching<>(l2, r3, 0));
+        expected.add(new Matching<>(l5, r4, 0));
+
+        expected.add(new Matching<>(l3, r9, 0));
+        expected.add(new Matching<>(l4, r10, 0));
+
+        expected.add(new Matching<>(l6, r6, 0));
+        expected.add(new Matching<>(l7, r7, 0));
+        expected.add(new Matching<>(l8, r8, 0));
 
         testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f);
     }
 
     @Test
-    public void flexibleC() throws Exception {
+    public void paperC() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
         expected.add(new Matching<>(l1, r1, 0));
@@ -128,8 +137,6 @@ public class CostModelMatcherTest {
         context.wa = wa;
         context.ws = ws;
 
-        Matchings<TestArtifact> found = matcher.match(context, left, right);
-
-        assertEquals(expected, found);
+        assertEquals(expected, matcher.match(context, left, right));
     }
 }
