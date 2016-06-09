@@ -46,7 +46,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     public void setRenamingWeight(float wr) {
-        this.wr = matching -> wr;
+        setRenamingWeight(matching -> wr);
     }
 
     public void setRenamingWeight(SimpleWeightFunction<T> wr) {
@@ -54,7 +54,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     public void setAncestryViolationWeight(float wa) {
-        this.wa = (matching, quantity) -> wa * quantity;
+        setAncestryViolationWeight((matching, quantity) -> wa * quantity);
     }
 
     public void setAncestryViolationWeight(WeightFunction<T> wa) {
@@ -62,7 +62,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     public void setSiblingGroupBreakupWeight(float ws) {
-        this.ws = (matching, quantity) -> ws * quantity;
+        setSiblingGroupBreakupWeight((matching, quantity) -> ws * quantity);
     }
 
     public void setSiblingGroupBreakupWeight(WeightFunction<T> ws) {
@@ -71,6 +71,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right) {
+        setNoMatchWeight(context.wn);
+        setRenamingWeight(context.wr);
+        setAncestryViolationWeight(context.wa);
+        setSiblingGroupBreakupWeight(context.ws);
+
         return new Matchings<>();
     }
 }
