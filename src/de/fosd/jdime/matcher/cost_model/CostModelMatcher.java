@@ -6,9 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -108,7 +110,80 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         this.ws = ws;
     }
 
-    private Bounds boundMatchingCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> currentMatchings) {
+    public float cost(Matchings<T> matchings) {
+        return cost(matchings.stream().map(m -> new CostModelMatching<>(m.getLeft(), m.getRight())).collect(Collectors.toList()));
+    }
+
+    private float cost(Collection<CostModelMatching<T>> matchings) {
+
+        if (matchings.isEmpty()) {
+            return 0;
+        }
+
+        CostModelMatching<T> first = matchings.iterator().next();
+        int t1Size = first.m.findRoot().getTreeSize();
+        int t2Size = first.n.findRoot().getTreeSize();
+
+        return (1.0f / (t1Size + t2Size)) * matchings.stream().collect(Collectors.summingDouble(m -> exactCost(m, matchings))).floatValue();
+    }
+
+    private float exactCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> matchings) {
+
+        if (matching.isNoMatch()) {
+            return wn;
+        }
+
+        return renamingCost(matching) + ancestryViolationCost(matching, matchings) + siblingGroupBreakupCost(matching, matchings);
+    }
+
+    private float ancestryViolationCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> matchings) {
+        return wa.weigh(matching, numAncestryViolatingChildren(matching, matchings) + numAncestryViolatingChildren(matching, matchings));
+    }
+
+    private int numAncestryViolatingChildren(CostModelMatching<T> matching, Collection<CostModelMatching<T>> matchings) {
+        ArtifactList<T> mChildren = matching.m.getChildren();
+        ArtifactList<T> nChildren = matching.n.getChildren();
+
+        return (int) mChildren.stream().map(mAp -> image(mAp, matchings)).filter(nChildren::contains).count();
+    }
+
+    private float siblingGroupBreakupCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> matchings) {
+        List<T> dMm, iMm, fMm;
+        List<T> dMn, iMn, fMn;
+
+        dMm = siblingDivergentSubset(matching.m, matching.n, matchings);
+        iMm = siblingInvariantSubset(matching.m, matching.n, matchings);
+        fMm = distinctSiblingFamilies(matching.m, matchings);
+
+        dMn = siblingDivergentSubset(matching.n, matching.m, matchings);
+        iMn = siblingInvariantSubset(matching.n, matching.m, matchings);
+        fMn = distinctSiblingFamilies(matching.n, matchings);
+
+        float mCost = (float) dMm.size() / (iMm.size() + fMm.size());
+        float nCost = (float) dMn.size() / (iMn.size() + fMn.size());
+        return ws.weigh(matching, mCost + nCost);
+    }
+
+    private List<T> siblingInvariantSubset(T m, T n, Collection<CostModelMatching<T>> matchings) {
+        return siblings(m).stream().filter(mAp -> siblings(n).contains(image(mAp, matchings))).collect(Collectors.toList());
+    }
+
+    private List<T> siblingDivergentSubset(T m, T n, Collection<CostModelMatching<T>> matchings) {
+        List<T> inv = siblingInvariantSubset(m, n, matchings);
+        return siblings(m).stream().filter(mAp -> !inv.contains(mAp) && image(mAp, matchings) != null).collect(Collectors.toList());
+    }
+
+    private List<T> distinctSiblingFamilies(T m, Collection<CostModelMatching<T>> matchings) {
+        return siblings(m).stream().map(mAp -> image(mAp, matchings).getParent()).collect(Collectors.toList());
+    }
+
+    private T image(T m, Collection<CostModelMatching<T>> matchings) {
+        //TODO this is very inefficient...
+        return matchings.stream().filter(matching -> matching.m == m || matching.n == m)
+                                 .map(matching -> (matching.m == m) ? matching.n : matching.m).findFirst().get();
+    }
+
+    private Bounds boundCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> currentMatchings) {
         float cR = renamingCost(matching);
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
@@ -197,7 +272,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private List<T> otherSiblings(T artifact) {
+    private List<T> siblings(T artifact) {
         T parent = artifact.getParent();
 
         if (parent == null) {
@@ -208,6 +283,13 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             return res;
         }
+    }
+
+    private List<T> otherSiblings(T artifact) {
+        List<T> siblings = siblings(artifact);
+        siblings.remove(artifact);
+
+        return siblings;
     }
 
     @Override
