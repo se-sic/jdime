@@ -310,4 +310,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         return new Matchings<>();
     }
+
+    private float objective(float beta, Collection<CostModelMatching<T>> matchings) {
+        return (float) Math.exp((- beta) * cost(matchings));
+    }
+
+    private float acceptanceProb(float beta, Collection<CostModelMatching<T>> mOld, Collection<CostModelMatching<T>> mNew) {
+        return Math.min(1, objective(beta, mNew) / objective(beta, mOld));
+    }
 }
