@@ -45,10 +45,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         public final T m;
         public final T n;
 
-        public CostModelMatching(T m) {
-            this(m, null);
-        }
-
         public CostModelMatching(T m, T n) {
             Objects.requireNonNull(m);
 
@@ -56,8 +52,22 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             this.n = n;
         }
 
-        private boolean isNoMatch() {
-            return n == null;
+        public boolean isNoMatch() {
+            return m == null || n == null;
+        }
+
+        public boolean contains(T t) {
+            return m == t || n == t;
+        }
+
+        public T other(T t) {
+            if (m == t) {
+                return n;
+            } else if (n == t) {
+                return m;
+            } else {
+                throw new IllegalArgumentException(t + " is not part of " + this);
+            }
         }
     }
 
