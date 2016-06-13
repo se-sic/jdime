@@ -189,8 +189,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     private T image(T m, Collection<CostModelMatching<T>> matchings) {
         //TODO this is very inefficient...
-        return matchings.stream().filter(matching -> matching.m == m || matching.n == m)
-                                 .map(matching -> (matching.m == m) ? matching.n : matching.m).findFirst().get();
+        return matchings.stream().filter(ma -> ma.contains(m)).map(ma -> ma.other(m)).findFirst().get();
     }
 
     private Bounds boundCost(CostModelMatching<T> matching, Collection<CostModelMatching<T>> currentMatchings) {
