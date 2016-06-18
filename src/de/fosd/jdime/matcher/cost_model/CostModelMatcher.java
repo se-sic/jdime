@@ -3,10 +3,8 @@ package de.fosd.jdime.matcher.cost_model;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,56 +29,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     private interface WeightFunction<T extends Artifact<T>> {
 
         float weigh(CostModelMatching<T>  matching, float quantity);
-    }
-
-    private static final class Bounds {
-        private float lower;
-        private float upper;
-
-        public Bounds(float lower, float upper) {
-            this.lower = lower;
-            this.upper = upper;
-        }
-
-        public float lower() {
-            return lower;
-        }
-
-        public float upper() {
-            return upper;
-        }
-    }
-
-    private Comparator<Bounds> boundsComp = Comparator.comparingDouble(Bounds::lower).thenComparingDouble(Bounds::upper);
-
-    private static final class CostModelMatching<T extends Artifact<T>> {
-        public final T m;
-        public final T n;
-
-        public CostModelMatching(T m, T n) {
-            Objects.requireNonNull(m);
-
-            this.m = m;
-            this.n = n;
-        }
-
-        public boolean isNoMatch() {
-            return m == null || n == null;
-        }
-
-        public boolean contains(T t) {
-            return m == t || n == t;
-        }
-
-        public T other(T t) {
-            if (m == t) {
-                return n;
-            } else if (n == t) {
-                return m;
-            } else {
-                throw new IllegalArgumentException(t + " is not part of " + this);
-            }
-        }
     }
 
     /**
@@ -209,7 +157,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
 
-        return new Bounds(cR + cABounds.lower + cSBounds.lower, cR + cABounds.upper + cSBounds.upper);
+        return new Bounds(cR + cABounds.getLower() + cSBounds.getLower(), cR + cABounds.getUpper() + cSBounds.getUpper());
     }
 
     private float renamingCost(CostModelMatching<T> matching) {
@@ -255,8 +203,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Bounds iMN = boundInvariantSiblings(m, n, currentMatchings);
         Bounds iNM = boundInvariantSiblings(n, m, currentMatchings);
 
-        float lower = ws.weigh(matching, ((dMN.lower / (iMN.upper * (dMN.lower + 1))) + (dNM.lower / (iNM.upper * (dNM.lower + 1)))));
-        float upper = ws.weigh(matching, (dMN.upper / iMN.lower) + (dNM.upper / iNM.lower)) / 2;
+        float lower = ws.weigh(matching, ((dMN.getLower() / (iMN.getUpper() * (dMN.getLower() + 1))) + (dNM.getLower() / (iNM.getUpper() * (dNM.getLower() + 1)))));
+        float upper = ws.weigh(matching, (dMN.getUpper() / iMN.getLower()) + (dNM.getUpper() / iNM.getLower())) / 2;
 
         return new Bounds(lower, upper);
     }
