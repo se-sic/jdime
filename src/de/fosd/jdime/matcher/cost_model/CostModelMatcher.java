@@ -1,7 +1,10 @@
 package de.fosd.jdime.matcher.cost_model;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -38,7 +41,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             this.lower = lower;
             this.upper = upper;
         }
+
+        public float lower() {
+            return lower;
+        }
+
+        public float upper() {
+            return upper;
+        }
     }
+
+    private Comparator<Bounds> boundsComp = Comparator.comparingDouble(Bounds::lower).thenComparingDouble(Bounds::upper);
 
     private static final class CostModelMatching<T extends Artifact<T>> {
         public final T m;
@@ -310,8 +323,43 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new Matchings<>();
     }
 
+    private List<CostModelMatching<T>> completeBipartiteGraph(T left, T right) {
+        List<T> leftNodes = bfs(left);
+        List<T> rightNodes = bfs(right);
+
+        // add the "No Match" node
+        leftNodes.add(null);
+        rightNodes.add(null);
+
+        List<CostModelMatching<T>> bipartiteGraph = new ArrayList<>(leftNodes.size() * rightNodes.size());
+
+        for (T lNode : leftNodes) {
+            for (T rNode : rightNodes) {
+                bipartiteGraph.add(new CostModelMatching<T>(lNode, rNode));
+            }
+        }
+
+        return bipartiteGraph;
+    }
+
+    private List<T> bfs(T tree) {
+        List<T> bfs = new ArrayList<>();
+        Deque<T> wait = new ArrayDeque<>();
+
+        wait.add(tree);
+
+        while (!wait.isEmpty()) {
+            T t = wait.getFirst();
+
+            bfs.add(t);
+            t.getChildren().forEach(wait::addLast);
+        }
+
+        return bfs;
+    }
+
     private float objective(float beta, List<CostModelMatching<T>> matchings) {
-        return (float) Math.exp((- beta) * cost(matchings));
+        return (float) Math.exp(-(beta * cost(matchings)));
     }
 
     private float acceptanceProb(float beta, List<CostModelMatching<T>> mOld, List<CostModelMatching<T>> mNew) {
