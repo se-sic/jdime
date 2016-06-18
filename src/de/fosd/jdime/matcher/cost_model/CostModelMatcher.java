@@ -152,12 +152,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return matchings.stream().filter(ma -> ma.contains(m)).map(ma -> ma.other(m)).findFirst().get();
     }
 
-    private Bounds boundCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
+    private void boundCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
         float cR = renamingCost(matching);
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
 
-        return new Bounds(cR + cABounds.getLower() + cSBounds.getLower(), cR + cABounds.getUpper() + cSBounds.getUpper());
+        matching.setBounds(cR + cABounds.getLower() + cSBounds.getLower(), cR + cABounds.getUpper() + cSBounds.getUpper());
     }
 
     private float renamingCost(CostModelMatching<T> matching) {
