@@ -3,8 +3,12 @@ package de.fosd.jdime.matcher.cost_model;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Random;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,6 +55,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * The function determining the cost of breaking up sibling groups.
      */
     private WeightFunction<T> ws;
+
+    private Random rng;
 
     public void setNoMatchWeight(float wn) {
         this.wn = wn;
@@ -267,8 +273,65 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         setRenamingWeight(context.wr);
         setAncestryViolationWeight(context.wa);
         setSiblingGroupBreakupWeight(context.ws);
+        rng = context.seed.map(Random::new).orElse(new Random());
+
+        List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
+        List<CostModelMatching<T>> mHat;
 
         return new Matchings<>();
+    }
+
+    private List<CostModelMatching<T>> initialize(float pAssign, T left, T right) {
+        List<CostModelMatching<T>> g = completeBipartiteGraph(left, right);
+        List<CostModelMatching<T>> matchings = new ArrayList<>();
+
+        while (!g.isEmpty()) {
+            g.forEach(m -> boundCost(m, g));
+            Collections.sort(g, Comparator.comparing(CostModelMatching::getBounds));
+
+            CostModelMatching<T> matching = null;
+
+            for(ListIterator<CostModelMatching<T>> it = g.listIterator(); it.hasNext();) {
+                matching = it.next();
+
+                if (chance(pAssign)) {
+                    it.remove();
+                    break;
+                }
+            }
+
+            if (matching == null) {
+                continue;
+            }
+
+            /** TODO
+             * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
+             *
+             * if (???) {
+             *     continue;
+             * }
+             */
+
+            matchings.add(matching);
+            prune(matching, g);
+        }
+
+        return matchings;
+    }
+
+    private void prune(CostModelMatching<T> matching, List<CostModelMatching<T>> g) {
+
+        for (ListIterator<CostModelMatching<T>> it = g.listIterator(); it.hasNext();) {
+            CostModelMatching<T> current = it.next();
+
+            if ((matching.m != null && current.m == matching.m) || (matching.n != null && current.n == matching.n)) {
+                it.remove();
+            }
+        }
+    }
+
+    private boolean chance(float p) {
+        return rng.nextFloat() < p;
     }
 
     private List<CostModelMatching<T>> completeBipartiteGraph(T left, T right) {
@@ -279,10 +342,15 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         leftNodes.add(null);
         rightNodes.add(null);
 
-        List<CostModelMatching<T>> bipartiteGraph = new ArrayList<>(leftNodes.size() * rightNodes.size());
+        List<CostModelMatching<T>> bipartiteGraph = new LinkedList<>();
 
         for (T lNode : leftNodes) {
             for (T rNode : rightNodes) {
+
+                if (lNode == null && rNode == null) {
+                    continue;
+                }
+
                 bipartiteGraph.add(new CostModelMatching<T>(lNode, rNode));
             }
         }
@@ -297,7 +365,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         wait.add(tree);
 
         while (!wait.isEmpty()) {
-            T t = wait.getFirst();
+            T t = wait.removeFirst();
 
             bfs.add(t);
             t.getChildren().forEach(wait::addLast);
