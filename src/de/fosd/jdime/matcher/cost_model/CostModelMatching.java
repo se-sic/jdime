@@ -48,4 +48,9 @@ final class CostModelMatching<T extends Artifact<T>> {
     public void setBounds(Bounds bounds) {
         this.bounds = bounds;
     }
+
+    @Override
+    public String toString() {
+        return String.format("{%s, %s, %s}", m, n, bounds);
+    }
 }

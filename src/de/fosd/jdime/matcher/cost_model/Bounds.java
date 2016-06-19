@@ -36,4 +36,9 @@ final class Bounds implements Comparable<Bounds> {
     public int compareTo(Bounds o) {
         return COMPARATOR.compare(this, o);
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%s, %s]", lower, upper);
+    }
 }
