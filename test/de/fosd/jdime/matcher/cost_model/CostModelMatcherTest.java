@@ -1,5 +1,7 @@
 package de.fosd.jdime.matcher.cost_model;
 
+import java.util.Optional;
+
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.TestArtifact;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -70,6 +72,9 @@ public class CostModelMatcherTest {
 
         left = l1;
         right = r1;
+
+        left.renumberTree();
+        right.renumberTree();
     }
 
     @Test
@@ -136,6 +141,11 @@ public class CostModelMatcherTest {
         context.wn = wn;
         context.wa = wa;
         context.ws = ws;
+
+        // TODO extract parameters (or constants)
+        context.pAssign = 0.7f;
+        context.seed = Optional.of(42L);
+        context.costModelIterations = 100;
 
         assertEquals(expected, matcher.match(context, left, right));
     }

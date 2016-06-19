@@ -224,6 +224,8 @@ public class MergeContext implements Cloneable {
     // TODO add a switch for simple/flexible macthing
     // TODO replace with proper configuration values, add to (copy)constructor, getter/setter, cmdline config
     public float wr = 0, wn = 0, wa = 0, ws = 0;
+    public float pAssign;
+    public Optional<Long> seed = Optional.empty();
     public int costModelIterations;
 
     /**
