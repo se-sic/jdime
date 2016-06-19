@@ -159,6 +159,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private void boundCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
+
+        if (matching.isNoMatch()) {
+            matching.setBounds(wn, wn);
+            return;
+        }
+
         float cR = renamingCost(matching);
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
