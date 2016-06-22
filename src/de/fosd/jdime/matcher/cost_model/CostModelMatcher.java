@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +18,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
+import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
 public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
@@ -173,7 +175,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private float renamingCost(CostModelMatching<T> matching) {
-        if (matching.isNoMatch() || matching.m.matches(matching.n)) {
+        if (matching.m.matches(matching.n)) {
             return 0;
         } else {
             return wr.weigh(matching);
@@ -281,15 +283,46 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         setSiblingGroupBreakupWeight(context.ws);
         rng = context.seed.map(Random::new).orElse(new Random());
 
+        float beta = 1; // TODO figure out good values for this (dependant on the size of the trees)
+
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
         List<CostModelMatching<T>> mHat;
 
-        return new Matchings<>();
+        for (int i = 0; i < context.costModelIterations; i++) {
+            mHat = propose(context.pAssign, left, right, m);
+
+            if (chance(acceptanceProb(beta, m, mHat))) {
+                m = mHat;
+            }
+        }
+
+        //TODO use the last m or find the m with the lowest cost? Probably the latter.
+
+        return convert(m);
+    }
+
+    private Matchings<T> convert(List<CostModelMatching<T>> matchings) {
+        return matchings.stream()
+                        .filter(((Predicate<CostModelMatching<T>>) CostModelMatching::isNoMatch).negate())
+                        .map(m -> new Matching<>(m.m, m.n, 0))
+                        .collect(Matchings::new, Matchings::add, Matchings::addAll);
+    }
+
+    private List<CostModelMatching<T>> propose(float pAssign, T left, T right, List<CostModelMatching<T>> m) {
+        int j = rng.nextInt(m.size());
+        List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
+
+        return complete(fixed, pAssign, left, right);
     }
 
     private List<CostModelMatching<T>> initialize(float pAssign, T left, T right) {
+        return complete(new ArrayList<>(), pAssign, left, right);
+    }
+
+    private List<CostModelMatching<T>> complete(List<CostModelMatching<T>> matchings, float pAssign, T left, T right) {
         List<CostModelMatching<T>> g = completeBipartiteGraph(left, right);
-        List<CostModelMatching<T>> matchings = new ArrayList<>();
+
+        matchings.forEach(m -> prune(m, g));
 
         while (!g.isEmpty()) {
             g.forEach(m -> boundCost(m, g));
@@ -384,7 +417,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return (float) Math.exp(-(beta * cost(matchings)));
     }
 
-    private float acceptanceProb(float beta, List<CostModelMatching<T>> mOld, List<CostModelMatching<T>> mNew) {
-        return Math.min(1, objective(beta, mNew) / objective(beta, mOld));
+    private float acceptanceProb(float beta, List<CostModelMatching<T>> m, List<CostModelMatching<T>> mHat) {
+        return Math.min(1, objective(beta, mHat) / objective(beta, m));
     }
 }
