@@ -35,9 +35,9 @@ import java.util.function.Supplier;
 public class Revision {
 
     /**
-     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
+     * A <code>Supplier</code> for an arbitrary number of names 'A',...,'Z','AA',...,'ZZ',...
      */
-    public static final class SuccessiveRevSupplier implements Supplier<Revision> {
+    public static final class SuccessiveNameSupplier implements Supplier<String> {
         private static final char A = 'A';
         private static final char Z = 'Z';
         private static final int NUM = Z - A + 1;
@@ -45,8 +45,8 @@ public class Revision {
         private char[] name = {A};
 
         @Override
-        public Revision get() {
-            Revision rev = new Revision(String.valueOf(name));
+        public String get() {
+            String res = String.valueOf(name);
 
             for (int i = name.length - 1; i >= 0 && inc(i--);) {
                 if (i < 0) {
@@ -55,7 +55,7 @@ public class Revision {
                 }
             }
 
-            return rev;
+            return res;
         }
 
         /**
@@ -69,6 +69,19 @@ public class Revision {
         private boolean inc(int i) {
             name[i] = (char) (((name[i] - A + 1) % NUM) + A);
             return name[i] == A;
+        }
+    }
+
+    /**
+     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
+     */
+    public static final class SuccessiveRevSupplier implements Supplier<Revision> {
+
+        private Supplier<String> nameSupplier = new SuccessiveNameSupplier();
+
+        @Override
+        public Revision get() {
+            return new Revision(nameSupplier.get());
         }
     };
 
