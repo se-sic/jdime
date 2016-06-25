@@ -1,10 +1,8 @@
 package de.fosd.jdime.matcher.cost_model;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -16,6 +14,7 @@ import java.util.stream.Stream;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.common.Artifacts;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -374,8 +373,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<CostModelMatching<T>> completeBipartiteGraph(T left, T right) {
-        List<T> leftNodes = bfs(left);
-        List<T> rightNodes = bfs(right);
+        List<T> leftNodes = Artifacts.bfs(left);
+        List<T> rightNodes = Artifacts.bfs(right);
 
         // add the "No Match" node
         leftNodes.add(null);
@@ -395,22 +394,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
 
         return bipartiteGraph;
-    }
-
-    private List<T> bfs(T tree) {
-        List<T> bfs = new ArrayList<>();
-        Deque<T> wait = new ArrayDeque<>();
-
-        wait.add(tree);
-
-        while (!wait.isEmpty()) {
-            T t = wait.removeFirst();
-
-            bfs.add(t);
-            t.getChildren().forEach(wait::addLast);
-        }
-
-        return bfs;
     }
 
     private float objective(float beta, List<CostModelMatching<T>> matchings) {
