@@ -73,44 +73,6 @@ public class MergeContext implements Cloneable {
     public static final int LOOKAHEAD_OFF = 0;
 
     /**
-     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
-     */
-    private static final Supplier<Revision> SUCC_REV_SUPPLIER = new Supplier<Revision>() {
-        private static final char A = 'A';
-        private static final char Z = 'Z';
-        private static final int NUM = Z - A + 1;
-
-        private char[] name = {A};
-
-        @Override
-        public Revision get() {
-            Revision rev = new Revision(String.valueOf(name));
-
-            for (int i = name.length - 1; i >= 0 && inc(i--);) {
-                if (i < 0) {
-                    name = new char[name.length + 1];
-                    Arrays.fill(name, A);
-                }
-            }
-
-            return rev;
-        }
-
-        /**
-         * Increments the <code>char</code> at the given index in the <code>name</code> array mod <code>NUM</code> and
-         * returns whether there was an overflow back to <code>A</code>.
-         *
-         * @param i
-         *         the index to increment
-         * @return whether there was an overflow
-         */
-        private boolean inc(int i) {
-            name[i] = (char) (((name[i] - A + 1) % NUM) + A);
-            return name[i] == A;
-        }
-    };
-
-    /**
      * Whether merge inserts choice nodes instead of direct merging.
      */
     private boolean conditionalMerge;
@@ -358,7 +320,7 @@ public class MergeContext implements Cloneable {
             Supplier<Revision> revSupplier;
 
             if (isConditionalMerge()) {
-                revSupplier = SUCC_REV_SUPPLIER;
+                revSupplier = new Revision.SuccessiveRevSupplier();
             } else {
 
                 if (paths.size() == TWOWAY_FILES) {
@@ -366,7 +328,7 @@ public class MergeContext implements Cloneable {
                 } else if (paths.size() == THREEWAY_FILES) {
                     revSupplier = Arrays.asList(LEFT, BASE, RIGHT).iterator()::next;
                 } else {
-                    revSupplier = SUCC_REV_SUPPLIER;
+                    revSupplier = new Revision.SuccessiveRevSupplier();
                 }
             }
 
