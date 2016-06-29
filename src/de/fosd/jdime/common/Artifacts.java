@@ -12,7 +12,17 @@ public final class Artifacts {
         // UTILITY CLASS
     }
 
-    public static  <T extends Artifact<T>> List<T> bfs(T treeRoot) {
+    public static <T extends Artifact<T>> T root(T artifact) {
+        T root = artifact;
+
+        while (!root.isRoot()) {
+            root = root.getParent();
+        }
+
+        return root;
+    }
+
+    public static <T extends Artifact<T>> List<T> bfs(T treeRoot) {
         List<T> bfs = new ArrayList<>();
         Deque<T> wait = new ArrayDeque<>();
 

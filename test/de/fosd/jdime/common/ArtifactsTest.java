@@ -44,6 +44,13 @@ public class ArtifactsTest {
     }
 
     @Test
+    public void root() throws Exception {
+        for (TestArtifact artifact : Arrays.asList(ta, tb, tc, td, te, tf, tg)) {
+            assertEquals(traversalRoot, Artifacts.root(artifact));
+        }
+    }
+
+    @Test
     public void bfs() throws Exception {
         List<TestArtifact> expected = Arrays.asList(ta, tb, tc, td, te, tf, tg);
         assertEquals(expected, Artifacts.bfs(traversalRoot));
