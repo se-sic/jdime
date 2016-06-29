@@ -1,11 +1,17 @@
 package de.fosd.jdime.matcher.cost_model;
 
+import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.Optional;
 
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.TestArtifact;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.strdump.MatchingsTreeDump;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -77,6 +83,15 @@ public class CostModelMatcherTest {
         right.renumberTree();
     }
 
+    // TODO remove
+    boolean show = false;
+
+    @Test
+    public void testShow() throws Exception {
+        Matchings<TestArtifact> m = Matchings.of(left, right, 0);
+        show(m);
+    }
+
     @Test
     public void paperA() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
@@ -134,7 +149,7 @@ public class CostModelMatcherTest {
         testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f);
     }
 
-    private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws) {
+    private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws) throws Exception {
         MergeContext context = new MergeContext();
 
         context.wr = wr;
@@ -147,6 +162,30 @@ public class CostModelMatcherTest {
         context.seed = Optional.of(42L);
         context.costModelIterations = 100;
 
-        assertEquals(expected, matcher.match(context, left, right));
+        Matchings<TestArtifact> actual = matcher.match(context, left, right);
+
+        if (show) {
+            show(actual);
+        }
+
+        assertEquals(expected, actual);
+    }
+
+    // TODO remove, or make it more robust
+    private void show(Matchings<TestArtifact> matchings) throws Exception {
+        MatchingsTreeDump dump = new MatchingsTreeDump();
+        File dotFormat = Files.createTempFile(null, null).toFile();
+        File image = new File(dotFormat.getParentFile(), dotFormat.getName() + ".png");
+
+        FileUtils.forceDeleteOnExit(dotFormat);
+
+        try (FileOutputStream out = new FileOutputStream(dotFormat)) {
+            dump.dump(matchings, out);
+        }
+
+        String[] args = {"dot", "-Tpng", "-O", dotFormat.getAbsolutePath()};
+        Runtime.getRuntime().exec(args, null, dotFormat.getParentFile()).waitFor();
+
+        Desktop.getDesktop().open(image);
     }
 }
