@@ -617,6 +617,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isDirectory()) {
             Merge<FileArtifact> merge = new Merge<>();
 
+            if (context.hasStatistics()) {
+                context.getStatistics().setCurrentFileMergeScenario(operation.getMergeScenario());
+            }
+
             LOG.finest(() -> "Merging directories " + operation.getMergeScenario());
             merge.merge(operation, context);
         } else {

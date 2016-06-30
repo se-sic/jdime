@@ -424,10 +424,6 @@ public final class Main {
         boolean conditional = context.isConditionalMerge();
         MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
 
-        if (context.hasStatistics()) {
-            context.getStatistics().setCurrentFileMergeScenario(merge.getMergeScenario());
-        }
-
         merge.apply(context);
     }
 
