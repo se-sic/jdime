@@ -242,13 +242,23 @@ public class Statistics {
     /**
      * Adds a <code>MergeScenarioStatistics</code> instance to this <code>Statistics</code>. If there already is a
      * <code>MergeScenarioStatistics</code> for the <code>MergeScenario</code> stored in <code>statistics</code> it will
-     * be replaced.
+     * be added to the old value using {@link MergeScenarioStatistics#add(MergeScenarioStatistics)}.
      *
      * @param statistics
-     *         the <code>MergeScenarioStatistics</code> to be adde
+     *         the <code>MergeScenarioStatistics</code> to be added
      */
     public void addScenarioStatistics(MergeScenarioStatistics statistics) {
         scenarioStatistics.merge(statistics.getMergeScenario(), statistics, (o, n) -> {o.add(n); return o;});
+    }
+
+    /**
+     * Removes the <code>MergeScenarioStatistics</code> for the given <code>scenario</code> from this
+     * <code>Statistics</code> instance.
+     *
+     * @param scenario the <code>MergeScenario</code> whose <code>MergeScenarioStatistics</code> are to be removed.
+     */
+    public void removeScenarioStatistics(MergeScenario<?> scenario) {
+        scenarioStatistics.remove(scenario);
     }
 
     /**
