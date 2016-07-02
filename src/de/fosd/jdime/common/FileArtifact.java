@@ -314,12 +314,21 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
+     * Returns whether this <code>FileArtifact</code> (probably) represents a Java source code file.
+     *
+     * @return true iff this <code>FileArtifact</code> likely represents a Java source code file
+     */
+    public boolean isJavaFile() {
+        return isFile() && MIME_JAVA_SOURCE.equals(getContentType());
+    }
+
+    /**
      * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
      * If the content type can not be determined <code>null</code> will be returned.
      *
      * @return the MIME content type
      */
-    public final String getContentType() {
+    private String getContentType() {
         assert (exists());
 
         String mimeType = null;
@@ -394,7 +403,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     private List<FileArtifact> getJavaFiles(List<FileArtifact> list) {
 
-        if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
+        if (isJavaFile()) {
             list.add(this);
         } else if (isDirectory()) {
             children.forEach(c -> c.getJavaFiles(list));
@@ -627,10 +636,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
             MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
             MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
 
-            String contentType = getContentType();
-            LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
-
-            if (!MIME_JAVA_SOURCE.equals(contentType)) {
+            if (!isJavaFile()) {
                 LOG.fine(() -> "Skipping non-java file " + this);
                 return;
             }
