@@ -314,6 +314,20 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
+     * Removes all <code>FileArtifact</code>s under this one representing files that are not Java source code files
+     * (according to {@link #isJavaFile()}) or directories that do not contain (possibly indirectly) any java source
+     * code files.
+     */
+    public void filterNonJavaFiles() {
+        if (isDirectory()) {
+            children.stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
+
+            LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
+            children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && c.getChildren().isEmpty()));
+        }
+    }
+
+    /**
      * Returns whether this <code>FileArtifact</code> (probably) represents a Java source code file.
      *
      * @return true iff this <code>FileArtifact</code> likely represents a Java source code file
