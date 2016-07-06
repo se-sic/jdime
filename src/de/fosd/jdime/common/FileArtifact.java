@@ -487,20 +487,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumAdded();
+
         forAllJavaFiles(astNodeArtifact -> {
             mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
-
-            // TODO do we need this with the way the new MergeScenarioStatistics work?
-//            if (mergeContext.isConsecutive()) {
-//                mergeContext.getStatistics().addRightStats(childStats);
-//            } else {
-//                mergeContext.getStatistics().addASTStats(childStats);
-//            }
         });
     }
 
     @Override
     public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumDeleted();
+
         forAllJavaFiles(astNodeArtifact -> {
             MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
             Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
@@ -525,14 +522,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
 
             mScenarioStatistics.add(delStats);
-
-            // TODO do we need this with the way the new MergeScenarioStatistics work?
-//            if (mergeContext.isConsecutive()) {
-//                mergeContext.getStatistics().addRightStats(childStats);
-//            } else {
-//                mergeContext.getStatistics().addASTStats(childStats);
-//            }
         });
+    }
+
+    @Override
+    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumMerged();
     }
 
     /**
