@@ -1,7 +1,11 @@
 package de.fosd.jdime.strdump.graphviz;
 
-/**
- * Created by Georg on 07.07.2016.
- */
-public class GraphvizAttributeStmt {
+import java.io.PrintWriter;
+
+public class GraphvizAttributeStmt implements GraphvizElement {
+
+    @Override
+    public void dump(PrintWriter out) {
+
+    }
 }
