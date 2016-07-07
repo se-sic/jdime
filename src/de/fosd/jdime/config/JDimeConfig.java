@@ -58,6 +58,12 @@ public final class JDimeConfig extends Config {
     private static final String CONFIG_FILE_NAME = "JDime.properties";
 
     /**
+     * Whether to filter out any <code>FileArtifact</code>s not representing java source code files or directories
+     * (possibly indirectly) containing such files before merging. Defaults to true.
+     */
+    public static final String FILTER_INPUT_DIRECTORIES = "FILTER_INPUT_DIRECTORIES";
+
+    /**
      * The default value for the 'Args' text field in the GUI.
      */
     public static final String DEFAULT_ARGS = "DEFAULT_ARGS";

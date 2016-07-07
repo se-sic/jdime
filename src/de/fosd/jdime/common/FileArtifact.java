@@ -314,12 +314,35 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
+     * Removes all <code>FileArtifact</code>s under this one representing files that are not Java source code files
+     * (according to {@link #isJavaFile()}) or directories that do not contain (possibly indirectly) any java source
+     * code files.
+     */
+    public void filterNonJavaFiles() {
+        if (isDirectory()) {
+            children.stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
+
+            LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
+            children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && c.getChildren().isEmpty()));
+        }
+    }
+
+    /**
+     * Returns whether this <code>FileArtifact</code> (probably) represents a Java source code file.
+     *
+     * @return true iff this <code>FileArtifact</code> likely represents a Java source code file
+     */
+    public boolean isJavaFile() {
+        return isFile() && MIME_JAVA_SOURCE.equals(getContentType());
+    }
+
+    /**
      * Returns the MIME content type of the <code>File</code> in which this <code>FileArtifact</code> is stored. 
      * If the content type can not be determined <code>null</code> will be returned.
      *
      * @return the MIME content type
      */
-    public final String getContentType() {
+    private String getContentType() {
         assert (exists());
 
         String mimeType = null;
@@ -394,7 +417,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     private List<FileArtifact> getJavaFiles(List<FileArtifact> list) {
 
-        if (isFile() && MIME_JAVA_SOURCE.equals(getContentType())) {
+        if (isJavaFile()) {
             list.add(this);
         } else if (isDirectory()) {
             children.forEach(c -> c.getJavaFiles(list));
@@ -464,20 +487,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumAdded();
+
         forAllJavaFiles(astNodeArtifact -> {
             mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
-
-            // TODO do we need this with the way the new MergeScenarioStatistics work?
-//            if (mergeContext.isConsecutive()) {
-//                mergeContext.getStatistics().addRightStats(childStats);
-//            } else {
-//                mergeContext.getStatistics().addASTStats(childStats);
-//            }
         });
     }
 
     @Override
     public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumDeleted();
+
         forAllJavaFiles(astNodeArtifact -> {
             MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
             Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
@@ -502,14 +522,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
 
             mScenarioStatistics.add(delStats);
-
-            // TODO do we need this with the way the new MergeScenarioStatistics work?
-//            if (mergeContext.isConsecutive()) {
-//                mergeContext.getStatistics().addRightStats(childStats);
-//            } else {
-//                mergeContext.getStatistics().addASTStats(childStats);
-//            }
         });
+    }
+
+    @Override
+    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumMerged();
     }
 
     /**
@@ -617,16 +635,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isDirectory()) {
             Merge<FileArtifact> merge = new Merge<>();
 
+            if (context.hasStatistics()) {
+                context.getStatistics().setCurrentFileMergeScenario(operation.getMergeScenario());
+            }
+
             LOG.finest(() -> "Merging directories " + operation.getMergeScenario());
             merge.merge(operation, context);
         } else {
             MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
             MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
 
-            String contentType = getContentType();
-            LOG.finest(() -> String.format("%s (%s) has content type: %s", getId(), this, contentType));
-
-            if (!MIME_JAVA_SOURCE.equals(contentType)) {
+            if (!isJavaFile()) {
                 LOG.fine(() -> "Skipping non-java file " + this);
                 return;
             }
