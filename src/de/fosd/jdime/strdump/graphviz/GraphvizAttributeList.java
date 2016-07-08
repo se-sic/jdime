@@ -15,6 +15,11 @@ public class GraphvizAttributeList implements GraphvizElement {
 
     @Override
     public void dump(PrintWriter out) {
+
+        if (attributes.isEmpty()) {
+            return;
+        }
+
         out.write('[');
 
         for (Iterator<GraphvizAttribute> it = attributes.iterator(); it.hasNext();) {
