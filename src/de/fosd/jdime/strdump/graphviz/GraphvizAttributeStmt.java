@@ -12,7 +12,7 @@ public class GraphvizAttributeStmt extends GraphvizStatement {
 
     @Override
     public void dump(PrintWriter out) {
-        out.printf("%s ", type.name().toLowerCase());
+        out.write(type.name().toLowerCase()); out.write(' ');
         super.dump(out);
     }
 }
