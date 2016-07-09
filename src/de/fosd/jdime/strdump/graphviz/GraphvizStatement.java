@@ -13,6 +13,6 @@ abstract class GraphvizStatement implements GraphvizElement {
     @Override
     public void dump(PrintWriter out) {
         attributes.dump(out);
-        out.printf(";%n");
+        out.write(';');
     }
 }
