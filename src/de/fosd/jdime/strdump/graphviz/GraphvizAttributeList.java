@@ -14,10 +14,14 @@ public class GraphvizAttributeList implements GraphvizElement {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
 
         if (attributes.isEmpty()) {
             return;
+        }
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
         }
 
         out.write('[');

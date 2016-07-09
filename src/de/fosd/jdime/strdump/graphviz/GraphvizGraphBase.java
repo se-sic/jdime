@@ -6,6 +6,8 @@ import java.util.List;
 
 abstract class GraphvizGraphBase implements GraphvizElement {
 
+    private static final String INDENT_INC = "  ";
+
     protected final String id;
 
     protected final List<GraphvizAttributeStmt> attrStatements;
@@ -24,13 +26,15 @@ abstract class GraphvizGraphBase implements GraphvizElement {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+        String cIndent = indent + INDENT_INC;
+
         out.write(" {"); out.println();
-        attrStatements.forEach(a -> {a.dump(out); out.println();});
-        attributes.forEach(a -> {a.dump(out); out.println();});
-        nodes.forEach(n -> {n.dump(out); out.println();});
-        edges.forEach(e -> {e.dump(out); out.println();});
-        subGraphs.forEach(s -> {s.dump(out); out.println();});
+        attrStatements.forEach(a -> {a.dump(cIndent, out); out.println();});
+        attributes.forEach(a -> {a.dump(cIndent, out); out.println();});
+        nodes.forEach(n -> {n.dump(cIndent, out); out.println();});
+        edges.forEach(e -> {e.dump(cIndent, out); out.println();});
+        subGraphs.forEach(s -> {s.dump(cIndent, out); out.println();});
         out.write('}');
     }
 }

@@ -9,7 +9,12 @@ public class GraphvizSubGraph extends GraphvizGraphBase {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
+        }
+
         out.printf("subgraph \"%s\"", id);
         super.dump(out);
     }

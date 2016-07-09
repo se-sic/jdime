@@ -13,7 +13,12 @@ public class GraphvizAttribute implements GraphvizElement {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
+        }
+
         out.printf("\"%s\"=\"%s\"", lhs, rhs);
     }
 }

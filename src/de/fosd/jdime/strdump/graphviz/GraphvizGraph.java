@@ -14,7 +14,12 @@ public class GraphvizGraph extends GraphvizGraphBase {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
+        }
+
         out.printf("%s %s \"%s\"", strict ? "strict" : "", type.name().toLowerCase(), id);
         super.dump(out);
     }

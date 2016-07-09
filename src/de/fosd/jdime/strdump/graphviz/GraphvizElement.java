@@ -27,5 +27,9 @@ public interface GraphvizElement {
         }
     }
 
-    void dump(PrintWriter out);
+    default void dump(PrintWriter out) {
+        dump("", out);
+    }
+
+    void dump(String indent, PrintWriter out);
 }

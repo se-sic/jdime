@@ -11,7 +11,12 @@ abstract class GraphvizStatement implements GraphvizElement {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
+        }
+
         attributes.dump(out);
         out.write(';');
     }

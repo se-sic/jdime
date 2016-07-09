@@ -15,7 +15,12 @@ public class GraphvizNode extends GraphvizStatement {
     }
 
     @Override
-    public void dump(PrintWriter out) {
+    public void dump(String indent, PrintWriter out) {
+
+        if (!indent.isEmpty()) {
+            out.write(indent);
+        }
+
         out.write(id);
         super.dump(out);
     }
