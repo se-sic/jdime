@@ -14,7 +14,8 @@ public class GraphvizGraph extends GraphvizGraphBase {
     }
 
     @Override
-    protected void dumpGraphHeader(PrintWriter out) {
+    public void dump(PrintWriter out) {
         out.printf("%s %s \"%s\"", strict ? "strict" : "", type.name().toLowerCase(), id);
+        super.dump(out);
     }
 }

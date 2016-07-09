@@ -9,7 +9,8 @@ public class GraphvizSubGraph extends GraphvizGraphBase {
     }
 
     @Override
-    protected void dumpGraphHeader(PrintWriter out) {
+    public void dump(PrintWriter out) {
         out.printf("subgraph %s", id);
+        super.dump(out);
     }
 }

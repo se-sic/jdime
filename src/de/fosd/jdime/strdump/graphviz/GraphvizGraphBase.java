@@ -21,11 +21,9 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         this.subGraphs = new ArrayList<>();
     }
 
-    protected abstract void dumpGraphHeader(PrintWriter out);
-
     @Override
     public void dump(PrintWriter out) {
-        dumpGraphHeader(out); out.printf(" {%n");
+        out.printf(" {%n");
         nodes.forEach(n -> n.dump(out));
         edges.forEach(e -> e.dump(out));
         attributes.forEach(a -> a.dump(out));
