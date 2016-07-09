@@ -22,6 +22,6 @@ public class GraphvizEdge extends GraphvizStatement {
         }
 
         out.printf("%s %s %s", from.getId(), type.edgeOp, to.getId());
-        super.dump(out);
+        super.dump(indent, out);
     }
 }

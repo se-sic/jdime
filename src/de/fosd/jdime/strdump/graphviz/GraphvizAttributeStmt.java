@@ -18,6 +18,6 @@ public class GraphvizAttributeStmt extends GraphvizStatement {
         }
 
         out.write(type.name().toLowerCase()); out.write(' ');
-        super.dump(out);
+        super.dump(indent, out);
     }
 }

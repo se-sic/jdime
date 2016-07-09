@@ -5,14 +5,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class GraphvizGraph extends GraphvizGraphBase {
 
-    private final AtomicLong id;
+    private static final String ROOT_ID = "ROOT";
+
+    private final AtomicLong nextId;
 
     private final boolean strict;
     private final GraphvizGraphType type;
 
-    public GraphvizGraph(boolean strict, GraphvizGraphType type, String id) {
-        super(id);
-        this.id = new AtomicLong();
+    public GraphvizGraph(boolean strict, GraphvizGraphType type) {
+        super(ROOT_ID);
+        this.nextId = new AtomicLong();
         this.type = type;
         this.strict = strict;
     }
@@ -25,12 +27,12 @@ public class GraphvizGraph extends GraphvizGraphBase {
         }
 
         out.printf("%s %s \"%s\"", strict ? "strict" : "", type.name().toLowerCase(), id);
-        super.dump(out);
+        super.dump(indent, out);
     }
 
     @Override
     String nextId() {
-        return String.valueOf(id.getAndIncrement());
+        return String.valueOf(nextId.getAndIncrement());
     }
 
     @Override

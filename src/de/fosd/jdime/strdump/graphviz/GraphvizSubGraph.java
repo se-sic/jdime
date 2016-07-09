@@ -19,7 +19,7 @@ public class GraphvizSubGraph extends GraphvizGraphBase {
         }
 
         out.printf("subgraph \"%s\"", id);
-        super.dump(out);
+        super.dump(indent, out);
     }
 
     @Override
