@@ -4,8 +4,11 @@ import java.io.PrintWriter;
 
 public class GraphvizSubGraph extends GraphvizGraphBase {
 
-    public GraphvizSubGraph(String id) {
+    private final GraphvizGraph rootGraph;
+
+    public GraphvizSubGraph(GraphvizGraph rootGraph, String id) {
         super(id);
+        this.rootGraph = rootGraph;
     }
 
     @Override
@@ -17,5 +20,20 @@ public class GraphvizSubGraph extends GraphvizGraphBase {
 
         out.printf("subgraph \"%s\"", id);
         super.dump(out);
+    }
+
+    @Override
+    String nextId() {
+        return rootGraph.nextId();
+    }
+
+    @Override
+    GraphvizGraphType getType() {
+        return rootGraph.getType();
+    }
+
+    @Override
+    GraphvizGraph getRootGraph() {
+        return rootGraph;
     }
 }

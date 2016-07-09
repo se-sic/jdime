@@ -37,4 +37,45 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         subGraphs.forEach(s -> {s.dump(cIndent, out); out.println();});
         out.write('}');
     }
+
+    abstract String nextId();
+
+    abstract GraphvizGraphType getType();
+
+    abstract GraphvizGraph getRootGraph();
+
+    public GraphvizAttributeStmt attributeStmt(GraphvizAttributeStmtType type) {
+        GraphvizAttributeStmt attrStmt = new GraphvizAttributeStmt(type);
+
+        attrStatements.add(attrStmt);
+        return attrStmt;
+    }
+
+    public GraphvizAttribute attribute(String lhs, String rhs) {
+        GraphvizAttribute attr = new GraphvizAttribute(lhs, rhs);
+
+        attributes.add(attr);
+        return attr;
+    }
+
+    public GraphvizNode node() {
+        GraphvizNode node = new GraphvizNode(nextId());
+
+        nodes.add(node);
+        return node;
+    }
+
+    public GraphvizEdge edge(GraphvizNode from, GraphvizNode to) {
+        GraphvizEdge edge = new GraphvizEdge(getType(), from, to);
+
+        edges.add(edge);
+        return edge;
+    }
+
+    public GraphvizSubGraph subGraph() {
+        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), nextId());
+
+        subGraphs.add(subGraph);
+        return subGraph;
+    }
 }
