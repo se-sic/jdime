@@ -26,7 +26,7 @@ public class GraphvizGraph extends GraphvizGraphBase {
             out.write(indent);
         }
 
-        out.printf("%s %s \"%s\"", strict ? "strict" : "", type.name().toLowerCase(), id);
+        out.printf("%s%s \"%s\"", strict ? "strict " : "", type.name().toLowerCase(), id);
         super.dump(indent, out);
     }
 

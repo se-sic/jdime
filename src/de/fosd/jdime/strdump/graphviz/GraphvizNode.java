@@ -22,6 +22,6 @@ public class GraphvizNode extends GraphvizStatement {
         }
 
         out.write(id);
-        super.dump(indent, out);
+        super.dump("", out);
     }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 abstract class GraphvizGraphBase implements GraphvizElement {
 
     private static final String INDENT_INC = "  ";
+    private static final String CLUSTER_PREFIX = "cluster";
 
     protected final String id;
 
@@ -35,7 +36,7 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         nodes.forEach(n -> {n.dump(cIndent, out); out.println();});
         edges.forEach(e -> {e.dump(cIndent, out); out.println();});
         subGraphs.forEach(s -> {s.dump(cIndent, out); out.println();});
-        out.write('}');
+        out.write(indent); out.write('}');
     }
 
     abstract String nextId();
@@ -74,6 +75,13 @@ abstract class GraphvizGraphBase implements GraphvizElement {
 
     public GraphvizSubGraph subGraph() {
         GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), nextId());
+
+        subGraphs.add(subGraph);
+        return subGraph;
+    }
+
+    public GraphvizSubGraph subGraphCluster() {
+        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), CLUSTER_PREFIX + nextId());
 
         subGraphs.add(subGraph);
         return subGraph;
