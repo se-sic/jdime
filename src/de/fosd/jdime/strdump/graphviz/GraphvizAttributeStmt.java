@@ -20,4 +20,10 @@ public class GraphvizAttributeStmt extends GraphvizStatement {
         out.write(type.name().toLowerCase()); out.write(' ');
         super.dump("", out);
     }
+
+    @Override
+    public GraphvizAttributeStmt attribute(String lhs, String rhs) {
+        super.attribute(lhs, rhs);
+        return this;
+    }
 }

@@ -36,4 +36,11 @@ public class GraphvizAttributeList implements GraphvizElement {
 
         out.write(']');
     }
+
+    public GraphvizAttribute attribute(String lhs, String rhs) {
+        GraphvizAttribute attr = new GraphvizAttribute(lhs, rhs);
+
+        attributes.add(attr);
+        return attr;
+    }
 }

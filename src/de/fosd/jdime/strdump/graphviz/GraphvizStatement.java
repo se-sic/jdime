@@ -20,4 +20,9 @@ abstract class GraphvizStatement implements GraphvizElement {
         attributes.dump(out);
         out.write(';');
     }
+
+    public GraphvizStatement attribute(String lhs, String rhs) {
+        attributes.attribute(lhs, rhs);
+        return this;
+    }
 }

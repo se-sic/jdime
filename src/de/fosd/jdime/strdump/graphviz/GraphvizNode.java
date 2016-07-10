@@ -24,4 +24,10 @@ public class GraphvizNode extends GraphvizStatement {
         out.write(id);
         super.dump("", out);
     }
+
+    @Override
+    public GraphvizNode attribute(String lhs, String rhs) {
+        super.attribute(lhs, rhs);
+        return this;
+    }
 }
