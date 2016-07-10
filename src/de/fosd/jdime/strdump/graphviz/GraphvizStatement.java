@@ -17,7 +17,7 @@ abstract class GraphvizStatement implements GraphvizElement {
             out.write(indent);
         }
 
-        attributes.dump(out);
+        attributes.dump(" ", out);
         out.write(';');
     }
 
