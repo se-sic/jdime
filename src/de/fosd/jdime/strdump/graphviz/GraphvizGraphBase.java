@@ -49,10 +49,12 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         out.write(indent); out.write('}');
     }
 
-    abstract String nextId();
-
-    abstract GraphvizGraphType getType();
-
+    /**
+     * Returns the root <code>GraphvizGraph</code> of the object structure this <code>GraphvizGraphBase</code> is a
+     * part of.
+     *
+     * @return the root <code>GraphvizGraph</code>
+     */
     abstract GraphvizGraph getRootGraph();
 
     public GraphvizAttributeStmt attributeStmt(GraphvizAttributeStmtType type) {
@@ -70,28 +72,28 @@ abstract class GraphvizGraphBase implements GraphvizElement {
     }
 
     public GraphvizNode node() {
-        GraphvizNode node = new GraphvizNode(nextId());
+        GraphvizNode node = new GraphvizNode(getRootGraph().nextId());
 
         nodes.add(node);
         return node;
     }
 
     public GraphvizEdge edge(GraphvizNode from, GraphvizNode to) {
-        GraphvizEdge edge = new GraphvizEdge(getType(), from, to);
+        GraphvizEdge edge = new GraphvizEdge(getRootGraph().getType(), from, to);
 
         edges.add(edge);
         return edge;
     }
 
     public GraphvizSubGraph subGraph() {
-        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), nextId());
+        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), getRootGraph().nextId());
 
         subGraphs.add(subGraph);
         return subGraph;
     }
 
     public GraphvizSubGraph subGraphCluster() {
-        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), CLUSTER_PREFIX + nextId());
+        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), CLUSTER_PREFIX + getRootGraph().nextId());
 
         subGraphs.add(subGraph);
         return subGraph;

@@ -28,16 +28,6 @@ public final class GraphvizSubGraph extends GraphvizGraphBase {
     }
 
     @Override
-    String nextId() {
-        return rootGraph.nextId();
-    }
-
-    @Override
-    GraphvizGraphType getType() {
-        return rootGraph.getType();
-    }
-
-    @Override
     GraphvizGraph getRootGraph() {
         return rootGraph;
     }

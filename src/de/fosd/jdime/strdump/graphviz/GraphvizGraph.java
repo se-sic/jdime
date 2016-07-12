@@ -44,12 +44,20 @@ public final class GraphvizGraph extends GraphvizGraphBase {
         super.dump(indent, out);
     }
 
-    @Override
+    /**
+     * Returns the next unique ID to be used in this <code>GraphvizGraph</code> and its sub-graphs.
+     *
+     * @return the next ID
+     */
     String nextId() {
         return String.valueOf(nextId.getAndIncrement());
     }
 
-    @Override
+    /**
+     * Returns the <code>GraphvizGraphType</code> of this <code>GraphvizGraph</code>.
+     *
+     * @return the type of this graph
+     */
     GraphvizGraphType getType() {
         return type;
     }
