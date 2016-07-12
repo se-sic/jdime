@@ -3,7 +3,12 @@ package de.fosd.jdime.strdump.graphviz;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class GraphvizGraph extends GraphvizGraphBase {
+/**
+ * Representation of a DOT language root graph.
+ *
+ * @see <a href="http://www.graphviz.org/">http://www.graphviz.org/</a>
+ */
+public final class GraphvizGraph extends GraphvizGraphBase {
 
     private static final String ROOT_ID = "ROOT";
 
@@ -12,6 +17,15 @@ public class GraphvizGraph extends GraphvizGraphBase {
     private final boolean strict;
     private final GraphvizGraphType type;
 
+    /**
+     * Constructs a new <code>GraphvizGraph</code> of the given <code>type</code>.
+     *
+     * @param strict
+     *         whether the graph is to be 'strict' (without multi-edges) (note: this only adds a keyword to the
+     *         output, adding of edges is unrestricted)
+     * @param type
+     *         the type of graph to be created
+     */
     public GraphvizGraph(boolean strict, GraphvizGraphType type) {
         super(ROOT_ID);
         this.nextId = new AtomicLong();

@@ -4,6 +4,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Abstract superclass for the <code>GraphvizGraph</code> and <code>GraphvizSubGraph</code> containing all
+ * shared attributes and the methods for constructing elements of the graph.
+ */
 abstract class GraphvizGraphBase implements GraphvizElement {
 
     private static final String INDENT_INC = "  ";
@@ -17,7 +21,13 @@ abstract class GraphvizGraphBase implements GraphvizElement {
     protected final List<GraphvizEdge> edges;
     protected final List<GraphvizSubGraph> subGraphs;
 
-    public GraphvizGraphBase(String id) {
+    /**
+     * Constructs a new <code>GraphvizGraphBase</code> with the given graph ID.
+     *
+     * @param id
+     *         the ID for this graph
+     */
+    GraphvizGraphBase(String id) {
         this.id = id;
         this.attrStatements = new ArrayList<>();
         this.attributes = new ArrayList<>();

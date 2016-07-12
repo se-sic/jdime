@@ -2,13 +2,26 @@ package de.fosd.jdime.strdump.graphviz;
 
 import java.io.PrintWriter;
 
-public class GraphvizEdge extends GraphvizStatement {
+/**
+ * Representation of a DOT language edge of the form "ID (-- | ->) ID".
+ */
+public final class GraphvizEdge extends GraphvizStatement {
 
     private final GraphvizGraphType type;
     private final GraphvizNode from;
     private final GraphvizNode to;
 
-    public GraphvizEdge(GraphvizGraphType type, GraphvizNode from, GraphvizNode to) {
+    /**
+     * Constructs a new <code>GraphvizEdge</code> between the two given <code>GraphvizNode</code>s.
+     *
+     * @param type
+     *         the type of the <code>GraphvizGraph</code> containing the edge.
+     * @param from
+     *         the starting node
+     * @param to
+     *         the destination node
+     */
+    GraphvizEdge(GraphvizGraphType type, GraphvizNode from, GraphvizNode to) {
         this.type = type;
         this.from = from;
         this.to = to;

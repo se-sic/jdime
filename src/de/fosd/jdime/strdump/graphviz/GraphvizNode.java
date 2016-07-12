@@ -2,11 +2,19 @@ package de.fosd.jdime.strdump.graphviz;
 
 import java.io.PrintWriter;
 
-public class GraphvizNode extends GraphvizStatement {
+/**
+ * Representation of a DOT language graph node.
+ */
+public final class GraphvizNode extends GraphvizStatement {
 
     private final String id;
 
-    public GraphvizNode(String id) {
+    /**
+     * Constructs a new <code>GraphvizNode</code> with the given ID.
+     *
+     * @param id the ID for this <code>GraphvizNode</code>
+     */
+    GraphvizNode(String id) {
         this.id = id;
     }
 

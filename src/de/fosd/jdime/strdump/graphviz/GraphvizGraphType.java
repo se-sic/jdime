@@ -1,5 +1,8 @@
 package de.fosd.jdime.strdump.graphviz;
 
+/**
+ * Enumeration of the valid graph types.
+ */
 public enum GraphvizGraphType {
     GRAPH("--"),
     DIGRAPH("->");

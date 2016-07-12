@@ -2,11 +2,16 @@ package de.fosd.jdime.strdump.graphviz;
 
 import java.io.PrintWriter;
 
-public class GraphvizSubGraph extends GraphvizGraphBase {
+/**
+ * Representation of a DOT language sub-graph.
+ *
+ * @see <a href="http://www.graphviz.org/">http://www.graphviz.org/</a>
+ */
+public final class GraphvizSubGraph extends GraphvizGraphBase {
 
     private final GraphvizGraph rootGraph;
 
-    public GraphvizSubGraph(GraphvizGraph rootGraph, String id) {
+    GraphvizSubGraph(GraphvizGraph rootGraph, String id) {
         super(id);
         this.rootGraph = rootGraph;
     }

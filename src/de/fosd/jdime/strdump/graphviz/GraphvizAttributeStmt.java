@@ -2,11 +2,14 @@ package de.fosd.jdime.strdump.graphviz;
 
 import java.io.PrintWriter;
 
-public class GraphvizAttributeStmt extends GraphvizStatement {
+/**
+ * Representation of a DOT language attribute statement of the form "(graph | node | edge) [ID = ID, ID = ID, ... ]".
+ */
+public final class GraphvizAttributeStmt extends GraphvizStatement {
 
     private final GraphvizAttributeStmtType type;
 
-    public GraphvizAttributeStmt(GraphvizAttributeStmtType type) {
+    GraphvizAttributeStmt(GraphvizAttributeStmtType type) {
         this.type = type;
     }
 
