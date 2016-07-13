@@ -173,14 +173,14 @@ public class CostModelMatcherTest {
 
     // TODO remove, or make it more robust
     private void show(Matchings<TestArtifact> matchings) throws Exception {
-        MatchingsTreeDump dump = new MatchingsTreeDump();
         File dotFormat = Files.createTempFile(null, null).toFile();
         File image = new File(dotFormat.getParentFile(), dotFormat.getName() + ".png");
 
         FileUtils.forceDeleteOnExit(dotFormat);
 
         try (FileOutputStream out = new FileOutputStream(dotFormat)) {
-            dump.dump(matchings, out);
+            MatchingsTreeDump mDump = new MatchingsTreeDump();
+            mDump.toGraphvizGraph(matchings).dump(out);
         }
 
         String[] args = {"dot", "-Tpng", "-O", dotFormat.getAbsolutePath()};
