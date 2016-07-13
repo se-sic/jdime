@@ -40,13 +40,36 @@ abstract class GraphvizGraphBase implements GraphvizElement {
     public void dump(String indent, PrintWriter out) {
         String cIndent = indent + INDENT_INC;
 
-        out.write(" {"); out.println();
-        attrStatements.forEach(a -> {a.dump(cIndent, out); out.println();});
-        attributes.forEach(a -> {a.dump(cIndent, out); out.println();});
-        nodes.forEach(n -> {n.dump(cIndent, out); out.println();});
-        edges.forEach(e -> {e.dump(cIndent, out); out.println();});
-        subGraphs.forEach(s -> {s.dump(cIndent, out); out.println();});
-        out.write(indent); out.write('}');
+        out.write(" {");
+        out.println();
+
+        attrStatements.forEach(a -> {
+            a.dump(cIndent, out);
+            out.println();
+        });
+
+        attributes.forEach(a -> {
+            a.dump(cIndent, out);
+            out.println();
+        });
+
+        nodes.forEach(n -> {
+            n.dump(cIndent, out);
+            out.println();
+        });
+
+        edges.forEach(e -> {
+            e.dump(cIndent, out);
+            out.println();
+        });
+
+        subGraphs.forEach(s -> {
+            s.dump(cIndent, out);
+            out.println();
+        });
+
+        out.write(indent);
+        out.write('}');
     }
 
     /**
