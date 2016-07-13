@@ -14,12 +14,12 @@ import de.fosd.jdime.strdump.graphviz.GraphvizSubGraph;
 
 import static de.fosd.jdime.strdump.graphviz.GraphvizAttributeStmtType.EDGE;
 import static de.fosd.jdime.strdump.graphviz.GraphvizAttributeStmtType.NODE;
-import static de.fosd.jdime.strdump.graphviz.GraphvizGraphType.DIGRAPH;
+import static de.fosd.jdime.strdump.graphviz.GraphvizGraphType.GRAPH;
 
 public class MatchingsTreeDump {
 
     public <T extends Artifact<T>> GraphvizGraph toGraphvizGraph(Matchings<T> matchings) {
-        GraphvizGraph graph = new GraphvizGraph(false, DIGRAPH);
+        GraphvizGraph graph = new GraphvizGraph(false, GRAPH);
 
         if (matchings.isEmpty()) {
             return graph;
