@@ -80,6 +80,13 @@ abstract class GraphvizGraphBase implements GraphvizElement {
      */
     abstract GraphvizGraph getRootGraph();
 
+    /**
+     * Creates a new <code>GraphvizAttributeStmt</code>, adds it to this graph and returns it.
+     *
+     * @param type
+     *         the <code>GraphvizAttributeStmtType</code> for the <code>GraphvizAttributeStmt</code>
+     * @return the newly created <code>GraphvizAttributeStmt</code>
+     */
     public GraphvizAttributeStmt attributeStmt(GraphvizAttributeStmtType type) {
         GraphvizAttributeStmt attrStmt = new GraphvizAttributeStmt(type);
 
@@ -87,6 +94,15 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         return attrStmt;
     }
 
+    /**
+     * Creates a new <code>GraphvizAttribute</code>, adds it to this graph and returns it.
+     *
+     * @param lhs
+     *         the left-hand side for the attribute
+     * @param rhs
+     *         the right-hand side for the attribute
+     * @return the newly created <code>GraphvizAttribute</code>
+     */
     public GraphvizAttribute attribute(String lhs, String rhs) {
         GraphvizAttribute attr = new GraphvizAttribute(lhs, rhs);
 
@@ -94,6 +110,11 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         return attr;
     }
 
+    /**
+     * Creates a new <code>GraphvizNode</code>, adds it to this graph and returns it.
+     *
+     * @return the newly created <code>GraphvizNode</code>
+     */
     public GraphvizNode node() {
         GraphvizNode node = new GraphvizNode(getRootGraph().nextId());
 
@@ -101,6 +122,15 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         return node;
     }
 
+    /**
+     * Creates a new <code>GraphvizEdge</code>, adds it to this graph and returns it.
+     *
+     * @param from
+     *         the starting node
+     * @param to
+     *         the destination node
+     * @return the newly created <code>GraphvizEdge</code>
+     */
     public GraphvizEdge edge(GraphvizNode from, GraphvizNode to) {
         GraphvizEdge edge = new GraphvizEdge(getRootGraph().getType(), from, to);
 
@@ -108,15 +138,34 @@ abstract class GraphvizGraphBase implements GraphvizElement {
         return edge;
     }
 
+    /**
+     * Creates a new <code>GraphvizSubGraph</code>, adds it to this graph and returns it.
+     *
+     * @return the newly created <code>GraphvizSubGraph</code>
+     */
     public GraphvizSubGraph subGraph() {
-        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), getRootGraph().nextId());
-
-        subGraphs.add(subGraph);
-        return subGraph;
+        return subGraph(getRootGraph().nextId());
     }
 
+    /**
+     * Creates a new <code>GraphvizSubGraph</code>, adds it to this graph and returns it. The ID of the created
+     * sub-graph will start with 'cluster' which will cause some layout algorithms to treat it differently.
+     *
+     * @return the newly created <code>GraphvizSubGraph</code>
+     */
     public GraphvizSubGraph subGraphCluster() {
-        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), CLUSTER_PREFIX + getRootGraph().nextId());
+        return subGraph(CLUSTER_PREFIX + getRootGraph().nextId());
+    }
+
+    /**
+     * Creates a new <code>GraphvizSubGraph</code>, adds it to this graph and returns it.
+     *
+     * @param id
+     *         the ID for the sub-graph
+     * @return the newly created <code>GraphvizSubGraph</code>
+     */
+    private GraphvizSubGraph subGraph(String id) {
+        GraphvizSubGraph subGraph = new GraphvizSubGraph(getRootGraph(), id);
 
         subGraphs.add(subGraph);
         return subGraph;
