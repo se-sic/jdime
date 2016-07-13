@@ -50,6 +50,7 @@ abstract class GraphvizGraphBase implements GraphvizElement {
 
         attributes.forEach(a -> {
             a.dump(cIndent, out);
+            out.write(';');
             out.println();
         });
 
