@@ -19,10 +19,9 @@ import static de.fosd.jdime.strdump.graphviz.GraphvizGraphType.GRAPH;
 public class MatchingsTreeDump {
 
     public <T extends Artifact<T>> GraphvizGraph toGraphvizGraph(Matchings<T> matchings) {
-        GraphvizGraph graph = new GraphvizGraph(false, GRAPH);
 
         if (matchings.isEmpty()) {
-            return graph;
+            return new GraphvizGraph(false, GRAPH);
         }
 
         T lRoot, rRoot;
@@ -34,6 +33,12 @@ public class MatchingsTreeDump {
             rRoot = Artifacts.root(first.getRight());
         }
 
+        return toGraphvizGraph(matchings, lRoot, rRoot);
+    }
+
+    public <T extends Artifact<T>> GraphvizGraph toGraphvizGraph(Matchings<T> matchings, T lRoot, T rRoot) {
+        GraphvizGraph graph = new GraphvizGraph(false, GRAPH);
+
         graph.attributeStmt(NODE).attribute("shape", "box");
         graph.attribute("rankdir", "TB");
 
@@ -43,6 +48,10 @@ public class MatchingsTreeDump {
         for (Matching<T> matching : matchings) {
             GraphvizNode from = lNodes.get(matching.getLeft());
             GraphvizNode to = rNodes.get(matching.getRight());
+
+            if (from == null || to == null) {
+                continue;
+            }
 
             graph.edge(from, to).attribute("constraint", "false");
         }
