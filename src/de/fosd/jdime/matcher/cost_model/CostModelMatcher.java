@@ -20,6 +20,8 @@ import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
+import static java.util.stream.Collectors.summingDouble;
+
 public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
     private static final Logger LOG = Logger.getLogger(CostModelMatcher.class.getCanonicalName());
@@ -109,18 +111,42 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         int t1Size = first.m.findRoot().getTreeSize();
         int t2Size = first.n.findRoot().getTreeSize();
 
-        return (1.0f / (t1Size + t2Size)) * matchings.stream().collect(Collectors.summingDouble(m -> exactCost(m, matchings))).floatValue();
+        float sumCost = matchings.stream().collect(summingDouble(m -> exactCost(m, matchings))).floatValue();
+
+        return (1.0f / (t1Size + t2Size)) * sumCost;
     }
 
+    /**
+     * Returns the exact cost of the given <code>matching</code>.
+     *
+     * @param matching
+     *         the <code>CostModelMatching</code> to compute the cost for
+     * @param matchings
+     *         the complete <code>CostModelMatching</code>s
+     * @return the exact cost of the <code>matching</code>
+     */
     private float exactCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
 
         if (matching.isNoMatch()) {
             return wn;
         }
 
-        return renamingCost(matching) + ancestryViolationCost(matching, matchings) + siblingGroupBreakupCost(matching, matchings);
+        float cR = renamingCost(matching);
+        float cA = ancestryViolationCost(matching, matchings);
+        float cS = siblingGroupBreakupCost(matching, matchings);
+
+        return cR + cA + cS;
     }
 
+    /**
+     * Returns the cost for renaming the node. The cost will be zero if the <code>Artifact</code>s match according to
+     * {@link Artifact#matches(Artifact)}, otherwise it is determined by the set renaming weight function
+     * {@link this#wr}.
+     *
+     * @param matching
+     *         the <code>CostModelMatching</code> to compute the cost for
+     * @return the exact renaming cost of the <code>matching</code>
+     */
     private float renamingCost(CostModelMatching<T> matching) {
         if (matching.m.matches(matching.n)) {
             return 0;
