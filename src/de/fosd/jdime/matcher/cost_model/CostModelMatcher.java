@@ -40,6 +40,28 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float weigh(CostModelMatching<T>  matching, float quantity);
     }
 
+    private class ObjectiveValue {
+
+        public final float objValue;
+        public final float matchingsCost;
+
+        public ObjectiveValue(float objValue, float matchingsCost) {
+            this.objValue = objValue;
+            this.matchingsCost = matchingsCost;
+        }
+    }
+
+    private class AcceptanceProbability {
+
+        public final float acceptanceProbability;
+        public final ObjectiveValue mHatObjectiveValue;
+
+        public AcceptanceProbability(float acceptanceProbability, ObjectiveValue mHatObjectiveValue) {
+            this.acceptanceProbability = acceptanceProbability;
+            this.mHatObjectiveValue = mHatObjectiveValue;
+        }
+    }
+
     /**
      * The cost of not matching an artifact.
      */
@@ -351,19 +373,27 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float beta = 1; // TODO figure out good values for this (dependant on the size of the trees)
 
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
-        List<CostModelMatching<T>> mHat;
+        ObjectiveValue mObjVal = objective(beta, m);
+
+        List<CostModelMatching<T>> lowest = m;
+        float lowestCost = mObjVal.matchingsCost;
 
         for (int i = 0; i < context.costModelIterations; i++) {
-            mHat = propose(context.pAssign, left, right, m);
+            List<CostModelMatching<T>> mHat = propose(context.pAssign, left, right, m);
+            AcceptanceProbability mHatAccProb = acceptanceProb(beta, mObjVal.objValue, mHat);
 
-            if (chance(acceptanceProb(beta, m, mHat))) {
+            if (chance(mHatAccProb.acceptanceProbability)) {
                 m = mHat;
+                mObjVal = mHatAccProb.mHatObjectiveValue;
+
+                if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
+                    lowest = mHat;
+                    lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
+                }
             }
         }
 
-        //TODO use the last m or find the m with the lowest cost? Probably the latter.
-
-        return convert(m);
+        return convert(lowest);
     }
 
     private Matchings<T> convert(List<CostModelMatching<T>> matchings) {
@@ -462,11 +492,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return bipartiteGraph;
     }
 
-    private float objective(float beta, List<CostModelMatching<T>> matchings) {
-        return (float) Math.exp(-(beta * cost(matchings)));
+    private ObjectiveValue objective(float beta, List<CostModelMatching<T>> matchings) {
+        float cost = cost(matchings);
+        float objVal = (float) Math.exp(-(beta * cost));
+
+        return new ObjectiveValue(objVal, cost);
     }
 
-    private float acceptanceProb(float beta, List<CostModelMatching<T>> m, List<CostModelMatching<T>> mHat) {
-        return Math.min(1, objective(beta, mHat) / objective(beta, m));
+    private AcceptanceProbability acceptanceProb(float beta, float mObjectiveValue, List<CostModelMatching<T>> mHat) {
+        ObjectiveValue mHatObjectiveValue = objective(beta, mHat);
+        float acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
+
+        return new AcceptanceProbability(acceptanceProb, mHatObjectiveValue);
     }
 }
