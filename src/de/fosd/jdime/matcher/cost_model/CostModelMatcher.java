@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -156,14 +157,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private float ancestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
-        return wa.weigh(matching, numAncestryViolatingChildren(matching, matchings) + numAncestryViolatingChildren(matching, matchings));
+        int numM = numAncestryViolatingChildren(matching.m, matching.n, matchings);
+        int numN = numAncestryViolatingChildren(matching.n, matching.m, matchings);
+
+        return wa.weigh(matching, numM + numN);
     }
 
-    private int numAncestryViolatingChildren(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
-        ArtifactList<T> mChildren = matching.m.getChildren();
-        ArtifactList<T> nChildren = matching.n.getChildren();
+    private int numAncestryViolatingChildren(T m, T n, List<CostModelMatching<T>> matchings) {
+        ArtifactList<T> mChildren = m.getChildren();
+        ArtifactList<T> nChildren = n.getChildren();
 
-        return (int) mChildren.stream().map(mAp -> image(mAp, matchings)).filter(nChildren::contains).count();
+        Predicate<T> filter = a -> a != null && !nChildren.contains(a);
+
+        return (int) mChildren.stream().map(mAp -> image(mAp, matchings)).filter(filter).count();
     }
 
     private float siblingGroupBreakupCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
@@ -196,9 +202,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return siblings(m).stream().map(mAp -> image(mAp, matchings).getParent()).collect(Collectors.toList());
     }
 
-    private T image(T m, List<CostModelMatching<T>> matchings) {
+    private T image(T artifact, List<CostModelMatching<T>> matchings) {
         //TODO this is very inefficient...
-        return matchings.stream().filter(ma -> ma.contains(m)).map(ma -> ma.other(m)).findFirst().get();
+
+        for (CostModelMatching<T> matching : matchings) {
+
+            if (matching.contains(artifact)) {
+                return matching.other(artifact);
+            }
+        }
+
+        throw new NoSuchElementException("No matching containing " + artifact + " found.");
     }
 
     /**
