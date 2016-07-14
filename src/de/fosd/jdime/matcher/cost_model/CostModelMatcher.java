@@ -485,7 +485,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                     continue;
                 }
 
-                bipartiteGraph.add(new CostModelMatching<T>(lNode, rNode));
+                bipartiteGraph.add(new CostModelMatching<>(lNode, rNode));
             }
         }
 
