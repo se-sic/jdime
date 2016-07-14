@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.common.Artifact;
@@ -22,6 +22,7 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
 import static java.util.stream.Collectors.summingDouble;
+import static java.util.stream.Collectors.toList;
 
 public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
@@ -91,7 +92,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     public float cost(Matchings<T> matchings) {
-        return cost(matchings.stream().map(m -> new CostModelMatching<>(m.getLeft(), m.getRight())).collect(Collectors.toList()));
+        return cost(matchings.stream().map(m -> new CostModelMatching<>(m.getLeft(), m.getRight())).collect(toList()));
     }
 
     /**
@@ -190,16 +191,24 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<T> siblingInvariantSubset(T m, T n, List<CostModelMatching<T>> matchings) {
-        return siblings(m).stream().filter(mAp -> siblings(n).contains(image(mAp, matchings))).collect(Collectors.toList());
+        List<T> mSiblings = siblings(m);
+        List<T> nSiblings = siblings(n);
+
+        return mSiblings.stream().filter(s -> nSiblings.contains(image(s, matchings))).collect(toList());
     }
 
     private List<T> siblingDivergentSubset(T m, T n, List<CostModelMatching<T>> matchings) {
         List<T> inv = siblingInvariantSubset(m, n, matchings);
-        return siblings(m).stream().filter(mAp -> !inv.contains(mAp) && image(mAp, matchings) != null).collect(Collectors.toList());
+
+        return siblings(m).stream().filter(mAp -> !inv.contains(mAp) && image(mAp, matchings) != null).collect(toList());
     }
 
     private List<T> distinctSiblingFamilies(T m, List<CostModelMatching<T>> matchings) {
-        return siblings(m).stream().map(mAp -> image(mAp, matchings).getParent()).collect(Collectors.toList());
+        Function<T, T> image = mAp -> image(mAp, matchings);
+        Predicate<T> notNull = a -> a != null;
+        Function<T, T> getParent = Artifact::getParent;
+
+        return siblings(m).stream().map(image).filter(notNull).map(getParent).filter(notNull).collect(toList());
     }
 
     private T image(T artifact, List<CostModelMatching<T>> matchings) {
@@ -317,7 +326,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         if (parent == null) {
             return Collections.emptyList();
         } else {
-            List<T> res = new ArrayList<T>(parent.getChildren());
+            List<T> res = new ArrayList<>(parent.getChildren());
             res.remove(artifact);
 
             return res;
