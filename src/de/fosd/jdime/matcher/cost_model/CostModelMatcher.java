@@ -91,6 +91,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return cost(matchings.stream().map(m -> new CostModelMatching<>(m.getLeft(), m.getRight())).collect(Collectors.toList()));
     }
 
+    /**
+     * Returns the exact cost of the given <code>matchings</code>. This assumes that <code>matchings</code> contains
+     * for every node in the left and right tree exactly one <code>CostModelMatching</code> containing the node.
+     *
+     * @param matchings
+     *         the <code>CostModelMatching</code>s to evaluate
+     * @return the cost based on the set weight functions
+     */
     private float cost(List<CostModelMatching<T>> matchings) {
 
         if (matchings.isEmpty()) {
@@ -159,6 +167,15 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return matchings.stream().filter(ma -> ma.contains(m)).map(ma -> ma.other(m)).findFirst().get();
     }
 
+    /**
+     * Sets the bounds ({@link CostModelMatching#setBounds(Bounds)}) for the cost of the given <code>matching</code>
+     * based on the given <code>currentMatchings</code>.
+     *
+     * @param matching
+     *         the <code>CostModelMatching</code> whose costs are to be bounded
+     * @param currentMatchings
+     *         the current <code>CostModelMatching</code>s being considered
+     */
     private void boundCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
 
         if (matching.isNoMatch()) {
