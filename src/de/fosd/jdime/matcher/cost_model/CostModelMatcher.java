@@ -121,6 +121,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return renamingCost(matching) + ancestryViolationCost(matching, matchings) + siblingGroupBreakupCost(matching, matchings);
     }
 
+    private float renamingCost(CostModelMatching<T> matching) {
+        if (matching.m.matches(matching.n)) {
+            return 0;
+        } else {
+            return wr.weigh(matching);
+        }
+    }
+
     private float ancestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
         return wa.weigh(matching, numAncestryViolatingChildren(matching, matchings) + numAncestryViolatingChildren(matching, matchings));
     }
@@ -188,14 +196,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
 
         matching.setBounds(cR + cABounds.getLower() + cSBounds.getLower(), cR + cABounds.getUpper() + cSBounds.getUpper());
-    }
-
-    private float renamingCost(CostModelMatching<T> matching) {
-        if (matching.m.matches(matching.n)) {
-            return 0;
-        } else {
-            return wr.weigh(matching);
-        }
     }
 
     private Bounds boundAncestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
