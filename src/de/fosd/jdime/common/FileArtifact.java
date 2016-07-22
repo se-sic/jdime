@@ -489,40 +489,44 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public void addOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
         mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumAdded();
 
-        forAllJavaFiles(astNodeArtifact -> {
-            mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
-        });
+        if (!(mergeContext.getMergeStrategy() instanceof LinebasedStrategy)) {
+            forAllJavaFiles(astNodeArtifact -> {
+                mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
+            });
+        }
     }
 
     @Override
     public void deleteOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
         mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumDeleted();
 
-        forAllJavaFiles(astNodeArtifact -> {
-            MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
-            Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
-            Map<Revision, Map<KeyEnums.Type, ElementStatistics>> tStats = delStats.getTypeStatistics();
+        if (!(mergeContext.getMergeStrategy() instanceof LinebasedStrategy)) {
+            forAllJavaFiles(astNodeArtifact -> {
+                MergeScenarioStatistics delStats = StatisticsInterface.getASTStatistics(astNodeArtifact, null);
+                Map<Revision, Map<KeyEnums.Level, ElementStatistics>> lStats = delStats.getLevelStatistics();
+                Map<Revision, Map<KeyEnums.Type, ElementStatistics>> tStats = delStats.getTypeStatistics();
 
-            for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : lStats.entrySet()) {
-                for (Map.Entry<KeyEnums.Level, ElementStatistics> sEntry : entry.getValue().entrySet()) {
-                    ElementStatistics eStats = sEntry.getValue();
+                for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : lStats.entrySet()) {
+                    for (Map.Entry<KeyEnums.Level, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                        ElementStatistics eStats = sEntry.getValue();
 
-                    eStats.setNumDeleted(eStats.getNumAdded());
-                    eStats.setNumAdded(0);
+                        eStats.setNumDeleted(eStats.getNumAdded());
+                        eStats.setNumAdded(0);
+                    }
                 }
-            }
 
-            for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : tStats.entrySet()) {
-                for (Map.Entry<KeyEnums.Type, ElementStatistics> sEntry : entry.getValue().entrySet()) {
-                    ElementStatistics eStats = sEntry.getValue();
+                for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : tStats.entrySet()) {
+                    for (Map.Entry<KeyEnums.Type, ElementStatistics> sEntry : entry.getValue().entrySet()) {
+                        ElementStatistics eStats = sEntry.getValue();
 
-                    eStats.setNumDeleted(eStats.getNumAdded());
-                    eStats.setNumAdded(0);
+                        eStats.setNumDeleted(eStats.getNumAdded());
+                        eStats.setNumAdded(0);
+                    }
                 }
-            }
 
-            mScenarioStatistics.add(delStats);
-        });
+                mScenarioStatistics.add(delStats);
+            });
+        }
     }
 
     @Override
