@@ -30,7 +30,7 @@ import de.fosd.jdime.common.Artifact;
 /**
  * Dumps the given <code>Artifact</code> tree in Graphviz format.
  *
- * @see <href link="http://www.graphviz.org/">Graphviz</href>
+ * @see <a href="http://www.graphviz.org/">Graphviz</a>
  */
 public class GraphvizTreeDump implements StringDumper {
 
