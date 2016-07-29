@@ -46,7 +46,7 @@ import de.fosd.jdime.matcher.matching.Matchings;
  * <code>EqualityMatcher</code> does not use its parent matcher to dispatch match() calls, and uses its own
  * implementation instead.
  * <p>
- * Usage:<br/>
+ * Usage:<br>
  * To check whether the trees are equal, extract the <code>Matching</code> with the highest score and compare it
  * with the size of the trees.
  *
@@ -61,7 +61,7 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
     private Set<UnorderedTuple<T, T>> didNotMatch;
 
     /**
-     * Constructs a new <code>EqualityMatcher</code>.<br/>
+     * Constructs a new <code>EqualityMatcher</code>.<br>
      * This matcher does not use the parent matcher to dispatch further calls.
      *
      * @param matcher the parent <code>MatcherInterface</code>
