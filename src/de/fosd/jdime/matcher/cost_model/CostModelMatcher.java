@@ -40,7 +40,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float weigh(CostModelMatching<T>  matching, float quantity);
     }
 
-    private class ObjectiveValue {
+    /**
+     * The return type of {@link #objective(float, List)} containing the value of the objective function and the exact
+     * cost of the newly proposed set of <code>CostModelMatching</code>s.
+     */
+    private final class ObjectiveValue {
 
         public final float objValue;
         public final float matchingsCost;
@@ -51,7 +55,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private class AcceptanceProbability {
+    /**
+     * The return type of {@link #acceptanceProb(float, float, List)} containing the probability of the newly proposed
+     * set of <code>CostModelMatching</code>s being accepted for the next iteration and the <code>ObjectiveValue</code>
+     * for the proposed matchings.
+     */
+    private final class AcceptanceProbability {
 
         public final float acceptanceProbability;
         public final ObjectiveValue mHatObjectiveValue;
@@ -233,6 +242,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return siblings(m).stream().map(image).filter(notNull).map(getParent).filter(notNull).collect(toList());
     }
 
+    /**
+     * Finds the (first) <code>CostModelMatching</code> in <code>matchings</code> containing the given
+     * <code>artifact</code> and returns the other <code>Artifact</code> in the <code>CostModelMatching</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> whose image is to be returned
+     * @param matchings
+     *         the current matchings
+     * @return the matching partner of <code>artifact</code> in the given <code>matchings</code>
+     * @throws NoSuchElementException
+     *         if no <code>CostModelMatching</code> containing <code>artifact</code> can be found in
+     *         <code>matchings</code>
+     */
     private T image(T artifact, List<CostModelMatching<T>> matchings) {
         //TODO this is very inefficient...
 
@@ -342,6 +364,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
+    /**
+     * Returns the children of the parent of <code>artifact</code> or an empty <code>List</code> for the root node.
+     * This includes the <code>artifact</code> itself.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> whose siblings are to be returned
+     * @return the siblings of the given <code>artifact</code>
+     */
     private List<T> siblings(T artifact) {
         T parent = artifact.getParent();
 
@@ -355,6 +385,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
+    /**
+     * Returns the siblings of <code>artifact</code> as in {@link #siblings(Artifact)} but does not include
+     * <code>artifact</code> itself.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> whose siblings are to be returned
+     * @return the siblings of the given <code>artifact</code>
+     */
     private List<T> otherSiblings(T artifact) {
         List<T> siblings = siblings(artifact);
         siblings.remove(artifact);
@@ -396,6 +434,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return convert(lowest);
     }
 
+    /**
+     * Converts a <code>List</code> of <code>CostModelMatching</code>s to an equivalent <code>Set</code> of
+     * <code>Matching</code>s.
+     *
+     * @param matchings
+     *         the <code>CostModelMatching</code>s to convert
+     * @return the resulting <code>Matchings</code>
+     */
     private Matchings<T> convert(List<CostModelMatching<T>> matchings) {
         return matchings.stream()
                         .filter(((Predicate<CostModelMatching<T>>) CostModelMatching::isNoMatch).negate())
