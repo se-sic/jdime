@@ -295,11 +295,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         T m = matching.m;
         T n = matching.n;
 
-        Stream<T> mLower = m.getChildren().stream().filter(mAp -> ancestryIndicator(mAp, n, currentMatchings, false));
-        Stream<T> nLower = n.getChildren().stream().filter(nAp -> ancestryIndicator(nAp, m, currentMatchings, false));
+        Stream<T> mLower = m.getChildren().stream().filter(mChild -> ancestryIndicator(mChild, n, currentMatchings, false));
+        Stream<T> nLower = n.getChildren().stream().filter(nChild -> ancestryIndicator(nChild, m, currentMatchings, false));
 
-        Stream<T> mUpper = m.getChildren().stream().filter(mAp -> ancestryIndicator(mAp, n, currentMatchings, true));
-        Stream<T> nUpper = n.getChildren().stream().filter(nAp -> ancestryIndicator(nAp, m, currentMatchings, true));
+        Stream<T> mUpper = m.getChildren().stream().filter(mChild -> ancestryIndicator(mChild, n, currentMatchings, true));
+        Stream<T> nUpper = n.getChildren().stream().filter(nChild -> ancestryIndicator(nChild, m, currentMatchings, true));
 
         int lowerBound = (int) (mLower.count() + nLower.count());
         int upperBound = (int) (mUpper.count() + nUpper.count());
@@ -308,11 +308,22 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private boolean ancestryIndicator(T mAp, T n, List<CostModelMatching<T>> g, boolean upper) {
+        Predicate<CostModelMatching<T>> filter = match -> match.contains(mAp);
 
         if (upper) {
-            return g.stream().anyMatch(match -> match.m == mAp && !(match.n == null || n.getChildren().contains(match.n)));
+            Predicate<CostModelMatching<T>> indicator = match -> {
+                T partner = match.other(mAp);
+                return !(partner == null || n.getChildren().contains(partner));
+            };
+
+            return g.stream().filter(filter).anyMatch(indicator);
         } else {
-            return g.stream().noneMatch(match -> match.m == mAp && (match.n == null || n.getChildren().contains(match.n)));
+            Predicate<CostModelMatching<T>> indicator = match -> {
+                T partner = match.other(mAp);
+                return partner == null || n.getChildren().contains(partner);
+            };
+
+            return g.stream().filter(filter).noneMatch(indicator);
         }
     }
 
