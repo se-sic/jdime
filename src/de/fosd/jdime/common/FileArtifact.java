@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -735,7 +736,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public final String getContent() {
 
         try {
-            return FileUtils.readFileToString(file);
+            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
             return "";
