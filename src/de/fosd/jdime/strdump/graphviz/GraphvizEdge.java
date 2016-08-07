@@ -37,6 +37,8 @@ public final class GraphvizEdge extends GraphvizStatement {
     /**
      * Constructs a new <code>GraphvizEdge</code> between the two given <code>GraphvizNode</code>s.
      *
+     * @param graph
+     *         the Graphviz graph containing this <code>GraphvizStatement</code>
      * @param type
      *         the type of the <code>GraphvizGraph</code> containing the edge.
      * @param from
@@ -44,7 +46,8 @@ public final class GraphvizEdge extends GraphvizStatement {
      * @param to
      *         the destination node
      */
-    GraphvizEdge(GraphvizGraphType type, GraphvizNode from, GraphvizNode to) {
+    GraphvizEdge(GraphvizGraphBase graph, GraphvizGraphType type, GraphvizNode from, GraphvizNode to) {
+        super(graph);
         this.type = type;
         this.from = from;
         this.to = to;

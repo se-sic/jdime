@@ -31,7 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * An interface implemented by all classes used for building the Graphviz graph. Containts the methods used for
+ * An interface implemented by all classes used for building the Graphviz graph. Contains the methods used for
  * dumping the object structure to DOT language source code.
  */
 public interface GraphvizElement {
