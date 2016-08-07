@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -23,6 +24,7 @@ import de.fosd.jdime.matcher.matching.Matchings;
 
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
@@ -205,8 +207,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private float siblingGroupBreakupCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
-        List<T> dMm, iMm, fMm;
-        List<T> dMn, iMn, fMn;
+        List<T> dMm, iMm;
+        Set<T> fMm;
+        List<T> dMn, iMn;
+        Set<T> fMn;
 
         dMm = siblingDivergentSubset(matching.m, matching.n, matchings);
         iMm = siblingInvariantSubset(matching.m, matching.n, matchings);
@@ -216,8 +220,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         iMn = siblingInvariantSubset(matching.n, matching.m, matchings);
         fMn = distinctSiblingFamilies(matching.n, matchings);
 
-        float mCost = (float) dMm.size() / (iMm.size() + fMm.size());
-        float nCost = (float) dMn.size() / (iMn.size() + fMn.size());
+        float mCost = (float) dMm.size() / (iMm.size() * fMm.size());
+        float nCost = (float) dMn.size() / (iMn.size() * fMn.size());
         return ws.weigh(matching, mCost + nCost);
     }
 
@@ -234,12 +238,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return siblings(m).stream().filter(mAp -> !inv.contains(mAp) && image(mAp, matchings) != null).collect(toList());
     }
 
-    private List<T> distinctSiblingFamilies(T m, List<CostModelMatching<T>> matchings) {
+    private Set<T> distinctSiblingFamilies(T m, List<CostModelMatching<T>> matchings) {
         Function<T, T> image = mAp -> image(mAp, matchings);
         Predicate<T> notNull = a -> a != null;
         Function<T, T> getParent = Artifact::getParent;
 
-        return siblings(m).stream().map(image).filter(notNull).map(getParent).filter(notNull).collect(toList());
+        return siblings(m).stream().map(image).filter(notNull).map(getParent).collect(toSet());
     }
 
     /**
@@ -389,8 +393,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * Returns the children of the parent of <code>artifact</code> or an empty <code>List</code> for the root node.
-     * This includes the <code>artifact</code> itself.
+     * Returns a new <code>List</code> containing the children of the parent of <code>artifact</code> or an empty
+     * <code>List</code> for the root node. This includes the <code>artifact</code> itself.
      *
      * @param artifact
      *         the <code>Artifact</code> whose siblings are to be returned
@@ -400,12 +404,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         T parent = artifact.getParent();
 
         if (parent == null) {
-            return Collections.emptyList();
+            return new ArrayList<>(Collections.singleton(artifact));
         } else {
-            List<T> res = new ArrayList<>(parent.getChildren());
-            res.remove(artifact);
-
-            return res;
+            return new ArrayList<>(parent.getChildren());
         }
     }
 
