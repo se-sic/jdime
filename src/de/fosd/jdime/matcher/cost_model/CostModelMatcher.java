@@ -342,15 +342,20 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Bounds iMN = boundInvariantSiblings(m, n, currentMatchings);
         Bounds iNM = boundInvariantSiblings(n, m, currentMatchings);
 
-        float lower = ws.weigh(matching, ((dMN.getLower() / (iMN.getUpper() * (dMN.getLower() + 1))) + (dNM.getLower() / (iNM.getUpper() * (dNM.getLower() + 1)))));
-        float upper = ws.weigh(matching, (dMN.getUpper() / iMN.getLower()) + (dNM.getUpper() / iNM.getLower())) / 2;
+        float mnLower = dMN.getLower() / (iMN.getUpper() * (dMN.getLower() + 1));
+        float nmLower = dNM.getLower() / (iNM.getUpper() * (dNM.getLower() + 1));
+        float lower = ws.weigh(matching, mnLower + nmLower);
+
+        float mnUpper = dMN.getUpper() / iMN.getLower();
+        float nmUpper = dNM.getUpper() / iNM.getLower();
+        float upper = ws.weigh(matching, (mnUpper + nmUpper) / 2);
 
         return new Bounds(lower, upper);
     }
 
     private Bounds boundDistinctSiblingGroups(T m, T n, List<CostModelMatching<T>> currentMatchings) {
-        long lower = m.getChildren().stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, false)).count();
-        long upper = m.getChildren().stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, true)).count();
+        long lower = otherSiblings(m).stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, false)).count();
+        long upper = otherSiblings(m).stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, true)).count();
 
         return new Bounds(lower, upper);
     }
@@ -376,8 +381,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private Bounds boundInvariantSiblings(T m, T n, List<CostModelMatching<T>> currentMatchings) {
-        long lower = m.getChildren().stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, false)).count();
-        long upper = m.getChildren().stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, true)).count();
+        long lower = otherSiblings(m).stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, false)).count();
+        long upper = otherSiblings(m).stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, true)).count();
 
         return new Bounds(lower + 1, upper + 1);
     }
