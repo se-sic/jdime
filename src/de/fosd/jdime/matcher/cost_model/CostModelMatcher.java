@@ -205,7 +205,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         Predicate<T> filter = a -> a != null && !nChildren.contains(a);
 
-        return (int) mChildren.stream().map(mAp -> image(mAp, matchings)).filter(filter).count();
+        return (int) mChildren.stream().map(mChild -> image(mChild, matchings)).filter(filter).count();
     }
 
     private float siblingGroupBreakupCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
@@ -236,13 +236,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     private List<T> siblingDivergentSubset(T m, T n, List<CostModelMatching<T>> matchings) {
         List<T> inv = siblingInvariantSubset(m, n, matchings);
-
-        return siblings(m).stream().filter(mAp -> !inv.contains(mAp) && image(mAp, matchings) != null).collect(toList());
+        return siblings(m).stream().filter(sibling -> !inv.contains(sibling) && image(sibling, matchings) != null).collect(toList());
     }
 
     private Set<T> distinctSiblingFamilies(T m, List<CostModelMatching<T>> matchings) {
-        Function<T, T> image = mAp -> image(mAp, matchings);
-        Predicate<T> notNull = a -> a != null;
+        Function<T, T> image = mChild -> image(mChild, matchings);
+        Predicate<T> notNull = t -> t != null;
         Function<T, T> getParent = Artifact::getParent;
 
         return siblings(m).stream().map(image).filter(notNull).map(getParent).collect(toSet());
@@ -313,19 +312,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new Bounds(wa.weigh(matching, lowerBound), wa.weigh(matching, upperBound));
     }
 
-    private boolean ancestryIndicator(T mAp, T n, List<CostModelMatching<T>> g, boolean upper) {
-        Predicate<CostModelMatching<T>> contains = match -> match.contains(mAp);
+    private boolean ancestryIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
+        Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
 
         if (upper) {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(mAp);
+                T partner = match.other(child);
                 return !(partner == null || n.getChildren().contains(partner));
             };
 
             return g.stream().filter(contains).anyMatch(indicator);
         } else {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(mAp);
+                T partner = match.other(child);
                 return partner == null || n.getChildren().contains(partner);
             };
 
@@ -350,25 +349,25 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private Bounds boundDistinctSiblingGroups(T m, T n, List<CostModelMatching<T>> currentMatchings) {
-        long lower = m.getChildren().stream().filter(mAp -> distinctSiblingIndicator(mAp, n, currentMatchings, false)).count();
-        long upper = m.getChildren().stream().filter(mAp -> distinctSiblingIndicator(mAp, n, currentMatchings, true)).count();
+        long lower = m.getChildren().stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, false)).count();
+        long upper = m.getChildren().stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, true)).count();
 
         return new Bounds(lower, upper);
     }
 
-    private boolean distinctSiblingIndicator(T mAp, T n, List<CostModelMatching<T>> g, boolean upper) {
-        Predicate<CostModelMatching<T>> contains = match -> match.contains(mAp);
+    private boolean distinctSiblingIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
+        Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
 
         if (upper) {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(mAp);
+                T partner = match.other(child);
                 return !(partner == null || otherSiblings(n).contains(partner));
             };
 
             return g.stream().filter(contains).anyMatch(indicator);
         } else {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(mAp);
+                T partner = match.other(child);
                 return partner == null || otherSiblings(n).contains(partner);
             };
 
@@ -377,15 +376,15 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private Bounds boundInvariantSiblings(T m, T n, List<CostModelMatching<T>> currentMatchings) {
-        long lower = m.getChildren().stream().filter(mAp -> invariantSiblingIndicator(mAp, n, currentMatchings, false)).count();
-        long upper = m.getChildren().stream().filter(mAp -> invariantSiblingIndicator(mAp, n, currentMatchings, true)).count();
+        long lower = m.getChildren().stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, false)).count();
+        long upper = m.getChildren().stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, true)).count();
 
         return new Bounds(lower + 1, upper + 1);
     }
 
-    private boolean invariantSiblingIndicator(T mAp, T n, List<CostModelMatching<T>> g, boolean upper) {
-        Predicate<CostModelMatching<T>> contains = match -> match.contains(mAp);
-        Predicate<CostModelMatching<T>> indicator = match -> otherSiblings(n).contains(match.other(mAp));
+    private boolean invariantSiblingIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
+        Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
+        Predicate<CostModelMatching<T>> indicator = match -> otherSiblings(n).contains(match.other(child));
 
         if (upper) {
             return g.stream().filter(contains).anyMatch(indicator);
