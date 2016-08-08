@@ -448,11 +448,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             if (chance(mHatAccProb.acceptanceProbability)) {
                 m = mHat;
                 mObjVal = mHatAccProb.mHatObjectiveValue;
+            }
 
-                if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
-                    lowest = mHat;
-                    lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
-                }
+            if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
+                lowest = mHat;
+                lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
             }
         }
 
