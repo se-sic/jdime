@@ -50,26 +50,26 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      */
     private final class ObjectiveValue {
 
-        public final float objValue;
+        public final double objValue;
         public final float matchingsCost;
 
-        public ObjectiveValue(float objValue, float matchingsCost) {
+        public ObjectiveValue(double objValue, float matchingsCost) {
             this.objValue = objValue;
             this.matchingsCost = matchingsCost;
         }
     }
 
     /**
-     * The return type of {@link #acceptanceProb(float, float, List)} containing the probability of the newly proposed
+     * The return type of {@link #acceptanceProb(float, double, List)} containing the probability of the newly proposed
      * set of <code>CostModelMatching</code>s being accepted for the next iteration and the <code>ObjectiveValue</code>
      * for the proposed matchings.
      */
     private final class AcceptanceProbability {
 
-        public final float acceptanceProbability;
+        public final double acceptanceProbability;
         public final ObjectiveValue mHatObjectiveValue;
 
-        public AcceptanceProbability(float acceptanceProbability, ObjectiveValue mHatObjectiveValue) {
+        public AcceptanceProbability(double acceptanceProbability, ObjectiveValue mHatObjectiveValue) {
             this.acceptanceProbability = acceptanceProbability;
             this.mHatObjectiveValue = mHatObjectiveValue;
         }
@@ -556,8 +556,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private boolean chance(float p) {
-        return rng.nextFloat() < p;
+    private boolean chance(double p) {
+        return rng.nextDouble() < p;
     }
 
     private List<CostModelMatching<T>> completeBipartiteGraph(T left, T right) {
@@ -586,7 +586,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     private ObjectiveValue objective(float beta, List<CostModelMatching<T>> matchings) {
         float cost = cost(matchings);
-        float objVal = (float) Math.exp(-(beta * cost));
+        double objVal = Math.exp(-(beta * cost));
 
         LOG.log(FINEST, () -> "Cost of matchings " + toHexString(matchings.hashCode()) + " is " + cost);
         LOG.log(FINEST, () -> "Objective function value is " + objVal);
@@ -594,9 +594,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new ObjectiveValue(objVal, cost);
     }
 
-    private AcceptanceProbability acceptanceProb(float beta, float mObjectiveValue, List<CostModelMatching<T>> mHat) {
+    private AcceptanceProbability acceptanceProb(float beta, double mObjectiveValue, List<CostModelMatching<T>> mHat) {
         ObjectiveValue mHatObjectiveValue = objective(beta, mHat);
-        float acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
+        double acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
 
         LOG.log(FINEST, () -> "Acceptance probability for matchings " + toHexString(mHat.hashCode()) + " is " + acceptanceProb);
 
