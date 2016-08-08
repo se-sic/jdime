@@ -22,6 +22,8 @@ import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
+import static java.lang.Integer.toHexString;
+import static java.util.logging.Level.FINEST;
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -433,6 +435,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         setSiblingGroupBreakupWeight(context.ws);
         rng = context.seed.map(Random::new).orElse(new Random());
 
+        LOG.finest("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
+
         float beta = 1; // TODO figure out good values for this (dependant on the size of the trees)
 
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
@@ -446,15 +450,23 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             AcceptanceProbability mHatAccProb = acceptanceProb(beta, mObjVal.objValue, mHat);
 
             if (chance(mHatAccProb.acceptanceProbability)) {
+
+                LOG.log(FINEST, "Accepting the matchings " + toHexString(mHat.hashCode()));
+
                 m = mHat;
                 mObjVal = mHatAccProb.mHatObjectiveValue;
             }
 
             if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
+
+                LOG.log(FINEST, "The matchings " + toHexString(mHat.hashCode()) + " have the lowest cost so far.");
+
                 lowest = mHat;
                 lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
             }
         }
+
+        LOG.log(FINEST, "Matching ended after " + context.costModelIterations + " iterations.");
 
         return convert(lowest);
     }
@@ -478,11 +490,20 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         int j = rng.nextInt(m.size());
         List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
 
-        return complete(fixed, pAssign, left, right);
+        LOG.log(FINEST, () -> "Fixing the first " + j + " matchings from the last iteration. They are: " + fixed);
+
+        List<CostModelMatching<T>> proposition = complete(fixed, pAssign, left, right);
+
+        LOG.log(FINEST, () -> "Proposing matchings " + toHexString(proposition.hashCode()) + " for the next iteration: " + proposition);
+
+        return proposition;
     }
 
     private List<CostModelMatching<T>> initialize(float pAssign, T left, T right) {
-        return complete(new ArrayList<>(), pAssign, left, right);
+        List<CostModelMatching<T>> initial = complete(new ArrayList<>(), pAssign, left, right);
+        LOG.log(FINEST, () -> "Initial set of matchings is: " + initial);
+
+        return initial;
     }
 
     private List<CostModelMatching<T>> complete(List<CostModelMatching<T>> matchings, float pAssign, T left, T right) {
@@ -567,12 +588,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cost = cost(matchings);
         float objVal = (float) Math.exp(-(beta * cost));
 
+        LOG.log(FINEST, () -> "Cost of matchings " + toHexString(matchings.hashCode()) + " is " + cost);
+        LOG.log(FINEST, () -> "Objective function value is " + objVal);
+
         return new ObjectiveValue(objVal, cost);
     }
 
     private AcceptanceProbability acceptanceProb(float beta, float mObjectiveValue, List<CostModelMatching<T>> mHat) {
         ObjectiveValue mHatObjectiveValue = objective(beta, mHat);
         float acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
+
+        LOG.log(FINEST, () -> "Acceptance probability for matchings " + toHexString(mHat.hashCode()) + " is " + acceptanceProb);
 
         return new AcceptanceProbability(acceptanceProb, mHatObjectiveValue);
     }
