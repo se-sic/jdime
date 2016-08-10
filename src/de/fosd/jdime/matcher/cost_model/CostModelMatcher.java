@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -23,6 +25,7 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
 import static java.lang.Integer.toHexString;
+import static java.lang.System.identityHashCode;
 import static java.util.logging.Level.FINEST;
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
@@ -456,7 +459,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             if (chance(mHatAccProb.acceptanceProbability)) {
 
-                LOG.log(FINEST, "Accepting the matchings " + toHexString(mHat.hashCode()));
+                log(FINEST, mHat, () -> "Accepting the matchings.");
 
                 m = mHat;
                 mObjVal = mHatAccProb.mHatObjectiveValue;
@@ -464,7 +467,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
 
-                LOG.log(FINEST, "The matchings " + toHexString(mHat.hashCode()) + " have the lowest cost so far.");
+                log(FINEST, mHat, () -> "New lowest cost matchings found.");
 
                 lowest = mHat;
                 lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
@@ -497,18 +500,18 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         int j = rng.nextInt(m.size());
         List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
 
-        LOG.log(FINEST, () -> "Fixing the first " + j + " matchings from the last iteration. They are: " + fixed);
+        log(FINEST, m, () -> "Fixing the first " + j + " matchings from the last iteration. They are: " + fixed);
 
         List<CostModelMatching<T>> proposition = complete(fixed, pAssign, left, right);
 
-        LOG.log(FINEST, () -> "Proposing matchings " + toHexString(proposition.hashCode()) + " for the next iteration: " + proposition);
+        log(FINEST, proposition, () -> "Proposing matchings for the next iteration: " + proposition);
 
         return proposition;
     }
 
     private List<CostModelMatching<T>> initialize(float pAssign, T left, T right) {
         List<CostModelMatching<T>> initial = complete(new ArrayList<>(), pAssign, left, right);
-        LOG.log(FINEST, () -> "Initial set of matchings is: " + initial);
+        log(FINEST, initial, () -> "Initial set of matchings is: " + initial);
 
         return initial;
     }
@@ -597,8 +600,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cost = cost(matchings);
         double objVal = Math.exp(-(beta * cost));
 
-        LOG.log(FINEST, () -> "Cost of matchings " + toHexString(matchings.hashCode()) + " is " + cost);
-        LOG.log(FINEST, () -> "Objective function value is " + objVal);
+        log(FINEST, matchings, () -> "Cost of matchings is " + cost);
+        log(FINEST, matchings, () -> "Objective function value is " + objVal);
 
         return new ObjectiveValue(objVal, cost);
     }
@@ -607,8 +610,34 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         ObjectiveValue mHatObjectiveValue = objective(beta, mHat);
         double acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
 
-        LOG.log(FINEST, () -> "Acceptance probability for matchings " + toHexString(mHat.hashCode()) + " is " + acceptanceProb);
+        log(FINEST, mHat, () -> "Acceptance probability for matchings is " + acceptanceProb);
 
         return new AcceptanceProbability(acceptanceProb, mHatObjectiveValue);
+    }
+
+    /**
+     * Returns the hexadecimal identity hash code of the given <code>Object</code> as a <code>String</code>.
+     *
+     * @param o
+     *         the <code>Object</code> to return the <code>String</code> id for
+     * @return the <code>String</code> id
+     */
+    private String id(Object o) {
+        return toHexString(identityHashCode(o));
+    }
+
+    /**
+     * Logs the given <code>msg</code> using the {@link #LOG} and prepends the {@link #id(Object)} of the given
+     * matchings.
+     *
+     * @param level
+     *         the level to log at
+     * @param matchings
+     *         the matchings the message concerns
+     * @param msg
+     *         the message to log
+     */
+    private void log(Level level, List<CostModelMatching<T>> matchings, Supplier<String> msg) {
+        LOG.log(level, () -> String.format("%-10s%s", id(matchings), msg.get()));
     }
 }
