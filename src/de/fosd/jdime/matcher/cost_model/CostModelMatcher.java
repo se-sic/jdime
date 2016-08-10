@@ -524,14 +524,20 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         matchings.forEach(m -> prune(m, g));
 
-        while (!g.isEmpty()) {
+        while (!(matchings.size() == g.size())) {
             g.forEach(m -> boundCost(m, g));
             Collections.sort(g, Comparator.comparing(CostModelMatching::getCostBounds));
 
-            int i = 0;
-            while (!chance(pAssign)) {
-                i = (i + 1) % g.size();
-            }
+            CostModelMatching<T> matching;
+
+            do {
+                int i = 0;
+                while (!chance(pAssign)) {
+                    i = (i + 1) % g.size();
+                }
+
+                matching = g.get(i);
+            } while (matchings.contains(matching));
 
             /* TODO
              * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
@@ -540,8 +546,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
              *     continue;
              * }
              */
-
-            CostModelMatching<T> matching = g.remove(i);
 
             matchings.add(matching);
             prune(matching, g);
@@ -554,8 +558,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         for (ListIterator<CostModelMatching<T>> it = g.listIterator(); it.hasNext();) {
             CostModelMatching<T> current = it.next();
+            boolean neq = !matching.equals(current);
 
-            if ((matching.m != null && current.m == matching.m) || (matching.n != null && current.n == matching.n)) {
+            if (neq && ((matching.m != null && matching.m == current.m) || (matching.n != null && matching.n == current.n))) {
                 it.remove();
             }
         }
