@@ -126,10 +126,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         this.ws = ws;
     }
 
-    public float cost(Matchings<T> matchings) {
-        return cost(matchings.stream().map(m -> new CostModelMatching<>(m.getLeft(), m.getRight())).collect(toList()));
-    }
-
     /**
      * Returns the exact cost of the given <code>matchings</code>. This assumes that <code>matchings</code> contains
      * for every node in the left and right tree exactly one <code>CostModelMatching</code> containing the node.
@@ -527,6 +523,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                 if (chance(pAssign)) {
                     it.remove();
                     break;
+                } else if (!it.hasNext()) {
+                    System.out.println(">>>>>>>>>>>>> Peng!");
+                    matching = null;
                 }
             }
 
