@@ -1,12 +1,6 @@
 package de.fosd.jdime.matcher.cost_model;
 
-import java.util.Comparator;
-
-import static java.util.Comparator.comparingDouble;
-
 final class Bounds implements Comparable<Bounds> {
-
-    public static final Comparator<Bounds> COMPARATOR = comparingDouble(Bounds::getLower).thenComparingDouble(Bounds::getUpper);
 
     private float lower;
     private float upper;
@@ -34,7 +28,11 @@ final class Bounds implements Comparable<Bounds> {
 
     @Override
     public int compareTo(Bounds o) {
-        return COMPARATOR.compare(this, o);
+        return Float.compare(middle(), o.middle());
+    }
+
+    private float middle() {
+        return lower + (upper - lower) / 2;
     }
 
     @Override

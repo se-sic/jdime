@@ -84,7 +84,7 @@ public class CostModelMatcherTest {
     }
 
     // TODO remove
-    boolean show = false;
+    boolean show = true;
 
     @Test
     public void testShow() throws Exception {
