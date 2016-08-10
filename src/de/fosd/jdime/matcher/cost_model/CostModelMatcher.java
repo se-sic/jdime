@@ -297,7 +297,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings);
 
-        matching.setBounds(cR + cABounds.getLower() + cSBounds.getLower(), cR + cABounds.getUpper() + cSBounds.getUpper());
+        float lower = cR + cABounds.getLower() + cSBounds.getLower();
+        float upper = cR + cABounds.getUpper() + cSBounds.getUpper();
+
+        matching.setBounds(lower, upper);
     }
 
     private Bounds boundAncestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings) {
@@ -340,8 +343,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         T m = matching.m;
         T n = matching.n;
 
-        Bounds dMN = boundDistinctSiblingGroups(m, n, currentMatchings);
-        Bounds dNM = boundDistinctSiblingGroups(n, m, currentMatchings);
+        Bounds dMN = boundDistinctSibling(m, n, currentMatchings);
+        Bounds dNM = boundDistinctSibling(n, m, currentMatchings);
 
         Bounds iMN = boundInvariantSiblings(m, n, currentMatchings);
         Bounds iNM = boundInvariantSiblings(n, m, currentMatchings);
@@ -357,26 +360,26 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new Bounds(lower, upper);
     }
 
-    private Bounds boundDistinctSiblingGroups(T m, T n, List<CostModelMatching<T>> currentMatchings) {
-        long lower = otherSiblings(m).stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, false)).count();
-        long upper = otherSiblings(m).stream().filter(mChild -> distinctSiblingIndicator(mChild, n, currentMatchings, true)).count();
+    private Bounds boundDistinctSibling(T m, T n, List<CostModelMatching<T>> currentMatchings) {
+        long lower = otherSiblings(m).stream().filter(mSib -> distinctSiblingIndicator(mSib, n, currentMatchings, false)).count();
+        long upper = otherSiblings(m).stream().filter(mSib -> distinctSiblingIndicator(mSib, n, currentMatchings, true)).count();
 
         return new Bounds(lower, upper);
     }
 
-    private boolean distinctSiblingIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
-        Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
+    private boolean distinctSiblingIndicator(T sibling, T n, List<CostModelMatching<T>> g, boolean upper) {
+        Predicate<CostModelMatching<T>> contains = match -> match.contains(sibling);
 
         if (upper) {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(child);
+                T partner = match.other(sibling);
                 return !(partner == null || otherSiblings(n).contains(partner));
             };
 
             return g.stream().filter(contains).anyMatch(indicator);
         } else {
             Predicate<CostModelMatching<T>> indicator = match -> {
-                T partner = match.other(child);
+                T partner = match.other(sibling);
                 return partner == null || otherSiblings(n).contains(partner);
             };
 
@@ -525,30 +528,20 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             g.forEach(m -> boundCost(m, g));
             Collections.sort(g, Comparator.comparing(CostModelMatching::getCostBounds));
 
-            CostModelMatching<T> matching = null;
-
-            for(ListIterator<CostModelMatching<T>> it = g.listIterator(); it.hasNext();) {
-                matching = it.next();
-
-                if (chance(pAssign)) {
-                    it.remove();
-                    break;
-                } else if (!it.hasNext()) {
-                    matching = null;
-                }
+            int i = 0;
+            while (!chance(pAssign)) {
+                i = (i + 1) % g.size();
             }
 
-            if (matching == null) {
-                continue;
-            }
-
-            /** TODO
+            /* TODO
              * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
              *
              * if (???) {
              *     continue;
              * }
              */
+
+            CostModelMatching<T> matching = g.remove(i);
 
             matchings.add(matching);
             prune(matching, g);
