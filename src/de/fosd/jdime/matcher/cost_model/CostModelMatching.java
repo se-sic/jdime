@@ -1,5 +1,7 @@
 package de.fosd.jdime.matcher.cost_model;
 
+import java.util.Objects;
+
 import de.fosd.jdime.common.Artifact;
 
 final class CostModelMatching<T extends Artifact<T>> {
@@ -61,5 +63,24 @@ final class CostModelMatching<T extends Artifact<T>> {
     @Override
     public String toString() {
         return String.format("{%s, %s, %f, %s}", m, n, exactCost, costBounds);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CostModelMatching<?> that = (CostModelMatching<?>) o;
+        return Objects.equals(m, that.m) && Objects.equals(n, that.n);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m, n);
     }
 }
