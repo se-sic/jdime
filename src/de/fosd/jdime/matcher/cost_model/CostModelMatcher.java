@@ -129,6 +129,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     /**
      * Returns the exact cost of the given <code>matchings</code>. This assumes that <code>matchings</code> contains
      * for every node in the left and right tree exactly one <code>CostModelMatching</code> containing the node.
+     * The exact cost computed for every <code>CostModelMatching</code> can be retrieved using
+     * ({@link CostModelMatching#getExactCost()} after this call.
      *
      * @param matchings
      *         the <code>CostModelMatching</code>s to evaluate
@@ -144,31 +146,33 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         int t1Size = first.m.findRoot().getTreeSize();
         int t2Size = first.n.findRoot().getTreeSize();
 
-        float sumCost = matchings.stream().collect(summingDouble(m -> exactCost(m, matchings))).floatValue();
+        matchings.forEach(m -> exactCost(m, matchings));
+
+        float sumCost = matchings.stream().collect(summingDouble(CostModelMatching::getExactCost)).floatValue();
 
         return (1.0f / (t1Size + t2Size)) * sumCost;
     }
 
     /**
-     * Returns the exact cost of the given <code>matching</code>.
+     * Sets the exact cost ({@link CostModelMatching#setExactCost(float)}) of the given <code>matching</code> based on
+     * the given set of <code>matchings</code>.
      *
      * @param matching
      *         the <code>CostModelMatching</code> to compute the cost for
      * @param matchings
      *         the complete <code>CostModelMatching</code>s
-     * @return the exact cost of the <code>matching</code>
      */
-    private float exactCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
+    private void exactCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings) {
 
         if (matching.isNoMatch()) {
-            return wn;
+            matching.setExactCost(wn);
         }
 
         float cR = renamingCost(matching);
         float cA = ancestryViolationCost(matching, matchings);
         float cS = siblingGroupBreakupCost(matching, matchings);
 
-        return cR + cA + cS;
+        matching.setExactCost(cR + cA + cS);
     }
 
     /**
@@ -270,7 +274,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * Sets the bounds ({@link CostModelMatching#setBounds(Bounds)}) for the cost of the given <code>matching</code>
+     * Sets the bounds ({@link CostModelMatching#setCostBounds(Bounds)}) for the cost of the given <code>matching</code>
      * based on the given <code>currentMatchings</code>.
      *
      * @param matching
@@ -513,7 +517,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         while (!g.isEmpty()) {
             g.forEach(m -> boundCost(m, g));
-            Collections.sort(g, Comparator.comparing(CostModelMatching::getBounds));
+            Collections.sort(g, Comparator.comparing(CostModelMatching::getCostBounds));
 
             CostModelMatching<T> matching = null;
 
@@ -524,7 +528,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                     it.remove();
                     break;
                 } else if (!it.hasNext()) {
-                    System.out.println(">>>>>>>>>>>>> Peng!");
                     matching = null;
                 }
             }

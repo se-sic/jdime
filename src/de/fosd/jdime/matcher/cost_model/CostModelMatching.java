@@ -7,7 +7,8 @@ final class CostModelMatching<T extends Artifact<T>> {
     final T m;
     final T n;
 
-    private Bounds bounds;
+    private float exactCost;
+    private Bounds costBounds;
 
     CostModelMatching(T m, T n) {
         this.m = m;
@@ -32,25 +33,33 @@ final class CostModelMatching<T extends Artifact<T>> {
         }
     }
 
-    public Bounds getBounds() {
-        return bounds;
+    public float getExactCost() {
+        return exactCost;
+    }
+
+    public void setExactCost(float exactCost) {
+        this.exactCost = exactCost;
+    }
+
+    public Bounds getCostBounds() {
+        return costBounds;
     }
 
     public void setBounds(float lower, float upper) {
-        if (bounds == null) {
-            setBounds(new Bounds(lower, upper));
+        if (costBounds == null) {
+            setCostBounds(new Bounds(lower, upper));
         } else {
-            bounds.setLower(lower);
-            bounds.setUpper(upper);
+            costBounds.setLower(lower);
+            costBounds.setUpper(upper);
         }
     }
 
-    public void setBounds(Bounds bounds) {
-        this.bounds = bounds;
+    public void setCostBounds(Bounds costBounds) {
+        this.costBounds = costBounds;
     }
 
     @Override
     public String toString() {
-        return String.format("{%s, %s, %s}", m, n, bounds);
+        return String.format("{%s, %s, %s}", m, n, costBounds);
     }
 }
