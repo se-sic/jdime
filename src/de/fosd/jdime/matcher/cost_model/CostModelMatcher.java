@@ -166,6 +166,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         if (matching.isNoMatch()) {
             matching.setExactCost(wn);
+            return;
         }
 
         float cR = renamingCost(matching);
@@ -441,7 +442,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         LOG.finest("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
-        float beta = 1; // TODO figure out good values for this (dependant on the size of the trees)
+        float beta = 10; // TODO figure out good values for this (dependant on the size of the trees)
 
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
         ObjectiveValue mObjVal = objective(beta, m);
@@ -491,6 +492,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<CostModelMatching<T>> propose(float pAssign, T left, T right, List<CostModelMatching<T>> m) {
+        Collections.sort(m, Comparator.comparing(CostModelMatching::getExactCost));
+
         int j = rng.nextInt(m.size());
         List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
 
