@@ -60,6 +60,6 @@ final class CostModelMatching<T extends Artifact<T>> {
 
     @Override
     public String toString() {
-        return String.format("{%s, %s, %s}", m, n, costBounds);
+        return String.format("{%s, %s, %f, %s}", m, n, exactCost, costBounds);
     }
 }
