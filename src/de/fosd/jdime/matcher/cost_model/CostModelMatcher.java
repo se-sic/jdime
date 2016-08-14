@@ -448,7 +448,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         setSiblingGroupBreakupWeight(context.ws);
         rng = context.seed.map(Random::new).orElse(new Random());
 
-        LOG.finest("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
+        LOG.finer("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
         float beta = 10; // TODO figure out good values for this (dependant on the size of the trees)
 
@@ -477,9 +477,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                 lowest = mHat;
                 lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
             }
+
+            LOG.finer("End of iteration " + i);
         }
 
-        LOG.log(FINEST, "Matching ended after " + context.costModelIterations + " iterations.");
+        LOG.finer(() -> "Matching ended after " + context.costModelIterations + " iterations.");
 
         return convert(lowest);
     }
