@@ -2,7 +2,6 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -24,8 +23,10 @@ import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
+import static de.fosd.jdime.matcher.cost_model.Bounds.BY_LOWER_UPPER;
 import static java.lang.Integer.toHexString;
 import static java.lang.System.identityHashCode;
+import static java.util.Comparator.comparing;
 import static java.util.logging.Level.FINEST;
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
@@ -498,7 +499,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<CostModelMatching<T>> propose(float pAssign, T left, T right, List<CostModelMatching<T>> m) {
-        Collections.sort(m, Comparator.comparing(CostModelMatching::getExactCost));
+        Collections.sort(m, comparing(CostModelMatching::getExactCost));
 
         int j = rng.nextInt(m.size());
         List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
@@ -526,7 +527,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         while (!(matchings.size() == g.size())) {
             g.forEach(m -> boundCost(m, g));
-            Collections.sort(g, Comparator.comparing(CostModelMatching::getCostBounds));
+            Collections.sort(g, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
 
             CostModelMatching<T> matching;
 
