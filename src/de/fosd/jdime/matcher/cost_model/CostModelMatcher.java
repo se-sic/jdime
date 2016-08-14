@@ -2,6 +2,7 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -521,24 +522,26 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<CostModelMatching<T>> complete(List<CostModelMatching<T>> matchings, float pAssign, T left, T right) {
-        List<CostModelMatching<T>> g = completeBipartiteGraph(left, right);
+        List<CostModelMatching<T>> available = completeBipartiteGraph(left, right);
+        Set<CostModelMatching<T>> fixed = new LinkedHashSet<>(matchings);
 
-        matchings.forEach(m -> prune(m, g));
+        fixed.forEach(m -> prune(m, available));
 
-        while (!(matchings.size() == g.size())) {
-            g.forEach(m -> boundCost(m, g));
-            Collections.sort(g, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
+        while (!(fixed.size() == available.size())) {
+
+            available.forEach(m -> boundCost(m, available));
+            Collections.sort(available, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
 
             CostModelMatching<T> matching;
 
             do {
                 int i = 0;
                 while (!chance(pAssign)) {
-                    i = (i + 1) % g.size();
+                    i = (i + 1) % available.size();
                 }
 
-                matching = g.get(i);
-            } while (matchings.contains(matching));
+                matching = available.get(i);
+            } while (fixed.contains(matching));
 
             /* TODO
              * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
@@ -548,11 +551,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
              * }
              */
 
-            matchings.add(matching);
-            prune(matching, g);
+            fixed.add(matching);
+            prune(matching, available);
         }
 
-        return matchings;
+        return new ArrayList<>(fixed);
     }
 
     private void prune(CostModelMatching<T> matching, List<CostModelMatching<T>> g) {
@@ -584,11 +587,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         for (T lNode : leftNodes) {
             for (T rNode : rightNodes) {
 
-                if (lNode == null && rNode == null) {
-                    continue;
+                if (lNode != null || rNode != null) {
+                    bipartiteGraph.add(new CostModelMatching<>(lNode, rNode));
                 }
-
-                bipartiteGraph.add(new CostModelMatching<>(lNode, rNode));
             }
         }
 
