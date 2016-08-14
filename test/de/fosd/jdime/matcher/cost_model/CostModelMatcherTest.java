@@ -165,6 +165,7 @@ public class CostModelMatcherTest {
         Matchings<TestArtifact> actual = matcher.match(context, left, right);
 
         if (show) {
+            System.out.println("Expected cost is " + matcher.cost(expected));
             show(actual);
         }
 
