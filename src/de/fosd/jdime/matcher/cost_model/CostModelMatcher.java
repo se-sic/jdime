@@ -131,6 +131,36 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         this.ws = ws;
     }
 
+    public float cost(Matchings<T> matchings) {
+
+        if (matchings.isEmpty()) {
+            return 0;
+        }
+
+        Matching<T> first = matchings.iterator().next();
+        Set<T> leftUnmatched = new LinkedHashSet<>(Artifacts.dfs(Artifacts.root(first.getLeft())));
+        Set<T> rightUnmatched = new LinkedHashSet<>(Artifacts.dfs(Artifacts.root(first.getRight())));
+
+        List<CostModelMatching<T>> cmMatchings = new ArrayList<>();
+
+        for (Matching<T> matching : matchings) {
+            cmMatchings.add(new CostModelMatching<>(matching.getLeft(), matching.getRight()));
+
+            leftUnmatched.remove(matching.getLeft());
+            rightUnmatched.remove(matching.getRight());
+        }
+
+        for (T l : leftUnmatched) {
+            cmMatchings.add(new CostModelMatching<>(l, null));
+        }
+
+        for (T r : rightUnmatched) {
+            cmMatchings.add(new CostModelMatching<>(null, r));
+        }
+
+        return cost(cmMatchings);
+    }
+
     /**
      * Returns the exact cost of the given <code>matchings</code>. This assumes that <code>matchings</code> contains
      * for every node in the left and right tree exactly one <code>CostModelMatching</code> containing the node.
@@ -450,7 +480,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         LOG.finer("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
-        float beta = 10; // TODO figure out good values for this (dependant on the size of the trees)
+        float beta = 30; // TODO figure out good values for this (dependant on the size of the trees)
 
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
         ObjectiveValue mObjVal = objective(beta, m);
@@ -529,7 +559,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         fixed.forEach(m -> prune(m, available));
 
-        while (!(fixed.size() == available.size())) {
+        while (fixed.size() != available.size()) {
 
             available.forEach(m -> boundCost(m, available));
             Collections.sort(available, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
