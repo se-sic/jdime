@@ -31,7 +31,7 @@ import java.util.List;
  * Abstract superclass for the <code>GraphvizGraph</code> and <code>GraphvizSubGraph</code> containing all
  * shared attributes and the methods for constructing elements of the graph.
  */
-abstract class GraphvizGraphBase implements GraphvizElement {
+public abstract class GraphvizGraphBase implements GraphvizElement {
 
     private static final String INDENT_INC = "  ";
     private static final String CLUSTER_PREFIX = "cluster";
