@@ -2,6 +2,7 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,15 +132,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         this.ws = ws;
     }
 
-    public float cost(Matchings<T> matchings) {
+    public float cost(Matchings<T> matchings, T left, T right) {
 
         if (matchings.isEmpty()) {
             return 0;
         }
 
-        Matching<T> first = matchings.iterator().next();
-        Set<T> leftUnmatched = new LinkedHashSet<>(Artifacts.dfs(Artifacts.root(first.getLeft())));
-        Set<T> rightUnmatched = new LinkedHashSet<>(Artifacts.dfs(Artifacts.root(first.getRight())));
+        Set<T> leftUnmatched = new LinkedHashSet<>(Artifacts.dfs(left));
+        Set<T> rightUnmatched = new LinkedHashSet<>(Artifacts.dfs(right));
 
         List<CostModelMatching<T>> cmMatchings = new ArrayList<>();
 
@@ -158,7 +158,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             cmMatchings.add(new CostModelMatching<>(null, r));
         }
 
-        return cost(cmMatchings);
+        return cost(cmMatchings, left, right);
     }
 
     /**
@@ -169,23 +169,66 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *
      * @param matchings
      *         the <code>CostModelMatching</code>s to evaluate
+     * @param left
+     *         the root of the left tree being matched
+     * @param right
+     *         the root of the right tree being matched
      * @return the cost based on the set weight functions
      */
-    private float cost(List<CostModelMatching<T>> matchings) {
+    private float cost(List<CostModelMatching<T>> matchings, T left, T right) {
+
+        if (!sane(matchings, left, right)) {
+            throw new IllegalArgumentException("The given list of matchings has an invalid format. A list of " +
+                    "matchings where every artifact from the left and right tree occurs in exactly one matching is " +
+                    "required. Matchings matching artifacts that do not occur in the left or right tree are not " +
+                    "allowed.");
+        }
 
         if (matchings.isEmpty()) {
             return 0;
         }
 
-        CostModelMatching<T> first = matchings.get(0);
-        int t1Size = first.m.findRoot().getTreeSize();
-        int t2Size = first.n.findRoot().getTreeSize();
-
         matchings.forEach(m -> exactCost(m, matchings));
 
         float sumCost = matchings.stream().collect(summingDouble(CostModelMatching::getExactCost)).floatValue();
 
-        return (1.0f / (t1Size + t2Size)) * sumCost;
+        return (1.0f / (left.getTreeSize() + right.getTreeSize())) * sumCost;
+    }
+
+    /**
+     * Checks whether the given <code>matchings</code> conform to the format required by
+     * {@link #cost(List, Artifact, Artifact)}. That is whether there is exactly one matching for every artifact in the
+     * left and right tree matching that artifact to one from the opposite tree (or null). No matchings containing
+     * artifacts that do not occur in the left or right tree are tolerated.
+     *
+     * @param matchings
+     *         the list of matchings to check
+     * @param left
+     *         the root of the left tree
+     * @param right
+     *         the root of the right tree
+     * @return whether the <code>matchings</code> have a valid format
+     */
+    private boolean sane(List<CostModelMatching<T>> matchings, T left, T right) {
+        Set<T> leftTree = new HashSet<>(Artifacts.dfs(left));
+        Set<T> rightTree = new HashSet<>(Artifacts.dfs(right));
+
+        if (left.getTreeSize() != leftTree.size() || right.getTreeSize() != rightTree.size()) {
+            return false;
+        }
+
+        for (CostModelMatching<T> matching : matchings) {
+
+            if (matching.m != null && !leftTree.remove(matching.m)) {
+                return false;
+            }
+
+            if (matching.n != null && !rightTree.remove(matching.n)) {
+                return false;
+            }
+        }
+
+        return leftTree.isEmpty() && rightTree.isEmpty();
     }
 
     /**
@@ -483,14 +526,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float beta = 30; // TODO figure out good values for this (dependant on the size of the trees)
 
         List<CostModelMatching<T>> m = initialize(context.pAssign, left, right);
-        ObjectiveValue mObjVal = objective(beta, m);
+        ObjectiveValue mObjVal = objective(beta, m, left, right);
 
         List<CostModelMatching<T>> lowest = m;
         float lowestCost = mObjVal.matchingsCost;
 
         for (int i = 0; i < context.costModelIterations; i++) {
             List<CostModelMatching<T>> mHat = propose(context.pAssign, left, right, m);
-            AcceptanceProbability mHatAccProb = acceptanceProb(beta, mObjVal.objValue, mHat);
+            AcceptanceProbability mHatAccProb = acceptanceProb(beta, mObjVal.objValue, mHat, left, right);
 
             if (chance(mHatAccProb.acceptanceProbability)) {
 
@@ -628,8 +671,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return bipartiteGraph;
     }
 
-    private ObjectiveValue objective(float beta, List<CostModelMatching<T>> matchings) {
-        float cost = cost(matchings);
+    private ObjectiveValue objective(float beta, List<CostModelMatching<T>> matchings, T left, T right) {
+        float cost = cost(matchings, left, right);
         double objVal = Math.exp(-(beta * cost));
 
         log(FINEST, matchings, () -> "Cost of matchings is " + cost);
@@ -638,8 +681,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new ObjectiveValue(objVal, cost);
     }
 
-    private AcceptanceProbability acceptanceProb(float beta, double mObjectiveValue, List<CostModelMatching<T>> mHat) {
-        ObjectiveValue mHatObjectiveValue = objective(beta, mHat);
+    private AcceptanceProbability acceptanceProb(float beta, double mObjectiveValue, List<CostModelMatching<T>> mHat, T left, T right) {
+        ObjectiveValue mHatObjectiveValue = objective(beta, mHat, left, right);
         double acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
 
         log(FINEST, mHat, () -> "Acceptance probability for matchings is " + acceptanceProb);
