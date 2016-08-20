@@ -1,13 +1,16 @@
 package de.fosd.jdime.strdump;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.Artifacts;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.strdump.graphviz.GraphvizEdge;
 import de.fosd.jdime.strdump.graphviz.GraphvizGraph;
 import de.fosd.jdime.strdump.graphviz.GraphvizNode;
 import de.fosd.jdime.strdump.graphviz.GraphvizSubGraph;
@@ -66,9 +69,19 @@ public class MatchingsTreeDump {
 
         graph.attributeStmt(NODE).attribute("shape", "box");
         graph.attribute("rankdir", "TB");
+        graph.attribute("compound", "true");
 
         Map<T, GraphvizNode> lNodes = addSubGraph(lRoot, "Left", graph);
         Map<T, GraphvizNode> rNodes = addSubGraph(rRoot, "Right", graph);
+
+        GraphvizNode lRootNode = lNodes.get(lRoot);
+        GraphvizNode rRootNode = rNodes.get(rRoot);
+        GraphvizEdge align = graph.edge(lRootNode, rRootNode);
+
+        align.attribute("ltail", lRootNode.getGraph().getId());
+        align.attribute("lhead", rRootNode.getGraph().getId());
+        align.attribute("style", "invis");
+        align.attribute("constraint", "false");
 
         for (Matching<T> matching : matchings) {
             GraphvizNode from = lNodes.get(matching.getLeft());
@@ -119,6 +132,29 @@ public class MatchingsTreeDump {
 
             for (T c : artifact.getChildren()) {
                 subGraph.edge(fromNode, nodes.get(c));
+            }
+        }
+
+        // now we force dot to respect the order of the children
+        for (T artifact : bfs) {
+            ArtifactList<T> ch = artifact.getChildren();
+
+            if (ch.size() > 1) {
+                GraphvizSubGraph oSubGraph = subGraph.subGraph();
+
+                oSubGraph.attributeStmt(EDGE).attribute("style", "invis").attribute("constraint", "false");
+                oSubGraph.attribute("rank", "same");
+
+                Iterator<T> it = ch.iterator();
+
+                GraphvizNode last = nodes.get(it.next());
+
+                while (it.hasNext()) {
+                    GraphvizNode next = nodes.get(it.next());
+
+                    oSubGraph.edge(last, next);
+                    last = next;
+                }
             }
         }
 
