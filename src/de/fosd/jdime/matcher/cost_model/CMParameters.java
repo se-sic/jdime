@@ -1,6 +1,5 @@
 package de.fosd.jdime.matcher.cost_model;
 
-import java.util.List;
 import java.util.Random;
 
 import de.fosd.jdime.common.Artifact;
@@ -8,9 +7,9 @@ import de.fosd.jdime.common.MergeContext;
 
 /**
  * A container class for the parameters of the <code>CostModelMatcher</code>. Certain caches for speeding up successive
- * calls to {@link CostModelMatcher#cost(List, Artifact, Artifact, CostModelParameters)} are also managed by this class.
+ * calls to {@link CostModelMatcher#cost(CMMatchings, CMParameters)} are also managed by this class.
  */
-public final class CostModelParameters<T extends Artifact<T>> {
+public final class CMParameters<T extends Artifact<T>> {
 
     /**
      * The cost of not matching an artifact.
@@ -46,7 +45,7 @@ public final class CostModelParameters<T extends Artifact<T>> {
 
     /**
      * The chance that an edge is chosen when traversing the available edges in
-     * {@link CostModelMatcher#complete(List, Artifact, Artifact, CostModelParameters)}.
+     * {@link CostModelMatcher#complete(CMMatchings, CMParameters)}.
      */
     float pAssign;
 
@@ -56,7 +55,7 @@ public final class CostModelParameters<T extends Artifact<T>> {
      */
     float beta;
 
-    public CostModelParameters(MergeContext context) {
+    public CMParameters(MergeContext context) {
         setNoMatchWeight(context.wn);
         setRenamingWeight(context.wr);
         setAncestryViolationWeight(context.wa);

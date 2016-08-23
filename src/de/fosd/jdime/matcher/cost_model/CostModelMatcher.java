@@ -2,9 +2,7 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
@@ -50,7 +48,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #objective(Artifact, Artifact, List, CostModelParameters)} containing the value of the objective
+     * The return type of {@link #objective(Artifact, Artifact, List, CMParameters)} containing the value of the objective
      * function and the exact cost of the newly proposed set of <code>CostModelMatching</code>s.
      */
     private final class ObjectiveValue {
@@ -65,7 +63,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #acceptanceProb(double, List, Artifact, Artifact, CostModelParameters)} containing the probability
+     * The return type of {@link #acceptanceProb(double, List, Artifact, Artifact, CMParameters)} containing the probability
      * of the newly proposed set of <code>CostModelMatching</code>s being accepted for the next iteration and the
      * <code>ObjectiveValue</code> for the proposed matchings.
      */
@@ -89,7 +87,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Set<T> leftUnmatched = new LinkedHashSet<>(Artifacts.dfs(left));
         Set<T> rightUnmatched = new LinkedHashSet<>(Artifacts.dfs(right));
 
-        List<CostModelMatching<T>> cmMatchings = new ArrayList<>();
+        CMMatchings<T> cmMatchings = new CMMatchings<>(left, right);
 
         for (Matching<T> matching : matchings) {
             cmMatchings.add(new CostModelMatching<>(matching.getLeft(), matching.getRight()));
@@ -106,7 +104,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             cmMatchings.add(new CostModelMatching<>(null, r));
         }
 
-        return cost(cmMatchings, left, right, new CostModelParameters<>(context));
+        return cost(cmMatchings, new CMParameters<>(context));
     }
 
     /**
@@ -116,16 +114,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * ({@link CostModelMatching#getExactCost()} after this call.
      *
      * @param matchings
-     *         the <code>CostModelMatching</code>s to evaluate
-     * @param left
-     *         the root of the left tree being matched
-     * @param right
-     *         the root of the right tree being matched
-     * @return the cost based on the set weight functions
+     *         the <code>CMMatchings</code>s to evaluate
+     * @param parameters
+     *          the <code>CMParameters</code> to use
+     * @return the cost based on the weight functions in <code>parameters</code>
      */
-    private float cost(List<CostModelMatching<T>> matchings, T left, T right, CostModelParameters<T> parameters) {
+    private float cost(CMMatchings<T> matchings, CMParameters<T> parameters) {
 
-        if (!sane(matchings, left, right)) {
+        if (!matchings.sane()) {
             throw new IllegalArgumentException("The given list of matchings has an invalid format. A list of " +
                     "matchings where every artifact from the left and right tree occurs in exactly one matching is " +
                     "required. Matchings matching artifacts that do not occur in the left or right tree are not " +
@@ -140,55 +136,21 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         float sumCost = matchings.stream().collect(summingDouble(CostModelMatching::getExactCost)).floatValue();
 
-        return (1.0f / (left.getTreeSize() + right.getTreeSize())) * sumCost;
-    }
-
-    /**
-     * Checks whether the given <code>matchings</code> conform to the format required by
-     * {@link #cost(List, Artifact, Artifact, CostModelParameters)}. That is whether there is exactly one matching
-     * for every artifact in the left and right tree matching that artifact to one from the opposite tree (or null).
-     * No matchings containing artifacts that do not occur in the left or right tree are tolerated.
-     *
-     * @param matchings
-     *         the list of matchings to check
-     * @param left
-     *         the root of the left tree
-     * @param right
-     *         the root of the right tree
-     * @return whether the <code>matchings</code> have a valid format
-     */
-    private boolean sane(List<CostModelMatching<T>> matchings, T left, T right) {
-        Set<T> leftTree = new HashSet<>(Artifacts.dfs(left));
-        Set<T> rightTree = new HashSet<>(Artifacts.dfs(right));
-
-        if (left.getTreeSize() != leftTree.size() || right.getTreeSize() != rightTree.size()) {
-            return false;
-        }
-
-        for (CostModelMatching<T> matching : matchings) {
-
-            if (matching.m != null && !leftTree.remove(matching.m)) {
-                return false;
-            }
-
-            if (matching.n != null && !rightTree.remove(matching.n)) {
-                return false;
-            }
-        }
-
-        return leftTree.isEmpty() && rightTree.isEmpty();
+        return (1.0f / (matchings.left.getTreeSize() + matchings.right.getTreeSize())) * sumCost;
     }
 
     /**
      * Sets the exact cost ({@link CostModelMatching#setExactCost(float)}) of the given <code>matching</code> based on
      * the given set of <code>matchings</code>.
      *
-     * @param matching
+     *  @param matching
      *         the <code>CostModelMatching</code> to compute the cost for
      * @param matchings
      *         the complete <code>CostModelMatching</code>s
+     * @param parameters
+     *         the <code>CMParameters</code> to use
      */
-    private void exactCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings, CostModelParameters<T> parameters) {
+    private void exactCost(CostModelMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
 
         if (matching.isNoMatch()) {
             matching.setExactCost(parameters.wn);
@@ -211,7 +173,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         the <code>CostModelMatching</code> to compute the cost for
      * @return the exact renaming cost of the <code>matching</code>
      */
-    private float renamingCost(CostModelMatching<T> matching, CostModelParameters<T> parameters) {
+    private float renamingCost(CostModelMatching<T> matching, CMParameters<T> parameters) {
         if (matching.m.matches(matching.n)) {
             return 0;
         } else {
@@ -219,14 +181,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private float ancestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings, CostModelParameters<T> parameters) {
+    private float ancestryViolationCost(CostModelMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
         int numM = numAncestryViolatingChildren(matching.m, matching.n, matchings);
         int numN = numAncestryViolatingChildren(matching.n, matching.m, matchings);
 
         return parameters.wa.weigh(matching, numM + numN);
     }
 
-    private int numAncestryViolatingChildren(T m, T n, List<CostModelMatching<T>> matchings) {
+    private int numAncestryViolatingChildren(T m, T n, CMMatchings<T> matchings) {
         ArtifactList<T> mChildren = m.getChildren();
         ArtifactList<T> nChildren = n.getChildren();
 
@@ -235,7 +197,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return (int) mChildren.stream().map(mChild -> image(mChild, matchings)).filter(filter).count();
     }
 
-    private float siblingGroupBreakupCost(CostModelMatching<T> matching, List<CostModelMatching<T>> matchings, CostModelParameters<T> parameters) {
+    private float siblingGroupBreakupCost(CostModelMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
         List<T> dMm, iMm;
         Set<T> fMm;
         List<T> dMn, iMn;
@@ -254,19 +216,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return parameters.ws.weigh(matching, mCost + nCost);
     }
 
-    private List<T> siblingInvariantSubset(T m, T n, List<CostModelMatching<T>> matchings) {
+    private List<T> siblingInvariantSubset(T m, T n, CMMatchings<T> matchings) {
         List<T> mSiblings = siblings(m);
         List<T> nSiblings = siblings(n);
 
         return mSiblings.stream().filter(s -> nSiblings.contains(image(s, matchings))).collect(toList());
     }
 
-    private List<T> siblingDivergentSubset(T m, T n, List<CostModelMatching<T>> matchings) {
+    private List<T> siblingDivergentSubset(T m, T n, CMMatchings<T> matchings) {
         List<T> inv = siblingInvariantSubset(m, n, matchings);
         return siblings(m).stream().filter(sibling -> !inv.contains(sibling) && image(sibling, matchings) != null).collect(toList());
     }
 
-    private Set<T> distinctSiblingFamilies(T m, List<CostModelMatching<T>> matchings) {
+    private Set<T> distinctSiblingFamilies(T m, CMMatchings<T> matchings) {
         Function<T, T> image = mChild -> image(mChild, matchings);
         Predicate<T> notNull = t -> t != null;
         Function<T, T> getParent = Artifact::getParent;
@@ -287,7 +249,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         if no <code>CostModelMatching</code> containing <code>artifact</code> can be found in
      *         <code>matchings</code>
      */
-    private T image(T artifact, List<CostModelMatching<T>> matchings) {
+    private T image(T artifact, CMMatchings<T> matchings) {
         //TODO this is very inefficient...
 
         for (CostModelMatching<T> matching : matchings) {
@@ -307,9 +269,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @param matching
      *         the <code>CostModelMatching</code> whose costs are to be bounded
      * @param currentMatchings
-     *         the current <code>CostModelMatching</code>s being considered
+     *         the current <code>CMMatchings</code>s being considered
+     * @param parameters
+     *         the <code>CMParameters</code> to use
      */
-    private void boundCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings, CostModelParameters<T> parameters) {
+    private void boundCost(CostModelMatching<T> matching, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
 
         if (matching.isNoMatch()) {
             matching.setBounds(parameters.wn, parameters.wn);
@@ -326,7 +290,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         matching.setBounds(lower, upper);
     }
 
-    private Bounds boundAncestryViolationCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings, CostModelParameters<T> parameters) {
+    private Bounds boundAncestryViolationCost(CostModelMatching<T> matching, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
         T m = matching.m;
         T n = matching.n;
 
@@ -342,7 +306,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new Bounds(parameters.wa.weigh(matching, lowerBound), parameters.wa.weigh(matching, upperBound));
     }
 
-    private boolean ancestryIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
+    private boolean ancestryIndicator(T child, T n, CMMatchings<T> g, boolean upper) {
         Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
 
         if (upper) {
@@ -362,7 +326,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private Bounds boundSiblingGroupBreakupCost(CostModelMatching<T> matching, List<CostModelMatching<T>> currentMatchings, CostModelParameters<T> parameters) {
+    private Bounds boundSiblingGroupBreakupCost(CostModelMatching<T> matching, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
         T m = matching.m;
         T n = matching.n;
 
@@ -383,14 +347,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new Bounds(lower, upper);
     }
 
-    private Bounds boundDistinctSibling(T m, T n, List<CostModelMatching<T>> currentMatchings) {
+    private Bounds boundDistinctSibling(T m, T n, CMMatchings<T> currentMatchings) {
         long lower = otherSiblings(m).stream().filter(mSib -> distinctSiblingIndicator(mSib, n, currentMatchings, false)).count();
         long upper = otherSiblings(m).stream().filter(mSib -> distinctSiblingIndicator(mSib, n, currentMatchings, true)).count();
 
         return new Bounds(lower, upper);
     }
 
-    private boolean distinctSiblingIndicator(T sibling, T n, List<CostModelMatching<T>> g, boolean upper) {
+    private boolean distinctSiblingIndicator(T sibling, T n, CMMatchings<T> g, boolean upper) {
         Predicate<CostModelMatching<T>> contains = match -> match.contains(sibling);
 
         if (upper) {
@@ -410,14 +374,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private Bounds boundInvariantSiblings(T m, T n, List<CostModelMatching<T>> currentMatchings) {
+    private Bounds boundInvariantSiblings(T m, T n, CMMatchings<T> currentMatchings) {
         long lower = otherSiblings(m).stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, false)).count();
         long upper = otherSiblings(m).stream().filter(mChild -> invariantSiblingIndicator(mChild, n, currentMatchings, true)).count();
 
         return new Bounds(lower + 1, upper + 1);
     }
 
-    private boolean invariantSiblingIndicator(T child, T n, List<CostModelMatching<T>> g, boolean upper) {
+    private boolean invariantSiblingIndicator(T child, T n, CMMatchings<T> g, boolean upper) {
         Predicate<CostModelMatching<T>> contains = match -> match.contains(child);
         Predicate<CostModelMatching<T>> indicator = match -> otherSiblings(n).contains(match.other(child));
 
@@ -463,19 +427,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right) {
-        CostModelParameters<T> parameters = new CostModelParameters<>(context);
+        CMParameters<T> parameters = new CMParameters<>(context);
 
         LOG.finer("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
-        List<CostModelMatching<T>> m = initialize(left, right, parameters);
-        ObjectiveValue mObjVal = objective(left, right, m, parameters);
+        CMMatchings<T> m = initialize(left, right, parameters);
+        ObjectiveValue mObjVal = objective(m, parameters);
 
-        List<CostModelMatching<T>> lowest = m;
+        CMMatchings<T> lowest = m;
         float lowestCost = mObjVal.matchingsCost;
 
         for (int i = 0; i < context.costModelIterations; i++) {
-            List<CostModelMatching<T>> mHat = propose(left, right, m, parameters);
-            AcceptanceProbability mHatAccProb = acceptanceProb(mObjVal.objValue, mHat, left, right, parameters);
+            CMMatchings<T> mHat = propose(m, parameters);
+            AcceptanceProbability mHatAccProb = acceptanceProb(mObjVal.objValue, mHat, parameters);
 
             if (parameters.chance(mHatAccProb.acceptanceProbability)) {
 
@@ -509,38 +473,38 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         the <code>CostModelMatching</code>s to convert
      * @return the resulting <code>Matchings</code>
      */
-    private Matchings<T> convert(List<CostModelMatching<T>> matchings) {
+    private Matchings<T> convert(CMMatchings<T> matchings) {
         return matchings.stream()
                         .filter(((Predicate<CostModelMatching<T>>) CostModelMatching::isNoMatch).negate())
                         .map(m -> new Matching<>(m.m, m.n, 0)) // TODO calculate a useful score
                         .collect(Matchings::new, Matchings::add, Matchings::addAll);
     }
 
-    private List<CostModelMatching<T>> propose(T left, T right, List<CostModelMatching<T>> m, CostModelParameters<T> parameters) {
+    private CMMatchings<T> propose(CMMatchings<T> m, CMParameters<T> parameters) {
         Collections.sort(m, comparing(CostModelMatching::getExactCost));
 
         int j = parameters.rng.nextInt(m.size());
-        List<CostModelMatching<T>> fixed = new ArrayList<>(m.subList(0, j));
+        CMMatchings<T> fixed = new CMMatchings<T>(m.subList(0, j), m.left, m.right);
 
         log(FINEST, m, () -> "Fixing the first " + j + " matchings from the last iteration. They are: " + fixed);
 
-        List<CostModelMatching<T>> proposition = complete(fixed, left, right, parameters);
+        CMMatchings<T> proposition = complete(fixed, parameters);
 
         log(FINEST, proposition, () -> "Proposing matchings for the next iteration: " + proposition);
 
         return proposition;
     }
 
-    private List<CostModelMatching<T>> initialize(T left, T right, CostModelParameters<T> parameters) {
-        List<CostModelMatching<T>> initial = complete(new ArrayList<>(), left, right, parameters);
+    private CMMatchings<T> initialize(T left, T right, CMParameters<T> parameters) {
+        CMMatchings<T> initial = complete(new CMMatchings<>(left, right), parameters);
         log(FINEST, initial, () -> "Initial set of matchings is: " + initial);
 
         return initial;
     }
 
-    private List<CostModelMatching<T>> complete(List<CostModelMatching<T>> matchings, T left, T right, CostModelParameters<T> parameters) {
-        List<CostModelMatching<T>> available = completeBipartiteGraph(left, right);
-        Set<CostModelMatching<T>> fixed = new LinkedHashSet<>(matchings);
+    private CMMatchings<T> complete(CMMatchings<T> fixedMatchings, CMParameters<T> parameters) {
+        CMMatchings<T> available = completeBipartiteGraph(fixedMatchings.left, fixedMatchings.right);
+        Set<CostModelMatching<T>> fixed = new LinkedHashSet<>(fixedMatchings);
 
         fixed.forEach(m -> prune(m, available));
 
@@ -572,10 +536,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             prune(matching, available);
         }
 
-        return new ArrayList<>(fixed);
+        return new CMMatchings<>(fixed, fixedMatchings.left, fixedMatchings.right);
     }
 
-    private void prune(CostModelMatching<T> matching, List<CostModelMatching<T>> g) {
+    private void prune(CostModelMatching<T> matching, CMMatchings<T> g) {
 
         for (ListIterator<CostModelMatching<T>> it = g.listIterator(); it.hasNext();) {
             CostModelMatching<T> current = it.next();
@@ -587,7 +551,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private List<CostModelMatching<T>> completeBipartiteGraph(T left, T right) {
+    private CMMatchings<T> completeBipartiteGraph(T left, T right) {
         List<T> leftNodes = Artifacts.bfs(left);
         List<T> rightNodes = Artifacts.bfs(right);
 
@@ -595,7 +559,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         leftNodes.add(null);
         rightNodes.add(null);
 
-        List<CostModelMatching<T>> bipartiteGraph = new LinkedList<>();
+        CMMatchings<T> bipartiteGraph = new CMMatchings<>(left, right);
 
         for (T lNode : leftNodes) {
             for (T rNode : rightNodes) {
@@ -609,8 +573,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return bipartiteGraph;
     }
 
-    private ObjectiveValue objective(T left, T right, List<CostModelMatching<T>> matchings, CostModelParameters<T> parameters) {
-        float cost = cost(matchings, left, right, parameters);
+    private ObjectiveValue objective(CMMatchings<T> matchings, CMParameters<T> parameters) {
+        float cost = cost(matchings, parameters);
         double objVal = Math.exp(-(parameters.beta * cost));
 
         log(FINEST, matchings, () -> "Cost of matchings is " + cost);
@@ -619,8 +583,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return new ObjectiveValue(objVal, cost);
     }
 
-    private AcceptanceProbability acceptanceProb(double mObjectiveValue, List<CostModelMatching<T>> mHat, T left, T right, CostModelParameters<T> parameters) {
-        ObjectiveValue mHatObjectiveValue = objective(left, right, mHat, parameters);
+    private AcceptanceProbability acceptanceProb(double mObjectiveValue, CMMatchings<T> mHat, CMParameters<T> parameters) {
+        ObjectiveValue mHatObjectiveValue = objective(mHat, parameters);
         double acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
 
         log(FINEST, mHat, () -> "Acceptance probability for matchings is " + acceptanceProb);
@@ -650,7 +614,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @param msg
      *         the message to log
      */
-    private void log(Level level, List<CostModelMatching<T>> matchings, Supplier<String> msg) {
+    private void log(Level level, CMMatchings<T> matchings, Supplier<String> msg) {
         LOG.log(level, () -> String.format("%-10s%s", id(matchings), msg.get()));
     }
 }
