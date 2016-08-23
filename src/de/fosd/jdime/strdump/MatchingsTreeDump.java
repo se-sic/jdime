@@ -142,7 +142,7 @@ public class MatchingsTreeDump {
             if (ch.size() > 1) {
                 GraphvizSubGraph oSubGraph = subGraph.subGraph();
 
-                oSubGraph.attributeStmt(EDGE).attribute("style", "invis").attribute("constraint", "false");
+                oSubGraph.attributeStmt(EDGE).attribute("style", "invis");
                 oSubGraph.attribute("rank", "same");
 
                 Iterator<T> it = ch.iterator();
