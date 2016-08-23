@@ -51,8 +51,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #objective(float, List)} containing the value of the objective function and the exact
-     * cost of the newly proposed set of <code>CostModelMatching</code>s.
+     * The return type of {@link #objective(float, List, Artifact, Artifact)} containing the value of the objective
+     * function and the exact cost of the newly proposed set of <code>CostModelMatching</code>s.
      */
     private final class ObjectiveValue {
 
@@ -66,9 +66,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #acceptanceProb(float, double, List)} containing the probability of the newly proposed
-     * set of <code>CostModelMatching</code>s being accepted for the next iteration and the <code>ObjectiveValue</code>
-     * for the proposed matchings.
+     * The return type of {@link #acceptanceProb(float, double, List, Artifact, Artifact)} containing the probability
+     * of the newly proposed set of <code>CostModelMatching</code>s being accepted for the next iteration and the
+     * <code>ObjectiveValue</code> for the proposed matchings.
      */
     private final class AcceptanceProbability {
 
@@ -102,6 +102,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      */
     private WeightFunction<T> ws;
 
+    private SimpleWeightFunction<T> wo;
+
     private Random rng;
 
     public void setNoMatchWeight(float wn) {
@@ -130,6 +132,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     public void setSiblingGroupBreakupWeight(WeightFunction<T> ws) {
         this.ws = ws;
+    }
+
+    public void setOrderingWeight(float wo) {
+        setOrderingWeight(matching -> wo);
+    }
+
+    public void setOrderingWeight(SimpleWeightFunction<T> wo) {
+        this.wo = wo;
     }
 
     public float cost(Matchings<T> matchings, T left, T right) {

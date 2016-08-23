@@ -107,7 +107,7 @@ public class CostModelMatcherTest {
         expected.add(new Matching<>(l7, r7, 0));
         expected.add(new Matching<>(l8, r8, 0));
 
-        testCostModelMatching(expected, 0.9f, 1.0f, 1.0f, 0.1f);
+        testCostModelMatching(expected, 0.9f, 1.0f, 1.0f, 0.1f, 1.0f);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class CostModelMatcherTest {
         expected.add(new Matching<>(l7, r7, 0));
         expected.add(new Matching<>(l8, r8, 0));
 
-        testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f);
+        testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f, 1.0f);
     }
 
     @Test
@@ -146,16 +146,17 @@ public class CostModelMatcherTest {
 
         expected.add(new Matching<>(l8, r2, 0));
 
-        testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f);
+        testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f, 1.0f);
     }
 
-    private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws) throws Exception {
+    private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws, float wo) throws Exception {
         MergeContext context = new MergeContext();
 
         context.wr = wr;
         context.wn = wn;
         context.wa = wa;
         context.ws = ws;
+        context.wo = wo;
 
         // TODO extract parameters (or constants)
         context.pAssign = 0.7f;
