@@ -18,6 +18,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.Artifacts;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -48,7 +49,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #objective(Artifact, Artifact, List, CMParameters)} containing the value of the objective
+     * The return type of {@link #objective(CMMatchings, CMParameters)} containing the value of the objective
      * function and the exact cost of the newly proposed set of <code>CostModelMatching</code>s.
      */
     private final class ObjectiveValue {
@@ -63,7 +64,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     /**
-     * The return type of {@link #acceptanceProb(double, List, Artifact, Artifact, CMParameters)} containing the probability
+     * The return type of {@link #acceptanceProb(double, CMMatchings, CMParameters)} containing the probability
      * of the newly proposed set of <code>CostModelMatching</code>s being accepted for the next iteration and the
      * <code>ObjectiveValue</code> for the proposed matchings.
      */
@@ -160,6 +161,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cR = renamingCost(matching, parameters);
         float cA = ancestryViolationCost(matching, matchings, parameters);
         float cS = siblingGroupBreakupCost(matching, matchings, parameters);
+        float cO = orderingCost(matching, matchings, parameters);
 
         matching.setExactCost(cR + cA + cS);
     }
@@ -234,6 +236,52 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Function<T, T> getParent = Artifact::getParent;
 
         return siblings(m).stream().map(image).filter(notNull).map(getParent).collect(toSet());
+    }
+
+    private float orderingCost(CostModelMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
+        return 0;
+    }
+
+    /**
+     * Returns the path from the given <code>artifact</code> to the root node of the tree it is a part of.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to return the path for
+     * @return the path represented by a list of <code>Artifact</code>s beginning with <code>artifact</code> and ending
+     *          with the root of the tree
+     */
+    public List<T> pathToRoot(T artifact) {
+        List<T> path = new ArrayList<>();
+
+        do {
+            path.add(artifact);
+            artifact = artifact.getParent();
+        } while (artifact != null);
+
+        return path;
+    }
+
+    /**
+     * Finds the lowest pair of (possibly different) ancestors of <code>a</code> and <code>b</code> that are part of the
+     * same sibling group.
+     *
+     * @param a the first <code>Artifact</code>
+     * @param b the second <code>Artifact</code>
+     * @return the ancestor of the first <code>Artifact</code> in the first position, that of the second in the second
+     *          position
+     */
+    public Tuple<T, T> lca(T a, T b) {
+        List<T> aPath = pathToRoot(a);
+        List<T> bPath = pathToRoot(b);
+        ListIterator<T> aIt = aPath.listIterator(aPath.size());
+        ListIterator<T> bIt = bPath.listIterator(bPath.size());
+
+        do {
+            a = aIt.previous();
+            b = bIt.previous();
+        } while (a == b && (aIt.hasPrevious() && bIt.hasPrevious()));
+
+        return Tuple.of(a, b);
     }
 
     /**
