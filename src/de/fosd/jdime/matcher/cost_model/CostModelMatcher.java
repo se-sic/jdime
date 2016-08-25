@@ -31,6 +31,7 @@ import static java.util.logging.Level.FINEST;
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 
 public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
@@ -163,7 +164,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cS = siblingGroupBreakupCost(matching, matchings, parameters);
         float cO = orderingCost(matching, matchings, parameters);
 
-        matching.setExactCost(cR + cA + cS);
+        matching.setExactCost(cR + cA + cS + cO);
     }
 
     /**
@@ -239,7 +240,35 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private float orderingCost(CostModelMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
-        return 0;
+        Stream<T> leftSiblings = otherSiblings(matching.m).stream();
+        Stream<T> rightSiblings = otherSiblings(matching.n).stream();
+        Stream<CostModelMatching<T>> s = concat(leftSiblings, rightSiblings).map(a -> matching(a, matchings)).filter(m -> !m.isNoMatch());
+
+        if (s.anyMatch(toCheck -> violatesOrdering(toCheck, matching))) {
+            return parameters.wo.weigh(matching);
+        } else {
+            return 0;
+        }
+    }
+
+    private boolean violatesOrdering(CostModelMatching<T> toCheck, CostModelMatching<T> matching) {
+        Tuple<T, T> leftSides = lca(toCheck.m, matching.m);
+        Tuple<T, T> rightSides = lca(toCheck.n, matching.n);
+        List<T> leftSiblings = siblings(leftSides.x);
+        List<T> rightSiblings = siblings(rightSides.x);
+
+        int leftXi = leftSiblings.indexOf(leftSides.x);
+        int leftYi = leftSiblings.indexOf(leftSides.y);
+        int rightXi = rightSiblings.indexOf(rightSides.x);
+        int rightYi = rightSiblings.indexOf(rightSides.y);
+        
+        if (leftXi < leftYi) {
+            return rightXi > rightYi;
+        } else if (leftXi > leftYi) {
+            return rightXi < rightYi;
+        }
+
+        return false; // TODO weird case, maybe true is better?
     }
 
     /**
@@ -265,12 +294,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * Finds the lowest pair of (possibly different) ancestors of <code>a</code> and <code>b</code> that are part of the
      * same sibling group.
      *
-     * @param a the first <code>Artifact</code>
-     * @param b the second <code>Artifact</code>
+     * @param a
+     *         the first <code>Artifact</code>
+     * @param b
+     *         the second <code>Artifact</code>
      * @return the ancestor of the first <code>Artifact</code> in the first position, that of the second in the second
      *          position
      */
     public Tuple<T, T> lca(T a, T b) {
+
+        if (siblings(a).contains(b)) {
+            return Tuple.of(a, b);
+        }
+
         List<T> aPath = pathToRoot(a);
         List<T> bPath = pathToRoot(b);
         ListIterator<T> aIt = aPath.listIterator(aPath.size());
@@ -282,6 +318,26 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         } while (a == b && (aIt.hasPrevious() && bIt.hasPrevious()));
 
         return Tuple.of(a, b);
+    }
+
+    /**
+     * Finds the (first) <code>CostModelMatching</code> in <code>matchings</code> containing the given
+     * <code>artifact</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> for which the containing <code>CostModelMatching</code> is to be returned
+     * @param matchings
+     *         the current matchings
+     * @return the <code>CostModelMatching</code> containing the <code>artifact</code>
+     * @throws NoSuchElementException
+     *         if no <code>CostModelMatching</code> containing <code>artifact</code> can be found in
+     *         <code>matchings</code>
+     */
+    private CostModelMatching<T> matching(T artifact, CMMatchings<T> matchings) {
+        //TODO this is very inefficient...
+
+        Supplier<RuntimeException> ex = () -> new NoSuchElementException("No matching containing " + artifact + " found.");
+        return matchings.stream().filter(m -> m.contains(artifact)).findFirst().orElseThrow(ex);
     }
 
     /**
@@ -298,16 +354,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         <code>matchings</code>
      */
     private T image(T artifact, CMMatchings<T> matchings) {
-        //TODO this is very inefficient...
-
-        for (CostModelMatching<T> matching : matchings) {
-
-            if (matching.contains(artifact)) {
-                return matching.other(artifact);
-            }
-        }
-
-        throw new NoSuchElementException("No matching containing " + artifact + " found.");
+        return matching(artifact, matchings).other(artifact);
     }
 
     /**
