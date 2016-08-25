@@ -27,57 +27,57 @@ public class CostModelMatcherTest {
     private TestArtifact left;
     private TestArtifact right;
 
-    private TestArtifact l1, l2, l3, l4, l5, l6, l7, l8;
-    private TestArtifact r1, r2, r3, r4, r5, r6, r7, r8, r9, r10;
+    private TestArtifact l0, l1, l2, l3, l4, l5, l6, l7;
+    private TestArtifact r0, r1, r2, r3, r4, r5, r6, r7, r8, r9;
 
     @Before
     public void setUp() throws Exception {
         matcher = new CostModelMatcher<>();
 
-        l1 = new TestArtifact(LEFT, "A", NODE);
-        l2 = new TestArtifact(LEFT, "B", NODE);
+        l0 = new TestArtifact(LEFT, "A", NODE);
+        l1 = new TestArtifact(LEFT, "B", NODE);
+        l2 = new TestArtifact(LEFT, "C", NODE);
         l3 = new TestArtifact(LEFT, "C", NODE);
-        l4 = new TestArtifact(LEFT, "C", NODE);
-        l5 = new TestArtifact(LEFT, "D", NODE);
+        l4 = new TestArtifact(LEFT, "D", NODE);
+        l5 = new TestArtifact(LEFT, "F", NODE);
         l6 = new TestArtifact(LEFT, "F", NODE);
-        l7 = new TestArtifact(LEFT, "F", NODE);
-        l8 = new TestArtifact(LEFT, "G", NODE);
+        l7 = new TestArtifact(LEFT, "G", NODE);
+
+        l0.addChild(l1);
+        l0.addChild(l4);
 
         l1.addChild(l2);
-        l1.addChild(l5);
+        l1.addChild(l3);
 
-        l2.addChild(l3);
-        l2.addChild(l4);
-
-        l5.addChild(l6);
-        l5.addChild(l7);
-        l5.addChild(l8);
+        l4.addChild(l5);
+        l4.addChild(l6);
+        l4.addChild(l7);
         
-        r1 = new TestArtifact(RIGHT, "A", NODE);
-        r2 = new TestArtifact(RIGHT, "G", NODE);
-        r3 = new TestArtifact(RIGHT, "D", NODE);
-        r4 = new TestArtifact(RIGHT, "B", NODE);
-        r5 = new TestArtifact(RIGHT, "C", NODE);
+        r0 = new TestArtifact(RIGHT, "A", NODE);
+        r1 = new TestArtifact(RIGHT, "G", NODE);
+        r2 = new TestArtifact(RIGHT, "D", NODE);
+        r3 = new TestArtifact(RIGHT, "B", NODE);
+        r4 = new TestArtifact(RIGHT, "C", NODE);
+        r5 = new TestArtifact(RIGHT, "F", NODE);
         r6 = new TestArtifact(RIGHT, "F", NODE);
         r7 = new TestArtifact(RIGHT, "F", NODE);
-        r8 = new TestArtifact(RIGHT, "F", NODE);
+        r8 = new TestArtifact(RIGHT, "C", NODE);
         r9 = new TestArtifact(RIGHT, "C", NODE);
-        r10 = new TestArtifact(RIGHT, "C", NODE);
 
-        r1.addChild(r2);
-        r1.addChild(r3);
-        r1.addChild(r4);
+        r0.addChild(r1);
+        r0.addChild(r2);
+        r0.addChild(r3);
+
+        r3.addChild(r4);
+        r3.addChild(r8);
+        r3.addChild(r9);
 
         r4.addChild(r5);
-        r4.addChild(r9);
-        r4.addChild(r10);
+        r4.addChild(r6);
+        r4.addChild(r7);
 
-        r5.addChild(r6);
-        r5.addChild(r7);
-        r5.addChild(r8);
-
-        left = l1;
-        right = r1;
+        left = l0;
+        right = r0;
 
         left.renumberTree();
         right.renumberTree();
@@ -96,16 +96,16 @@ public class CostModelMatcherTest {
     public void paperA() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
-        expected.add(new Matching<>(l1, r1, 0));
+        expected.add(new Matching<>(l0, r0, 0));
 
-        expected.add(new Matching<>(l2, r4, 0));
+        expected.add(new Matching<>(l1, r3, 0));
+        expected.add(new Matching<>(l2, r8, 0));
         expected.add(new Matching<>(l3, r9, 0));
-        expected.add(new Matching<>(l4, r10, 0));
 
+        expected.add(new Matching<>(l4, r4, 0));
         expected.add(new Matching<>(l5, r5, 0));
         expected.add(new Matching<>(l6, r6, 0));
         expected.add(new Matching<>(l7, r7, 0));
-        expected.add(new Matching<>(l8, r8, 0));
 
         testCostModelMatching(expected, 0.9f, 1.0f, 1.0f, 0.1f, 1.0f);
     }
@@ -114,17 +114,17 @@ public class CostModelMatcherTest {
     public void paperB() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
-        expected.add(new Matching<>(l1, r1, 0));
+        expected.add(new Matching<>(l0, r0, 0));
 
-        expected.add(new Matching<>(l2, r3, 0));
-        expected.add(new Matching<>(l5, r4, 0));
+        expected.add(new Matching<>(l1, r2, 0));
+        expected.add(new Matching<>(l4, r3, 0));
 
+        expected.add(new Matching<>(l2, r8, 0));
         expected.add(new Matching<>(l3, r9, 0));
-        expected.add(new Matching<>(l4, r10, 0));
 
+        expected.add(new Matching<>(l5, r5, 0));
         expected.add(new Matching<>(l6, r6, 0));
         expected.add(new Matching<>(l7, r7, 0));
-        expected.add(new Matching<>(l8, r8, 0));
 
         testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f, 1.0f);
     }
@@ -133,18 +133,18 @@ public class CostModelMatcherTest {
     public void paperC() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
-        expected.add(new Matching<>(l1, r1, 0));
+        expected.add(new Matching<>(l0, r0, 0));
 
-        expected.add(new Matching<>(l2, r4, 0));
+        expected.add(new Matching<>(l1, r3, 0));
+        expected.add(new Matching<>(l2, r8, 0));
         expected.add(new Matching<>(l3, r9, 0));
-        expected.add(new Matching<>(l4, r10, 0));
 
-        expected.add(new Matching<>(l5, r3, 0));
+        expected.add(new Matching<>(l4, r2, 0));
 
+        expected.add(new Matching<>(l5, r5, 0));
         expected.add(new Matching<>(l6, r6, 0));
-        expected.add(new Matching<>(l7, r7, 0));
 
-        expected.add(new Matching<>(l8, r2, 0));
+        expected.add(new Matching<>(l7, r1, 0));
 
         testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f, 1.0f);
     }
