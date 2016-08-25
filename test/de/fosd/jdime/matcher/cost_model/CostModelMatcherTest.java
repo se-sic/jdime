@@ -93,6 +93,49 @@ public class CostModelMatcherTest {
     }
 
     @Test
+    public void costDebug() throws Exception { // TODO remove
+        TestArtifact l = new TestArtifact(LEFT, "L", NODE);
+        TestArtifact l1 = new TestArtifact(LEFT, "l1", NODE);
+        TestArtifact l2 = new TestArtifact(LEFT, "l2", NODE);
+        TestArtifact l3 = new TestArtifact(LEFT, "l3", NODE);
+        TestArtifact r = new TestArtifact(LEFT, "R", NODE);
+        TestArtifact r1 = new TestArtifact(LEFT, "r1", NODE);
+        TestArtifact r2 = new TestArtifact(LEFT, "r2", NODE);
+        TestArtifact r3 = new TestArtifact(LEFT, "r3", NODE);
+
+        l.addChild(l1);
+        l.addChild(l2);
+        l.addChild(l3);
+
+        r.addChild(r1);
+        r.addChild(r2);
+        r.addChild(r3);
+
+        Matchings<TestArtifact> m = new Matchings<>();
+
+        m.add(new Matching<>(l1, r1, 0));
+        m.add(new Matching<>(l2, r2, 0));
+        m.add(new Matching<>(l3, r, 0));
+
+        MergeContext context = new MergeContext();
+
+        context.wr = 1;
+        context.wn = 1;
+        context.wa = 1;
+        context.ws = 1;
+        context.wo = 1;
+
+        // TODO extract parameters (or constants)
+        context.pAssign = 0.7f;
+        context.seed = Optional.of(42L);
+        context.costModelIterations = 100;
+
+        CostModelMatcher<TestArtifact> matcher = new CostModelMatcher<>();
+
+        matcher.cost(context, m, l, r);
+    }
+
+    @Test
     public void paperA() throws Exception {
         Matchings<TestArtifact> expected = new Matchings<>();
 
