@@ -60,6 +60,7 @@ public final class CMParameters<T extends Artifact<T>> {
         setRenamingWeight(context.wr);
         setAncestryViolationWeight(context.wa);
         setSiblingGroupBreakupWeight(context.ws);
+        setOrderingWeight(context.wo);
         rng = context.seed.map(Random::new).orElse(new Random());
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)

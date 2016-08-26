@@ -378,9 +378,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cR = renamingCost(matching, parameters);
         Bounds cABounds = boundAncestryViolationCost(matching, currentMatchings, parameters);
         Bounds cSBounds = boundSiblingGroupBreakupCost(matching, currentMatchings, parameters);
+        Bounds cOBounds = boundOrderingCost(matching, currentMatchings, parameters);
 
-        float lower = cR + cABounds.getLower() + cSBounds.getLower();
-        float upper = cR + cABounds.getUpper() + cSBounds.getUpper();
+        float lower = cR + cABounds.getLower() + cSBounds.getLower() + cOBounds.getLower();
+        float upper = cR + cABounds.getUpper() + cSBounds.getUpper() + cOBounds.getUpper();
 
         matching.setBounds(lower, upper);
     }
@@ -485,6 +486,37 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         } else {
             return g.stream().filter(contains).allMatch(indicator);
         }
+    }
+
+    private Bounds boundOrderingCost(CostModelMatching<T> matching, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
+        float lower, upper;
+
+        Stream<T> siblings = concat(otherSiblings(matching.m).stream(), otherSiblings(matching.n).stream());
+
+        boolean orderingPossible = siblings.allMatch(sib ->
+            currentMatchings.stream().filter(match -> match.contains(sib)).anyMatch(match ->
+                match.isNoMatch() || !violatesOrdering(match, matching)
+            )
+        );
+
+        if (!orderingPossible) {
+            lower = parameters.wo.weigh(matching);
+            upper = lower;
+        } else {
+            lower = 0;
+
+            siblings = concat(otherSiblings(matching.m).stream(), otherSiblings(matching.n).stream());
+
+            boolean violationPossible = siblings.anyMatch(sib ->
+                currentMatchings.stream().filter(match -> match.contains(sib)).anyMatch(match ->
+                    !match.isNoMatch() && violatesOrdering(match, matching)
+                )
+            );
+
+            upper = violationPossible ? parameters.wo.weigh(matching) : 0;
+        }
+
+        return new Bounds(lower, upper);
     }
 
     /**
