@@ -28,6 +28,7 @@ import static de.fosd.jdime.matcher.cost_model.Bounds.BY_LOWER_UPPER;
 import static java.lang.Integer.toHexString;
 import static java.lang.System.identityHashCode;
 import static java.util.Comparator.comparing;
+import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
 import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
@@ -571,7 +572,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             if (chance(parameters.rng, mHatAccProb.acceptanceProbability)) {
 
-                log(FINEST, mHat, () -> "Accepting the matchings.");
+                log(FINER, mHat, () -> "Accepting the matchings.");
 
                 m = mHat;
                 mObjVal = mHatAccProb.mHatObjectiveValue;
@@ -579,10 +580,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             if (mHatAccProb.mHatObjectiveValue.matchingsCost < lowestCost) {
 
-                log(FINEST, mHat, () -> "New lowest cost matchings found.");
-
                 lowest = mHat;
                 lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
+
+                float finalLowestCost = lowestCost;
+                log(FINER, mHat, () -> "New lowest cost matchings with cost " + finalLowestCost + "found.");
             }
 
             LOG.finer("End of iteration " + i);
@@ -627,18 +629,22 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         int j = parameters.rng.nextInt(m.size());
         CMMatchings<T> fixed = new CMMatchings<T>(m.subList(0, j), m.left, m.right);
 
-        log(FINEST, m, () -> "Fixing the first " + j + " matchings from the last iteration. They are: " + fixed);
+        log(FINER, m, () -> "Fixing the first " + j + " matchings from the last iteration.");
+        log(FINEST, m, () -> "They are: " + fixed);
 
         CMMatchings<T> proposition = complete(fixed, parameters);
 
-        log(FINEST, proposition, () -> "Proposing matchings for the next iteration: " + proposition);
+        log(FINER, proposition, () -> "Proposing matchings for the next iteration.");
+        log(FINEST, proposition, () -> "Proposition is: " + proposition);
 
         return proposition;
     }
 
     private CMMatchings<T> initialize(T left, T right, CMParameters<T> parameters) {
         CMMatchings<T> initial = complete(new CMMatchings<>(left, right), parameters);
-        log(FINEST, initial, () -> "Initial set of matchings is: " + initial);
+
+        log(FINER, initial, () -> "Initial set of matchings assembled.");
+        log(FINEST, initial, () -> "Initial set is: " + initial);
 
         return initial;
     }
@@ -712,8 +718,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         float cost = cost(matchings, parameters);
         double objVal = Math.exp(-(parameters.beta * cost));
 
-        log(FINEST, matchings, () -> "Cost of matchings is " + cost);
-        log(FINEST, matchings, () -> "Objective function value is " + objVal);
+        log(FINER, matchings, () -> "Cost of matchings is " + cost);
+        log(FINER, matchings, () -> "Objective function value for matchings is " + objVal);
 
         return new ObjectiveValue(objVal, cost);
     }
@@ -722,7 +728,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         ObjectiveValue mHatObjectiveValue = objective(mHat, parameters);
         double acceptanceProb = Math.min(1, mHatObjectiveValue.objValue / mObjectiveValue);
 
-        log(FINEST, mHat, () -> "Acceptance probability for matchings is " + acceptanceProb);
+        log(FINER, mHat, () -> "Acceptance probability for matchings is " + acceptanceProb);
 
         return new AcceptanceProbability(acceptanceProb, mHatObjectiveValue);
     }
