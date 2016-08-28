@@ -584,7 +584,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                 lowestCost = mHatAccProb.mHatObjectiveValue.matchingsCost;
 
                 float finalLowestCost = lowestCost;
-                log(FINER, mHat, () -> "New lowest cost matchings with cost " + finalLowestCost + "found.");
+                log(FINER, mHat, () -> "New lowest cost matchings with cost " + finalLowestCost + " found.");
             }
 
             LOG.finer("End of iteration " + i);
