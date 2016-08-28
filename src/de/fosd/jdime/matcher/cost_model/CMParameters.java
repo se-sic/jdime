@@ -109,15 +109,4 @@ public final class CMParameters<T extends Artifact<T>> {
     public void setBeta(float beta) {
         this.beta = beta;
     }
-
-    /**
-     * Returns <code>true</code> with a probability of <code>p</code>.
-     *
-     * @param p
-     *         a number between 0.0 and 1.0
-     * @return true or false depending on the next double returned by the PRNG
-     */
-    boolean chance(double p) {
-        return rng.nextDouble() < p;
-    }
 }

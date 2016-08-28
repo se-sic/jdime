@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -568,7 +569,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             CMMatchings<T> mHat = propose(m, parameters);
             AcceptanceProbability mHatAccProb = acceptanceProb(mObjVal.objValue, mHat, parameters);
 
-            if (parameters.chance(mHatAccProb.acceptanceProbability)) {
+            if (chance(parameters.rng, mHatAccProb.acceptanceProbability)) {
 
                 log(FINEST, mHat, () -> "Accepting the matchings.");
 
@@ -590,6 +591,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         LOG.finer(() -> "Matching ended after " + context.costModelIterations + " iterations.");
 
         return convert(lowest);
+    }
+
+    /**
+     * Returns <code>true</code> with a probability of <code>p</code>.
+     *
+     * @param p
+     *         a number between 0.0 and 1.0
+     * @return true or false depending on the next double returned by the PRNG
+     */
+    boolean chance(Random rng, double p) {
+        return rng.nextDouble() < p;
     }
 
     /**
@@ -644,7 +656,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
             do {
                 int i = 0;
-                while (!parameters.chance(parameters.pAssign)) {
+                while (!chance(parameters.rng, parameters.pAssign)) {
                     i = (i + 1) % available.size();
                 }
 
