@@ -6,7 +6,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -23,6 +22,7 @@ import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import static de.fosd.jdime.matcher.cost_model.Bounds.BY_LOWER_UPPER;
 import static java.lang.Integer.toHexString;
@@ -596,11 +596,13 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     /**
      * Returns <code>true</code> with a probability of <code>p</code>.
      *
+     * @param rng
+     *         the PRNG to sample from
      * @param p
      *         a number between 0.0 and 1.0
      * @return true or false depending on the next double returned by the PRNG
      */
-    boolean chance(Random rng, double p) {
+    boolean chance(RandomGenerator rng, double p) {
         return rng.nextDouble() < p;
     }
 
@@ -642,26 +644,20 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private CMMatchings<T> complete(CMMatchings<T> fixedMatchings, CMParameters<T> parameters) {
-        CMMatchings<T> available = completeBipartiteGraph(fixedMatchings.left, fixedMatchings.right);
-        Set<CostModelMatching<T>> fixed = new LinkedHashSet<>(fixedMatchings);
+        CMMatchings<T> current = completeBipartiteGraph(fixedMatchings.left, fixedMatchings.right);
+        CMMatchings<T> fixed = new CMMatchings<>(fixedMatchings, fixedMatchings.left, fixedMatchings.right);
 
-        fixed.forEach(m -> prune(m, available));
+        fixed.forEach(m -> prune(m, current));
 
-        while (fixed.size() != available.size()) {
+        while (fixed.size() != current.size()) {
 
-            available.forEach(matching -> boundCost(matching, available, parameters));
-            Collections.sort(available, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
+            current.forEach(matching -> boundCost(matching, current, parameters));
+            Collections.sort(current, comparing(CostModelMatching::getCostBounds, BY_LOWER_UPPER));
 
-            CostModelMatching<T> matching;
+            CMMatchings<T> available = new CMMatchings<>(current, current.left, current.right);
+            available.removeAll(fixed);
 
-            do {
-                int i = 0;
-                while (!chance(parameters.rng, parameters.pAssign)) {
-                    i = (i + 1) % available.size();
-                }
-
-                matching = available.get(i);
-            } while (fixed.contains(matching));
+            CostModelMatching<T> matching = available.get(parameters.assignDist.sample() % available.size());
 
             /* TODO
              * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
@@ -672,10 +668,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
              */
 
             fixed.add(matching);
-            prune(matching, available);
+            prune(matching, current);
         }
 
-        return new CMMatchings<>(fixed, fixedMatchings.left, fixedMatchings.right);
+        return fixed;
     }
 
     private void prune(CostModelMatching<T> matching, CMMatchings<T> g) {
