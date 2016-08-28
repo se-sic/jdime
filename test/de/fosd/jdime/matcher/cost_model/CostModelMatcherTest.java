@@ -6,6 +6,10 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.util.Optional;
 
+import de.fosd.jdime.JDimeTest;
+import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.TestArtifact;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -15,12 +19,13 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
 import static org.junit.Assert.assertEquals;
 
-public class CostModelMatcherTest {
+public class CostModelMatcherTest extends JDimeTest {
 
     private CostModelMatcher<TestArtifact> matcher;
 
@@ -86,42 +91,19 @@ public class CostModelMatcherTest {
     // TODO remove
     boolean show = true;
 
-    @Test
-    public void testShow() throws Exception {
-        Matchings<TestArtifact> m = Matchings.of(left, right, 0);
-        show(m);
-    }
+    public static void main(String[] args) throws Exception { // TODO remove
+        JDimeTest.initDirectories();
 
-    @Test
-    public void costDebug() throws Exception { // TODO remove
-        TestArtifact l = new TestArtifact(LEFT, "L", NODE);
-        TestArtifact l1 = new TestArtifact(LEFT, "l1", NODE);
-        TestArtifact l2 = new TestArtifact(LEFT, "l2", NODE);
-        TestArtifact l3 = new TestArtifact(LEFT, "l3", NODE);
-        TestArtifact r = new TestArtifact(LEFT, "R", NODE);
-        TestArtifact r1 = new TestArtifact(LEFT, "r1", NODE);
-        TestArtifact r2 = new TestArtifact(LEFT, "r2", NODE);
-        TestArtifact r3 = new TestArtifact(LEFT, "r3", NODE);
-
-        l.addChild(l1);
-        l.addChild(l2);
-        l.addChild(l3);
-
-        r.addChild(r1);
-        r.addChild(r2);
-        r.addChild(r3);
-
-        Matchings<TestArtifact> m = new Matchings<>();
-
-        m.add(new Matching<>(l1, r1, 0));
-        m.add(new Matching<>(l2, r2, 0));
-        m.add(new Matching<>(l3, r, 0));
+        String filePath = "SimpleTests/Bag/Bag.java";
+        ASTNodeArtifact l = new ASTNodeArtifact(new FileArtifact(LEFT, file(leftDir, filePath)));
+        ASTNodeArtifact b = new ASTNodeArtifact(new FileArtifact(BASE, file(baseDir, filePath)));
+        ASTNodeArtifact r = new ASTNodeArtifact(new FileArtifact(RIGHT, file(rightDir, filePath)));
 
         MergeContext context = new MergeContext();
 
-        context.wr = 1;
-        context.wn = 1;
-        context.wa = 1;
+        context.wr = 10;
+        context.wn = 10;
+        context.wa = 5;
         context.ws = 1;
         context.wo = 1;
 
@@ -130,9 +112,18 @@ public class CostModelMatcherTest {
         context.seed = Optional.of(42L);
         context.costModelIterations = 100;
 
-        CostModelMatcher<TestArtifact> matcher = new CostModelMatcher<>();
+        CostModelMatcher<ASTNodeArtifact> matcher = new CostModelMatcher<>();
 
-        matcher.cost(context, m, l, r);
+        System.in.read();
+
+        show(matcher.match(context, l, b));
+        //matcher.match(context, b, r);
+    }
+
+    @Test
+    public void testShow() throws Exception {
+        Matchings<TestArtifact> m = Matchings.of(left, right, 0);
+        show(m);
     }
 
     @Test
@@ -209,6 +200,7 @@ public class CostModelMatcherTest {
         Matchings<TestArtifact> actual = matcher.match(context, left, right);
 
         if (show) {
+            System.out.println("Actual cost is " + matcher.cost(context, actual, left, right));
             System.out.println("Expected cost is " + matcher.cost(context, expected, left, right));
             show(actual);
         }
@@ -217,7 +209,7 @@ public class CostModelMatcherTest {
     }
 
     // TODO remove, or make it more robust
-    private void show(Matchings<TestArtifact> matchings) throws Exception {
+    private static  <T extends Artifact<T>> void show(Matchings<T> matchings) throws Exception {
         File dotFormat = Files.createTempFile(null, null).toFile();
         File image = new File(dotFormat.getParentFile(), dotFormat.getName() + ".png");
 
