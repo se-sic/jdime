@@ -4,7 +4,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.PascalDistribution;
-import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.Well19937c;
 
 /**
@@ -43,7 +43,7 @@ public final class CMParameters<T extends Artifact<T>> {
      * The PRNG used during the execution of the {@link CostModelMatcher#match(MergeContext, Artifact, Artifact)}
      * function.
      */
-    RandomGenerator rng;
+    RandomAdaptor rng;
 
     /**
      * A {@link PascalDistribution} from which indices into the list of available edges may be sampled. The probability
@@ -69,7 +69,7 @@ public final class CMParameters<T extends Artifact<T>> {
         setAncestryViolationWeight(context.wa);
         setSiblingGroupBreakupWeight(context.ws);
         setOrderingWeight(context.wo);
-        rng = context.seed.map(Well19937c::new).orElse(new Well19937c());
+        rng = new RandomAdaptor(context.seed.map(Well19937c::new).orElse(new Well19937c()));
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)

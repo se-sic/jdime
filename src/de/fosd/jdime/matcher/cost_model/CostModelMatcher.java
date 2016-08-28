@@ -650,7 +650,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private CMMatchings<T> complete(CMMatchings<T> fixedMatchings, CMParameters<T> parameters) {
-        CMMatchings<T> current = completeBipartiteGraph(fixedMatchings.left, fixedMatchings.right);
+        CMMatchings<T> current = completeBipartiteGraph(fixedMatchings.left, fixedMatchings.right, parameters);
         CMMatchings<T> fixed = new CMMatchings<>(fixedMatchings, fixedMatchings.left, fixedMatchings.right);
 
         fixed.forEach(m -> prune(m, current));
@@ -692,7 +692,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
     }
 
-    private CMMatchings<T> completeBipartiteGraph(T left, T right) {
+    private CMMatchings<T> completeBipartiteGraph(T left, T right, CMParameters<T> parameters) {
         List<T> leftNodes = Artifacts.bfs(left);
         List<T> rightNodes = Artifacts.bfs(right);
 
@@ -711,6 +711,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             }
         }
 
+        Collections.shuffle(bipartiteGraph, parameters.rng);
         return bipartiteGraph;
     }
 
