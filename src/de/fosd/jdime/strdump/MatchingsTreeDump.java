@@ -124,7 +124,7 @@ public class MatchingsTreeDump {
             GraphvizNode node = subGraph.node();
 
             nodes.put(artifact, node);
-            node.attribute("label", artifact.getId());
+            node.attribute("label", artifact.toString());
         }
 
         for (T artifact : bfs) {
