@@ -68,6 +68,13 @@ public final class CMParameters<T extends Artifact<T>> {
     float beta;
 
     /*
+     * Caches valid for the entirety of the CostModelMatcher#match(MergeContext, Artifact, Artifact) function.
+     */
+
+    Map<T, List<T>> siblingCache;
+    Map<T, List<T>> otherSiblingsCache;
+
+    /*
      * Caches valid during one run of the CostModelMatcher#cost(CMMatchings, CMParameters) function.
      */
 
@@ -95,6 +102,8 @@ public final class CMParameters<T extends Artifact<T>> {
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
+        siblingCache = new HashMap<>();
+        otherSiblingsCache = new HashMap<>();
         exactContainsCache = new HashMap<>();
         boundContainsCache = new HashMap<>();
     }
