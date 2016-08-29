@@ -1,5 +1,9 @@
 package de.fosd.jdime.matcher.cost_model;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import org.apache.commons.math3.distribution.IntegerDistribution;
@@ -63,6 +67,24 @@ public final class CMParameters<T extends Artifact<T>> {
      */
     float beta;
 
+    /*
+     * Caches valid during one run of the CostModelMatcher#cost(CMMatchings, CMParameters) function.
+     */
+
+    /**
+     * Caches the <code>CostModelMatching</code>s containing an artifact.
+     */
+    Map<T, CostModelMatching<T>> exactContainsCache;
+
+    /*
+     * Caches valid during one run of the CostModelMatcher#boundCost(CMMatchings, CMParameters) function.
+     */
+
+    /**
+     * Caches lists of <code>CostModelMatching</code>s containing an artifact.
+     */
+    Map<T, List<CostModelMatching<T>>> boundContainsCache;
+
     public CMParameters(MergeContext context) {
         setNoMatchWeight(context.wn);
         setRenamingWeight(context.wr);
@@ -73,6 +95,8 @@ public final class CMParameters<T extends Artifact<T>> {
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
+        exactContainsCache = new HashMap<>();
+        boundContainsCache = new HashMap<>();
     }
 
     public void setNoMatchWeight(float wn) {
@@ -117,5 +141,13 @@ public final class CMParameters<T extends Artifact<T>> {
 
     public void setBeta(float beta) {
         this.beta = beta;
+    }
+
+    public void clearExactCaches() {
+        exactContainsCache.clear();
+    }
+
+    public void clearBoundCaches() {
+        boundContainsCache.clear();
     }
 }
