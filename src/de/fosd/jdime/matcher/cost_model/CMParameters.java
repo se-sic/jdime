@@ -6,6 +6,7 @@ import java.util.Map;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Tuple;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.PascalDistribution;
 import org.apache.commons.math3.random.RandomAdaptor;
@@ -71,6 +72,7 @@ public final class CMParameters<T extends Artifact<T>> {
      * Caches valid for the entirety of the CostModelMatcher#match(MergeContext, Artifact, Artifact) function.
      */
 
+    Map<Tuple<T, T>, Tuple<T, T>> lcaCache;
     Map<T, List<T>> siblingCache;
     Map<T, List<T>> otherSiblingsCache;
 
@@ -102,6 +104,7 @@ public final class CMParameters<T extends Artifact<T>> {
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
+        lcaCache = new HashMap<>();
         siblingCache = new HashMap<>();
         otherSiblingsCache = new HashMap<>();
         exactContainsCache = new HashMap<>();

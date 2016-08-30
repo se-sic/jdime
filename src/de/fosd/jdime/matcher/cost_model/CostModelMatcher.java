@@ -309,9 +309,15 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *          position
      */
     public Tuple<T, T> lca(T a, T b, CMParameters<T> parameters) {
+        Tuple<T, T> ab = Tuple.of(a, b);
+
+        if (parameters.lcaCache.containsKey(ab)) {
+            return parameters.lcaCache.get(ab);
+        }
 
         if (siblings(a, parameters).contains(b)) {
-            return Tuple.of(a, b);
+            parameters.lcaCache.put(ab, ab);
+            return ab;
         }
 
         List<T> aPath = pathToRoot(a);
@@ -324,7 +330,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             b = bIt.previous();
         } while (a == b && (aIt.hasPrevious() && bIt.hasPrevious()));
 
-        return Tuple.of(a, b);
+        Tuple<T, T> lca = Tuple.of(a, b);
+        parameters.lcaCache.put(ab, lca);
+
+        return lca;
     }
 
     /**
