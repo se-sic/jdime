@@ -315,8 +315,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             return parameters.lcaCache.get(ab);
         }
 
+        Tuple<T, T> ba = Tuple.of(b, a);
+
         if (siblings(a, parameters).contains(b)) {
             parameters.lcaCache.put(ab, ab);
+            parameters.lcaCache.put(ba, ba);
             return ab;
         }
 
@@ -332,6 +335,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
         Tuple<T, T> lca = Tuple.of(a, b);
         parameters.lcaCache.put(ab, lca);
+        parameters.lcaCache.put(ba, Tuple.of(lca.y, lca.x));
 
         return lca;
     }
