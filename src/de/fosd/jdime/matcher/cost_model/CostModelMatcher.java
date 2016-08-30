@@ -210,17 +210,29 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         Set<T> fMm;
         List<T> dMn, iMn;
         Set<T> fMn;
+        float mCost;
+        float nCost;
 
         dMm = siblingDivergentSubset(matching.m, matching.n, matchings, parameters);
-        iMm = siblingInvariantSubset(matching.m, matching.n, matchings, parameters);
-        fMm = distinctSiblingFamilies(matching.m, matchings, parameters);
+
+        if (dMm.isEmpty()) {
+            mCost = 0;
+        } else {
+            iMm = siblingInvariantSubset(matching.m, matching.n, matchings, parameters);
+            fMm = distinctSiblingFamilies(matching.m, matchings, parameters);
+            mCost = (float) dMm.size() / (iMm.size() * fMm.size());
+        }
 
         dMn = siblingDivergentSubset(matching.n, matching.m, matchings, parameters);
-        iMn = siblingInvariantSubset(matching.n, matching.m, matchings, parameters);
-        fMn = distinctSiblingFamilies(matching.n, matchings, parameters);
 
-        float mCost = (float) dMm.size() / (iMm.size() * fMm.size());
-        float nCost = (float) dMn.size() / (iMn.size() * fMn.size());
+        if (dMn.isEmpty()) {
+            nCost = 0;
+        } else {
+            iMn = siblingInvariantSubset(matching.n, matching.m, matchings, parameters);
+            fMn = distinctSiblingFamilies(matching.n, matchings, parameters);
+            nCost = (float) dMn.size() / (iMn.size() * fMn.size());
+        }
+
         return parameters.ws.weigh(matching, mCost + nCost);
     }
 
@@ -462,19 +474,31 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         T m = matching.m;
         T n = matching.n;
 
+        float mnLower, nmLower, lower, mnUpper, nmUpper, upper;
+
         Bounds dMN = boundDistinctSibling(m, n, currentMatchings, parameters);
         Bounds dNM = boundDistinctSibling(n, m, currentMatchings, parameters);
 
-        Bounds iMN = boundInvariantSiblings(m, n, currentMatchings, parameters);
-        Bounds iNM = boundInvariantSiblings(n, m, currentMatchings, parameters);
+        if (dMN.getLower() != 0 || dMN.getUpper() != 0) {
+            Bounds iMN = boundInvariantSiblings(m, n, currentMatchings, parameters);
+            mnLower = dMN.getLower() / (iMN.getUpper() * (dMN.getLower() + 1));
+            mnUpper = dMN.getUpper() / iMN.getLower();
+        } else {
+            mnLower = 0;
+            mnUpper = 0;
+        }
 
-        float mnLower = dMN.getLower() / (iMN.getUpper() * (dMN.getLower() + 1));
-        float nmLower = dNM.getLower() / (iNM.getUpper() * (dNM.getLower() + 1));
-        float lower = parameters.ws.weigh(matching, mnLower + nmLower);
+        if (dNM.getLower() != 0 || dNM.getUpper() != 0) {
+            Bounds iNM = boundInvariantSiblings(n, m, currentMatchings, parameters);
+            nmLower = dNM.getLower() / (iNM.getUpper() * (dNM.getLower() + 1));
+            nmUpper = dNM.getUpper() / iNM.getLower();
+        } else {
+            nmLower = 0;
+            nmUpper = 0;
+        }
 
-        float mnUpper = dMN.getUpper() / iMN.getLower();
-        float nmUpper = dNM.getUpper() / iNM.getLower();
-        float upper = parameters.ws.weigh(matching, (mnUpper + nmUpper) / 2);
+        lower = parameters.ws.weigh(matching, mnLower + nmLower);
+        upper = parameters.ws.weigh(matching, (mnUpper + nmUpper) / 2);
 
         return new Bounds(lower, upper);
     }
