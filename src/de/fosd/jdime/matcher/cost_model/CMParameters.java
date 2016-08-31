@@ -68,6 +68,11 @@ public final class CMParameters<T extends Artifact<T>> {
      */
     float beta;
 
+    /**
+     * Whether the cost calculations (both exact and bounded) are executed for all edges in parallel.
+     */
+    boolean parallel;
+
     /*
      * Caches valid for the entirety of the CostModelMatcher#match(MergeContext, Artifact, Artifact) function.
      */
@@ -104,6 +109,7 @@ public final class CMParameters<T extends Artifact<T>> {
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
+        setParallel(context.cmMatcherParallel);
         lcaCache = new ConcurrentHashMap<>();
         siblingCache = new ConcurrentHashMap<>();
         otherSiblingsCache = new ConcurrentHashMap<>();
@@ -153,6 +159,10 @@ public final class CMParameters<T extends Artifact<T>> {
 
     public void setBeta(float beta) {
         this.beta = beta;
+    }
+
+    public void setParallel(boolean parallel) {
+        this.parallel = parallel;
     }
 
     public void clearExactCaches() {

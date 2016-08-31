@@ -196,6 +196,7 @@ public class MergeContext implements Cloneable {
     public float pAssign;
     public Optional<Long> seed = Optional.empty();
     public int costModelIterations;
+    public boolean cmMatcherParallel;
 
     /**
      * Constructs a new <code>MergeContext</code> initializing all options to their default values.

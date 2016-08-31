@@ -136,7 +136,11 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             return 0;
         }
 
-        matchings.forEach(m -> exactCost(m, matchings, parameters));
+        if (parameters.parallel) {
+            matchings.parallelStream().forEach(m -> exactCost(m, matchings, parameters));
+        } else {
+            matchings.forEach(m -> exactCost(m, matchings, parameters));
+        }
 
         float sumCost = matchings.stream().collect(summingDouble(CostModelMatching::getExactCost)).floatValue();
         sumCost *= (1.0f / (matchings.left.getTreeSize() + matchings.right.getTreeSize()));
@@ -324,8 +328,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return parameters.lcaCache.computeIfAbsent(Tuple.of(a, b), ab -> {
             Tuple<T, T> ba = Tuple.of(b, a);
 
+            if (parameters.lcaCache.containsKey(ba)) {
+                Tuple<T, T> baLCS = parameters.lcaCache.get(ba);
+                return Tuple.of(baLCS.y, baLCS.x);
+            }
+
             if (siblings(a, parameters).contains(b)) {
-                parameters.lcaCache.putIfAbsent(ba, ba);
                 return ab;
             }
 
@@ -340,7 +348,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                 r = bIt.previous();
             } while (l == r && (aIt.hasPrevious() && bIt.hasPrevious()));
 
-            parameters.lcaCache.putIfAbsent(ba, Tuple.of(r, l));
             return Tuple.of(l, r);
         });
     }
@@ -395,7 +402,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         the <code>CMParameters</code> to use
      */
     private void boundCost(CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
-        currentMatchings.forEach(m -> boundCost(m, currentMatchings, parameters));
+        if (parameters.parallel) {
+            currentMatchings.parallelStream().forEach(m -> boundCost(m, currentMatchings, parameters));
+        } else {
+            currentMatchings.forEach(m -> boundCost(m, currentMatchings, parameters));
+        }
+
         parameters.clearBoundCaches();
     }
 
@@ -588,10 +600,13 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             if (parent == null) {
                 siblings = new ArrayList<>(Collections.singleton(a));
             } else {
-                siblings = new ArrayList<>(parent.getChildren());
+                siblings = parent.getChildren()
+                                 .stream()
+                                 .filter(s -> s != a && parameters.siblingCache.containsKey(s))
+                                 .map(s -> parameters.siblingCache.get(s)).findFirst()
+                                 .orElseGet(() -> new ArrayList<>(parent.getChildren()));
             }
 
-            siblings.forEach(s -> parameters.siblingCache.putIfAbsent(s, siblings));
             return siblings;
         });
     }
@@ -617,7 +632,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     private List<CostModelMatching<T>> containing(T artifact, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
         return parameters.boundContainsCache.computeIfAbsent(artifact, a ->
-                currentMatchings.stream().filter(m -> m.contains(a)).collect(toList())
+            currentMatchings.stream().filter(m -> m.contains(a)).collect(toList())
         );
     }
 
