@@ -636,7 +636,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     public Matchings<T> match(MergeContext context, T left, T right) {
         CMParameters<T> parameters = new CMParameters<>(context);
 
-        LOG.finer("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
+        LOG.fine("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
         CMMatchings<T> m = initialize(left, right, parameters);
         ObjectiveValue mObjVal = objective(m, parameters);
@@ -665,10 +665,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
                 log(FINER, mHat, () -> "New lowest cost matchings with cost " + finalLowestCost + " found.");
             }
 
-            LOG.finer("End of iteration " + i);
+            LOG.fine("End of iteration " + i);
         }
 
-        LOG.finer(() -> "Matching ended after " + context.costModelIterations + " iterations.");
+        LOG.fine(() -> "Matching ended after " + context.costModelIterations + " iterations.");
 
         return convert(lowest);
     }
