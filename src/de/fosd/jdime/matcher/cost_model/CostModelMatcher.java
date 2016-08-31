@@ -321,35 +321,28 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *          position
      */
     public Tuple<T, T> lca(T a, T b, CMParameters<T> parameters) {
-        Tuple<T, T> ab = Tuple.of(a, b);
+        return parameters.lcaCache.computeIfAbsent(Tuple.of(a, b), ab -> {
+            Tuple<T, T> ba = Tuple.of(b, a);
 
-        if (parameters.lcaCache.containsKey(ab)) {
-            return parameters.lcaCache.get(ab);
-        }
+            if (siblings(a, parameters).contains(b)) {
+                parameters.lcaCache.putIfAbsent(ba, ba);
+                return ab;
+            }
 
-        Tuple<T, T> ba = Tuple.of(b, a);
+            List<T> aPath = pathToRoot(a);
+            List<T> bPath = pathToRoot(b);
+            ListIterator<T> aIt = aPath.listIterator(aPath.size());
+            ListIterator<T> bIt = bPath.listIterator(bPath.size());
+            T l, r;
 
-        if (siblings(a, parameters).contains(b)) {
-            parameters.lcaCache.put(ab, ab);
-            parameters.lcaCache.put(ba, ba);
-            return ab;
-        }
+            do {
+                l = aIt.previous();
+                r = bIt.previous();
+            } while (l == r && (aIt.hasPrevious() && bIt.hasPrevious()));
 
-        List<T> aPath = pathToRoot(a);
-        List<T> bPath = pathToRoot(b);
-        ListIterator<T> aIt = aPath.listIterator(aPath.size());
-        ListIterator<T> bIt = bPath.listIterator(bPath.size());
-
-        do {
-            a = aIt.previous();
-            b = bIt.previous();
-        } while (a == b && (aIt.hasPrevious() && bIt.hasPrevious()));
-
-        Tuple<T, T> lca = Tuple.of(a, b);
-        parameters.lcaCache.put(ab, lca);
-        parameters.lcaCache.put(ba, Tuple.of(lca.y, lca.x));
-
-        return lca;
+            parameters.lcaCache.putIfAbsent(ba, Tuple.of(r, l));
+            return Tuple.of(l, r);
+        });
     }
 
     /**
@@ -588,22 +581,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the siblings of the given <code>artifact</code>
      */
     private List<T> siblings(T artifact, CMParameters<T> parameters) {
+        return parameters.siblingCache.computeIfAbsent(artifact, a -> {
+            T parent = a.getParent();
+            List<T> siblings;
 
-        if (parameters.siblingCache.containsKey(artifact)) {
-            return parameters.siblingCache.get(artifact);
-        }
+            if (parent == null) {
+                siblings = new ArrayList<>(Collections.singleton(a));
+            } else {
+                siblings = new ArrayList<>(parent.getChildren());
+            }
 
-        T parent = artifact.getParent();
-        List<T> siblings;
-
-        if (parent == null) {
-            siblings = new ArrayList<>(Collections.singleton(artifact));
-        } else {
-            siblings = new ArrayList<>(parent.getChildren());
-        }
-
-        siblings.forEach(s -> parameters.siblingCache.put(s, siblings));
-        return siblings;
+            siblings.forEach(s -> parameters.siblingCache.putIfAbsent(s, siblings));
+            return siblings;
+        });
     }
 
     /**
@@ -626,7 +616,6 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private List<CostModelMatching<T>> containing(T artifact, CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
-
         return parameters.boundContainsCache.computeIfAbsent(artifact, a ->
                 currentMatchings.stream().filter(m -> m.contains(a)).collect(toList())
         );

@@ -1,8 +1,8 @@
 package de.fosd.jdime.matcher.cost_model;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -72,9 +72,9 @@ public final class CMParameters<T extends Artifact<T>> {
      * Caches valid for the entirety of the CostModelMatcher#match(MergeContext, Artifact, Artifact) function.
      */
 
-    Map<Tuple<T, T>, Tuple<T, T>> lcaCache;
-    Map<T, List<T>> siblingCache;
-    Map<T, List<T>> otherSiblingsCache;
+    ConcurrentMap<Tuple<T, T>, Tuple<T, T>> lcaCache;
+    ConcurrentMap<T, List<T>> siblingCache;
+    ConcurrentMap<T, List<T>> otherSiblingsCache;
 
     /*
      * Caches valid during one run of the CostModelMatcher#cost(CMMatchings, CMParameters) function.
@@ -83,7 +83,7 @@ public final class CMParameters<T extends Artifact<T>> {
     /**
      * Caches the <code>CostModelMatching</code>s containing an artifact.
      */
-    Map<T, CostModelMatching<T>> exactContainsCache;
+    ConcurrentMap<T, CostModelMatching<T>> exactContainsCache;
 
     /*
      * Caches valid during one run of the CostModelMatcher#boundCost(CMMatchings, CMParameters) function.
@@ -92,7 +92,7 @@ public final class CMParameters<T extends Artifact<T>> {
     /**
      * Caches lists of <code>CostModelMatching</code>s containing an artifact.
      */
-    Map<T, List<CostModelMatching<T>>> boundContainsCache;
+    ConcurrentMap<T, List<CostModelMatching<T>>> boundContainsCache;
 
     public CMParameters(MergeContext context) {
         setNoMatchWeight(context.wn);
@@ -104,11 +104,11 @@ public final class CMParameters<T extends Artifact<T>> {
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
-        lcaCache = new HashMap<>();
-        siblingCache = new HashMap<>();
-        otherSiblingsCache = new HashMap<>();
-        exactContainsCache = new HashMap<>();
-        boundContainsCache = new HashMap<>();
+        lcaCache = new ConcurrentHashMap<>();
+        siblingCache = new ConcurrentHashMap<>();
+        otherSiblingsCache = new ConcurrentHashMap<>();
+        exactContainsCache = new ConcurrentHashMap<>();
+        boundContainsCache = new ConcurrentHashMap<>();
     }
 
     public void setNoMatchWeight(float wn) {
