@@ -63,6 +63,13 @@ public final class CMParameters<T extends Artifact<T>> {
     float pAssign;
 
     /**
+     * Percentages (numbers from [0, 1]) indicating how many matchings from the previous iteration should be fixed
+     * when proposing a new set of matchings.
+     */
+    float fixLower;
+    float fixUpper;
+
+    /**
      * Scaling factor for the difference in cost of two proposed sets of matchings. A higher value makes it less likely
      * that a set of matchings is accepted despite having a higher cost than the previous reference set.
      */
@@ -72,6 +79,8 @@ public final class CMParameters<T extends Artifact<T>> {
      * Whether the cost calculations (both exact and bounded) are executed for all edges in parallel.
      */
     boolean parallel;
+
+    boolean fixRandomPercentage;
 
     /*
      * Caches valid for the entirety of the CostModelMatcher#match(MergeContext, Artifact, Artifact) function.
@@ -108,8 +117,11 @@ public final class CMParameters<T extends Artifact<T>> {
         rng = new RandomAdaptor(context.seed.map(Well19937c::new).orElse(new Well19937c()));
         assignDist = new PascalDistribution(rng, 1, pAssign);
         setPAssign(context.pAssign);
+        setFixLower(context.fixLower);
+        setFixUpper(context.fixUpper);
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
         setParallel(context.cmMatcherParallel);
+        setFixRandomPercentage(context.cmMatcherFixRandomPercentage);
         lcaCache = new ConcurrentHashMap<>();
         siblingCache = new ConcurrentHashMap<>();
         otherSiblingsCache = new ConcurrentHashMap<>();
@@ -157,12 +169,32 @@ public final class CMParameters<T extends Artifact<T>> {
         this.pAssign = pAssign;
     }
 
+    public void setFixLower(float fixLower) {
+        checkInRange(0, 1, fixLower);
+        this.fixLower = fixLower;
+    }
+
+    public void setFixUpper(float fixUpper) {
+        checkInRange(0, 1, fixUpper);
+        this.fixUpper = fixUpper;
+    }
+
+    private void checkInRange(float lower, float upper, float val) {
+        if (!(lower <= val && val <= upper)) {
+            throw new IllegalArgumentException(String.format("%s is not in the range [%s, %s]", val, lower, upper));
+        }
+    }
+
     public void setBeta(float beta) {
         this.beta = beta;
     }
 
     public void setParallel(boolean parallel) {
         this.parallel = parallel;
+    }
+
+    public void setFixRandomPercentage(boolean fixRandomPercentage) {
+        this.fixRandomPercentage = fixRandomPercentage;
     }
 
     public void clearExactCaches() {

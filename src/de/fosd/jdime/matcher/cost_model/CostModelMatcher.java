@@ -706,10 +706,19 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     }
 
     private CMMatchings<T> propose(CMMatchings<T> m, CMParameters<T> parameters) {
-        Collections.sort(m, comparing(CostModelMatching::getExactCost));
+        int j;
 
-        int j = parameters.rng.nextInt(m.size());
-        CMMatchings<T> fixed = new CMMatchings<T>(m.subList(0, j), m.left, m.right);
+        if (parameters.fixRandomPercentage) {
+            int lower = (int) (parameters.fixLower * m.size());
+            int upper = (int) (parameters.fixUpper * m.size());
+
+            Collections.shuffle(m, parameters.rng);
+            j = intFromRange(lower, upper, parameters);
+        } else {
+            j = parameters.rng.nextInt(m.size());
+        }
+
+        CMMatchings<T> fixed = new CMMatchings<>(m.subList(0, j), m.left, m.right);
 
         log(FINER, m, () -> "Fixing the first " + j + " matchings from the last iteration.");
         log(FINEST, m, () -> "They are: " + fixed);
@@ -720,6 +729,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         log(FINEST, proposition, () -> "Proposition is: " + proposition);
 
         return proposition;
+    }
+
+    private int intFromRange(int lower, int upper, CMParameters<T> parameters) {
+        return lower + (int) (parameters.rng.nextFloat() * ((upper - lower) + 1));
     }
 
     private CMMatchings<T> initialize(T left, T right, CMParameters<T> parameters) {
