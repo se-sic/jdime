@@ -101,22 +101,28 @@ public class CostModelMatcherTest extends JDimeTest {
 
         MergeContext context = new MergeContext();
 
-        context.wr = 10;
-        context.wn = 10;
-        context.wa = 5;
-        context.ws = 1;
-        context.wo = 1;
+        context.wr = 0.9f;
+        context.wn = 1;
+        context.wa = 1;
+        context.ws = 0.1f;
+        context.wo = 0;
 
         // TODO extract parameters (or constants)
         context.pAssign = 0.7f;
+        context.fixLower = .25f;
+        context.fixUpper = .75f;
         context.seed = Optional.of(42L);
-        context.costModelIterations = 100;
+        context.costModelIterations = 1000;
+        context.cmMatcherParallel = true;
+        context.cmMatcherFixRandomPercentage = true;
 
         CostModelMatcher<ASTNodeArtifact> matcher = new CostModelMatcher<>();
 
         System.in.read();
 
+        long start = System.currentTimeMillis();
         show(matcher.match(context, l, b));
+        System.out.println(System.currentTimeMillis() - start + "ms");
         //matcher.match(context, b, r);
     }
 
@@ -141,7 +147,7 @@ public class CostModelMatcherTest extends JDimeTest {
         expected.add(new Matching<>(l6, r6, 0));
         expected.add(new Matching<>(l7, r7, 0));
 
-        testCostModelMatching(expected, 0.9f, 1.0f, 1.0f, 0.1f, 1.0f);
+        testCostModelMatching(expected, 0.9f, 1.0f, 1.0f, 0.1f, 0);
     }
 
     @Test
@@ -160,7 +166,7 @@ public class CostModelMatcherTest extends JDimeTest {
         expected.add(new Matching<>(l6, r6, 0));
         expected.add(new Matching<>(l7, r7, 0));
 
-        testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f, 1.0f);
+        testCostModelMatching(expected, 0.9f, 1.0f, 0.1f, 1.0f, 0);
     }
 
     @Test
@@ -180,7 +186,7 @@ public class CostModelMatcherTest extends JDimeTest {
 
         expected.add(new Matching<>(l7, r1, 0));
 
-        testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f, 1.0f);
+        testCostModelMatching(expected, 1.0f, 1.0f, 0.5f, 0.5f, 0);
     }
 
     private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws, float wo) throws Exception {
@@ -193,9 +199,13 @@ public class CostModelMatcherTest extends JDimeTest {
         context.wo = wo;
 
         // TODO extract parameters (or constants)
+        context.fixLower = .25f;
+        context.fixUpper = .50f;
         context.pAssign = 0.7f;
         context.seed = Optional.of(42L);
         context.costModelIterations = 100;
+        context.cmMatcherParallel = true;
+        context.cmMatcherFixRandomPercentage = true;
 
         Matchings<TestArtifact> actual = matcher.match(context, left, right);
 
