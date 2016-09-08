@@ -2,7 +2,9 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import de.fosd.jdime.common.Artifact;
@@ -65,5 +67,12 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CostModelMatchi
         }
 
         return leftTree.isEmpty() && rightTree.isEmpty();
+    }
+
+    Map<T, T> asMap() {
+        return stream().collect(HashMap::new, (map, matching) -> {
+            map.put(matching.m, matching.n);
+            map.put(matching.n, matching.m);
+        }, HashMap::putAll);
     }
 }

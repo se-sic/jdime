@@ -2,9 +2,11 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
@@ -638,18 +640,32 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right) {
+        return match(context, left, right, new CMMatchings<>(left, right));
+    }
+
+    public Matchings<T> match(MergeContext context, T left, T right, Matchings<T> preFixed) {
+        CMMatchings<T> cmPreFixed = new CMMatchings<>(left, right);
+
+        for (Matching<T> matching : preFixed.optimized()) {
+            cmPreFixed.add(new CostModelMatching<>(matching.getLeft(), matching.getRight()));
+        }
+
+        return match(context, left, right, cmPreFixed);
+    }
+
+    private Matchings<T> match(MergeContext context, T left, T right, CMMatchings<T> preFixed) {
         CMParameters<T> parameters = new CMParameters<>(context);
 
         LOG.fine("Matching " + left + " and " + right + " using the " + getClass().getSimpleName());
 
-        CMMatchings<T> m = initialize(left, right, parameters);
+        CMMatchings<T> m = initialize(preFixed, parameters);
         ObjectiveValue mObjVal = objective(m, parameters);
 
         CMMatchings<T> lowest = m;
         float lowestCost = mObjVal.matchingsCost;
 
         for (int i = 0; i < context.getCostModelIterations(); i++) {
-            CMMatchings<T> mHat = propose(m, parameters);
+            CMMatchings<T> mHat = propose(m, preFixed, parameters);
             AcceptanceProbability mHatAccProb = acceptanceProb(mObjVal.objValue, mHat, parameters);
 
             if (chance(parameters.rng, mHatAccProb.acceptanceProbability)) {
@@ -699,29 +715,60 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the resulting <code>Matchings</code>
      */
     private Matchings<T> convert(CMMatchings<T> matchings) {
-        return matchings.stream()
-                        .filter(((Predicate<CostModelMatching<T>>) CostModelMatching::isNoMatch).negate())
-                        .map(m -> new Matching<>(m.m, m.n, 0)) // TODO calculate a useful score
-                        .collect(Matchings::new, Matchings::add, Matchings::addAll);
+        Map<T, T> matchingsMap = matchings.asMap();
+
+        Function<CostModelMatching<T>, Matching<T>> toMatching = m -> {
+            T left = m.m;
+            T right = m.n;
+            int score = 0;
+
+            Set<T> rightSides = new HashSet<>();
+
+            for (T l : Artifacts.dfs(left)) {
+                if (matchingsMap.containsKey(l)) {
+                    rightSides.add(matchingsMap.get(l));
+                    score++;
+                }
+            }
+
+            for (T r : Artifacts.dfs(right)) {
+                if (!rightSides.contains(r) && matchingsMap.containsKey(r)) {
+                    score++;
+                }
+            }
+
+            Matching<T> matching = new Matching<>(left, right, score);
+            matching.setAlgorithm(CostModelMatcher.class.getSimpleName());
+            return matching;
+        };
+
+        return matchings.stream().filter(m -> !m.isNoMatch()).map(toMatching)
+                                 .collect(Matchings::new, Matchings::add, Matchings::addAll);
     }
 
-    private CMMatchings<T> propose(CMMatchings<T> m, CMParameters<T> parameters) {
+    private CMMatchings<T> propose(CMMatchings<T> m, CMMatchings<T> preFixed, CMParameters<T> parameters) {
+        CMMatchings<T> mVariable = new CMMatchings<>(m, m.left, m.right);
+        mVariable.removeAll(preFixed);
+
         int j;
 
         if (parameters.fixRandomPercentage) {
-            int lower = (int) (parameters.fixLower * m.size());
-            int upper = (int) (parameters.fixUpper * m.size());
+            int lower = (int) (parameters.fixLower * mVariable.size());
+            int upper = (int) (parameters.fixUpper * mVariable.size());
 
-            Collections.shuffle(m, parameters.rng);
+            Collections.shuffle(mVariable, parameters.rng); // TODO a switch to turn this off
             j = intFromRange(lower, upper, parameters);
         } else {
-            j = parameters.rng.nextInt(m.size());
+            //TODO sort by exact cost?
+            j = parameters.rng.nextInt(mVariable.size());
         }
 
-        CMMatchings<T> fixed = new CMMatchings<>(m.subList(0, j), m.left, m.right);
+        CMMatchings<T> fixed = new CMMatchings<>(mVariable.subList(0, j), m.left, m.right);
 
-        log(FINER, m, () -> "Fixing the first " + j + " matchings from the last iteration.");
+        log(FINER, m, () -> "Fixing the first " + j + "variable matchings from the last iteration.");
         log(FINEST, m, () -> "They are: " + fixed);
+
+        fixed.addAll(preFixed);
 
         CMMatchings<T> proposition = complete(fixed, parameters);
 
@@ -735,8 +782,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         return lower + (int) (parameters.rng.nextFloat() * ((upper - lower) + 1));
     }
 
-    private CMMatchings<T> initialize(T left, T right, CMParameters<T> parameters) {
-        CMMatchings<T> initial = complete(new CMMatchings<>(left, right), parameters);
+    private CMMatchings<T> initialize(CMMatchings<T> preFixed, CMParameters<T> parameters) {
+        CMMatchings<T> initial = complete(preFixed, parameters);
 
         log(FINER, initial, () -> "Initial set of matchings assembled.");
         log(FINEST, initial, () -> "Initial set is: " + initial);

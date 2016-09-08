@@ -38,6 +38,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.LookAheadMatching;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -97,6 +98,8 @@ public class Matcher<T extends Artifact<T>> {
     private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
     private EqualityMatcher<T> equalityMatcher;
 
+    private CostModelMatcher<T> cmMatcher;
+
     private Set<Artifact<T>> orderedChildren;
     private Set<Artifact<T>> uniquelyLabeledChildren;
     private Set<Artifact<T>> fullyOrdered;
@@ -121,6 +124,9 @@ public class Matcher<T extends Artifact<T>> {
         lookupTuple = UnorderedTuple.of(null, null);
         trivialMatches = new HashMap<>();
         equalityMatcher = new EqualityMatcher<>(null);
+
+        cmMatcher = new CostModelMatcher<>();
+
         orderedChildren = new HashSet<>();
         uniquelyLabeledChildren = new HashSet<>();
         fullyOrdered = new HashSet<>();
@@ -144,6 +150,11 @@ public class Matcher<T extends Artifact<T>> {
         cache(context, left, right);
 
         Matchings<T> matchings = match(context, left, right);
+
+        if (context.isCmMatcher()) {
+            matchings = cmMatcher.match(context, left, right, matchings);
+        }
+
         Matching<T> matching = matchings.get(left, right).get();
 
         LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
@@ -526,7 +537,7 @@ public class Matcher<T extends Artifact<T>> {
      * @param color
      *         the <code>Color</code> used to highlight the matchings in the debug output
      */
-    private void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+    public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
         LOG.finest("Store matching information within nodes.");
 
         for (Matching<T> matching : matchings.optimized()) {
@@ -538,7 +549,9 @@ public class Matcher<T extends Artifact<T>> {
                 KeyEnums.Type rType = right.getType();
                 KeyEnums.Type lType = left.getType();
 
-                if (context.getLookahead(lType) == LOOKAHEAD_OFF && context.getLookahead(rType) == LOOKAHEAD_OFF &&
+                if (!context.isCmMatcher() &&
+                        context.getLookahead(lType) == LOOKAHEAD_OFF &&
+                        context.getLookahead(rType) == LOOKAHEAD_OFF &&
                         !left.matches(right)) {
 
                     String format = "Tried to store a non-lookahead matching between %s and %s that do not match.\n"
