@@ -67,6 +67,11 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_VERSION = "v";
     public static final String CLI_PROP_FILE = "pf";
     public static final String CLI_EXIT_ON_ERROR = "eoe";
+    public static final String CLI_CM = "cm";
+    public static final String CLI_CM_OPTIONS = "cmopts";
+    public static final String CLI_CM_PARALLEL = "cmpar";
+    public static final String CLI_CM_FIX_PERCENTAGE = "cmfix";
+    public static final String CLI_CM_SEED = "cmseed";
 
     public static final String ARG_LIST = "ARG_LIST";
     public static final String ARG_LIST_SEP = ",";
@@ -277,6 +282,51 @@ public class CommandLineConfigSource extends ConfigSource {
                 .build();
 
         options.addOption(o);
+
+        o = Option.builder(CLI_CM)
+                .longOpt("cost-model-matcher")
+                .desc("Enables the cost model matcher.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_CM_OPTIONS)
+                .longOpt("cost-model-options")
+                .desc("Accepts a comma separated list of parameters for the cost model matcher. The list must have " +
+                        "the form: <int iterations>,<float pAssign>,<float wr>,<float wn>,<float wa>,<float ws>,<float wo>")
+                .hasArg(true)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_CM_PARALLEL)
+                .longOpt("cost-model-parallel")
+                .desc("Whether to speed up the cost model matcher by calculating the edge costs in parallel.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_CM_FIX_PERCENTAGE)
+                .longOpt("cost-model-fix-percentage")
+                .desc("Accepts a comma separated list of two percentages. <float fixLower>,<float fixUpper> both " +
+                        "from the range [0, 1]. If these percentages are given, a random number (from the given range) " +
+                        "of matchings from the previous iteration will be fixed for the next.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_CM_SEED)
+                .longOpt("cost-model-seed")
+                .desc("The seed for the PRNG used by the cost model matcher. If set to \"none\" a random seed will " +
+                        "be used. Otherwise the default is 42.")
+                .hasArg(true)
+                .build();
+
+        options.addOption(o);
+
 
         return options;
     }

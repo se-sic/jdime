@@ -109,19 +109,19 @@ public final class CMParameters<T extends Artifact<T>> {
     ConcurrentMap<T, List<CostModelMatching<T>>> boundContainsCache;
 
     public CMParameters(MergeContext context) {
-        setNoMatchWeight(context.wn);
-        setRenamingWeight(context.wr);
-        setAncestryViolationWeight(context.wa);
-        setSiblingGroupBreakupWeight(context.ws);
-        setOrderingWeight(context.wo);
-        rng = new RandomAdaptor(context.seed.map(Well19937c::new).orElse(new Well19937c()));
+        setNoMatchWeight(context.getWn());
+        setRenamingWeight(context.getWr());
+        setAncestryViolationWeight(context.getWa());
+        setSiblingGroupBreakupWeight(context.getWs());
+        setOrderingWeight(context.getWo());
+        rng = new RandomAdaptor(context.getSeed().map(Well19937c::new).orElse(new Well19937c()));
         assignDist = new PascalDistribution(rng, 1, pAssign);
-        setPAssign(context.pAssign);
-        setFixLower(context.fixLower);
-        setFixUpper(context.fixUpper);
+        setPAssign(context.getpAssign());
+        setFixLower(context.getFixLower());
+        setFixUpper(context.getFixUpper());
         setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
-        setParallel(context.cmMatcherParallel);
-        setFixRandomPercentage(context.cmMatcherFixRandomPercentage);
+        setParallel(context.isCmMatcherParallel());
+        setFixRandomPercentage(context.isCmMatcherFixRandomPercentage());
         lcaCache = new ConcurrentHashMap<>();
         siblingCache = new ConcurrentHashMap<>();
         otherSiblingsCache = new ConcurrentHashMap<>();

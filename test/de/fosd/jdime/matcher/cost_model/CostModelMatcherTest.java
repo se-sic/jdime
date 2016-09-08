@@ -101,29 +101,30 @@ public class CostModelMatcherTest extends JDimeTest {
 
         MergeContext context = new MergeContext();
 
-        context.wr = 0.9f;
-        context.wn = 1;
-        context.wa = 1;
-        context.ws = 0.1f;
-        context.wo = 0;
+        context.setWr(0.9f);
+        context.setWn(1);
+        context.setWa(1);
+        context.setWs(0.1f);
+        context.setWo(0);
 
         // TODO extract parameters (or constants)
-        context.pAssign = 0.7f;
-        context.fixLower = .25f;
-        context.fixUpper = .75f;
-        context.seed = Optional.of(42L);
-        context.costModelIterations = 1000;
-        context.cmMatcherParallel = true;
-        context.cmMatcherFixRandomPercentage = true;
+        context.setpAssign(0.7f);
+        context.setFixLower(.25f);
+        context.setFixUpper(.75f);
+        context.setSeed(Optional.of(42L));
+        context.setCostModelIterations(1000);
+        context.setCmMatcherParallel(true);
+        context.setCmMatcherFixRandomPercentage(true);
 
         CostModelMatcher<ASTNodeArtifact> matcher = new CostModelMatcher<>();
 
         System.in.read();
 
         long start = System.currentTimeMillis();
-        show(matcher.match(context, l, b));
+        Matchings<ASTNodeArtifact> matchings = matcher.match(context, l, b);
         System.out.println(System.currentTimeMillis() - start + "ms");
-        //matcher.match(context, b, r);
+
+        show(matchings);
     }
 
     @Test
@@ -192,20 +193,20 @@ public class CostModelMatcherTest extends JDimeTest {
     private void testCostModelMatching(Matchings<TestArtifact> expected, float wr, float wn, float wa, float ws, float wo) throws Exception {
         MergeContext context = new MergeContext();
 
-        context.wr = wr;
-        context.wn = wn;
-        context.wa = wa;
-        context.ws = ws;
-        context.wo = wo;
+        context.setWr(wr);
+        context.setWn(wn);
+        context.setWa(wa);
+        context.setWs(ws);
+        context.setWo(wo);
 
         // TODO extract parameters (or constants)
-        context.fixLower = .25f;
-        context.fixUpper = .50f;
-        context.pAssign = 0.7f;
-        context.seed = Optional.of(42L);
-        context.costModelIterations = 100;
-        context.cmMatcherParallel = true;
-        context.cmMatcherFixRandomPercentage = true;
+        context.setFixLower(.25f);
+        context.setFixUpper(.50f);
+        context.setpAssign(0.7f);
+        context.setSeed(Optional.of(42L));
+        context.setCostModelIterations(100);
+        context.setCmMatcherParallel(true);
+        context.setCmMatcherFixRandomPercentage(true);
 
         Matchings<TestArtifact> actual = matcher.match(context, left, right);
 

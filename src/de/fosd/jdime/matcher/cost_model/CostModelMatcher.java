@@ -648,7 +648,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         CMMatchings<T> lowest = m;
         float lowestCost = mObjVal.matchingsCost;
 
-        for (int i = 0; i < context.costModelIterations; i++) {
+        for (int i = 0; i < context.getCostModelIterations(); i++) {
             CMMatchings<T> mHat = propose(m, parameters);
             AcceptanceProbability mHatAccProb = acceptanceProb(mObjVal.objValue, mHat, parameters);
 
@@ -672,7 +672,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             LOG.fine("End of iteration " + i);
         }
 
-        LOG.fine(() -> "Matching ended after " + context.costModelIterations + " iterations.");
+        LOG.fine(() -> "Matching ended after " + context.getCostModelIterations() + " iterations.");
 
         return convert(lowest);
     }
