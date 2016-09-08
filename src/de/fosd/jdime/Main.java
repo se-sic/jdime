@@ -326,6 +326,7 @@ public final class Main {
             config = new JDimeConfig(args);
         } catch (ParseException e) {
             System.err.println("Failed to parse the command line arguments " + Arrays.toString(args));
+            System.err.println(e.getMessage());
             System.exit(EXIT_FAILURE);
             return false;
         }
