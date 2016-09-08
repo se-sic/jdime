@@ -318,10 +318,11 @@ public class MergeContext implements Cloneable {
             try {
                 return Optional.of(Integer.parseInt(val));
             } catch (NumberFormatException e) {
+                String lcVal = val.trim().toLowerCase();
 
-                if ("off".equals(val)) {
+                if ("off".equals(lcVal)) {
                     return Optional.of(MergeContext.LOOKAHEAD_OFF);
-                } else if ("full".equals(val)) {
+                } else if ("full".equals(lcVal)) {
                     return Optional.of(MergeContext.LOOKAHEAD_FULL);
                 } else {
                     return Optional.empty();
