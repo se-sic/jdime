@@ -115,7 +115,7 @@ public final class CMParameters<T extends Artifact<T>> {
         setSiblingGroupBreakupWeight(context.getWs());
         setOrderingWeight(context.getWo());
         rng = new RandomAdaptor(context.getSeed().map(Well19937c::new).orElse(new Well19937c()));
-        assignDist = new PascalDistribution(rng, 1, pAssign);
+        assignDist = new PascalDistribution(rng, 1, context.getpAssign());
         setPAssign(context.getpAssign());
         setFixLower(context.getFixLower());
         setFixUpper(context.getFixUpper());
