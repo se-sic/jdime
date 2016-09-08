@@ -2,6 +2,7 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -760,6 +761,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             j = intFromRange(lower, upper, parameters);
         } else {
             //TODO sort by exact cost?
+            Collections.sort(mVariable, Comparator.comparing(CostModelMatching::getExactCost));
             j = parameters.rng.nextInt(mVariable.size());
         }
 
