@@ -12,6 +12,9 @@ import org.apache.commons.math3.distribution.PascalDistribution;
 import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.Well19937c;
 
+import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
+import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
+
 /**
  * A container class for the parameters of the <code>CostModelMatcher</code>. Certain caches for speeding up successive
  * calls to {@link CostModelMatcher#cost(CMMatchings, CMParameters)} are also managed by this class.
@@ -134,7 +137,19 @@ public final class CMParameters<T extends Artifact<T>> {
     }
 
     public void setRenamingWeight(float wr) {
-        setRenamingWeight(matching -> wr);
+        setRenamingWeight(matching -> {
+            float ease = 0.1f; // TODO make this a parameter?
+
+            if (matching.m.getType() == METHOD && matching.n.getType() == METHOD) {
+                return ease * wr;
+            }
+
+            if (matching.m.getType() == CLASS && matching.n.getType() == CLASS) {
+                return ease * wr;
+            }
+
+            return wr;
+        });
     }
 
     public void setRenamingWeight(CostModelMatcher.SimpleWeightFunction<T> wr) {
