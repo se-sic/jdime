@@ -113,6 +113,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
             subContext = new MergeContext(context);
             strategy = new StructuredStrategy();
+
             subContext.setOutputFile(null);
             subContext.setMergeStrategy(strategy);
             subContext.collectStatistics(true);
@@ -140,10 +141,10 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             Statistics subStatistics = subContext.getStatistics();
-            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics().get(0);
+            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
 
             scenarioStats.setRuntime(runtime);
-            statistics.add(subStatistics);
+            statistics.addScenarioStatistics(scenarioStats);
         }
     }
 }

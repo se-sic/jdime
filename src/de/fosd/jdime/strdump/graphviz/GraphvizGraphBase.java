@@ -112,7 +112,7 @@ abstract class GraphvizGraphBase implements GraphvizElement {
      * @return the newly created <code>GraphvizAttributeStmt</code>
      */
     public GraphvizAttributeStmt attributeStmt(GraphvizAttributeStmtType type) {
-        GraphvizAttributeStmt attrStmt = new GraphvizAttributeStmt(type);
+        GraphvizAttributeStmt attrStmt = new GraphvizAttributeStmt(this, type);
 
         attrStatements.add(attrStmt);
         return attrStmt;
@@ -140,7 +140,7 @@ abstract class GraphvizGraphBase implements GraphvizElement {
      * @return the newly created <code>GraphvizNode</code>
      */
     public GraphvizNode node() {
-        GraphvizNode node = new GraphvizNode(getRootGraph().nextId());
+        GraphvizNode node = new GraphvizNode(this, getRootGraph().nextId());
 
         nodes.add(node);
         return node;
@@ -156,7 +156,7 @@ abstract class GraphvizGraphBase implements GraphvizElement {
      * @return the newly created <code>GraphvizEdge</code>
      */
     public GraphvizEdge edge(GraphvizNode from, GraphvizNode to) {
-        GraphvizEdge edge = new GraphvizEdge(getRootGraph().getType(), from, to);
+        GraphvizEdge edge = new GraphvizEdge(this, getRootGraph().getType(), from, to);
 
         edges.add(edge);
         return edge;
@@ -193,5 +193,14 @@ abstract class GraphvizGraphBase implements GraphvizElement {
 
         subGraphs.add(subGraph);
         return subGraph;
+    }
+
+    /**
+     * Returns the ID of this Graphviz graph.
+     *
+     * @return the ID
+     */
+    public String getId() {
+        return id;
     }
 }

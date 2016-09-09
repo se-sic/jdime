@@ -421,12 +421,12 @@ public final class Main {
         ArtifactList<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
 
+        if (context.isFilterInputDirectories()) {
+            inFiles.forEach(FileArtifact::filterNonJavaFiles);
+        }
+
         boolean conditional = context.isConditionalMerge();
         MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
-
-        if (context.hasStatistics()) {
-            context.getStatistics().setCurrentFileMergeScenario(merge.getMergeScenario());
-        }
 
         merge.apply(context);
     }

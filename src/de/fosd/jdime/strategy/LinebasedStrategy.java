@@ -163,7 +163,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
-            ParseResult res = scenarioStatistics.addLineStatistics(processOutput.toString());
+            ParseResult res = scenarioStatistics.setLineStatistics(processOutput.toString());
 
             if (res.getConflicts() > 0) {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();

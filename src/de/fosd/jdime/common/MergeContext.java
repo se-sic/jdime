@@ -52,6 +52,7 @@ import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.common.MergeType.THREEWAY_FILES;
 import static de.fosd.jdime.common.MergeType.TWOWAY_FILES;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 
 /**
@@ -156,6 +157,12 @@ public class MergeContext implements Cloneable {
     private ArtifactList<FileArtifact> inputFiles;
 
     /**
+     * If true and the input files are directories, any files not representing java source code files or directories
+     * (possibly indirectly) containing such files will be removed from the input FileArtifact trees.
+     */
+    private boolean filterInputDirectories;
+
+    /**
      * If true, merging will continue (skipping the failed files) after exceptions if exit-on-error is not set.
      */
     private boolean keepGoing;
@@ -232,6 +239,7 @@ public class MergeContext implements Cloneable {
         this.dumpMode = DumpMode.NONE;
         this.forceOverwriting = false;
         this.inputFiles = new ArtifactList<>();
+        this.filterInputDirectories = true;
         this.keepGoing = false;
         this.exitOnError = false;
         this.mergeStrategy = new LinebasedStrategy();
@@ -268,6 +276,7 @@ public class MergeContext implements Cloneable {
         this.inputFiles = new ArtifactList<>();
         this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::clone).collect(Collectors.toList()));
 
+        this.filterInputDirectories = toCopy.filterInputDirectories;
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
@@ -337,6 +346,8 @@ public class MergeContext implements Cloneable {
         } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
             setQuiet(true);
         }
+
+        config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
 
         config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
 
@@ -615,6 +626,27 @@ public class MergeContext implements Cloneable {
      */
     public void setForceOverwriting(boolean forceOverwriting) {
         this.forceOverwriting = forceOverwriting;
+    }
+
+    /**
+     * Whether to filter out any <code>FileArtifact</code>s not representing java source code files or directories
+     * (possibly indirectly) containing such files before merging. Defaults to true.
+     *
+     * @return true iff the filter should be applied to input directories before merging
+     */
+    public boolean isFilterInputDirectories() {
+        return filterInputDirectories;
+    }
+
+    /**
+     * Whether to filter out any <code>FileArtifact</code>s not representing java source code files or directories
+     * (possibly indirectly) containing such files before merging. Defaults to true.
+     *
+     * @param filterInputDirectories
+     *         whether to applie the filter to input directories before merging
+     */
+    public void setFilterInputDirectories(boolean filterInputDirectories) {
+        this.filterInputDirectories = filterInputDirectories;
     }
 
     /**

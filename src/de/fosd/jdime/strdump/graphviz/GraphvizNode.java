@@ -35,9 +35,13 @@ public final class GraphvizNode extends GraphvizStatement {
     /**
      * Constructs a new <code>GraphvizNode</code> with the given ID.
      *
-     * @param id the ID for this <code>GraphvizNode</code>
+     * @param graph
+     *         the Graphviz graph containing this <code>GraphvizStatement</code>
+     * @param id
+     *         the ID for this <code>GraphvizNode</code>
      */
-    GraphvizNode(String id) {
+    GraphvizNode(GraphvizGraphBase graph, String id) {
+        super(graph);
         this.id = id;
     }
 
