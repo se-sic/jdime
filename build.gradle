@@ -125,7 +125,7 @@ test {
 }
 
 task getTestFiles {
-    def gitURI = "https://github.com/xai/jdime-testfiles"
+    def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
     def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
