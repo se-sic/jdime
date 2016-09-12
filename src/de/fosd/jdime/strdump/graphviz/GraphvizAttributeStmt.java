@@ -32,7 +32,16 @@ public final class GraphvizAttributeStmt extends GraphvizStatement {
 
     private final GraphvizAttributeStmtType type;
 
-    GraphvizAttributeStmt(GraphvizAttributeStmtType type) {
+    /**
+     * Constructs a new <code>GraphvizAttributeStmt</code> of the given <code>type</code>.
+     *
+     * @param graph
+     *         the Graphviz graph containing this <code>GraphvizStatement</code>
+     * @param type
+     *         the type of the <code>GraphvizAttributeStmt</code>
+     */
+    GraphvizAttributeStmt(GraphvizGraphBase graph, GraphvizAttributeStmtType type) {
+        super(graph);
         this.type = type;
     }
 

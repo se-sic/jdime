@@ -38,6 +38,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
@@ -345,6 +346,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 return getParent().getLevel();
             }
         }
+    }
+
+    @Override
+    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(getRevision(), getType()).incrementNumMerged();
+        mScenarioStatistics.getLevelStatistics(getRevision(), getLevel()).incrementNumMerged();
     }
 
     /**
