@@ -164,7 +164,7 @@ test {
 }
 
 task getTestFiles {
-    def gitURI = "https://github.com/xai/jdime-testfiles"
+    def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
     group = 'verification'
