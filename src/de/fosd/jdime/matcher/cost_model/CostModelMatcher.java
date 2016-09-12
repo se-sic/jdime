@@ -807,7 +807,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             CMMatchings<T> available = new CMMatchings<>(current, current.left, current.right);
             available.removeAll(fixed);
 
-            CostModelMatching<T> matching = available.get(parameters.assignDist.sample() % available.size());
+            int i;
+            do {
+                i = parameters.assignDist.sample();
+            } while (i >= available.size());
+
+            CostModelMatching<T> matching = available.get(i);
 
             /* TODO
              * "If the candidate edge can be fixed (?) and at least one complete matching still exists (???)"
