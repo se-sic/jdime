@@ -29,6 +29,7 @@ plugins {
     id 'idea'
     id 'org.ajoberstar.grgit' version '1.5.1'
     id "com.github.hierynomus.license" version "0.13.1"
+    id "com.scuilion.syntastic" version "0.3.6"
 }
 
 tasks.withType(JavaCompile) {

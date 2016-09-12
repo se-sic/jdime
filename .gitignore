@@ -97,6 +97,9 @@ tramp
 Session.vim
 .netrwhist
 
+# vim syntastic plugin
+.syntastic_javac_config
+
 ### NetBeans template
 nbproject/private/
 nbbuild/
@@ -173,4 +176,3 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
-
