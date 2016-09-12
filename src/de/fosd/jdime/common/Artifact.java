@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,26 +19,29 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.common;
 
-import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.StatisticsInterface;
+import de.fosd.jdime.strdump.DumpMode;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -53,35 +56,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     private static final Logger LOG = Logger.getLogger(Artifact.class.getCanonicalName());
 
     /**
-     * Used to renumber artifacts.
-     * This number is mainly used for debugging purposes or when drawing the tree.
-     */
-    private static int count = 1;
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     * @param artifact
-     *            root of the tree to renumber
-     */
-    private static void renumber(final Artifact<?> artifact) {
-        artifact.number = count;
-        count++;
-        for (int i = 0; i < artifact.getNumChildren(); i++) {
-            renumber(artifact.getChild(i));
-        }
-    }
-
-    /**
-     * Recursively renumbers the tree.
-     *
-     */
-    public void renumberTree() {
-        Artifact.count = 1;
-        renumber(this);
-    }
-
-    /**
      * Children of the artifact.
      */
     protected ArtifactList<T> children = null;
@@ -89,12 +63,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Left side of a conflict.
      */
-    T left = null;
+    protected T left = null;
 
     /**
      * Right side of a conflict.
      */
-    T right = null;
+    protected T right = null;
 
     /**
      * Whether this artifact represents a conflict.
@@ -114,19 +88,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Map to store matches.
      */
-    LinkedHashMap<Revision, Matching<T>> matches = null;
+    protected Map<Revision, Matching<T>> matches;
 
     /**
      * Whether the artifact has been already merged.
      */
     private boolean merged;
-
-    /**
-     * Number used to identify the artifact.
-     */
-    private int number = -1;
-
-    protected static int virtualcount = 1;
 
     /**
      * Parent artifact.
@@ -139,15 +106,32 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     private Revision revision;
 
     /**
+     * Number used to identify the artifact.
+     */
+    private int number;
+
+    /**
+     * Constructs a new <code>Artifact</code>.
+     *
+     * @param rev
+     *         the <code>Revision</code> for the <code>Artifact</code>
+     * @param number
+     *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
+     */
+    protected Artifact(Revision rev, int number) {
+        this.matches = new LinkedHashMap<>();
+        this.revision = rev;
+        this.number = number;
+    }
+
+    /**
      * Adds a child.
      *
      * @param child
      *            child to add
      * @return added child
-     * @throws IOException
-     *             If an input output exception occurs
      */
-    public abstract T addChild(final T child) throws IOException;
+    public abstract T addChild(T child);
 
     /**
      * Adds a matching.
@@ -156,10 +140,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         matching to be added
      */
     public void addMatching(Matching<T> matching) {
-        if (matches == null) {
-            matches = new LinkedHashMap<>();
-        }
-
         matches.put(matching.getMatchingArtifact(this).getRevision(), matching);
     }
 
@@ -171,11 +151,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     @SuppressWarnings("unchecked")
     public void cloneMatches(T other) {
-
-        if (other.matches == null) {
-            return;
-        }
-
         matches = new LinkedHashMap<>();
 
         for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
@@ -208,165 +183,17 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param artifact conditional artifact
      * @return choice artifact
      */
-    public abstract T createChoiceArtifact(final String condition, final T artifact);
+    public abstract T createChoiceArtifact(String condition, T artifact);
 
     /**
      * Returns an empty <code>Artifact</code>. This is used while performing two-way merges where the
      * base <code>Artifact</code> is empty.
      *
-     * @return empty <code>Artifact</code>
-     * @throws IOException
-     *             If a file is not found or cannot be created
+     * @param revision
+     *         the <code>Revision</code> for the artifact
+     * @return an empty artifact
      */
-    public abstract T createEmptyArtifact() throws IOException;
-
-    /**
-     * Finds the root artifact and calls <code>dumpTree()</code> on it.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @return <code>dumpTree()</code> of root artifact
-     */
-    public String dumpRootTree() {
-        if (getParent() != null) {
-            return getParent().dumpRootTree();
-        } else {
-            return dumpTree();
-        }
-    }
-
-    /**
-     * Returns the structure of the artifact as indented plain text.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @return artifact structure as indented plain text
-     */
-    public String dumpTree() {
-        return dumpTree("");
-    }
-
-    /**
-     * Returns the structure of the artifact as indented plain text.
-     *
-     * This method is used for debugging JDime.
-     *
-     * @param indent
-     *            String used to indent the current artifact
-     *
-     * @return artifact structure as indented plain text
-     */
-    protected abstract String dumpTree(String indent);
-
-    /**
-     * Returns the tree with this node as its root in TGF format.
-     *
-     * @return the .tgf String
-     */
-    public String dumpTGF() {
-        AtomicInteger nextId = new AtomicInteger(); // an easy way to encapsulate an Integer for the lambdas
-        Map<Artifact<T>, Integer> ids = new HashMap<>();
-        List<String> nodeIDs = new ArrayList<>();
-        List<String> connections = new ArrayList<>();
-        Deque<Artifact<T>> q = new ArrayDeque<>(Collections.singleton(this));
-
-        while (!q.isEmpty()) {
-            Artifact<T> artifact = q.removeFirst();
-
-            Integer fromId = ids.computeIfAbsent(artifact, a -> nextId.getAndIncrement());
-            nodeIDs.add(String.format("%d %s", fromId, artifact.toString()));
-
-            for (T t : artifact.getChildren()) {
-                Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
-                connections.add(String.format("%d %d", fromId, toId));
-            }
-
-            artifact.getChildren().forEach(q::addFirst);
-        }
-
-        String ls = System.lineSeparator();
-        return String.format("%s%n#%n%s", String.join(ls, nodeIDs), String.join(ls, connections));
-    }
-
-    /**
-     * Returns the AST in dot-format. {@link #toString()} will be used to label the nodes.
-     *
-     * @param includeNumbers
-     *            include node number in label if true
-     * @return AST in dot-format.
-     */
-    public String dumpGraphvizTree(boolean includeNumbers, int virtualcount) {
-        StringBuilder sb = new StringBuilder();
-
-        if (isConflict() || isChoice()) {
-            // insert virtual node
-            String virtualId = "\"c" + virtualcount + "\"";
-            String virtualLabel = isConflict() ? "\"Conflict\"" : "\"Choice\"";
-            String virtualColor = isConflict() ? "red" : "blue";
-            sb.append(virtualId);
-            sb.append("[label=").append(virtualLabel);
-            sb.append(", fillcolor = ").append(virtualColor);
-            sb.append(", style = filled]").append(System.lineSeparator());
-
-            if (isConflict()) {
-                // left alternative
-                sb.append(left.dumpGraphvizTree(includeNumbers, virtualcount));
-                sb.append(virtualId).append("->").append(getGraphvizId(left)).
-                        append("[label=\"").append(left.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-
-                // right alternative
-                sb.append(right.dumpGraphvizTree(includeNumbers, virtualcount));
-                sb.append(virtualId).append("->").append(getGraphvizId(right)).
-                        append("[label=\"").append(right.getRevision()).append("\"]").append(";").append(System.lineSeparator());
-            } else {
-                // choice node
-                for (String condition : getVariants().keySet()) {
-                    Artifact<T> variant = getVariants().get(condition);
-                    sb.append(variant.dumpGraphvizTree(includeNumbers, virtualcount));
-                    sb.append(virtualId).append("->").append(getGraphvizId(variant)).
-                            append("[label=\"").append(condition).append("\"]").append(";").append(System.lineSeparator());
-                }
-            }
-        } else {
-            sb.append(getGraphvizId(this)).append("[label=\"");
-
-            // node label
-            if (includeNumbers) {
-                sb.append("(").append(getNumber()).append(") ");
-            }
-
-            sb.append(toString());
-
-            sb.append("\"");
-
-            if (hasMatches()) {
-                sb.append(", fillcolor = green, style = filled");
-            }
-
-            sb.append("];");
-            sb.append(System.lineSeparator());
-
-            // children
-            for (Artifact<T> child : getChildren()) {
-                String childId = getGraphvizId(child);
-                if (child.isConflict() || child.isChoice()) {
-                    virtualcount++;
-                    childId = "\"c" + virtualcount + "\"";
-                }
-
-                sb.append(child.dumpGraphvizTree(includeNumbers, virtualcount));
-
-                // edge
-                sb.append(getGraphvizId(this)).append("->").append(childId).append(";").append(System.lineSeparator());
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private String getGraphvizId(Artifact<T> artifact) {
-        return "\"" + artifact.getId() + "\"";
-    }
+    public abstract T createEmptyArtifact(Revision revision);
 
     /**
      * Pretty-prints the <code>Artifact</code> to source code.
@@ -374,6 +201,31 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return Pretty-printed AST (source code)
      */
     public abstract String prettyPrint();
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>. Uses the
+     * {@link Artifact#toString()} method for producing labels for nodes.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @return the dump result
+     */
+    public String dump(DumpMode mode) {
+        return dump(mode, Artifact::toString);
+    }
+
+    /**
+     * Dumps this <code>Artifact</code> to a <code>String</code> using the given <code>DumpMode</code>.
+     *
+     * @param mode
+     *         the <code>DumpMode</code> to use
+     * @param getLabel
+     *         the <code>Function</code> for producing labels for nodes
+     * @return the dump result
+     */
+    public String dump(DumpMode mode, Function<Artifact<T>, String> getLabel) {
+        return mode.getDumper().dump(this, getLabel);
+    }
 
     /**
      * Returns true if this artifact physically exists.
@@ -407,7 +259,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         return children;
     }
 
-    public abstract void deleteChildren() throws IOException;
+    public abstract void deleteChildren();
 
     /**
      * Returns the identifier of the <code>Artifact</code>,
@@ -428,7 +280,25 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return <code>Matching</code> with <code>Revision</code>
      */
     public Matching<T> getMatching(Revision rev) {
-        return matches == null ? null : matches.get(rev);
+        return matches.get(rev);
+    }
+
+    /**
+     * Returns all <code>Matching</code>s added for this <code>Artifact</code>.
+     *
+     * @return the <code>Matching</code>s
+     */
+    public Set<Matching<T>> getMatchings() {
+        return new HashSet<>(matches.values());
+    }
+
+    /**
+     * Returns an unmodifiable view of the map used to store the <code>Matchings</code> of this <code>Artifact</code>.
+     *
+     * @return the matchings
+     */
+    public Map<Revision, Matching<T>> getMatches() {
+        return Collections.unmodifiableMap(matches);
     }
 
     /**
@@ -438,6 +308,29 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public int getNumber() {
         return number;
+    }
+
+    /**
+     * Sets the number of all <code>Artifact</code>s contained in the same tree as this <code>Artifact</code> to their
+     * index in a DFS traversal of the tree.
+     */
+    public void renumberTree() {
+        findRoot().renumber(new AtomicInteger()::getAndIncrement);
+    }
+
+    /**
+     * Sets the number of this <code>Artifact</code> to the first <code>Integer</code> supplied by <code>number</code>
+     * and then calls this method for all children with the given <code>number</code>.
+     *
+     * @param number
+     *         the supplier for the new numbers
+     */
+    private void renumber(Supplier<Integer> number) {
+        this.number = number.get();
+
+        for (Artifact<T> child : children) {
+            child.renumber(number);
+        }
     }
 
     /**
@@ -560,33 +453,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         return getNumChildren() > 0;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Artifact<?> artifact = (Artifact<?>) o;
-
-        return Objects.equals(getId(), artifact.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
-
     /**
      * Returns whether this <code>Artifact</code> has any matches.
      *
      * @return true if the <code>Artifact</code> has matches
      */
     public boolean hasMatches() {
-        return matches != null && !matches.isEmpty();
+        return !matches.isEmpty();
     }
 
     /**
@@ -597,11 +470,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
      */
     public final boolean hasMatching(Revision rev) {
-        boolean hasMatching = matches != null && matches.containsKey(rev);
+        boolean hasMatching = matches.containsKey(rev);
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(getId() + ".hasMatching(" + rev + ")");
-            if (matches != null) {
+            if (!matches.isEmpty()) {
                 for (Revision r : matches.keySet()) {
                     LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
                     LOG.finest("hasMatching(" + r + ") = " + hasMatching);
@@ -633,11 +506,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public final boolean hasMatching(T other) {
         Revision otherRev = other.getRevision();
-        boolean hasMatching = matches != null && matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        boolean hasMatching = matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
-            if (matches != null) {
+            if (!matches.isEmpty()) {
                 for (Revision r : matches.keySet()) {
                     LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
                     LOG.finest("hasMatching(" + r + ") = " + hasMatching);
@@ -660,12 +533,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether this <code>Artifact</code> has unique labels.
-     * If this is the case, a more efficient <code>UnorderedMatcher</code> can be used.
+     * Returns a <code>Supplier</code> producing a unique label for this <code>Artifact</code> or an empty optional
+     * if there is no such label. If there is a unique label a more efficient <code>UnorderedMatcher</code> can be used.
      *
-     * @return whether the <code>Artifact</code> has unique labels
+     * @return optionally a <code>Supplier</code> producing a unique label
      */
-    public abstract boolean hasUniqueLabels();
+    public abstract Optional<Supplier<String>> getUniqueLabel();
 
     /**
      * Returns true if the <code>Artifact</code> is a conflict node.
@@ -724,6 +597,21 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Returns the root node of the tree this <code>Artifact</code> is part of.
+     *
+     * @return the root node
+     */
+    public Artifact<T> findRoot() {
+        Artifact<T> current = this;
+
+        while (!current.isRoot()) {
+            current = current.getParent();
+        }
+
+        return current;
+    }
+
+    /**
      * Returns true, if this <code>Artifact</code> matches another <code>Artifact</code>.
      *
      * @param other
@@ -733,15 +621,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean matches(T other);
 
     /**
-     * Returns true if matches were previously computed.
-     *
-     * @return true if matches were already computed
-     */
-    public boolean matchingComputed(Revision rev) {
-        return matches != null && hasMatching(rev);
-    }
-
-    /**
      * Performs a merge on the provided merge triple.
      * This method selects the <code>MergeStrategy</code> and triggers the merge.
      *
@@ -749,13 +628,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            merge operation
      * @param context
      *            merge context
-     * @throws InterruptedException
-     *             If a thread is interrupted
-     * @throws IOException
-     *             If an input output exception occurs
      */
-    public abstract void merge(MergeOperation<T> operation, MergeContext context)
-            throws IOException, InterruptedException;
+    public abstract void merge(MergeOperation<T> operation, MergeContext context);
 
     /**
      * Sets the children of the <code>Artifact</code>.
@@ -779,6 +653,24 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         this.conflict = true;
         this.left = left;
         this.right = right;
+    }
+
+    /**
+     * Returns the left alternative of a conflict.
+     *
+     * @return the left <code>Artifact</code>
+     */
+    public T getLeft() {
+        return left;
+    }
+
+    /**
+     * Returns the right alternative of a conflict.
+     *
+     * @return the right <code>Artifact</code>
+     */
+    public T getRight() {
+        return right;
     }
 
     /**
@@ -873,10 +765,31 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     @Override
     public abstract String toString();
 
+    @Override
+    public final int compareTo(T o) {
+        return getId().compareTo(o.getId());
+    }
+
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
      */
     public HashMap<String, T> getVariants() {
         return variants;
+    }
+
+    /**
+     * Attempts to find an <code>Artifact</code> with the given number in the <code>Artifact</code> tree with this
+     * <code>Artifact</code> at its root.
+     *
+     * @param number
+     *         the number of the <code>Artifact</code> to find
+     * @return optionally the <code>Artifact</code> with the sought number
+     */
+    public Optional<Artifact<T>> find(int number) {
+        if (this.number == number) {
+            return Optional.of(this);
+        }
+
+        return children.stream().map(c -> c.find(number)).filter(Optional::isPresent).findFirst().map(Optional::get);
     }
 }

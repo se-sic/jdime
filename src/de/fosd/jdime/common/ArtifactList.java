@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -24,6 +24,7 @@
 package de.fosd.jdime.common;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +40,25 @@ import java.util.stream.Collectors;
 public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 
     private static final String DEFAULT_SEP = " ";
+
+    /**
+     * Equivalent to {@link ArrayList#ArrayList()}.
+     */
+    public ArtifactList() {}
+
+    /**
+     * Equivalent to {@link ArrayList#ArrayList(int)}.
+     */
+    public ArtifactList(int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    /**
+     * Equivalent to {@link ArrayList#ArrayList(Collection)}.
+     */
+    public ArtifactList(Collection<? extends E> c) {
+        super(c);
+    }
 
     @Override
     public String toString() {

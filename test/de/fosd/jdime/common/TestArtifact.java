@@ -1,7 +1,30 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
@@ -12,17 +35,19 @@ import de.fosd.jdime.stats.KeyEnums;
  */
 public class TestArtifact extends Artifact<TestArtifact> {
 
-    private static int nextID = 0;
+    private static final Revision testRevision = new Revision("TEST");
 
-    private int id;
+    private String label;
+    private KeyEnums.Type type;
 
-    public TestArtifact() {
-        this.id = nextID++;
-        this.children = new ArtifactList<>();
+    public TestArtifact(String label, KeyEnums.Type type) {
+        this(testRevision, label, type);
     }
 
-    public TestArtifact(int id) {
-        this.id = id;
+    public TestArtifact(Revision rev, String label, KeyEnums.Type type) {
+        super(rev, 0);
+        this.label = label;
+        this.type = type;
         this.children = new ArtifactList<>();
     }
 
@@ -34,27 +59,23 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact clone() {
-        TestArtifact clone = new TestArtifact();
-        clone.id = id;
-        clone.children = children;
-        return clone;
+        throw new NotYetImplementedException();
     }
 
     @Override
     public TestArtifact createConflictArtifact(TestArtifact left, TestArtifact right) {
-        return null;
+        TestArtifact conflict = new TestArtifact(MergeScenario.CONFLICT, "Conflict", KeyEnums.Type.NODE);
+        conflict.setConflict(left, right);
+
+        return conflict;
     }
 
     @Override
     public TestArtifact createChoiceArtifact(String condition, TestArtifact artifact) {
         return null;
     }
-    public TestArtifact createEmptyArtifact() throws FileNotFoundException {
-        return null;
-    }
 
-    @Override
-    protected String dumpTree(String indent) {
+    public TestArtifact createEmptyArtifact(Revision revision) {
         return null;
     }
 
@@ -69,33 +90,18 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public void deleteChildren() throws IOException {
+    public void deleteChildren() {
         this.children = new ArtifactList<>();
     }
 
     @Override
     public String getId() {
-        return String.valueOf(id);
+        return String.format("%s : %s : %d", getRevision(), label, getNumber());
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TestArtifact that = (TestArtifact) o;
-
-        return id == that.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
-    }
-
-    @Override
-    public boolean hasUniqueLabels() {
-        return true;
+    public Optional<Supplier<String>> getUniqueLabel() {
+        return Optional.empty();
     }
 
     @Override
@@ -110,32 +116,27 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public boolean isOrdered() {
-        return true;
+        return type != KeyEnums.Type.METHOD;
     }
 
     @Override
     public boolean matches(TestArtifact other) {
-        return id == other.id;
+        return this.type == other.type && this.label.equals(other.label);
     }
 
     @Override
-    public void merge(MergeOperation<TestArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<TestArtifact> operation, MergeContext context) {
 
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": " + String.valueOf(id);
-    }
-
-    @Override
-    public int compareTo(TestArtifact o) {
-        return id - o.id;
+        return getId() + " (" + type + ")";
     }
 
     @Override
     public KeyEnums.Type getType() {
-        return null;
+        return type;
     }
 
     @Override

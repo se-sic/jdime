@@ -1,11 +1,38 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.stats;
 
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 
@@ -16,6 +43,7 @@ public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
 
+    private Set<Matching<?>> matchings;
     private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
     private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
     private Map<Revision, MergeStatistics> mergeStatistics;
@@ -35,6 +63,7 @@ public class MergeScenarioStatistics {
      */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
+        this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
@@ -46,12 +75,84 @@ public class MergeScenarioStatistics {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>MergeScenarioStatistics</code> to copy
+     */
+    public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
+        this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
+
+        this.matchings = new HashSet<>();
+
+        for (Matching<?> matching : toCopy.matchings) {
+            this.matchings.add(new Matching<>(matching));
+        }
+
+        this.levelStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : toCopy.levelStatistics.entrySet()) {
+            Map<KeyEnums.Level, ElementStatistics> map = new HashMap<>();
+
+            for (Map.Entry<KeyEnums.Level, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                map.put(subEntry.getKey(), new ElementStatistics(subEntry.getValue()));
+            }
+
+            this.levelStatistics.put(entry.getKey(), map);
+        }
+
+        this.typeStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : toCopy.typeStatistics.entrySet()) {
+            Map<KeyEnums.Type, ElementStatistics> map = new HashMap<>();
+
+            for (Map.Entry<KeyEnums.Type, ElementStatistics> subEntry : entry.getValue().entrySet()) {
+                map.put(subEntry.getKey(), new ElementStatistics(subEntry.getValue()));
+            }
+
+            this.typeStatistics.put(entry.getKey(), map);
+        }
+
+        this.mergeStatistics = new HashMap<>();
+
+        for (Map.Entry<Revision, MergeStatistics> entry : toCopy.mergeStatistics.entrySet()) {
+            this.mergeStatistics.put(entry.getKey(), new MergeStatistics(entry.getValue()));
+        }
+
+        this.lineStatistics = new ElementStatistics(toCopy.lineStatistics);
+        this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
+        this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
+        this.conflicts = toCopy.conflicts;
+        this.runtime = toCopy.runtime;
+    }
+
+    /**
      * Returns the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for.
      *
      * @return the <code>MergeScenario</code>
      */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
+    }
+
+    /**
+     * Adds a <code>Matching</code> to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param matching
+     *         the <code>Matching</code> to add
+     */
+    public void addMatching(Matching<?> matching) {
+        matchings.add(matching);
+    }
+
+    /**
+     * Adds all <code>Matching</code>s contained in <code>matchings</code> to this <code>MergeScenarioStatistics</code>.
+     *
+     * @param matchings
+     *         the <code>Matching</code>s to add
+     */
+    public void addAllMatchings(Collection<? extends Matching<?>> matchings) {
+        this.matchings.addAll(matchings);
     }
 
     /**
@@ -268,6 +369,8 @@ public class MergeScenarioStatistics {
      */
     public void add(MergeScenarioStatistics other) {
 
+        addAllMatchings(other.matchings);
+
         for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : other.levelStatistics.entrySet()) {
             Revision rev = entry.getKey();
 
@@ -312,6 +415,11 @@ public class MergeScenarioStatistics {
         os.println("General:");
         os.printf("%sConflicts: %s%n", indent, conflicts);
         os.printf("%sRuntime: %dms%n", indent, runtime);
+
+        if (!matchings.isEmpty()) os.println("Matchings");
+        matchings.stream().sorted().forEachOrdered(matching -> {
+            os.printf("%s%s%n", indent, matching);
+        });
 
         if (!levelStatistics.isEmpty()) os.println("Level Statistics");
         levelStatistics.forEach((rev, map) -> map.forEach((level, stats) -> {

@@ -1,3 +1,26 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.gui;
 
 import java.io.BufferedReader;
@@ -48,16 +71,15 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import de.uni_passau.fim.seibt.kvconfig.Config;
+import de.fosd.jdime.config.JDimeConfig;
 
-import static de.fosd.jdime.JDimeConfig.ALLOW_INVALID;
-import static de.fosd.jdime.JDimeConfig.BUFFERED_LINES;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_ARGS;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_BASE;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_JDIME_EXEC;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_LEFT;
-import static de.fosd.jdime.JDimeConfig.DEFAULT_RIGHT;
-import static de.fosd.jdime.JDimeConfig.getConfig;
+import static de.fosd.jdime.config.JDimeConfig.ALLOW_INVALID;
+import static de.fosd.jdime.config.JDimeConfig.BUFFERED_LINES;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_ARGS;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_BASE;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_JDIME_EXEC;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_LEFT;
+import static de.fosd.jdime.config.JDimeConfig.DEFAULT_RIGHT;
 
 /**
  * A simple JavaFX GUI for JDime.
@@ -165,7 +187,7 @@ public final class GUI extends Application {
      * Loads the config values from the <code>JDimeConfig</code>.
      */
     private void loadConfig() {
-        Config config = getConfig();
+        JDimeConfig config = new JDimeConfig();
 
         config.get(DEFAULT_JDIME_EXEC).ifPresent(s -> jDime.setText(s.trim()));
         config.get(DEFAULT_ARGS).ifPresent(s -> cmdArgs.setText(s.trim()));

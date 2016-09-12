@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -25,6 +25,7 @@ package de.fosd.jdime.common;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +49,15 @@ public class MergeScenario<T extends Artifact<T>> {
     public static final Revision BASE = new Revision("base");
     public static final Revision RIGHT = new Revision("right");
     public static final Revision TARGET = new Revision("target");
+    public static final Revision MERGE = new Revision("merge");
+    public static final Revision CONFLICT = new Revision("conflict");
+    public static final Revision CHOICE = new Revision("choice");
 
     private MergeType mergeType;
     private Map<Revision, T> artifacts;
 
     /**
-     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario. For all
-     * <code>Artifact</code>s the <code>Revision</code> will be (recursively) set to the appropriate static constant
-     * defined in this class.
+     * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario.
      *
      * @param mergeType
      *         the <code>MergeType</code> for this <code>MergeScenario</code>
@@ -75,10 +77,6 @@ public class MergeScenario<T extends Artifact<T>> {
         this.artifacts = new LinkedHashMap<>();
         this.mergeType = mergeType;
 
-        left.setRevision(LEFT, true);
-        base.setRevision(BASE, true);
-        right.setRevision(RIGHT, true);
-
         this.artifacts.put(left.getRevision(), left);
         this.artifacts.put(base.getRevision(), base);
         this.artifacts.put(right.getRevision(), right);
@@ -97,6 +95,17 @@ public class MergeScenario<T extends Artifact<T>> {
         for (T artifact : inputArtifacts) {
             artifacts.put(artifact.getRevision(), artifact);
         }
+    }
+
+    /**
+     * Performs a shallow copy (the actual Artifacts that are part of the MergeScenario will not be copied).
+     *
+     * @param toCopy
+     *         the <code>MergeScenario</code> to copy
+     */
+    public MergeScenario(MergeScenario<T> toCopy) {
+        this.mergeType = toCopy.mergeType;
+        this.artifacts = new HashMap<>(toCopy.artifacts);
     }
 
     /**

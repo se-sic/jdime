@@ -27,7 +27,17 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id 'org.ajoberstar.grgit' version '1.3.2'
+    id 'org.ajoberstar.grgit' version '1.5.1'
+    id "com.github.hierynomus.license" version "0.13.1"
+    id "com.scuilion.syntastic" version "0.3.6"
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+javadoc {
+    options.setEncoding 'UTF-8'
 }
 
 sourceSets {
@@ -51,12 +61,26 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-io:commons-io:2.4'
-    compile 'commons-cli:commons-cli:1.2'
-    compile 'com.thoughtworks.xstream:xstream:1.4.8'
+    compile 'commons-io:commons-io:2.5'
+    compile 'commons-cli:commons-cli:1.3.1'
+    compile 'com.thoughtworks.xstream:xstream:1.4.9'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile files('lib/JJ7.jar')
     testCompile 'junit:junit:4.12'
+}
+
+def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
+
+license {
+    header rootProject.file('LICENSE_HEADER')
+    mapping("fxml", "XML_STYLE")
+    strictCheck true
+
+    fileTree(testFilesDir).visit {
+        exclude it.getRelativePath().getPathString()
+    }
+
+    exclude "de/fosd/jdime/matcher/unordered/assignmentProblem/HungarianAlgorithm.java"
 }
 
 idea {
@@ -66,20 +90,8 @@ idea {
     }
 }
 
-def configFile = file('JDime.properties')
 def loggingConfigFile = file('JDimeLogging.properties')
-
-task config {
-    if (configFile.exists()) {
-        inputs.files(configFile)
-        outputs.files(configFile)
-    }
-
-    if (loggingConfigFile.exists()) {
-        inputs.files(loggingConfigFile)
-        outputs.files(loggingConfigFile)
-    }
-}
+def configFile = file('JDime.properties')
 
 def loggingOpt = "-Djava.util.logging.config.file=${loggingConfigFile.getName()}"
 def defaultOpts = ["-Xmx2048m", "-ea"]
@@ -98,19 +110,47 @@ task guiScripts(type: CreateStartScripts) {
     classpath = startScripts.classpath
 }
 
-distributions {
-    main {
-        contents.with {
-            def binDir = 'bin'
+distributions.with {
+    main.with {
+        def binDir = 'bin'
 
+        contents {
             into(binDir) {
                 from(guiScripts)
                 fileMode = 0755
             }
-            into(binDir) {
-                from(config)
+        }
+
+        contents {
+            into binDir, {
+                from project.projectDir, {
+                    include configFile.name
+
+                    def getHeadCommit = {
+                        def grgit = Grgit.open(dir: project.projectDir)
+                        def head = grgit.head();
+
+                        grgit.close()
+                        head.id
+                    }
+
+                    expand([
+                            commit: getHeadCommit()
+                    ])
+                }
+
+                from project.projectDir, {
+                    include loggingConfigFile.name
+                }
             }
         }
+    }
+}
+
+installDist {
+
+    if (project.hasProperty('distDir')) {
+        destinationDir = file(project.property('distDir'))
     }
 }
 
@@ -126,7 +166,6 @@ test {
 
 task getTestFiles {
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
-    def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
     group = 'verification'
@@ -139,15 +178,18 @@ task getTestFiles {
         }
     }
 
+    outputs.dir(testFilesDir)
     outputs.upToDateWhen {
         if (!testFilesDir.exists()) {
             return false;
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
-        def status = grgit.branch.status(name: 'master')
 
+        grgit.fetch()
+        def status = grgit.branch.status(name: 'master')
         grgit.close()
+
         return status.behindCount == 0
     }
 
@@ -155,7 +197,7 @@ task getTestFiles {
         if (testFilesDir.exists()) {
             def grgit = Grgit.open(dir: testFilesDir)
 
-            grgit.pull()
+            grgit.merge(head: 'origin/master')
             grgit.close()
         } else {
             Grgit.clone(dir: testFilesDir, uri: gitURI).close()

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -37,8 +36,11 @@ import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matching;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -59,14 +61,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
      *
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<T> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+    public void merge(MergeOperation<T> operation, MergeContext context) {
         logprefix = operation.getId() + " - ";
         MergeScenario<T> triple = operation.getMergeScenario();
         T left = triple.getLeft();
@@ -82,22 +79,22 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             Objects.requireNonNull(target, "target must not be null!");
         }
 
-        Diff<T> diff = new Diff<>();
-
+        Matcher<T> matcher = new Matcher<>();
         Matching<T> m;
-        if (!left.matchingComputed(r) && !right.matchingComputed(l)) {
+
+        if (!left.hasMatching(r) && !right.hasMatching(l)) {
             if (!base.isEmpty()) {
                 // 3-way merge
 
                 // diff base left
-                m = diff.compare(context, base, left, Color.GREEN).get(base, left).get();
+                m = matcher.match(context, base, left, Color.GREEN).get(base, left).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), left.getId()));
                 }
 
                 // diff base right
-                m = diff.compare(context, base, right, Color.GREEN).get(base, right).get();
+                m = matcher.match(context, base, right, Color.GREEN).get(base, right).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), right.getId()));
@@ -105,11 +102,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             // diff left right
-            m = diff.compare(context, left, right, Color.BLUE).get(left, right).get();
+            m = matcher.match(context, left, right, Color.BLUE).get(left, right).get();
 
-            // TODO: compute and write diff stats
-            if (context.isDiffOnly() && left.isRoot()
-                    && left instanceof ASTNodeArtifact) {
+            if (context.isDiffOnly() && left.isRoot() && left instanceof ASTNodeArtifact) {
                 assert (right.isRoot());
                 return;
             }
@@ -127,8 +122,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
         if (!((left.isChoice() || left.hasMatching(right)) && right.hasMatching(left))) {
             LOG.severe(left.getId() + " and " + right.getId() + " have no matches.");
-            LOG.severe("left: " + left.dumpRootTree());
-            LOG.severe("right: " + right.dumpRootTree());
+            LOG.severe("left: " + left.findRoot().dump(PLAINTEXT_TREE));
+            LOG.severe("right: " + right.findRoot().dump(PLAINTEXT_TREE));
             throw new RuntimeException();
         }
 
@@ -212,7 +207,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
         if (LOG.isLoggable(Level.FINEST) && target != null) {
             LOG.finest(String.format("%s target.dumpTree() before merge:", logprefix));
-            System.out.println(target.dumpRootTree());
+            System.out.println(target.findRoot().dump(PLAINTEXT_TREE));
         }
 
         if (isOrdered) {

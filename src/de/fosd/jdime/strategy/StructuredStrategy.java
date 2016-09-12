@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -38,6 +38,9 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
+
+import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -82,7 +85,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
      * @param context the <code>MergeContext</code>
      */
     @Override
-    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         /**
          * The method creates ASTNodeArtifacts from the input files. An ASTNodeStrategy is then applied.
          * The result is pretty printed and possibly written to the output file.
@@ -120,15 +123,13 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
-            targetNode.setRevision(left.getRevision());
-            targetNode.renumberTree();
 
             String lCond = left.getRevision().getName();
             String rCond = right.getRevision().getName();
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
             MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode, lCond, rCond);
 
-            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dumpTree()));
+            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
@@ -140,7 +141,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.fine("Structured merge finished.");
 
             if (!context.isDiffOnly()) {
-                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dumpTree()));
+                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             }
 
             LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
@@ -167,8 +168,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     String fileName = leftFile + ".dot";
                     LOG.fine("Dumping the target node tree to " + fileName);
 
-                    try (FileWriter file = new FileWriter(fileName)) {
-                        file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
+                    try (FileWriter fw = new FileWriter(fileName)) {
+                        fw.write(targetNode.dump(GRAPHVIZ_TREE));
+                    } catch (IOException e) {
+                        LOG.log(Level.WARNING, e, () -> "Can not write the graphviz representation of " + leftFile);
                     }
                 }
 
@@ -190,38 +193,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
                 statistics.addScenarioStatistics(scenarioStatistics);
             }
-        } catch (SecurityException e) {
-            LOG.log(Level.SEVERE, e, () -> "SecurityException while merging.");
-            context.addCrash(triple, e);
-        } catch (Throwable t) {
-            LOG.log(Level.SEVERE, t, () -> String.format("Exception while merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
-            context.addCrash(triple, t);
-
-            if (!context.isKeepGoing()) {
-                throw t;
-            }
-        } finally {
-            System.setSecurityManager(systemSecurityManager);
-        }
-    }
-
-    @Override
-    public final String toString() {
-        return "structured";
-    }
-
-    @Override
-    public final String dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
-        return new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
-    }
-
-    @Override
-    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-        System.setSecurityManager(noExitManager);
-        try {
-            return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
-        } catch (SecurityException e) {
-            return e.toString();
         } finally {
             System.setSecurityManager(systemSecurityManager);
         }

@@ -1,3 +1,26 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.stats;
 
 import java.util.Arrays;
@@ -38,9 +61,9 @@ public class StatisticsTest extends JDimeTest {
         ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
         String filePath = "SimpleTests/Bag/Bag.java";
 
-        inputArtifacts.add(new FileArtifact(file(leftDir, filePath)));
-        inputArtifacts.add(new FileArtifact(file(baseDir, filePath)));
-        inputArtifacts.add(new FileArtifact(file(rightDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.LEFT, file(leftDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.BASE, file(baseDir, filePath)));
+        inputArtifacts.add(new FileArtifact(MergeScenario.RIGHT, file(rightDir, filePath)));
 
         context.setMergeStrategy(MergeStrategy.parse("structured"));
         context.setInputFiles(inputArtifacts);
@@ -74,46 +97,82 @@ public class StatisticsTest extends JDimeTest {
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.LEFT, KeyEnums.Level.METHOD);
             assertEquals(30, elStats.getTotal());
+            assertEquals(13, elStats.getNumAdded());
+            assertEquals(17, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.LEFT, KeyEnums.Level.CLASS);
             assertEquals(12, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(12, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.LEFT, KeyEnums.Level.TOP);
             assertEquals(5, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(5, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.RIGHT, KeyEnums.Level.METHOD);
             assertEquals(31, elStats.getTotal());
+            assertEquals(14, elStats.getNumAdded());
+            assertEquals(17, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.RIGHT, KeyEnums.Level.CLASS);
             assertEquals(12, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(12, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.RIGHT, KeyEnums.Level.TOP);
             assertEquals(5, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(5, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.TARGET, KeyEnums.Level.METHOD);
             assertEquals(44, elStats.getTotal());
+            assertEquals(27, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.TARGET, KeyEnums.Level.CLASS);
             assertEquals(12, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getLevelStatistics(MergeScenario.TARGET, KeyEnums.Level.TOP);
             assertEquals(5, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         // Type Statistics
@@ -121,46 +180,79 @@ public class StatisticsTest extends JDimeTest {
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.LEFT, KeyEnums.Type.CLASS);
             assertEquals(1, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(1, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.LEFT, KeyEnums.Type.METHOD);
             assertEquals(2, elStats.getTotal());
+            assertEquals(1, elStats.getNumAdded());
+            assertEquals(1, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.LEFT, KeyEnums.Type.NODE);
             assertEquals(44, elStats.getTotal());
+            assertEquals(12, elStats.getNumAdded());
+            assertEquals(32, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.RIGHT, KeyEnums.Type.CLASS);
             assertEquals(1, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(1, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.RIGHT, KeyEnums.Type.METHOD);
             assertEquals(2, elStats.getTotal());
+            assertEquals(1, elStats.getNumAdded());
+            assertEquals(1, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.RIGHT, KeyEnums.Type.NODE);
             assertEquals(45, elStats.getTotal());
+            assertEquals(13, elStats.getNumAdded());
+            assertEquals(32, elStats.getNumMerged());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.TARGET, KeyEnums.Type.CLASS);
             assertEquals(1, elStats.getTotal());
+            assertEquals(0, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.TARGET, KeyEnums.Type.METHOD);
             assertEquals(3, elStats.getTotal());
+            assertEquals(2, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         {
             ElementStatistics elStats = fileMergeStats.getTypeStatistics(MergeScenario.TARGET, KeyEnums.Type.NODE);
             assertEquals(57, elStats.getTotal());
+            assertEquals(25, elStats.getNumAdded());
+            assertEquals(0, elStats.getNumDeleted());
+            assertEquals(0, elStats.getNumOccurInConflict());
         }
 
         // Merge Statistics
@@ -194,13 +286,21 @@ public class StatisticsTest extends JDimeTest {
         {
             ElementStatistics lineStats = fileMergeStats.getLineStatistics();
             assertEquals(12, lineStats.getTotal());
+            assertEquals(0, lineStats.getNumAdded());
+            assertEquals(0, lineStats.getNumMerged());
+            assertEquals(0, lineStats.getNumDeleted());
+            assertEquals(0, lineStats.getNumOccurInConflict());
         }
 
         // File Statistics
 
         {
             ElementStatistics fileStats = fileMergeStats.getFileStatistics();
+            assertEquals(0, fileStats.getTotal()); // TODO file total is not counted currently, figure out where
+            assertEquals(0, fileStats.getNumAdded());
             assertEquals(1, fileStats.getNumMerged());
+            assertEquals(0, fileStats.getNumDeleted());
+            assertEquals(0, fileStats.getNumOccurInConflict());
         }
 
         // Directory Statistics

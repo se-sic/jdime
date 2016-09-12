@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -25,7 +25,6 @@ package de.fosd.jdime.strategy;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,6 +38,10 @@ import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
+
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * Performs a structured merge on <code>FileArtifacts</code>.
@@ -59,13 +62,9 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
      * <code>ASTNodeArtifacts</code> as source and target nodes, is created and applied.
      * <p>
      * TODO: more high-level documentation.
-     *
-     * @param operation
-     * @param context
      */
     @Override
-    public final void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException {
-
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         assert (operation != null);
         assert (context != null);
 
@@ -113,15 +112,13 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 long cmdStart = System.currentTimeMillis();
 
                 targetNode = ASTNodeArtifact.createProgram(merged);
-                targetNode.setRevision(merged.getRevision(), true);
-                targetNode.renumberTree();
 
                 if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest("target.dumpTree(:");
-                    System.out.println(targetNode.dumpTree());
+                    LOG.finest("Plaintext tree dump of target node:");
+                    System.out.println(targetNode.dump(PLAINTEXT_TREE));
                 }
 
-                MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(), next);
+                MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(BASE), next);
 
                 MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
                         merged.getRevision().getName(), next.getRevision().getName());
@@ -136,8 +133,8 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                     LOG.finest("Structured merge finished.");
 
                     if (!context.isDiffOnly()) {
-                        LOG.finest("target.dumpTree():");
-                        System.out.println(targetNode.dumpTree());
+                        LOG.finest("Plaintext tree dump of target node:");
+                        System.out.println(targetNode.dump(PLAINTEXT_TREE));
                     }
 
                     LOG.finest("Pretty-printing merged:");
@@ -161,9 +158,10 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 long runtime = System.currentTimeMillis() - cmdStart;
 
                 if (LOG.isLoggable(Level.FINE)) {
-                    FileWriter file = new FileWriter(merged + ".dot");
-                    file.write(new ASTNodeStrategy().dumpTree(targetNode, true));
-                    file.close();
+
+                    try (FileWriter fw = new FileWriter(merged + ".dot")) {
+                        fw.write(targetNode.dump(GRAPHVIZ_TREE));
+                    }
                 }
 
                 LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
@@ -192,20 +190,5 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 }
             }
         }
-    }
-
-    @Override
-    public final String toString() {
-        return "nway";
-    }
-
-    @Override
-    public final String dumpTree(FileArtifact artifact, boolean graphical) throws IOException {
-        return new ASTNodeStrategy().dumpTree(new ASTNodeArtifact(artifact), graphical);
-    }
-
-    @Override
-    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException {
-        return new ASTNodeStrategy().dumpFile(new ASTNodeArtifact(artifact), graphical);
     }
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,10 +19,10 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
@@ -74,9 +74,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final void apply(final MergeContext context) throws IOException,
-            InterruptedException {
-
+    public void apply(MergeContext context) {
         LOG.fine(() -> "Applying: " + this);
 
         if (target != null) {

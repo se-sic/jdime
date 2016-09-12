@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,10 +19,10 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.merge;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +36,10 @@ import de.fosd.jdime.common.operations.AddOperation;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.matcher.matching.Matching;
+
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -54,14 +57,9 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
      *
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public final void merge(final MergeOperation<T> operation,
-            final MergeContext context) throws IOException,
-            InterruptedException {
+    public void merge(MergeOperation<T> operation, MergeContext context) {
         assert (operation != null);
         assert (context != null);
 
@@ -216,7 +214,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     MergeType childType = mBase == null ? MergeType.TWOWAY
                             : MergeType.THREEWAY;
-                    T baseChild = mBase == null ? leftChild.createEmptyArtifact()
+                    T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(leftChild);
                     T targetChild = target == null ? null : target.addChild(leftChild.clone());
                     if (targetChild != null) {
@@ -250,7 +248,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     MergeType childType = mBase == null ? MergeType.TWOWAY
                             : MergeType.THREEWAY;
-                    T baseChild = mBase == null ? rightChild.createEmptyArtifact()
+                    T baseChild = mBase == null ? rightChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(rightChild);
                     T targetChild = target == null ? null : target.addChild(rightChild.clone());
                     if (targetChild != null) {
@@ -277,7 +275,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
             if (LOG.isLoggable(Level.FINEST) && target != null) {
                 LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
-                System.out.println(target.dumpRootTree());
+                System.out.println(target.findRoot().dump(PLAINTEXT_TREE));
             }
         }
     }

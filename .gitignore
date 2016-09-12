@@ -174,3 +174,6 @@ local.properties
 # TeXlipse plugin
 .texlipse
 
+# vim syntastic plugin
+.syntastic_javac_config
+

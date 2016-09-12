@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,16 +19,15 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.common.operations;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -81,7 +80,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public void apply(MergeContext context) throws IOException {
+    public void apply(MergeContext context) {
         assert (artifact != null);
         assert (artifact.exists()) : "Artifact does not exist: " + artifact;
 
@@ -109,9 +108,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
-            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            element.incrementNumDeleted();
             artifact.deleteOpStatistics(mScenarioStatistics, context);
         }
     }

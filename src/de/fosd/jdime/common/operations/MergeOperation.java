@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -24,6 +24,7 @@
 package de.fosd.jdime.common.operations;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -32,9 +33,12 @@ import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.stats.ElementStatistics;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
+
+import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.stats.KeyEnums.Type.DIRECTORY;
+import static de.fosd.jdime.stats.KeyEnums.Type.FILE;
 
 /**
  * The operation merges <code>Artifact</code>s.
@@ -109,7 +113,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
             if (numArtifacts == MergeType.TWOWAY_FILES) {
                 left = inputArtifacts.get(0);
-                base = left.createEmptyArtifact();
+                base = left.createEmptyArtifact(BASE);
                 right = inputArtifacts.get(1);
                 mergeType = MergeType.TWOWAY;
                 LOG.finest("Created TWO-way scenario");
@@ -168,7 +172,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public void apply(MergeContext context) throws IOException, InterruptedException {
+    public void apply(MergeContext context) {
         if (!context.isConditionalMerge(mergeScenario.getLeft())) {
             assert (mergeScenario.getLeft().exists()) : "Left artifact does not exist: " + mergeScenario.getLeft();
             assert (mergeScenario.getRight().exists()) : "Right artifact does not exist: " + mergeScenario.getRight();
@@ -189,10 +193,20 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
-            ElementStatistics element = mScenarioStatistics.getTypeStatistics(artifact.getRevision(), artifact.getType());
 
-            element.incrementNumMerged();
-            artifact.mergeOpStatistics(mScenarioStatistics, context);
+            boolean files = mergeScenario.getArtifacts().entrySet().stream()
+                    .map(Map.Entry::getValue)
+                    .map(T::getType)
+                    .allMatch(t -> t == FILE || t == DIRECTORY);
+
+            if (files) {
+                artifact.mergeOpStatistics(mScenarioStatistics, context);
+            } else {
+                mergeScenario.getArtifacts().entrySet().stream()
+                        .map(Map.Entry::getValue)
+                        .filter(a -> !BASE.equals(a.getRevision()))
+                        .forEach(a -> a.mergeOpStatistics(mScenarioStatistics, context));
+            }
         }
     }
 

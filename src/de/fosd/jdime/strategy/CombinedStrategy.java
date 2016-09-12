@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,6 +19,7 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.strategy;
 
@@ -29,7 +30,6 @@ import java.util.logging.Logger;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
@@ -48,12 +48,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      * TODO: high-level documentation
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         FileArtifact target = null;
 
         if (!context.isDiffOnly() && operation.getTarget() != null) {
@@ -77,7 +74,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
         long startTime = System.currentTimeMillis();
 
-        MergeContext subContext = (MergeContext) context.clone();
+        MergeContext subContext = new MergeContext(context);
         MergeStrategy<FileArtifact> strategy = new LinebasedStrategy();
 
         subContext.setOutputFile(null);
@@ -103,15 +100,20 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 boolean targetExists = target.exists();
                 String targetFileName = target.getFullPath();
 
-                if (target.exists()) {
-                    target.remove();
-                }
+                try {
+                    if (target.exists()) {
+                        target.remove();
+                    }
 
-                target = new FileArtifact(new Revision("merge"), new File(targetFileName), targetExists, isLeaf);
+                    target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName), targetExists, isLeaf);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
-            subContext = (MergeContext) context.clone();
+            subContext = new MergeContext(context);
             strategy = new StructuredStrategy();
+
             subContext.setOutputFile(null);
             subContext.setMergeStrategy(strategy);
             subContext.collectStatistics(true);
@@ -139,27 +141,10 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             Statistics subStatistics = subContext.getStatistics();
-            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics().get(0);
+            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
 
             scenarioStats.setRuntime(runtime);
-            statistics.add(subStatistics);
+            statistics.addScenarioStatistics(scenarioStats);
         }
-    }
-
-    @Override
-    public final String toString() {
-        return "combined";
-    }
-
-    @Override
-    public final String dumpTree(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new StructuredStrategy().dumpTree(artifact, graphical);
-    }
-
-    @Override
-    public String dumpFile(final FileArtifact artifact, final boolean graphical)
-            throws IOException {
-        return new LinebasedStrategy().dumpFile(artifact, graphical);
     }
 }

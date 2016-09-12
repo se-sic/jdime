@@ -1,3 +1,26 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime.stats;
 
 import java.io.BufferedOutputStream;
@@ -10,6 +33,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,6 +52,8 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.matcher.matching.LookAheadMatching;
+import de.fosd.jdime.matcher.matching.Matching;
 
 /**
  * A collection of <code>MergeScenarioStatistics</code> containing collected statistics about
@@ -48,10 +74,15 @@ public class Statistics {
         serializer.useAttributeFor(Revision.class, "name");
 
         serializer.alias(Statistics.class.getSimpleName().toLowerCase(), Statistics.class);
+        serializer.omitField(Statistics.class, "currentFileMergeScenario");
         serializer.addImplicitMap(Statistics.class, "scenarioStatistics", MergeScenarioStatistics.class, "mergeScenario");
 
         serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
         serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
+
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
+        serializer.omitField(Matching.class, "highlightColor");
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
 
@@ -96,6 +127,7 @@ public class Statistics {
 
         serializer.registerConverter(new Converter() {
 
+            private static final String SUBCLASS_ATTR = "subclass";
             private static final String TYPE_ATTR = "type";
             private static final String ID_ATTR = "id";
 
@@ -103,7 +135,8 @@ public class Statistics {
             public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
                 Artifact<?> artifact = (Artifact<?>) source;
 
-                writer.addAttribute(TYPE_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(SUBCLASS_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(TYPE_ATTR, artifact.getType().name());
                 writer.addAttribute(ID_ATTR, artifact.getId());
             }
 
@@ -130,6 +163,28 @@ public class Statistics {
      */
     public Statistics() {
         this.scenarioStatistics = new HashMap<>();
+    }
+
+    /**
+     * Copy constructor.
+     *
+     * @param toCopy
+     *         the <code>Statistics</code> to copy
+     */
+    public Statistics(Statistics toCopy) {
+
+        if (toCopy.currentFileMergeScenario != null) {
+            this.currentFileMergeScenario = new MergeScenario<>(toCopy.currentFileMergeScenario);
+        }
+
+        this.scenarioStatistics = new HashMap<>();
+
+        for (Map.Entry<MergeScenario<?>, MergeScenarioStatistics> entry : toCopy.scenarioStatistics.entrySet()) {
+            MergeScenario<?> mScenario = new MergeScenario<>(entry.getKey());
+            MergeScenarioStatistics mStats = new MergeScenarioStatistics(entry.getValue());
+
+            this.scenarioStatistics.put(mScenario, mStats);
+        }
     }
 
     /**
@@ -187,13 +242,23 @@ public class Statistics {
     /**
      * Adds a <code>MergeScenarioStatistics</code> instance to this <code>Statistics</code>. If there already is a
      * <code>MergeScenarioStatistics</code> for the <code>MergeScenario</code> stored in <code>statistics</code> it will
-     * be replaced.
+     * be added to the old value using {@link MergeScenarioStatistics#add(MergeScenarioStatistics)}.
      *
      * @param statistics
-     *         the <code>MergeScenarioStatistics</code> to be adde
+     *         the <code>MergeScenarioStatistics</code> to be added
      */
     public void addScenarioStatistics(MergeScenarioStatistics statistics) {
         scenarioStatistics.merge(statistics.getMergeScenario(), statistics, (o, n) -> {o.add(n); return o;});
+    }
+
+    /**
+     * Removes the <code>MergeScenarioStatistics</code> for the given <code>scenario</code> from this
+     * <code>Statistics</code> instance.
+     *
+     * @param scenario the <code>MergeScenario</code> whose <code>MergeScenarioStatistics</code> are to be removed.
+     */
+    public void removeScenarioStatistics(MergeScenario<?> scenario) {
+        scenarioStatistics.remove(scenario);
     }
 
     /**
@@ -288,7 +353,14 @@ public class Statistics {
      *         the <code>PrintStream</code> to write to
      */
     public void print(PrintStream ps) {
-        getScenarioStatistics().forEach(statistics -> statistics.print(ps));
+
+        for (Iterator<MergeScenarioStatistics> it = getScenarioStatistics().iterator(); it.hasNext(); ) {
+            it.next().print(ps);
+
+            if (it.hasNext()) {
+                ps.println();
+            }
+        }
     }
 
     /**

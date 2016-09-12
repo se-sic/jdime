@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -43,9 +43,17 @@ import de.fosd.jdime.merge.MergeInterface;
  *         type of artifact
  * @author Olaf Lessenich
  */
-public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T>, DumpInterface<T> {
+public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
     private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
+
+    public static final String LINEBASED = "linebased";
+    public static final String UNSTRUCTURED = "unstructured";
+    public static final String STRUCTURED = "structured";
+    public static final String COMBINED = "combined";
+    public static final String AUTOTUNING = "autotuning";
+    public static final String NWAY = "nway";
+    public static final String VARIANTS = "variants";
 
     static {
         Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
@@ -54,13 +62,13 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
         CombinedStrategy combined = new CombinedStrategy();
         NWayStrategy nway = new NWayStrategy();
 
-        entries.put("linebased", lineBased);
-        entries.put("unstructured", lineBased);
-        entries.put("structured", structured);
-        entries.put("combined", combined);
-        entries.put("autotuning", combined);
-        entries.put("nway", nway);
-        entries.put("variants", nway);
+        entries.put(LINEBASED, lineBased);
+        entries.put(UNSTRUCTURED, lineBased);
+        entries.put(STRUCTURED, structured);
+        entries.put(COMBINED, combined);
+        entries.put(AUTOTUNING, combined);
+        entries.put(NWAY, nway);
+        entries.put(VARIANTS, nway);
 
         strategyMap = Collections.unmodifiableMap(entries);
     }
@@ -100,5 +108,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
     }
 
     @Override
-    public abstract String toString();
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

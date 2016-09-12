@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,10 +19,9 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.common.operations;
-
-import java.io.IOException;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
@@ -67,13 +66,9 @@ public abstract class Operation<T extends Artifact<T>> {
      * Applies the operation.
      *
      * @param context
-     *            merge context
-     * @throws IOException
-     *             If an input or output exception occurs
-     * @throws InterruptedException
-     *             If a thread is interrupted
+     *         merge context
      */
-    public abstract void apply(MergeContext context) throws IOException, InterruptedException;
+    public abstract void apply(MergeContext context);
 
     /**
      * Returns the name of the operation.

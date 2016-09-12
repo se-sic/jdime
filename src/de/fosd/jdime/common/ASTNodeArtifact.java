@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -19,34 +19,30 @@
  *
  * Contributors:
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *     Kathrin Hanauer <hanauer@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.common;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
-import de.fosd.jdime.matcher.Color;
-import de.fosd.jdime.matcher.Matching;
+import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.strategy.ASTNodeStrategy;
-import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
 import org.jastadd.extendj.ast.ClassDecl;
-import org.jastadd.extendj.ast.CompilationUnit;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
 import org.jastadd.extendj.ast.InterfaceDecl;
@@ -54,6 +50,9 @@ import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
+import org.jastadd.extendj.ast.TryStmt;
+
+import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
  * @author Olaf Lessenich
@@ -72,22 +71,39 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            program
      */
     private static void initParser(Program p) {
-        JavaParser parser = new JavaParser() {
-            @Override
-            public CompilationUnit parse(InputStream is, String fileName) throws IOException,
-                    beaver.Parser.Exception {
-                return new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
-            }
-        };
-        BytecodeReader bytecodeParser = new BytecodeReader() {
-            @Override
-            public CompilationUnit read(InputStream is, String fullName, Program p) throws IOException {
-                return new BytecodeParser(is, fullName).parse(null, null, p);
-            }
-        };
+        JavaParser parser = (is, fileName) -> new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
+        BytecodeReader bytecodeParser = (is, fullName, program) -> new BytecodeParser(is, fullName).parse(null, null, program);
 
         p.initJavaParser(parser);
         p.initBytecodeReader(bytecodeParser);
+    }
+
+    /**
+     * Parses the content of the given <code>FileArtifact</code> to an AST. If the <code>artifact</code> is empty,
+     * an empty <code>ASTNode</code> obtained via {@link ASTNode#ASTNode()} will be returned.
+     *
+     * @param artifact
+     *         the <code>FileArtifact</code> to parse
+     * @return the root of the resulting AST
+     */
+    private static ASTNode<?> parse(FileArtifact artifact) {
+        ASTNode<?> astNode;
+
+        if (artifact.isEmpty()) {
+            astNode = new ASTNode<>();
+        } else {
+            Program p = initProgram();
+
+            try {
+                p.addSourceFile(artifact.getPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            astNode = p;
+        }
+
+        return astNode;
     }
 
     /**
@@ -107,19 +123,20 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *            artifact to create program from
      * @return ASTNodeArtifact
      */
-    public static ASTNodeArtifact createProgram(final ASTNodeArtifact artifact) {
+    public static ASTNodeArtifact createProgram(ASTNodeArtifact artifact) {
         assert (artifact.astnode != null);
         assert (artifact.astnode instanceof Program);
 
         Program old = (Program) artifact.astnode;
         Program program;
+
         try {
             program = old.clone();
         } catch (CloneNotSupportedException e) {
             program = new Program();
         }
 
-        ASTNodeArtifact p = new ASTNodeArtifact(program, null);
+        ASTNodeArtifact p = new ASTNodeArtifact(artifact.getRevision(), program);
         p.deleteChildren();
 
         return p;
@@ -131,66 +148,72 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private ASTNode<?> astnode = null;
 
     /**
-     * Constructor class.
+     * Constructs a new <code>ASTNodeArtifact</code> (tree) representing the AST of the code in <code>artifact</code>.
+     * All members of the tree will be in the same <code>Revision</code> as <code>artifact</code>.
+     *
+     * @param artifact
+     *         the <code>FileArtifact</code> containing the code to be parsed
      */
-    private ASTNodeArtifact() {
-        this.astnode = new ASTNode<>();
-        this.initializeChildren();
+    public ASTNodeArtifact(FileArtifact artifact) {
+        this(artifact.getRevision(), new AtomicInteger()::getAndIncrement, parse(artifact));
     }
 
     /**
-     * @param astnode
-     *            astnode
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating an empty <code>ASTNode</code> obtained via
+     * {@link ASTNode#ASTNode()}.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
      */
-    private ASTNodeArtifact(final ASTNode<?> astnode, Revision revision) {
-        assert (astnode != null);
-        this.astnode = astnode;
-        setRevision(revision);
-        initializeChildren();
+    private ASTNodeArtifact(Revision revision) {
+        this(revision, new AtomicInteger()::getAndIncrement, new ASTNode<>());
     }
 
-    private void initializeChildren() {
+    /**
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating the given <code>ASTNode</code>. Children
+     * <code>ASTNodeArtifact</code>s for all the children of <code>astNode</code> will be added.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
+     * @param astNode
+     *         the <code>ASTNode</code> to encapsulate
+     */
+    private ASTNodeArtifact(Revision revision, ASTNode<?> astNode) {
+        this(revision, new AtomicInteger()::getAndIncrement, astNode);
+    }
+
+    /**
+     * Constructs a new <code>ASTNodeArtifact</code> encapsulating the given <code>ASTNode</code>. Children
+     * <code>ASTNodeArtifact</code>s for all the children of <code>astNode</code> will be added.
+     *
+     * @param revision
+     *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
+     * @param number
+     *         supplies first the number for this artifact and then in DFS order the number for its children
+     * @param astNode
+     *         the <code>ASTNode</code> to encapsulate
+     */
+    private ASTNodeArtifact(Revision revision, Supplier<Integer> number, ASTNode<?> astNode) {
+        super(revision, number.get());
+
+        this.astnode = astNode;
+        initializeChildren(number);
+    }
+
+    private void initializeChildren(Supplier<Integer> number) {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(astnode.getChild(i), getRevision());
+                ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
                 child.setParent(this);
-                child.setRevision(getRevision());
                 children.add(child);
                 if (!child.initialized) {
-                    child.initializeChildren();
+                    child.initializeChildren(number);
                 }
             }
         }
         setChildren(children);
         initialized = true;
-    }
-
-    /**
-     * Constructs an ASTNodeArtifact from a FileArtifact.
-     *
-     * @param artifact
-     *            file artifact
-     */
-    public ASTNodeArtifact(final FileArtifact artifact) throws IOException {
-        assert (artifact != null);
-
-        setRevision(artifact.getRevision());
-
-        ASTNode<?> astnode;
-        if (artifact.isEmpty()) {
-            astnode = new ASTNode<>();
-        } else {
-            Program p = initProgram();
-            p.addSourceFile(artifact.getPath());
-            astnode = p;
-        }
-
-        this.astnode = astnode;
-        initializeChildren();
-        renumberTree();
-
-        LOG.finest(() -> String.format("created new ASTNodeArtifact for revision %s", getRevision()));
     }
 
     /**
@@ -209,7 +232,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact clone = null;
 
         try {
-            clone = new ASTNodeArtifact(astnode.clone(), getRevision());
+            clone = new ASTNodeArtifact(getRevision(), astnode.clone());
             clone.setRevision(getRevision());
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
@@ -232,7 +255,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact addChild(final ASTNodeArtifact child) throws IOException {
+    public ASTNodeArtifact addChild(ASTNodeArtifact child) {
         LOG.finest(() -> String.format("%s.addChild(%s)", getId(), child.getId()));
 
         assert (this.exists());
@@ -245,19 +268,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final int compareTo(final ASTNodeArtifact o) {
-        if (hasUniqueLabels()) {
-            return astnode.dumpString().compareTo(o.astnode.dumpString());
-        } else {
-            throw new RuntimeException("This artifact is not comparable.");
-        }
-    }
-
-    @Override
-    public final ASTNodeArtifact createEmptyArtifact() {
-        ASTNodeArtifact emptyArtifact= new ASTNodeArtifact();
-        emptyArtifact.setRevision(getRevision());
-        return emptyArtifact;
+    public ASTNodeArtifact createEmptyArtifact(Revision revision) {
+        return new ASTNodeArtifact(revision);
     }
 
     public void deleteChildren() {
@@ -282,110 +294,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(dumpTree());
+            System.out.println(findRoot().dump(PLAINTEXT_TREE));
         }
 
-        String prettyprint = astnode.prettyPrint();
+        String indent = isRoot() ? "" : astnode.extractIndent();
+        String prettyprint = indent + astnode.prettyPrint();
 
         if (prettyprint.trim().length() == 0) {
             throw new RuntimeException("Error: Could not pretty-print file!");
         }
 
         return prettyprint;
-    }
-
-    @Override
-    protected final String dumpTree(final String indent) {
-        assert (astnode != null);
-        StringBuilder sb = new StringBuilder();
-
-        // node itself
-        Matching<ASTNodeArtifact> m = null;
-
-        // color
-        if (!isConflict() && hasMatches()) {
-
-            Set<Revision> matchingRevisions = matches.keySet();
-
-            // print color code
-            String color = "";
-
-            for (Revision rev : matchingRevisions) {
-                m = getMatching(rev);
-                color = m.getHighlightColor().toShell();
-            }
-
-            sb.append(color);
-        }
-
-        if (isConflict()) {
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-            sb.append(Color.RED.toShell());
-            sb.append("<<<<<<< ");
-            sb.append(System.lineSeparator());
-            // children
-            if (left != null) {
-                sb.append(left.dumpTree(indent));
-            }
-            sb.append(Color.RED.toShell());
-            sb.append("======= ");
-            sb.append(System.lineSeparator());
-            // children
-            if (right != null) {
-                sb.append(right.dumpTree(indent));
-            }
-
-            sb.append(Color.RED.toShell());
-            sb.append(">>>>>>> ");
-            sb.append(Color.DEFAULT.toShell());
-            sb.append(System.lineSeparator());
-        } else if (isChoice()) {
-            Set<String> conditions = getVariants().keySet();
-            sb.append(Color.RED.toShell());
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-            sb.append(System.lineSeparator());
-
-            for (String condition : conditions) {
-                sb.append(Color.RED.toShell());
-                sb.append("#ifdef " + condition);
-                sb.append(System.lineSeparator());
-                // children
-                ASTNodeArtifact variant = getVariants().get(condition);
-                if (variant != null) {
-                    sb.append(variant.dumpTree(indent));
-                }
-                sb.append(Color.RED.toShell());
-                sb.append("#endif");
-                sb.append(Color.DEFAULT.toShell());
-                sb.append(System.lineSeparator());
-
-            }
-        } else {
-            sb.append(indent).append("(").append(getId()).append(") ");
-            sb.append(this);
-
-            if (hasMatches()) {
-                assert (m != null);
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest(m.toString());
-                    LOG.finest("Matching artifacts: " + m.getMatchingArtifact(this));
-                }
-                sb.append(" <=> (").append(m.getMatchingArtifact(this).getId()).append(")");
-                sb.append(Color.DEFAULT.toShell());
-            }
-            sb.append(System.lineSeparator());
-
-            // children
-            for (ASTNodeArtifact child : getChildren()) {
-                sb.append(child.dumpTree(indent + "  "));
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override
@@ -404,6 +323,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             return KeyEnums.Type.METHOD;
         } else if (isClass()) {
             return KeyEnums.Type.CLASS;
+        } else if (astnode instanceof TryStmt){
+            return KeyEnums.Type.TRY;
         } else {
             return KeyEnums.Type.NODE;
         }
@@ -425,6 +346,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 return getParent().getLevel();
             }
         }
+    }
+
+    @Override
+    public void mergeOpStatistics(MergeScenarioStatistics mScenarioStatistics, MergeContext mergeContext) {
+        mScenarioStatistics.getTypeStatistics(getRevision(), getType()).incrementNumMerged();
+        mScenarioStatistics.getLevelStatistics(getRevision(), getLevel()).incrementNumMerged();
     }
 
     /**
@@ -456,9 +383,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final boolean hasUniqueLabels() {
-        return ImportDecl.class.isAssignableFrom(astnode.getClass())
-                || Literal.class.isAssignableFrom(astnode.getClass());
+    public Optional<Supplier<String>> getUniqueLabel() {
+        boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())
+                            || Literal.class.isAssignableFrom(astnode.getClass());
+
+        return hasLabel ? Optional.of(() -> astnode.dumpString()) : Optional.empty();
     }
 
     @Override
@@ -507,13 +436,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
-
-        MergeStrategy<ASTNodeArtifact> astNodeStrategy = new ASTNodeStrategy();
-
-        LOG.fine(() -> "Using strategy: " + astNodeStrategy);
 
         MergeScenario<ASTNodeArtifact> triple = operation.getMergeScenario();
         ASTNodeArtifact left = triple.getLeft();
@@ -526,7 +451,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         try {
             numChildNoTransform = target.astnode.getClass().newInstance().getNumChildNoTransform();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
 
         if (!isRoot() && numChildNoTransform > 0) {
@@ -565,7 +490,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (safeMerge) {
-            astNodeStrategy.merge(operation, context);
+            Merge<ASTNodeArtifact> merge = new Merge<>();
+
+            LOG.finest(() -> "Merging ASTs " + operation.getMergeScenario());
+            merge.merge(operation, context);
         } else {
             LOG.finest(() -> String.format("Target %s expects a fixed amount of children.", target.getId()));
             LOG.finest(() -> String.format("Both %s and %s contain changes.", left.getId(), right.getId()));
@@ -675,8 +603,17 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
+            StringBuilder elements = new StringBuilder();
+            for (Revision r : getMatches().keySet()) {
+                if (elements.length() > 0) {
+                    elements.append(", ");
+                }
+                elements.append(getMatching(r).getMatchingArtifact(this).getId());
+            }
+
             LOG.severe("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
-                    "This is either a bug in ExtendJ or in JDime! Inspect AST element.");
+                    "This is either a bug in ExtendJ or in JDime! Inspect AST element " +
+                    getId() + " (" + elements.toString() + ") to look into this issue.");
         }
     }
 
@@ -686,27 +623,27 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public final ASTNodeArtifact createConflictArtifact(final ASTNodeArtifact left, final ASTNodeArtifact right) {
-        ASTNodeArtifact conflict = left != null
-                ? new ASTNodeArtifact(left.astnode.treeCopyNoTransform(), null)
-                : new ASTNodeArtifact(right.astnode.treeCopyNoTransform(), null);
+    public ASTNodeArtifact createConflictArtifact(ASTNodeArtifact left, ASTNodeArtifact right) {
+        ASTNodeArtifact conflict;
 
-        conflict.setRevision(new Revision("conflict"));
-        conflict.setNumber(virtualcount++);
+        if (left != null) {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, left.astnode.treeCopyNoTransform());
+        } else {
+            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, right.astnode.treeCopyNoTransform());
+        }
+
         conflict.setConflict(left, right);
 
         return conflict;
     }
 
     @Override
-    public final ASTNodeArtifact createChoiceArtifact(final String condition, final ASTNodeArtifact artifact) {
+    public ASTNodeArtifact createChoiceArtifact(String condition, ASTNodeArtifact artifact) {
         LOG.fine("Creating choice node");
-        ASTNodeArtifact choice;
 
-        choice = new ASTNodeArtifact(artifact.astnode.treeCopyNoTransform(), null);
-        choice.setRevision(new Revision("choice"));
-        choice.setNumber(virtualcount++);
+        ASTNodeArtifact choice = new ASTNodeArtifact(MergeScenario.CHOICE, artifact.astnode.treeCopyNoTransform());
         choice.setChoice(condition, artifact);
+
         return choice;
     }
 }
