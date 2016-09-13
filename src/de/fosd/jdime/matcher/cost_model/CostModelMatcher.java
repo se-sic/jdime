@@ -140,9 +140,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         }
 
         if (parameters.parallel) {
-            matchings.parallelStream().forEach(m -> exactCost(m, matchings, parameters));
+            matchings.parallelStream().forEach(m -> cost(m, matchings, parameters));
         } else {
-            matchings.forEach(m -> exactCost(m, matchings, parameters));
+            matchings.forEach(m -> cost(m, matchings, parameters));
         }
 
         float sumCost = matchings.stream().collect(summingDouble(CMMatching::getExactCost)).floatValue();
@@ -164,7 +164,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @param parameters
      *         the <code>CMParameters</code> to use
      */
-    private void exactCost(CMMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
+    private void cost(CMMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
 
         if (matching.isNoMatch()) {
             matching.setExactCost(parameters.wn);
