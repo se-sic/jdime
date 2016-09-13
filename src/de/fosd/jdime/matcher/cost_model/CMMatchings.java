@@ -11,13 +11,13 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.Artifacts;
 
 /**
- * A list of <code>CostModelMatching</code>s that additionally contains the roots of the left and right trees that
+ * A list of <code>CMMatching</code>s that additionally contains the roots of the left and right trees that
  * are being matched.
  *
  * @param <T>
  *         the type of the <code>Artifact</code>s
  */
-final class CMMatchings<T extends Artifact<T>> extends ArrayList<CostModelMatching<T>> {
+final class CMMatchings<T extends Artifact<T>> extends ArrayList<CMMatching<T>> {
 
     T left;
     T right;
@@ -33,7 +33,7 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CostModelMatchi
         this.right = right;
     }
 
-    public CMMatchings(Collection<? extends CostModelMatching<T>> c, T left, T right) {
+    public CMMatchings(Collection<? extends CMMatching<T>> c, T left, T right) {
         super(c);
         this.left = left;
         this.right = right;
@@ -55,7 +55,7 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CostModelMatchi
             return false;
         }
 
-        for (CostModelMatching<T> matching : this) {
+        for (CMMatching<T> matching : this) {
 
             if (matching.m != null && !leftTree.remove(matching.m)) {
                 return false;

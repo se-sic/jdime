@@ -98,18 +98,18 @@ public final class CMParameters<T extends Artifact<T>> {
      */
 
     /**
-     * Caches the <code>CostModelMatching</code>s containing an artifact.
+     * Caches the <code>CMMatching</code>s containing an artifact.
      */
-    ConcurrentMap<T, CostModelMatching<T>> exactContainsCache;
+    ConcurrentMap<T, CMMatching<T>> exactContainsCache;
 
     /*
      * Caches valid during one run of the CostModelMatcher#boundCost(CMMatchings, CMParameters) function.
      */
 
     /**
-     * Caches lists of <code>CostModelMatching</code>s containing an artifact.
+     * Caches lists of <code>CMMatching</code>s containing an artifact.
      */
-    ConcurrentMap<T, List<CostModelMatching<T>>> boundContainsCache;
+    ConcurrentMap<T, List<CMMatching<T>>> boundContainsCache;
 
     public CMParameters(MergeContext context) {
         setNoMatchWeight(context.getWn());

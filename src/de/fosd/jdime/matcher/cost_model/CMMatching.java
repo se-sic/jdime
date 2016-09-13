@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import de.fosd.jdime.common.Artifact;
 
-final class CostModelMatching<T extends Artifact<T>> {
+final class CMMatching<T extends Artifact<T>> {
 
     final T m;
     final T n;
@@ -12,7 +12,7 @@ final class CostModelMatching<T extends Artifact<T>> {
     private float exactCost;
     private Bounds costBounds;
 
-    CostModelMatching(T m, T n) {
+    CMMatching(T m, T n) {
         this.m = m;
         this.n = n;
     }
@@ -75,7 +75,7 @@ final class CostModelMatching<T extends Artifact<T>> {
             return false;
         }
 
-        CostModelMatching<?> that = (CostModelMatching<?>) o;
+        CMMatching<?> that = (CMMatching<?>) o;
         return Objects.equals(m, that.m) && Objects.equals(n, that.n);
     }
 
