@@ -303,7 +303,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the path represented by a list of <code>Artifact</code>s beginning with <code>artifact</code> and ending
      *          with the root of the tree
      */
-    public List<T> pathToRoot(T artifact) {
+    private List<T> pathToRoot(T artifact) {
         List<T> path = new ArrayList<>();
 
         do {
@@ -327,7 +327,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the ancestor of the first <code>Artifact</code> in the first position, that of the second in the second
      *          position
      */
-    public Tuple<T, T> lca(T a, T b, CMParameters<T> parameters) {
+    private Tuple<T, T> lca(T a, T b, CMParameters<T> parameters) {
         return parameters.lcaCache.computeIfAbsent(Tuple.of(a, b), ab -> {
             Tuple<T, T> ba = Tuple.of(b, a);
 
