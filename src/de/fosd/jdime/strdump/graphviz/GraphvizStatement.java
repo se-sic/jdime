@@ -30,12 +30,17 @@ import java.io.PrintWriter;
  */
 abstract class GraphvizStatement implements GraphvizElement {
 
+    protected final GraphvizGraphBase graph;
     protected final GraphvizAttributeList attributes;
 
     /**
      * Constructs a new <code>GraphvizStatement</code>.
+     *
+     * @param graph
+     *         the Graphviz graph containing this <code>GraphvizStatement</code>
      */
-    GraphvizStatement() {
+    GraphvizStatement(GraphvizGraphBase graph) {
+        this.graph = graph;
         this.attributes = new GraphvizAttributeList();
     }
 
@@ -63,5 +68,14 @@ abstract class GraphvizStatement implements GraphvizElement {
     public GraphvizStatement attribute(String lhs, String rhs) {
         attributes.attribute(lhs, rhs);
         return this;
+    }
+
+    /**
+     * Returns the Graphviz graph containing this <code>GraphvizStatement</code>.
+     *
+     * @return the Graphviz graph containing this <code>GraphvizStatement</code>
+     */
+    public GraphvizGraphBase getGraph() {
+        return graph;
     }
 }

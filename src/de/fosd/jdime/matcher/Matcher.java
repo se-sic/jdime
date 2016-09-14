@@ -214,7 +214,7 @@ public class Matcher<T extends Artifact<T>> {
             uniquelyLabeledChildren.add(artifact);
         }
 
-        if (children.stream().allMatch(T::isOrdered)) {
+        if (children.stream().anyMatch(T::isOrdered)) {
             orderedChildren.add(artifact);
         }
 
