@@ -578,18 +578,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
         }
 
-        ASTNode<?>[] newchildren = new ASTNode[getNumChildren()];
+        ASTNode<?>[] newChildren = new ASTNode<?>[getNumChildren()];
 
         for (int i = 0; i < getNumChildren(); i++) {
             ASTNodeArtifact child = getChild(i);
-            newchildren[i] = child.astnode;
-            newchildren[i].setParent(astnode);
+            newChildren[i] = child.astnode;
+            newChildren[i].setParent(astnode);
             child.rebuildAST();
         }
 
         astnode.jdimeChanges = hasChanges();
         astnode.jdimeId = getId();
-        astnode.setChildren(newchildren);
+        astnode.setChildren(newChildren);
 
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(() -> String.format("jdime: %d, astnode.before: %d, astnode.after: %d children", getNumChildren(), oldNumChildren,
