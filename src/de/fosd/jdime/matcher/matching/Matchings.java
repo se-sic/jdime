@@ -47,6 +47,8 @@ import de.fosd.jdime.common.UnorderedTuple;
  */
 public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
 
+    private static final long serialVersionUID = 1L;
+
     private final UnorderedTuple<T, T> tuple = UnorderedTuple.of(null, null);
 
     /**

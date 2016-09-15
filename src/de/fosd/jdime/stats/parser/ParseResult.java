@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
  */
 public class ParseResult extends ArrayList<Content> {
 
+    private static final long serialVersionUID = 1L;
+
     private int linesOfCode;
     private int conflicts;
     private int conflictingLinesOfCode;
