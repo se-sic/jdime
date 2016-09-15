@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.matcher.ordered.simpleTree;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class SimpleTreeMatcher<T extends Artifact<T>> extends OrderedMatcher<T> 
         int[][] matrixM = new int[m + 1][n + 1];
 
         @SuppressWarnings("unchecked")
-        Entry<T>[][] matrixT = new Entry[m + 1][n + 1];
+        Entry<T>[][] matrixT = (Entry<T>[][]) Array.newInstance(Entry.class, m + 1, n + 1);
 
         // initialize first column matrix
         for (int i = 0; i <= m; i++) {
