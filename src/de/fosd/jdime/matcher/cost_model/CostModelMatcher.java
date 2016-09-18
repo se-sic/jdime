@@ -10,6 +10,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -405,10 +407,15 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      *         the <code>CMParameters</code> to use
      */
     private void boundCost(CMMatchings<T> currentMatchings, CMParameters<T> parameters) {
+        LOG.finer(() -> "Bounding " + currentMatchings.size() + " matchings.");
+
+        AtomicInteger mCount = LOG.isLoggable(FINEST) ? new AtomicInteger() : null;
+        Consumer<CMMatching<T>> mPeek = m -> LOG.finest(() -> "Done with matching " + mCount.getAndIncrement() + " " + m);
+
         if (parameters.parallel) {
-            currentMatchings.parallelStream().forEach(m -> boundCost(m, currentMatchings, parameters));
+            currentMatchings.parallelStream().peek(mPeek).forEach(m -> boundCost(m, currentMatchings, parameters));
         } else {
-            currentMatchings.forEach(m -> boundCost(m, currentMatchings, parameters));
+            currentMatchings.stream().peek(mPeek).forEach(m -> boundCost(m, currentMatchings, parameters));
         }
 
         parameters.clearBoundCaches();
