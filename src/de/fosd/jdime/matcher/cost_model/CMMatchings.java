@@ -70,7 +70,7 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CMMatching<T>> 
     }
 
     Map<T, T> asMap() {
-        return stream().collect(HashMap::new, (map, matching) -> {
+        return stream().filter(m -> !m.isNoMatch()).collect(HashMap::new, (map, matching) -> {
             map.put(matching.m, matching.n);
             map.put(matching.n, matching.m);
         }, HashMap::putAll);

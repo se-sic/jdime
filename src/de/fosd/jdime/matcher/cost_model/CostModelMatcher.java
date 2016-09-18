@@ -723,29 +723,14 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the resulting <code>Matchings</code>
      */
     private Matchings<T> convert(CMMatchings<T> matchings) {
-        Map<T, T> matchingsMap = matchings.asMap();
+        Map<T, T> mMap = matchings.asMap();
 
         Function<CMMatching<T>, Matching<T>> toMatching = m -> {
-            T left = m.m;
-            T right = m.n;
-            int score = 0;
+            Set<T> ls = new HashSet<>(Artifacts.dfs(m.m));
+            Set<T> rs = new HashSet<>(Artifacts.dfs(m.n));
+            int score = (int) ls.stream().filter(a -> rs.contains(mMap.get(a))).count();
 
-            Set<T> rightSides = new HashSet<>();
-
-            for (T l : Artifacts.dfs(left)) {
-                if (matchingsMap.containsKey(l)) {
-                    rightSides.add(matchingsMap.get(l));
-                    score++;
-                }
-            }
-
-            for (T r : Artifacts.dfs(right)) {
-                if (!rightSides.contains(r) && matchingsMap.containsKey(r)) {
-                    score++;
-                }
-            }
-
-            Matching<T> matching = new Matching<>(left, right, score);
+            Matching<T> matching = new Matching<>(m.m, m.n, score);
             matching.setAlgorithm(CostModelMatcher.class.getSimpleName());
             return matching;
         };
