@@ -268,7 +268,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     private float orderingCost(CMMatching<T> matching, CMMatchings<T> matchings, CMParameters<T> parameters) {
         Stream<T> leftSiblings = otherSiblings(matching.m, parameters).stream();
         Stream<T> rightSiblings = otherSiblings(matching.n, parameters).stream();
-        Stream<CMMatching<T>> s = concat(leftSiblings, rightSiblings).map(a -> matching(a, matchings, parameters)).filter(m -> !m.isNoMatch());
+        Stream<CMMatching<T>> s = concat(leftSiblings, rightSiblings).map(a -> matching(a, matchings, parameters))
+                                                                     .filter(m -> !m.isNoMatch()).distinct();
 
         if (s.anyMatch(toCheck -> violatesOrdering(toCheck, matching, parameters))) {
             return parameters.wo.weigh(matching);
