@@ -12,14 +12,16 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.TestArtifact;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.strdump.DumpMode;
 import de.fosd.jdime.strdump.MatchingsTreeDump;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
@@ -94,37 +96,37 @@ public class CostModelMatcherTest extends JDimeTest {
     public static void main(String[] args) throws Exception { // TODO remove
         JDimeTest.initDirectories();
 
-        String filePath = "SimpleTests/Bag/Bag.java";
+        String filePath = "SimpleTests/MovedMethod.java";
         ASTNodeArtifact l = new ASTNodeArtifact(new FileArtifact(LEFT, file(leftDir, filePath)));
-        ASTNodeArtifact b = new ASTNodeArtifact(new FileArtifact(BASE, file(baseDir, filePath)));
         ASTNodeArtifact r = new ASTNodeArtifact(new FileArtifact(RIGHT, file(rightDir, filePath)));
 
         MergeContext context = new MergeContext();
-
-        context.setWr(0.9f);
-        context.setWn(1);
-        context.setWa(1);
-        context.setWs(0.1f);
-        context.setWo(0);
+        context.setWr(0.935f);
+        context.setWn(0.413f);
+        context.setWa(0.008f);
+        context.setWs(0.777f);
+        context.setWo(0.829f);
 
         // TODO extract parameters (or constants)
         context.setpAssign(0.7f);
-        context.setFixLower(.25f);
-        context.setFixUpper(.75f);
         context.setSeed(Optional.of(42L));
-        context.setCostModelIterations(1000);
+        context.setCostModelIterations(100);
         context.setCmMatcherParallel(true);
-        context.setCmMatcherFixRandomPercentage(true);
+        context.setCmMatcherFixRandomPercentage(false);
 
         CostModelMatcher<ASTNodeArtifact> matcher = new CostModelMatcher<>();
 
         System.in.read();
 
         long start = System.currentTimeMillis();
-        Matchings<ASTNodeArtifact> matchings = matcher.match(context, l, b);
+        Matchings<ASTNodeArtifact> matchings = matcher.match(context, l, r);
         System.out.println(System.currentTimeMillis() - start + "ms");
 
-        show(matchings);
+        Matcher<ASTNodeArtifact> m = new Matcher<>();
+        m.storeMatchings(context, matchings, Color.BLUE);
+
+        System.out.println(l.dump(DumpMode.PLAINTEXT_TREE));
+        System.out.println(r.dump(DumpMode.PLAINTEXT_TREE));
     }
 
     @Test
