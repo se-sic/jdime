@@ -286,6 +286,10 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         List<T> leftSiblings = siblings(leftSides.x, matchings, parameters);
         List<T> rightSiblings = siblings(rightSides.x, matchings, parameters);
 
+        if (concat(leftSiblings.stream(), rightSiblings.stream()).noneMatch(T::isOrdered)) {
+            return false;
+        }
+
         int leftXi = leftSiblings.indexOf(leftSides.x);
         int leftYi = leftSiblings.indexOf(leftSides.y);
         int rightXi = rightSiblings.indexOf(rightSides.x);
