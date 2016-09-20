@@ -426,13 +426,11 @@ public class Matcher<T extends Artifact<T>> {
             Matching<T> prevMatch = oMatch.get();
 
             if (prevMatch.getPercentage() > 0 && prevMatch.getPercentage() < 1) {
-                if (context.isCmMatcher()) {
-                    Matchings<T> newMatchings = cmMatcher.match(context, left, right);
-                    oMatch = newMatchings.get(left, right);
+                Matchings<T> newMatchings = cmMatcher.match(context, left, right);
+                oMatch = newMatchings.get(left, right);
 
-                    if (oMatch.isPresent() && oMatch.get().getPercentage() > prevMatch.getPercentage()) {
-                        matchings = newMatchings;
-                    }
+                if (oMatch.isPresent() && oMatch.get().getPercentage() > prevMatch.getPercentage()) {
+                    matchings = newMatchings;
                 }
             }
         } else {
