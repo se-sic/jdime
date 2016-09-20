@@ -150,11 +150,6 @@ public class Matcher<T extends Artifact<T>> {
         cache(context, left, right);
 
         Matchings<T> matchings = match(context, left, right);
-
-        if (context.isCmMatcher()) {
-            matchings = cmMatcher.match(context, left, right, matchings);
-        }
-
         Matching<T> matching = matchings.get(left, right).get();
 
         LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
@@ -397,29 +392,54 @@ public class Matcher<T extends Artifact<T>> {
 
         calls++;
 
+        Matchings<T> matchings;
+
         if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
-            return mceSubtreeMatcher.match(context, left, right);
-        }
-
-        if (onlyOrderedChildren) {
+            matchings = mceSubtreeMatcher.match(context, left, right);
+        } else if (onlyOrderedChildren) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
-            return orderedMatcher.match(context, left, right);
+            matchings = orderedMatcher.match(context, left, right);
         } else {
             unorderedCalls++;
 
             if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
-                return unorderedLabelMatcher.match(context, left, right);
+                matchings = unorderedLabelMatcher.match(context, left, right);
             } else {
                 logMatcherUse(unorderedMatcher.getClass(), left, right);
-                return unorderedMatcher.match(context, left, right);
+                matchings = unorderedMatcher.match(context, left, right);
             }
         }
+
+        if (!context.isCmMatcher()) {
+            return matchings;
+        }
+
+        Optional<Matching<T>> oMatch = matchings.get(left, right);
+
+        if (oMatch.isPresent()) {
+            Matching<T> prevMatch = oMatch.get();
+
+            if (prevMatch.getPercentage() > 0 && prevMatch.getPercentage() < 1) {
+                if (context.isCmMatcher()) {
+                    Matchings<T> newMatchings = cmMatcher.match(context, left, right);
+                    oMatch = newMatchings.get(left, right);
+
+                    if (oMatch.isPresent() && oMatch.get().getPercentage() > prevMatch.getPercentage()) {
+                        matchings = newMatchings;
+                    }
+                }
+            }
+        } else {
+            LOG.warning(() -> "Did not receive a matching for " + left + " " + right + " from the concrete matchers.");
+        }
+
+        return matchings;
     }
 
     /**
