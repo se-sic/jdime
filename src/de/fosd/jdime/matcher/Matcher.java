@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
@@ -161,9 +162,14 @@ public class Matcher<T extends Artifact<T>> {
             }
         }
 
-        Matching<T> matching = matchings.get(left, right).get();
+        matchings.get(left, right).ifPresent(m -> {
+            LOG.fine(() -> {
+                Revision lRev = left.getRevision();
+                Revision rRev = right.getRevision();
+                return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
+            });
+        });
 
-        LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
         LOG.fine(this::getLog);
 
         storeMatchings(context, matchings, color);
