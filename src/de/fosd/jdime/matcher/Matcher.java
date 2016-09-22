@@ -38,6 +38,7 @@ import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.LookAheadMatching;
@@ -147,9 +148,19 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        cache(context, left, right);
+        Matchings<T> matchings;
 
-        Matchings<T> matchings = match(context, left, right);
+        if (context.getCMMatcherMode() == CMMode.REPLACEMENT) {
+            matchings = cmMatcher.match(context, left, right);
+        } else {
+            cache(context, left, right);
+            matchings = match(context, left, right);
+
+            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR) {
+                matchings = cmMatcher.match(context, left, right, matchings);
+            }
+        }
+
         Matching<T> matching = matchings.get(left, right).get();
 
         LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
@@ -416,7 +427,7 @@ public class Matcher<T extends Artifact<T>> {
             }
         }
 
-        if (!context.isCmMatcher()) {
+        if (context.getCMMatcherMode() != CMMode.INTEGRATED) {
             return matchings;
         }
 
@@ -425,7 +436,7 @@ public class Matcher<T extends Artifact<T>> {
         if (oMatch.isPresent()) {
             Matching<T> prevMatch = oMatch.get();
 
-            if (prevMatch.getPercentage() > 0 && prevMatch.getPercentage() < 1) {
+            if (prevMatch.getPercentage() > 0 && prevMatch.getPercentage() < context.getCmReMatchBound()) { //TODO we may want to remove the first condition
                 Matchings<T> newMatchings = cmMatcher.match(context, left, right);
                 oMatch = newMatchings.get(left, right);
 
@@ -567,7 +578,7 @@ public class Matcher<T extends Artifact<T>> {
                 KeyEnums.Type rType = right.getType();
                 KeyEnums.Type lType = left.getType();
 
-                if (!context.isCmMatcher() &&
+                if (context.getCMMatcherMode() == CMMode.OFF &&
                         context.getLookahead(lType) == LOOKAHEAD_OFF &&
                         context.getLookahead(rType) == LOOKAHEAD_OFF &&
                         !left.matches(right)) {

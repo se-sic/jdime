@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -191,7 +192,8 @@ public class MergeContext implements Cloneable {
 
     private Map<MergeScenario<?>, Throwable> crashes;
 
-    private boolean cmMatcher;
+    private CMMode cmMatcherMode;
+    private float cmReMatchBound;
     private float wr, wn, wa, ws, wo;
     private float pAssign;
     private float fixLower, fixUpper;
@@ -227,7 +229,8 @@ public class MergeContext implements Cloneable {
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
-        this.cmMatcher = false;
+        this.cmMatcherMode = CMMode.OFF;
+        this.cmReMatchBound = .3f;
         this.wr = 1;
         this.wn = 1;
         this.wa = 1;
@@ -283,7 +286,8 @@ public class MergeContext implements Cloneable {
         this.lookAheads = new HashMap<>(toCopy.lookAheads);
 
         this.crashes = new HashMap<>(toCopy.crashes);
-        this.cmMatcher = toCopy.cmMatcher;
+        this.cmMatcherMode = toCopy.cmMatcherMode;
+        this.cmReMatchBound = toCopy.cmReMatchBound;
         this.wr = toCopy.wr;
         this.wn = toCopy.wn;
         this.wa = toCopy.wa;
@@ -410,7 +414,17 @@ public class MergeContext implements Cloneable {
             }
         });
 
-        config.getBoolean(CLI_CM).ifPresent(this::setCmMatcher);
+        config.get(CLI_CM, mode -> {
+
+            try {
+                return Optional.of(CMMode.valueOf(mode.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                LOG.log(WARNING, e, () -> "Invalid CostModelMatcher mode " + mode);
+                return Optional.empty();
+            }
+        }).ifPresent(this::setCmMatcherMode);
+
+        config.getFloat(CLI_CM_REMATCH_BOUND).ifPresent(this::setCmReMatchBound);
 
         config.get(CLI_CM_OPTIONS).ifPresent(opts -> {
             String[] split = opts.trim().split("\\s*,\\s*");
@@ -1057,12 +1071,20 @@ public class MergeContext implements Cloneable {
         return inspectArtifact > 0;
     }
 
-    public boolean isCmMatcher() {
-        return cmMatcher;
+    public CMMode getCMMatcherMode() {
+        return cmMatcherMode;
     }
 
-    public void setCmMatcher(boolean cmMatcher) {
-        this.cmMatcher = cmMatcher;
+    public void setCmMatcherMode(CMMode cmMatcher) {
+        this.cmMatcherMode = cmMatcher;
+    }
+
+    public float getCmReMatchBound() {
+        return cmReMatchBound;
+    }
+
+    public void setCmReMatchBound(float cmReMatchBound) {
+        this.cmReMatchBound = cmReMatchBound;
     }
 
     public float getWr() {

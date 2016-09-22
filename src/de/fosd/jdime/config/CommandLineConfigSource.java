@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.sources.ConfigSource;
 import org.apache.commons.cli.CommandLine;
@@ -68,6 +69,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_PROP_FILE = "pf";
     public static final String CLI_EXIT_ON_ERROR = "eoe";
     public static final String CLI_CM = "cm";
+    public static final String CLI_CM_REMATCH_BOUND = "cmbound";
     public static final String CLI_CM_OPTIONS = "cmopts";
     public static final String CLI_CM_PARALLEL = "cmpar";
     public static final String CLI_CM_FIX_PERCENTAGE = "cmfix";
@@ -283,10 +285,24 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_CM)
-                .longOpt("cost-model-matcher")
-                .desc("Enables the cost model matcher.")
-                .hasArg(false)
+        {
+            String modes = Arrays.stream(CMMode.values()).map(CMMode::name).reduce("", (s, s2) -> s + " " + s2);
+
+            o = Option.builder(CLI_CM)
+                            .longOpt("cost-model-matcher")
+                            .desc("Sets the cost model matcher operation mode to one of " + modes)
+                            .hasArg(true)
+                            .build();
+
+            options.addOption(o);
+        }
+
+        o = Option.builder(CLI_CM_REMATCH_BOUND)
+                .longOpt("cost-model-rematch-bound")
+                .desc("If the cost model matcher operation mode is " + CMMode.INTEGRATED + " the cost model matcher will " +
+                        "be used to try and improve subtree matches with a percentage lower than this bound. " +
+                        "Should be from (0, 1]. The default is 30%.")
+                .hasArg(true)
                 .build();
 
         options.addOption(o);
