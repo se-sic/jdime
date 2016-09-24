@@ -157,7 +157,7 @@ public class Matcher<T extends Artifact<T>> {
             cache(context, left, right);
             matchings = match(context, left, right);
 
-            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR) {
+            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(left, right).map(m -> !m.hasFullyMatched()).orElse(true)) {
                 matchings = cmMatcher.match(context, left, right, matchings);
             }
         }
