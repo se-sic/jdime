@@ -40,6 +40,7 @@ import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.MERGE;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -91,7 +92,7 @@ public class MergeTest extends JDimeTest {
 
                 Main.merge(context);
 
-                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath)));
+                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath), UTF_8));
                 String output = normalize(context.getOutputFile().getContent());
 
                 try {

@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  */
 public class ArtifactList<E extends Artifact<E>> extends ArrayList<E> {
 
+    private static final long serialVersionUID = 1L;
     private static final String DEFAULT_SEP = " ";
 
     /**

@@ -23,6 +23,8 @@
  */
 package de.fosd.jdime.matcher.unordered.assignmentProblem;
 
+import java.lang.reflect.Array;
+
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
@@ -76,7 +78,7 @@ public abstract class AssignmentProblemMatcher<T extends Artifact<T>> extends Un
         }
 
         @SuppressWarnings("unchecked")
-        Tuple<Integer, Matchings<T>>[][] matchings = new Tuple[m][n];
+        Tuple<Integer, Matchings<T>>[][] matchings = (Tuple<Integer, Matchings<T>>[][]) Array.newInstance(Tuple.class, m, n);
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
