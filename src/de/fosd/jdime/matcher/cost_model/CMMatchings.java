@@ -22,17 +22,41 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CMMatching<T>> 
     T left;
     T right;
 
+    /**
+     * See {@link super#ArrayList(int)}.
+     *
+     * @param left
+     *         the left root
+     * @param right
+     *         the right root
+     */
     public CMMatchings(int initialCapacity, T left, T right) {
         super(initialCapacity);
         this.left = left;
         this.right = right;
     }
 
+    /**
+     * See {@link super#ArrayList()}.
+     *
+     * @param left
+     *         the left root
+     * @param right
+     *         the right root
+     */
     public CMMatchings(T left, T right) {
         this.left = left;
         this.right = right;
     }
 
+    /**
+     * See {@link super#ArrayList(Collection)}.
+     *
+     * @param left
+     *         the left root
+     * @param right
+     *         the right root
+     */
     public CMMatchings(Collection<? extends CMMatching<T>> c, T left, T right) {
         super(c);
         this.left = left;
@@ -69,6 +93,12 @@ final class CMMatchings<T extends Artifact<T>> extends ArrayList<CMMatching<T>> 
         return leftTree.isEmpty() && rightTree.isEmpty();
     }
 
+    /**
+     * Returns this list of matchings as a <code>Map</code>. The map will contain matchings (l => r) and (r => l) for
+     * every matching [l, r].
+     *
+     * @return the matchings as a map
+     */
     Map<T, T> asMap() {
         return stream().filter(m -> !m.isNoMatch()).collect(HashMap::new, (map, matching) -> {
             map.put(matching.m, matching.n);

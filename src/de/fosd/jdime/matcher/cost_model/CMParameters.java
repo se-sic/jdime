@@ -111,6 +111,12 @@ public final class CMParameters<T extends Artifact<T>> {
      */
     ConcurrentMap<T, List<CMMatching<T>>> boundContainsCache;
 
+    /**
+     * Constructs a new <code>CMParameters</code> configured from the given <code>MergeContext</code>.
+     *
+     * @param context
+     *         the <code>MergeContext</code> to use
+     */
     public CMParameters(MergeContext context) {
         setNoMatchWeight(context.getWn());
         setRenamingWeight(context.getWr());
@@ -122,7 +128,7 @@ public final class CMParameters<T extends Artifact<T>> {
         setPAssign(context.getpAssign());
         setFixLower(context.getFixLower());
         setFixUpper(context.getFixUpper());
-        setBeta(30); // TODO figure out good values for this (dependant on the size of the trees)
+        setBeta(30);
         setParallel(context.isCmMatcherParallel());
         setFixRandomPercentage(context.isCmMatcherFixRandomPercentage());
         lcaCache = new ConcurrentHashMap<>();
@@ -132,13 +138,25 @@ public final class CMParameters<T extends Artifact<T>> {
         boundContainsCache = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Sets the no-match weighting function to return the given <code>wn</code>.
+     *
+     * @param wn
+     *         the no-match weight
+     */
     public void setNoMatchWeight(float wn) {
         this.wn = wn;
     }
 
+    /**
+     * Sets the renaming weighting function to return the given <code>wr</code>.
+     *
+     * @param wr
+     *         the renaming weight
+     */
     public void setRenamingWeight(float wr) {
         setRenamingWeight(matching -> {
-            float ease = 0.1f; // TODO make this a parameter?
+            float ease = 0.1f;
 
             if (matching.m.getType() == METHOD && matching.n.getType() == METHOD) {
                 return ease * wr;
@@ -152,70 +170,168 @@ public final class CMParameters<T extends Artifact<T>> {
         });
     }
 
+    /**
+     * Sets the renaming weighting function.
+     *
+     * @param wr
+     *         the new renaming weighting function
+     */
     public void setRenamingWeight(CostModelMatcher.SimpleWeightFunction<T> wr) {
         this.wr = wr;
     }
 
+    /**
+     * Sets the ancestry violation weighting function to multiply the cost with <code>wn</code>.
+     *
+     * @param wa
+     *         the new ancestry violation weight
+     */
     public void setAncestryViolationWeight(float wa) {
         setAncestryViolationWeight((matching, quantity) -> wa * quantity);
     }
 
+    /**
+     * Sets the ancestry violation weighting function.
+     *
+     * @param wa
+     *         the new ancestry violation weighting function
+     */
     public void setAncestryViolationWeight(CostModelMatcher.WeightFunction<T> wa) {
         this.wa = wa;
     }
 
+    /**
+     * Sets the sibling group breakup weighting function to multiply the cost with <code>ws</code>.
+     *
+     * @param ws
+     *         the new sibling group breakup weight
+     */
     public void setSiblingGroupBreakupWeight(float ws) {
         setSiblingGroupBreakupWeight((matching, quantity) -> ws * quantity);
     }
 
+    /**
+     * Sets the sibling group breakup weighting function.
+     *
+     * @param ws
+     *         the new sibling group breakup weighting function
+     */
     public void setSiblingGroupBreakupWeight(CostModelMatcher.WeightFunction<T> ws) {
         this.ws = ws;
     }
 
+    /**
+     * Sets the ordering violation weighting function to return <code>wo</code>.
+     *
+     * @param wo
+     *         the new ordering violation weight
+     */
     public void setOrderingWeight(float wo) {
         setOrderingWeight(matching -> wo);
     }
 
+    /**
+     * Sets the ordering violation weighting function.
+     *
+     * @param wo
+     *         the new ordering violation weighting function
+     */
     public void setOrderingWeight(CostModelMatcher.SimpleWeightFunction<T> wo) {
         this.wo = wo;
     }
 
+    /**
+     * Sets the fixing probability used in {@link CostModelMatcher#complete(CMMatchings, CMParameters)}.
+     *
+     * @param pAssign
+     *         the new fixing probability
+     */
     public void setPAssign(float pAssign) {
         this.pAssign = pAssign;
     }
 
+    /**
+     * Sets the lower bound for the number of matchings being fixed for the next iteration.
+     *
+     * @param fixLower
+     *         the lower bound, must be from [0, 1]
+     */
     public void setFixLower(float fixLower) {
         checkInRange(0, 1, fixLower);
         this.fixLower = fixLower;
     }
 
+    /**
+     * Sets the upper bound for the number of matchings being fixed for the next iteration.
+     *
+     * @param fixUpper
+     *         the upper bound, must be from [0, 1]
+     */
     public void setFixUpper(float fixUpper) {
         checkInRange(0, 1, fixUpper);
         this.fixUpper = fixUpper;
     }
 
+    /**
+     * Checks whether <code>val</code> is in the range [<code>lower</code>, <code>upper</code>].
+     *
+     * @param lower
+     *         the lower bound
+     * @param upper
+     *         the upper bound
+     * @param val
+     *         the value to check
+     * @throws IllegalArgumentException
+     *         if <code>val</code> is not from [<code>lower</code>, <code>upper</code>]
+     */
     private void checkInRange(float lower, float upper, float val) {
         if (!(lower <= val && val <= upper)) {
             throw new IllegalArgumentException(String.format("%s is not in the range [%s, %s]", val, lower, upper));
         }
     }
 
+    /**
+     * Sets the cost scaling factor beta used in the objective function.
+     *
+     * @param beta
+     *         the new beta
+     */
     public void setBeta(float beta) {
         this.beta = beta;
     }
 
+    /**
+     * Sets whether cost calculations should be performed in parallel for all matchings.
+     *
+     * @param parallel
+     *         whether cost calculations should be parallel
+     */
     public void setParallel(boolean parallel) {
         this.parallel = parallel;
     }
 
+    /**
+     * Sets whether to fix a random percentage of matchings instead of the first (randomly many) matchings.
+     *
+     * @param fixRandomPercentage
+     *         whether to fix a random percentage of matchings
+     * @see #setFixLower(float)
+     * @see #setFixUpper(float)
+     */
     public void setFixRandomPercentage(boolean fixRandomPercentage) {
         this.fixRandomPercentage = fixRandomPercentage;
     }
 
+    /**
+     * Clears the caches that are only valid for one exact cost calculation.
+     */
     public void clearExactCaches() {
         exactContainsCache.clear();
     }
 
+    /**
+     * Clears the caches that are only valid for one bounded cost calculation.
+     */
     public void clearBoundCaches() {
         boundContainsCache.clear();
     }
