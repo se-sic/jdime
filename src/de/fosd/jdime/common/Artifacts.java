@@ -6,12 +6,24 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
+/**
+ * This class consists of {@code static} utility methods for operating on {@code Artifact} instances.
+ */
 public final class Artifacts {
 
     private Artifacts() {
         // UTILITY CLASS
     }
 
+    /**
+     * Returns the root of the tree {@code artifact} is a part of.
+     *
+     * @param artifact
+     *         the {@link Artifact} for whose tree the root is to be returned
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the root of the tree
+     */
     public static <T extends Artifact<T>> T root(T artifact) {
         T root = artifact;
 
@@ -22,8 +34,17 @@ public final class Artifacts {
         return root;
     }
 
+    /**
+     * Returns the tree rooted in {@code treeRoot} in breadth-first order.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in breadth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the nodes of the tree rooted in {@code treeRoot} in breadth-first order
+     */
     public static <T extends Artifact<T>> List<T> bfs(T treeRoot) {
-        List<T> bfs = new ArrayList<>();
+        List<T> bfs = new ArrayList<>(treeRoot.getTreeSize());
         Deque<T> wait = new ArrayDeque<>();
 
         wait.addFirst(treeRoot);
@@ -38,8 +59,17 @@ public final class Artifacts {
         return bfs;
     }
 
+    /**
+     * Returns the tree rooted in {@code treeRoot} in depth-first order.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in depth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the nodes of the tree rooted in {@code treeRoot} in depth-first order
+     */
     public static <T extends Artifact<T>> List<T> dfs(T treeRoot) {
-        List<T> dfs = new ArrayList<>();
+        List<T> dfs = new ArrayList<>(treeRoot.getTreeSize());
         Deque<T> wait = new ArrayDeque<>();
 
         wait.addFirst(treeRoot);
