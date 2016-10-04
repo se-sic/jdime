@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static de.fosd.jdime.common.Artifacts.root;
 import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
@@ -86,8 +87,8 @@ public class CostModelMatcherTest extends JDimeTest {
         left = l0;
         right = r0;
 
-        left.renumberTree();
-        right.renumberTree();
+        root(left).renumber();
+        root(right).renumber();
     }
 
     // TODO remove

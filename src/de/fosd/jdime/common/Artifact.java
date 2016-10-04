@@ -311,16 +311,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Sets the number of all <code>Artifact</code>s contained in the same tree as this <code>Artifact</code> to their
-     * index in a DFS traversal of the tree.
+     * Sets the number of all <code>Artifact</code>s contained in the tree rooted at this artifact to their index in
+     * a depth-first traversal of the tree.
      */
-    public void renumberTree() {
-        findRoot().renumber(new AtomicInteger()::getAndIncrement);
+    public void renumber() {
+        renumber(new AtomicInteger()::getAndIncrement);
     }
 
     /**
-     * Sets the number of this <code>Artifact</code> to the first <code>Integer</code> supplied by <code>number</code>
-     * and then calls this method for all children with the given <code>number</code>.
+     * Sets the number of all <code>Artifact</code>s contained in the tree rooted at this artifact to the number
+     * supplied by <code>number</code> when traversing the tree in depth-first order.
      *
      * @param number
      *         the supplier for the new numbers
@@ -594,21 +594,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean isRoot() {
         return getParent() == null;
-    }
-
-    /**
-     * Returns the root node of the tree this <code>Artifact</code> is part of.
-     *
-     * @return the root node
-     */
-    public Artifact<T> findRoot() {
-        Artifact<T> current = this;
-
-        while (!current.isRoot()) {
-            current = current.getParent();
-        }
-
-        return current;
     }
 
     /**
