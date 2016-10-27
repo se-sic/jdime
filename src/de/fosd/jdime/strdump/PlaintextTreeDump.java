@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
 

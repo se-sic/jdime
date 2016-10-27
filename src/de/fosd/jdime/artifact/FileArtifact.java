@@ -47,10 +47,10 @@ import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.common.AbortException;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.ElementStatistics;

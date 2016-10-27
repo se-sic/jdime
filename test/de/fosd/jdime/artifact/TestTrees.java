@@ -28,9 +28,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -38,8 +38,8 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.artifact.Artifacts.root;
-import static de.fosd.jdime.common.MergeScenario.LEFT;
-import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
+import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;

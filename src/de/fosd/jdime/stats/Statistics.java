@@ -50,8 +50,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.ImplicitCollectionMapper;
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.FileArtifact;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.LookAheadMatching;
 import de.fosd.jdime.matcher.matching.Matching;
 

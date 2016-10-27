@@ -33,9 +33,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.operations.ConflictOperation;
 import de.fosd.jdime.operations.MergeOperation;

@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;

@@ -1,7 +1,7 @@
 package de.fosd.jdime.matcher.cost_model;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 

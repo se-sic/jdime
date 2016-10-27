@@ -26,8 +26,8 @@ package de.fosd.jdime.matcher.matching;
 import java.util.Objects;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 
 /**

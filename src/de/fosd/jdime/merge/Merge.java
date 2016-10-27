@@ -30,9 +30,9 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.ASTNodeArtifact;
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;

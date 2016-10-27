@@ -26,10 +26,10 @@ package de.fosd.jdime.artifact;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.NotYetImplementedException;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 
