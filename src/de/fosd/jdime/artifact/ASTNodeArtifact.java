@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,6 +33,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.ConflictOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.common.operations.Operation;
@@ -52,7 +55,6 @@ import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
 
-import static de.fosd.jdime.common.Artifacts.root;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
@@ -295,7 +297,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(root(this).dump(PLAINTEXT_TREE));
+            System.out.println(Artifacts.root(this).dump(PLAINTEXT_TREE));
         }
 
         String indent = isRoot() ? "" : astnode.extractIndent();

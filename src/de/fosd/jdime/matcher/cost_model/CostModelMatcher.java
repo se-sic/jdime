@@ -19,9 +19,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.Artifacts;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.matcher.MatcherInterface;

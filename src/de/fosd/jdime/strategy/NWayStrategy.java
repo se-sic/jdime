@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.artifact.ASTNodeArtifact;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;

@@ -25,7 +25,7 @@ package de.fosd.jdime.strdump;
 
 import java.util.function.Function;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 
 /**
  * Dumps an <code>Artifact</code> using its {@link Artifact#prettyPrint()} method.

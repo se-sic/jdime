@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
@@ -39,7 +39,7 @@ import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.strdump.DumpMode;
 
-import static de.fosd.jdime.common.Artifacts.root;
+import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.common.MergeScenario.BASE;
 
 /**

@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 
 /**
  * Dumps the given <code>Artifact</code> tree using the TGF format.

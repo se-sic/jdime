@@ -26,8 +26,8 @@ package de.fosd.jdime;
 import java.io.File;
 import java.nio.file.Files;
 
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.strategy.MergeStrategy;

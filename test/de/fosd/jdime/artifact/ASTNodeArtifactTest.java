@@ -21,11 +21,12 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.io.File;
 
 import de.fosd.jdime.JDimeTest;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.config.JDimeConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;

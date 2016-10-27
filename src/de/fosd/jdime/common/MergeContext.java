@@ -37,6 +37,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import de.fosd.jdime.artifact.ASTNodeArtifact;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.matcher.cost_model.CMMode;

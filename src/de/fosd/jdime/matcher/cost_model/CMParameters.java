@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Tuple;
 import org.apache.commons.math3.distribution.IntegerDistribution;

@@ -23,7 +23,7 @@
  */
 package de.fosd.jdime.common.operations;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 
 /**

@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**

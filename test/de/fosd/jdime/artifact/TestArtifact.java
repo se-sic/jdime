@@ -21,11 +21,15 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.MergeScenario;
+import de.fosd.jdime.common.NotYetImplementedException;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 

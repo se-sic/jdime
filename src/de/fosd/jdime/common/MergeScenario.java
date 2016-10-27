@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+
 /**
  * A <code>MergeScenario</code> collects the <code>Artifact</code>s that are participating in the merge and stores its
  * <code>MergeType</code>.

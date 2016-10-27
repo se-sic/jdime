@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;

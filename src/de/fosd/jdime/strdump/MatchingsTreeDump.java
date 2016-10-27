@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.Artifacts;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.strdump.graphviz.GraphvizEdge;

@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +38,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.StatisticsInterface;

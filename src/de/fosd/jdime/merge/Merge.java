@@ -28,8 +28,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.ASTNodeArtifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
@@ -40,7 +40,7 @@ import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
 
-import static de.fosd.jdime.common.Artifacts.root;
+import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**

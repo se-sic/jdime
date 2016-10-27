@@ -30,8 +30,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.operations.MergeOperation;

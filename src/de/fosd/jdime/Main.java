@@ -39,11 +39,11 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import de.fosd.jdime.common.ASTNodeArtifact;
+import de.fosd.jdime.artifact.ASTNodeArtifact;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.common.AbortException;
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;

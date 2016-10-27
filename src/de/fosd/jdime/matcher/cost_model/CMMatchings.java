@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.Artifacts;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.Artifacts;
 
 /**
  * A list of <code>CMMatching</code>s that additionally contains the roots of the left and right trees that

@@ -25,7 +25,7 @@ package de.fosd.jdime.common.operations;
 
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 
 /**

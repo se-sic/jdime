@@ -1,4 +1,4 @@
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
