@@ -4,12 +4,94 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * This class consists of {@code static} utility methods for operating on {@code Artifact} instances.
  */
 public final class Artifacts {
+
+    /**
+     * An {@code Iterator} over the elements of an {@code Artifact} tree in breadth-first order.
+     *
+     * @param <T>
+     *         the {@code Artifact} type
+     */
+    private static final class BFSIterator<T extends Artifact<T>> implements Iterator<T> {
+
+        private Deque<T> wait;
+
+        /**
+         * Constructs a new {@link BFSIterator} over the given tree.
+         *
+         * @param treeRoot
+         *         the root of the tree to traverse
+         */
+        private BFSIterator(T treeRoot) {
+            wait = new ArrayDeque<>();
+            wait.addFirst(treeRoot);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !wait.isEmpty();
+        }
+
+        @Override
+        public T next() {
+            T next = wait.removeFirst();
+            next.getChildren().forEach(wait::addLast);
+
+            return next;
+        }
+    }
+
+    /**
+     * An {@code Iterator} over the elements of an {@code Artifact} tree in depth-first order.
+     *
+     * @param <T>
+     *         the {@code Artifact} type
+     */
+    private static final class DFSIterator<T extends Artifact<T>> implements Iterator<T> {
+
+        private Deque<T> wait;
+
+        /**
+         * Constructs a new {@code DFSIterator} over the given tree.
+         *
+         * @param treeRoot
+         *         the root of the tree to traverse
+         */
+        private DFSIterator(T treeRoot) {
+            wait = new ArrayDeque<>();
+            wait.addFirst(treeRoot);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !wait.isEmpty();
+        }
+
+        @Override
+        public T next() {
+            T next = wait.removeFirst();
+
+            if (next.getNumChildren() == 1) {
+                wait.addFirst(next.getChild(0));
+            } else if (next.getNumChildren() > 1) {
+                ArrayList<T> ch = new ArrayList<>(next.getChildren());
+                Collections.reverse(ch);
+
+                ch.forEach(wait::addFirst);
+            }
+
+            return next;
+        }
+    }
 
     private Artifacts() {
         // UTILITY CLASS
@@ -44,19 +126,34 @@ public final class Artifacts {
      * @return the nodes of the tree rooted in {@code treeRoot} in breadth-first order
      */
     public static <T extends Artifact<T>> List<T> bfs(T treeRoot) {
-        List<T> bfs = new ArrayList<>(treeRoot.getTreeSize());
-        Deque<T> wait = new ArrayDeque<>();
+        return bfsStream(treeRoot).collect(Collectors.toList());
+    }
 
-        wait.addFirst(treeRoot);
+    /**
+     * Returns a {@code Stream} consisting of the elements of the tree rooted in {@code treeRoot} in breadth-first order.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in breadth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the nodes of the tree rooted in {@code treeRoot} in breadth-first order as a {@code Stream}
+     */
+    public static <T extends Artifact<T>> Stream<T> bfsStream(T treeRoot) {
+        return StreamSupport.stream(bfsIterable(treeRoot).spliterator(), false);
+    }
 
-        while (!wait.isEmpty()) {
-            T t = wait.removeFirst();
-
-            bfs.add(t);
-            t.getChildren().forEach(wait::addLast);
-        }
-
-        return bfs;
+    /**
+     * Returns an {@code Iterable} returning the elements of the tree rooted in {@code treeRoot} in breadth-first order
+     * from the {@link Iterator#hasNext()} method of its {@code Iterator}.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in breadth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return an {@code Iterable} over the elements of the tree rooted in {@code treeRoot} in breadth-first order
+     */
+    public static <T extends Artifact<T>> Iterable<T> bfsIterable(T treeRoot) {
+        return () -> new BFSIterator<>(treeRoot);
     }
 
     /**
@@ -69,22 +166,33 @@ public final class Artifacts {
      * @return the nodes of the tree rooted in {@code treeRoot} in depth-first order
      */
     public static <T extends Artifact<T>> List<T> dfs(T treeRoot) {
-        List<T> dfs = new ArrayList<>(treeRoot.getTreeSize());
-        Deque<T> wait = new ArrayDeque<>();
+        return dfsStream(treeRoot).collect(Collectors.toList());
+    }
 
-        wait.addFirst(treeRoot);
+    /**
+     * Returns a {@code Stream} consisting of the elements of the tree rooted in {@code treeRoot} in depth-first order.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in depth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the nodes of the tree rooted in {@code treeRoot} in depth-first order as a {@code Stream}
+     */
+    public static <T extends Artifact<T>> Stream<T> dfsStream(T treeRoot) {
+        return StreamSupport.stream(dfsIterable(treeRoot).spliterator(), false);
+    }
 
-        while (!wait.isEmpty()) {
-            T t = wait.removeFirst();
-
-            dfs.add(t);
-
-            List<T> ch = new ArrayList<>(t.getChildren());
-            Collections.reverse(ch);
-
-            ch.forEach(wait::addFirst);
-        }
-
-        return dfs;
+    /**
+     * Returns an {@code Iterable} returning the elements of the tree rooted in {@code treeRoot} in depth-first order
+     * from the {@link Iterator#hasNext()} method of its {@code Iterator}.
+     *
+     * @param treeRoot
+     *         the root of the tree to return in depth-first order
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return an {@code Iterable} over the elements of the tree rooted in {@code treeRoot} in depth-first order
+     */
+    public static <T extends Artifact<T>> Iterable<T> dfsIterable(T treeRoot) {
+        return () -> new DFSIterator<>(treeRoot);
     }
 }
