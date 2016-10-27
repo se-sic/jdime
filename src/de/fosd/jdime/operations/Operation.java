@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common.operations;
+package de.fosd.jdime.operations;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;

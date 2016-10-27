@@ -40,8 +40,8 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
 

@@ -33,12 +33,12 @@ import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.ConflictOperation;
-import de.fosd.jdime.common.operations.DeleteOperation;
-import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.ConflictOperation;
+import de.fosd.jdime.operations.DeleteOperation;
+import de.fosd.jdime.operations.MergeOperation;
 
 import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;

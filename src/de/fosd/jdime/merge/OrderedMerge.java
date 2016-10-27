@@ -32,11 +32,11 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.AddOperation;
-import de.fosd.jdime.common.operations.ConflictOperation;
-import de.fosd.jdime.common.operations.DeleteOperation;
-import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.AddOperation;
+import de.fosd.jdime.operations.ConflictOperation;
+import de.fosd.jdime.operations.DeleteOperation;
+import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.artifact.Artifacts.root;

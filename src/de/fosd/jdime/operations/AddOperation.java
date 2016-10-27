@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common.operations;
+package de.fosd.jdime.operations;
 
 import java.util.logging.Logger;
 

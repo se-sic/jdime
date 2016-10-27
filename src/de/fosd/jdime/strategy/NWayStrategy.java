@@ -37,7 +37,7 @@ import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
 import de.fosd.jdime.common.MergeType;
 import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.operations.MergeOperation;
 
 import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;

@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.common.MergeContext;
 import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
