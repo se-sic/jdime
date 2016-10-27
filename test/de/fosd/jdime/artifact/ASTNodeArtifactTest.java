@@ -26,6 +26,8 @@ package de.fosd.jdime.artifact;
 import java.io.File;
 
 import de.fosd.jdime.JDimeTest;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.config.merge.Revision;
 import org.junit.BeforeClass;

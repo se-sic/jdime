@@ -28,7 +28,7 @@ import java.util.Arrays;
 import de.fosd.jdime.JDimeTest;
 import de.fosd.jdime.Main;
 import de.fosd.jdime.artifact.ArtifactList;
-import de.fosd.jdime.artifact.FileArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;

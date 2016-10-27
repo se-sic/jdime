@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.FileArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**

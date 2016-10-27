@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.artifact;
+package de.fosd.jdime.artifact.file;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,6 +46,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.MimetypesFileTypeMap;
 
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;

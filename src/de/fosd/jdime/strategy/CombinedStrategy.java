@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.artifact.FileArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;

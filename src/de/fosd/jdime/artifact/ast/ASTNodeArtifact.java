@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.artifact;
+package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,6 +33,10 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;

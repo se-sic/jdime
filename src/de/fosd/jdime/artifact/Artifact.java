@@ -636,7 +636,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param right
      *            right alternative
      */
-    void setConflict(T left, T right) {
+    protected void setConflict(T left, T right) {
         this.conflict = true;
         this.left = left;
         this.right = right;
@@ -725,7 +725,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param parent
      *            the parent to set
      */
-    void setParent(T parent) {
+    protected void setParent(T parent) {
         this.parent = parent;
     }
 

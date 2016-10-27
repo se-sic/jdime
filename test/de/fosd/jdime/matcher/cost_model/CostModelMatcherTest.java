@@ -7,10 +7,10 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 import de.fosd.jdime.JDimeTest;
-import de.fosd.jdime.artifact.ASTNodeArtifact;
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.FileArtifact;
 import de.fosd.jdime.artifact.TestArtifact;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
