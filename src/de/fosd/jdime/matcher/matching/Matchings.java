@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.UnorderedTuple;
@@ -126,6 +127,61 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
         tuple.setY(null);
 
         return matching;
+    }
+
+    /**
+     * Returns the first matching having the given <code>artifact</code> as its left component,
+     * if no such matching exists, returns the first having <code>artifact</code> as its right
+     * component. If neither exits returns an empty <code>Optional</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to search for
+     * @return optionally the first <code>Matching</code> containing <code>artifact</code>
+     */
+    public Optional<Matching<T>> getAny(T artifact) {
+        Optional<Matching<T>> left = getLeft(artifact);
+
+        if (left.isPresent()) {
+            return left;
+        } else {
+            return getRight(artifact);
+        }
+    }
+
+    /**
+     * Returns the first matching having the given <code>artifact</code> as its left component. If no such matching
+     * exits returns an empty <code>Optional</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to search for
+     * @return optionally the first <code>Matching</code> containing <code>artifact</code>
+     */
+    public Optional<Matching<T>> getLeft(T artifact) {
+        return get(artifact, Matching::getLeft);
+    }
+
+    /**
+     * Returns the first matching having the given <code>artifact</code> as its right component. If no such matching
+     * exits returns an empty <code>Optional</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to search for
+     * @return optionally the first <code>Matching</code> containing <code>artifact</code>
+     */
+    public Optional<Matching<T>> getRight(T artifact) {
+        return get(artifact, Matching::getRight);
+    }
+
+    /**
+     * Returns the first matching whose result of the application of <code>getArtifact</code> is equal to
+     * <code>artifact</code>.
+     *
+     * @param artifact
+     *         the <code>Artifact</code> to search for
+     * @return optionally the first <code>Matching</code> containing <code>artifact</code>
+     */
+    private Optional<Matching<T>> get(T artifact, Function<Matching<T>, T> getArtifact) {
+        return stream().filter(m -> getArtifact.apply(m) == artifact).findFirst();
     }
 
     /**

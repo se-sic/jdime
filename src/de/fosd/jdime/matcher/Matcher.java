@@ -37,7 +37,10 @@ import java.util.stream.Stream;
 import de.fosd.jdime.common.Artifact;
 import de.fosd.jdime.common.ArtifactList;
 import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.common.Revision;
 import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.matcher.cost_model.CMMode;
+import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.LookAheadMatching;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -97,6 +100,8 @@ public class Matcher<T extends Artifact<T>> {
     private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
     private EqualityMatcher<T> equalityMatcher;
 
+    private CostModelMatcher<T> cmMatcher;
+
     private Set<Artifact<T>> orderedChildren;
     private Set<Artifact<T>> uniquelyLabeledChildren;
     private Set<Artifact<T>> fullyOrdered;
@@ -121,6 +126,9 @@ public class Matcher<T extends Artifact<T>> {
         lookupTuple = UnorderedTuple.of(null, null);
         trivialMatches = new HashMap<>();
         equalityMatcher = new EqualityMatcher<>(null);
+
+        cmMatcher = new CostModelMatcher<>();
+
         orderedChildren = new HashSet<>();
         uniquelyLabeledChildren = new HashSet<>();
         fullyOrdered = new HashSet<>();
@@ -141,12 +149,27 @@ public class Matcher<T extends Artifact<T>> {
      * @return <code>Matchings</code> of the two nodes
      */
     public Matchings<T> match(MergeContext context, T left, T right, Color color) {
-        cache(context, left, right);
+        Matchings<T> matchings;
 
-        Matchings<T> matchings = match(context, left, right);
-        Matching<T> matching = matchings.get(left, right).get();
+        if (context.getCMMatcherMode() == CMMode.REPLACEMENT) {
+            matchings = cmMatcher.match(context, left, right);
+        } else {
+            cache(context, left, right);
+            matchings = match(context, left, right);
 
-        LOG.fine(() -> String.format("match(%s, %s) = %d", left.getRevision(), right.getRevision(), matching.getScore()));
+            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(left, right).map(m -> !m.hasFullyMatched()).orElse(true)) {
+                matchings = cmMatcher.match(context, left, right, matchings);
+            }
+        }
+
+        matchings.get(left, right).ifPresent(m -> {
+            LOG.fine(() -> {
+                Revision lRev = left.getRevision();
+                Revision rRev = right.getRevision();
+                return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
+            });
+        });
+
         LOG.fine(this::getLog);
 
         storeMatchings(context, matchings, color);
@@ -386,29 +409,52 @@ public class Matcher<T extends Artifact<T>> {
 
         calls++;
 
+        Matchings<T> matchings;
+
         if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
             orderedCalls++;
 
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
-            return mceSubtreeMatcher.match(context, left, right);
-        }
-
-        if (onlyOrderedChildren) {
+            matchings = mceSubtreeMatcher.match(context, left, right);
+        } else if (onlyOrderedChildren) {
             orderedCalls++;
 
             logMatcherUse(orderedMatcher.getClass(), left, right);
-            return orderedMatcher.match(context, left, right);
+            matchings = orderedMatcher.match(context, left, right);
         } else {
             unorderedCalls++;
 
             if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
-                return unorderedLabelMatcher.match(context, left, right);
+                matchings = unorderedLabelMatcher.match(context, left, right);
             } else {
                 logMatcherUse(unorderedMatcher.getClass(), left, right);
-                return unorderedMatcher.match(context, left, right);
+                matchings = unorderedMatcher.match(context, left, right);
             }
         }
+
+        if (context.getCMMatcherMode() != CMMode.INTEGRATED) {
+            return matchings;
+        }
+
+        Optional<Matching<T>> oMatch = matchings.get(left, right);
+
+        if (oMatch.isPresent()) {
+            Matching<T> prevMatch = oMatch.get();
+
+            if (prevMatch.getPercentage() > 0 && prevMatch.getPercentage() < context.getCmReMatchBound()) { //TODO we may want to remove the first condition
+                Matchings<T> newMatchings = cmMatcher.match(context, left, right);
+                oMatch = newMatchings.get(left, right);
+
+                if (oMatch.isPresent() && oMatch.get().getPercentage() > prevMatch.getPercentage()) {
+                    matchings = newMatchings;
+                }
+            }
+        } else {
+            LOG.warning(() -> "Did not receive a matching for " + left + " " + right + " from the concrete matchers.");
+        }
+
+        return matchings;
     }
 
     /**
@@ -526,7 +572,7 @@ public class Matcher<T extends Artifact<T>> {
      * @param color
      *         the <code>Color</code> used to highlight the matchings in the debug output
      */
-    private void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
+    public void storeMatchings(MergeContext context, Matchings<T> matchings, Color color) {
         LOG.finest("Store matching information within nodes.");
 
         for (Matching<T> matching : matchings.optimized()) {
@@ -538,7 +584,9 @@ public class Matcher<T extends Artifact<T>> {
                 KeyEnums.Type rType = right.getType();
                 KeyEnums.Type lType = left.getType();
 
-                if (context.getLookahead(lType) == LOOKAHEAD_OFF && context.getLookahead(rType) == LOOKAHEAD_OFF &&
+                if (context.getCMMatcherMode() == CMMode.OFF &&
+                        context.getLookahead(lType) == LOOKAHEAD_OFF &&
+                        context.getLookahead(rType) == LOOKAHEAD_OFF &&
                         !left.matches(right)) {
 
                     String format = "Tried to store a non-lookahead matching between %s and %s that do not match.\n"

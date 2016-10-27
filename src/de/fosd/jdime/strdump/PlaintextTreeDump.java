@@ -90,14 +90,15 @@ public class PlaintextTreeDump implements StringDumper {
 
         if (artifact.hasMatches()) {
             Iterator<Map.Entry<Revision, Matching<T>>> it = artifact.getMatches().entrySet().iterator();
-            Map.Entry<Revision, Matching<T>> firstEntry = it.next();
+            Matching<T> firstEntry = it.next().getValue();
 
-            builder.append(firstEntry.getValue().getHighlightColor().toShell()).append(prefix);
+            builder.append(firstEntry.getHighlightColor().toShell()).append(prefix);
 
             appendArtifact(artifact, getLabel, builder);
 
-            builder.append(" <=> ");
-            appendArtifact(firstEntry.getValue().getMatchingArtifact(artifact), getLabel, builder);
+            int percentage = (int) (firstEntry.getPercentage() * 100);
+            builder.append(String.format(" <(%d, %d%%)> ", firstEntry.getScore(), percentage));
+            appendArtifact(firstEntry.getMatchingArtifact(artifact), getLabel, builder);
 
             it.forEachRemaining(entry -> {
                 builder.append(Color.DEFAULT.toShell()).append(", ");

@@ -23,7 +23,9 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * This class represents a revision.
@@ -31,6 +33,57 @@ import java.util.Objects;
  * @author Olaf Lessenich
  */
 public class Revision {
+
+    /**
+     * A <code>Supplier</code> for an arbitrary number of names 'A',...,'Z','AA',...,'ZZ',...
+     */
+    public static final class SuccessiveNameSupplier implements Supplier<String> {
+        private static final char A = 'A';
+        private static final char Z = 'Z';
+        private static final int NUM = Z - A + 1;
+
+        private char[] name = {A};
+
+        @Override
+        public String get() {
+            String res = String.valueOf(name);
+
+            for (int i = name.length - 1; i >= 0 && inc(i--);) {
+                if (i < 0) {
+                    name = new char[name.length + 1];
+                    Arrays.fill(name, A);
+                }
+            }
+
+            return res;
+        }
+
+        /**
+         * Increments the <code>char</code> at the given index in the <code>name</code> array mod <code>NUM</code> and
+         * returns whether there was an overflow back to <code>A</code>.
+         *
+         * @param i
+         *         the index to increment
+         * @return whether there was an overflow
+         */
+        private boolean inc(int i) {
+            name[i] = (char) (((name[i] - A + 1) % NUM) + A);
+            return name[i] == A;
+        }
+    }
+
+    /**
+     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
+     */
+    public static final class SuccessiveRevSupplier implements Supplier<Revision> {
+
+        private Supplier<String> nameSupplier = new SuccessiveNameSupplier();
+
+        @Override
+        public Revision get() {
+            return new Revision(nameSupplier.get());
+        }
+    };
 
     /**
      * Name of the revision.

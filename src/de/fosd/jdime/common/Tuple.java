@@ -23,15 +23,16 @@
  */
 package de.fosd.jdime.common;
 
+import java.util.Objects;
+
 /**
  * A generic tuple.
  *
- * FIXME: hashCode() and equals() should be implemented.
- *
+ * @param <X>
+ *         type of first element
+ * @param <Y>
+ *         type of second element
  * @author Olaf Lessenich
- *
- * @param <X> type of first element
- * @param <Y> type of second element
  */
 public class Tuple<X, Y> {
 
@@ -63,5 +64,24 @@ public class Tuple<X, Y> {
      */
     public Y getY() {
         return y;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Tuple<?, ?> tuple = (Tuple<?, ?>) o;
+        return Objects.equals(x, tuple.x) && Objects.equals(y, tuple.y);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 }

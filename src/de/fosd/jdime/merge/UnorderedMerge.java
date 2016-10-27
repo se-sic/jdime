@@ -38,6 +38,7 @@ import de.fosd.jdime.common.operations.DeleteOperation;
 import de.fosd.jdime.common.operations.MergeOperation;
 import de.fosd.jdime.matcher.matching.Matching;
 
+import static de.fosd.jdime.common.Artifacts.root;
 import static de.fosd.jdime.common.MergeScenario.BASE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -275,7 +276,7 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
             if (LOG.isLoggable(Level.FINEST) && target != null) {
                 LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
-                System.out.println(target.findRoot().dump(PLAINTEXT_TREE));
+                System.out.println(root(target).dump(PLAINTEXT_TREE));
             }
         }
     }

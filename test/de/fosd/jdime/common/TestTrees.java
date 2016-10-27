@@ -34,6 +34,7 @@ import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.common.Artifacts.root;
 import static de.fosd.jdime.common.MergeScenario.LEFT;
 import static de.fosd.jdime.common.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
@@ -99,7 +100,7 @@ public final class TestTrees {
         t16.addChild(t17);
         t16.addChild(t18);
 
-        t.renumberTree();
+        root(t).renumber();
 
         return t;
     }
@@ -153,8 +154,8 @@ public final class TestTrees {
         m2Right.addChild(s5Right);
         m3Right.addChild(s6Right);
 
-        classLeft.renumberTree();
-        classRight.renumberTree();
+        root(classLeft).renumber();
+        root(classRight).renumber();
 
         return Tuple.of(classLeft, classRight);
     }
@@ -206,8 +207,8 @@ public final class TestTrees {
         m2Right.addChild(s3Right);
         m2Right.addChild(s4Right);
 
-        classLeft.renumberTree();
-        classRight.renumberTree();
+        root(classLeft).renumber();
+        root(classRight).renumber();
 
         return Tuple.of(classLeft, classRight);
     }
@@ -244,7 +245,7 @@ public final class TestTrees {
         rBody.addChild(s3Right);
         rBody.addChild(s4Right);
 
-        clazz.renumberTree();
+        root(clazz).renumber();
 
         return clazz;
     }

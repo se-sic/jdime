@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
@@ -54,6 +55,7 @@ import static de.fosd.jdime.common.MergeType.TWOWAY_FILES;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static java.util.logging.Level.WARNING;
 
 /**
  * @author Olaf Lessenich
@@ -72,44 +74,6 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
-
-    /**
-     * A <code>Supplier</code> for an arbitrary number of <code>Revision</code> named 'A',...,'Z','AA',...,'ZZ',...
-     */
-    private static final Supplier<Revision> SUCC_REV_SUPPLIER = new Supplier<Revision>() {
-        private static final char A = 'A';
-        private static final char Z = 'Z';
-        private static final int NUM = Z - A + 1;
-
-        private char[] name = {A};
-
-        @Override
-        public Revision get() {
-            Revision rev = new Revision(String.valueOf(name));
-
-            for (int i = name.length - 1; i >= 0 && inc(i--);) {
-                if (i < 0) {
-                    name = new char[name.length + 1];
-                    Arrays.fill(name, A);
-                }
-            }
-
-            return rev;
-        }
-
-        /**
-         * Increments the <code>char</code> at the given index in the <code>name</code> array mod <code>NUM</code> and
-         * returns whether there was an overflow back to <code>A</code>.
-         *
-         * @param i
-         *         the index to increment
-         * @return whether there was an overflow
-         */
-        private boolean inc(int i) {
-            name[i] = (char) (((name[i] - A + 1) % NUM) + A);
-            return name[i] == A;
-        }
-    };
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -228,6 +192,16 @@ public class MergeContext implements Cloneable {
 
     private Map<MergeScenario<?>, Throwable> crashes;
 
+    private CMMode cmMatcherMode;
+    private float cmReMatchBound;
+    private float wr, wn, wa, ws, wo;
+    private float pAssign;
+    private float fixLower, fixUpper;
+    private Optional<Long> seed;
+    private int costModelIterations;
+    private boolean cmMatcherParallel;
+    private boolean cmMatcherFixRandomPercentage;
+
     /**
      * Constructs a new <code>MergeContext</code> initializing all options to their default values.
      */
@@ -255,6 +229,20 @@ public class MergeContext implements Cloneable {
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
+        this.cmMatcherMode = CMMode.OFF;
+        this.cmReMatchBound = .3f;
+        this.wr = 1;
+        this.wn = 1;
+        this.wa = 1;
+        this.ws = 1;
+        this.wo = 1;
+        this.pAssign = .7f;
+        this.fixLower = .25f;
+        this.fixUpper = .50f;
+        this.seed = Optional.of(42L);
+        this.costModelIterations = 100;
+        this.cmMatcherParallel = true;
+        this.cmMatcherFixRandomPercentage = true;
     }
 
     /**
@@ -298,6 +286,20 @@ public class MergeContext implements Cloneable {
         this.lookAheads = new HashMap<>(toCopy.lookAheads);
 
         this.crashes = new HashMap<>(toCopy.crashes);
+        this.cmMatcherMode = toCopy.cmMatcherMode;
+        this.cmReMatchBound = toCopy.cmReMatchBound;
+        this.wr = toCopy.wr;
+        this.wn = toCopy.wn;
+        this.wa = toCopy.wa;
+        this.ws = toCopy.ws;
+        this.wo = toCopy.wo;
+        this.pAssign = toCopy.pAssign;
+        this.fixLower = toCopy.fixLower;
+        this.fixUpper = toCopy.fixUpper;
+        this.seed = toCopy.seed;
+        this.costModelIterations = toCopy.costModelIterations;
+        this.cmMatcherParallel = toCopy.cmMatcherParallel;
+        this.cmMatcherFixRandomPercentage = toCopy.cmMatcherFixRandomPercentage;
     }
 
     /**
@@ -320,10 +322,11 @@ public class MergeContext implements Cloneable {
             try {
                 return Optional.of(Integer.parseInt(val));
             } catch (NumberFormatException e) {
+                String lcVal = val.trim().toLowerCase();
 
-                if ("off".equals(val)) {
+                if ("off".equals(lcVal)) {
                     return Optional.of(MergeContext.LOOKAHEAD_OFF);
-                } else if ("full".equals(val)) {
+                } else if ("full".equals(lcVal)) {
                     return Optional.of(MergeContext.LOOKAHEAD_FULL);
                 } else {
                     return Optional.empty();
@@ -362,7 +365,7 @@ public class MergeContext implements Cloneable {
             Supplier<Revision> revSupplier;
 
             if (isConditionalMerge()) {
-                revSupplier = SUCC_REV_SUPPLIER;
+                revSupplier = new Revision.SuccessiveRevSupplier();
             } else {
 
                 if (paths.size() == TWOWAY_FILES) {
@@ -370,7 +373,7 @@ public class MergeContext implements Cloneable {
                 } else if (paths.size() == THREEWAY_FILES) {
                     revSupplier = Arrays.asList(LEFT, BASE, RIGHT).iterator()::next;
                 } else {
-                    revSupplier = SUCC_REV_SUPPLIER;
+                    revSupplier = new Revision.SuccessiveRevSupplier();
                 }
             }
 
@@ -408,6 +411,89 @@ public class MergeContext implements Cloneable {
                 setPretend(false);
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
+            }
+        });
+
+        config.get(CLI_CM, mode -> {
+
+            try {
+                return Optional.of(CMMode.valueOf(mode.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                LOG.log(WARNING, e, () -> "Invalid CostModelMatcher mode " + mode);
+                return Optional.empty();
+            }
+        }).ifPresent(this::setCmMatcherMode);
+
+        config.getFloat(CLI_CM_REMATCH_BOUND).ifPresent(this::setCmReMatchBound);
+
+        config.get(CLI_CM_OPTIONS).ifPresent(opts -> {
+            String[] split = opts.trim().split("\\s*,\\s*");
+
+            if (split.length != 7) {
+                LOG.warning(() -> "The cost model options have an invalid format. Using defaults.");
+                return;
+            }
+
+            int costModelIterations;
+            float pAssign, wr, wn, wa, ws, wo;
+
+            try {
+                costModelIterations = Integer.parseInt(split[0]);
+                pAssign = Float.parseFloat(split[1]);
+                wr = Float.parseFloat(split[2]);
+                wn = Float.parseFloat(split[3]);
+                wa = Float.parseFloat(split[4]);
+                ws = Float.parseFloat(split[5]);
+                wo = Float.parseFloat(split[6]);
+            } catch (NumberFormatException e) {
+                LOG.log(WARNING, e, () -> "The cost model options have an invalid format. Using defaults.");
+                return;
+            }
+
+            setCostModelIterations(costModelIterations);
+            setpAssign(pAssign);
+            setWr(wr);
+            setWn(wn);
+            setWa(wa);
+            setWs(ws);
+            setWo(wo);
+        });
+
+        config.getBoolean(CLI_CM_PARALLEL).ifPresent(this::setCmMatcherParallel);
+
+        config.get(CLI_CM_FIX_PERCENTAGE).ifPresent(opts -> {
+            String[] split = opts.trim().split("\\s*,\\s*");
+
+            if (split.length != 2) {
+                LOG.warning(() -> "The cost model fix percentages have an invalid format.");
+                return;
+            }
+
+            float fixLower, fixUpper;
+
+            try {
+                fixLower = Float.parseFloat(split[0]);
+                fixUpper = Float.parseFloat(split[1]);
+            } catch (NumberFormatException e) {
+                LOG.log(WARNING, e, () -> "The cost model fix percentages have an invalid format.");
+                return;
+            }
+
+            setCmMatcherFixRandomPercentage(true);
+            setFixLower(fixLower);
+            setFixUpper(fixUpper);
+        });
+
+        config.get(CLI_CM_SEED).ifPresent(opt -> {
+
+            if ("none".equals(opt.trim().toLowerCase())) {
+                setSeed(Optional.empty());
+            } else {
+                try {
+                    setSeed(Optional.of(Long.parseLong(opt)));
+                } catch (NumberFormatException e) {
+                    LOG.log(WARNING, e, () -> "The cost model seed has an invalid format. Using the default.");
+                }
             }
         });
     }
@@ -983,5 +1069,117 @@ public class MergeContext implements Cloneable {
      */
     public boolean isInspect() {
         return inspectArtifact > 0;
+    }
+
+    public CMMode getCMMatcherMode() {
+        return cmMatcherMode;
+    }
+
+    public void setCmMatcherMode(CMMode cmMatcher) {
+        this.cmMatcherMode = cmMatcher;
+    }
+
+    public float getCmReMatchBound() {
+        return cmReMatchBound;
+    }
+
+    public void setCmReMatchBound(float cmReMatchBound) {
+        this.cmReMatchBound = cmReMatchBound;
+    }
+
+    public float getWr() {
+        return wr;
+    }
+
+    public void setWr(float wr) {
+        this.wr = wr;
+    }
+
+    public float getWn() {
+        return wn;
+    }
+
+    public void setWn(float wn) {
+        this.wn = wn;
+    }
+
+    public float getWa() {
+        return wa;
+    }
+
+    public void setWa(float wa) {
+        this.wa = wa;
+    }
+
+    public float getWs() {
+        return ws;
+    }
+
+    public void setWs(float ws) {
+        this.ws = ws;
+    }
+
+    public float getWo() {
+        return wo;
+    }
+
+    public void setWo(float wo) {
+        this.wo = wo;
+    }
+
+    public float getpAssign() {
+        return pAssign;
+    }
+
+    public void setpAssign(float pAssign) {
+        this.pAssign = pAssign;
+    }
+
+    public float getFixLower() {
+        return fixLower;
+    }
+
+    public void setFixLower(float fixLower) {
+        this.fixLower = fixLower;
+    }
+
+    public float getFixUpper() {
+        return fixUpper;
+    }
+
+    public void setFixUpper(float fixUpper) {
+        this.fixUpper = fixUpper;
+    }
+
+    public Optional<Long> getSeed() {
+        return seed;
+    }
+
+    public void setSeed(Optional<Long> seed) {
+        this.seed = seed;
+    }
+
+    public int getCostModelIterations() {
+        return costModelIterations;
+    }
+
+    public void setCostModelIterations(int costModelIterations) {
+        this.costModelIterations = costModelIterations;
+    }
+
+    public boolean isCmMatcherParallel() {
+        return cmMatcherParallel;
+    }
+
+    public void setCmMatcherParallel(boolean cmMatcherParallel) {
+        this.cmMatcherParallel = cmMatcherParallel;
+    }
+
+    public boolean isCmMatcherFixRandomPercentage() {
+        return cmMatcherFixRandomPercentage;
+    }
+
+    public void setCmMatcherFixRandomPercentage(boolean cmMatcherFixRandomPercentage) {
+        this.cmMatcherFixRandomPercentage = cmMatcherFixRandomPercentage;
     }
 }

@@ -54,6 +54,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public TestArtifact addChild(TestArtifact child) {
         children.add(child);
+        child.setParent(this);
         return child;
     }
 
