@@ -36,7 +36,6 @@ import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
-import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.cost_model.CMMode;
@@ -54,6 +53,7 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
+import de.fosd.jdime.util.UnorderedTuple;
 
 import static de.fosd.jdime.config.merge.MergeContext.LOOKAHEAD_OFF;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;

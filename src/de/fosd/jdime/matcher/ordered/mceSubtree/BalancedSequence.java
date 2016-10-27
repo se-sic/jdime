@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.Tuple;
+import de.fosd.jdime.util.Tuple;
 
 /**
  * Trees can be described as balanced sequences. A balanced sequence is a sequence of even length over the alphabet

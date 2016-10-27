@@ -5,8 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.Tuple;
 import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.util.Tuple;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.PascalDistribution;
 import org.apache.commons.math3.random.RandomAdaptor;

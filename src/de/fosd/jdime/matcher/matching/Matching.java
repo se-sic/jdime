@@ -26,7 +26,7 @@ package de.fosd.jdime.matcher.matching;
 import java.util.Objects;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.util.UnorderedTuple;
 
 /**
  * A container class representing a matching between two <code>T</code>s.

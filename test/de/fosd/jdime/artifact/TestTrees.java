@@ -28,14 +28,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import de.fosd.jdime.common.Tuple;
-import de.fosd.jdime.common.UnorderedTuple;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
+import de.fosd.jdime.util.Tuple;
+import de.fosd.jdime.util.UnorderedTuple;
 
 import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
