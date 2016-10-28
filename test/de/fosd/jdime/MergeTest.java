@@ -26,20 +26,20 @@ package de.fosd.jdime;
 import java.io.File;
 import java.nio.file.Files;
 
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static de.fosd.jdime.common.MergeScenario.BASE;
-import static de.fosd.jdime.common.MergeScenario.LEFT;
-import static de.fosd.jdime.common.MergeScenario.MERGE;
-import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.config.merge.MergeScenario.BASE;
+import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
+import static de.fosd.jdime.config.merge.MergeScenario.MERGE;
+import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;

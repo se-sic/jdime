@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.config.merge;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
 
 /**
  * A <code>MergeScenario</code> collects the <code>Artifact</code>s that are participating in the merge and stores its

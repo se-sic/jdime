@@ -21,21 +21,21 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
-
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+package de.fosd.jdime.execption;
 
 /**
- * Tests for the <code>Artifact</code> class.
+ * @author Olaf Lessenich
+ *
  */
-public class ArtifactTest {
+public class NotYetImplementedException extends RuntimeException {
 
-    @Test
-    public void testGetMaxDepth() throws Exception {
-        TestArtifact artifact = TestTrees.paperTree();
+    private static final long serialVersionUID = -4810070779184281940L;
 
-        assertEquals(7, artifact.getMaxDepth());
+    public NotYetImplementedException(final String message) {
+        super("Implement me: " + message + "!");
+    }
+
+    public NotYetImplementedException() {
+        super();
     }
 }

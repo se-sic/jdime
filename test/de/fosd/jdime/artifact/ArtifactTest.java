@@ -21,13 +21,21 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Olaf Lessenich
- *
+ * Tests for the <code>Artifact</code> class.
  */
-public class UnsupportedMergeTypeException extends RuntimeException {
+public class ArtifactTest {
 
-    private static final long serialVersionUID = -4562992040545178701L;
+    @Test
+    public void testGetMaxDepth() throws Exception {
+        TestArtifact artifact = TestTrees.paperTree();
+
+        assertEquals(7, artifact.getMaxDepth());
+    }
 }

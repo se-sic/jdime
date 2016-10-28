@@ -34,11 +34,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.matcher.matching.Color;
@@ -54,8 +53,9 @@ import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
+import de.fosd.jdime.util.UnorderedTuple;
 
-import static de.fosd.jdime.common.MergeContext.LOOKAHEAD_OFF;
+import static de.fosd.jdime.config.merge.MergeContext.LOOKAHEAD_OFF;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.TRY;
 

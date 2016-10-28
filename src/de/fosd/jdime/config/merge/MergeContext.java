@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.config.merge;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,8 +37,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
+import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
@@ -47,11 +52,6 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
-import static de.fosd.jdime.common.MergeScenario.BASE;
-import static de.fosd.jdime.common.MergeScenario.LEFT;
-import static de.fosd.jdime.common.MergeScenario.RIGHT;
-import static de.fosd.jdime.common.MergeType.THREEWAY_FILES;
-import static de.fosd.jdime.common.MergeType.TWOWAY_FILES;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
@@ -368,10 +368,10 @@ public class MergeContext implements Cloneable {
                 revSupplier = new Revision.SuccessiveRevSupplier();
             } else {
 
-                if (paths.size() == TWOWAY_FILES) {
-                    revSupplier = Arrays.asList(LEFT, RIGHT).iterator()::next;
-                } else if (paths.size() == THREEWAY_FILES) {
-                    revSupplier = Arrays.asList(LEFT, BASE, RIGHT).iterator()::next;
+                if (paths.size() == MergeType.TWOWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
+                } else if (paths.size() == MergeType.THREEWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
                 } else {
                     revSupplier = new Revision.SuccessiveRevSupplier();
                 }

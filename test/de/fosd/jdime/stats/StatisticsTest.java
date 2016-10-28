@@ -27,12 +27,12 @@ import java.util.Arrays;
 
 import de.fosd.jdime.JDimeTest;
 import de.fosd.jdime.Main;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.MergeType;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.strategy.MergeStrategy;
 import org.junit.Before;
 import org.junit.Test;

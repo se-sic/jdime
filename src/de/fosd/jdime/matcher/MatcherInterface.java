@@ -23,8 +23,8 @@
  */
 package de.fosd.jdime.matcher;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.merge.MergeInterface;
 

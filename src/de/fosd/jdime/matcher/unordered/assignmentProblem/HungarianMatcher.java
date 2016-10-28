@@ -26,11 +26,11 @@ package de.fosd.jdime.matcher.unordered.assignmentProblem;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.Tuple;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.util.Tuple;
 
 /**
  * This unordered matcher uses the hungarian algorithm to solve the assignment

@@ -21,11 +21,13 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.config.merge;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
+
+import de.fosd.jdime.artifact.Artifact;
 
 /**
  * This class represents a revision.

@@ -19,14 +19,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.Artifacts;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.Tuple;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
+import de.fosd.jdime.util.Tuple;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import static de.fosd.jdime.matcher.cost_model.Bounds.BY_LOWER_UPPER;

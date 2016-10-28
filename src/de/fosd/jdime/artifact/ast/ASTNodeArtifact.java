@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,10 +33,17 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.operations.ConflictOperation;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
+import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.merge.Merge;
+import de.fosd.jdime.operations.ConflictOperation;
+import de.fosd.jdime.operations.MergeOperation;
+import de.fosd.jdime.operations.Operation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.jastadd.extendj.ast.ASTNode;
@@ -52,7 +59,6 @@ import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
 
-import static de.fosd.jdime.common.Artifacts.root;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
@@ -295,7 +301,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(root(this).dump(PLAINTEXT_TREE));
+            System.out.println(Artifacts.root(this).dump(PLAINTEXT_TREE));
         }
 
         String indent = isRoot() ? "" : astnode.extractIndent();

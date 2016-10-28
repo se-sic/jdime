@@ -1,17 +1,17 @@
 package de.fosd.jdime.matcher.cost_model;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.util.Optional;
 
 import de.fosd.jdime.JDimeTest;
-import de.fosd.jdime.common.ASTNodeArtifact;
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.TestArtifact;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.TestArtifact;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -22,9 +22,9 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static de.fosd.jdime.common.Artifacts.root;
-import static de.fosd.jdime.common.MergeScenario.LEFT;
-import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.artifact.Artifacts.root;
+import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
+import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;
 import static org.junit.Assert.assertEquals;
 

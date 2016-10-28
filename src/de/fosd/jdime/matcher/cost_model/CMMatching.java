@@ -2,7 +2,7 @@ package de.fosd.jdime.matcher.cost_model;
 
 import java.util.Objects;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 
 /**
  * A pair of matching artifacts. This class is used instead of <code>Matching</code> because the

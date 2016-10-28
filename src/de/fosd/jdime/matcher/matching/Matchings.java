@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.UnorderedTuple;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.util.UnorderedTuple;
 
 /**
  * A <code>Set</code> of <code>Matching</code>s. Adds methods to retrieve specific elements of the <code>Set</code>

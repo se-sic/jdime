@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.strdump.graphviz.GraphvizEdge;
 import de.fosd.jdime.strdump.graphviz.GraphvizGraph;
 import de.fosd.jdime.strdump.graphviz.GraphvizNode;

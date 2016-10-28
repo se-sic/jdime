@@ -21,21 +21,38 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.config.merge;
 
 /**
  * @author Olaf Lessenich
  *
  */
-public class NotYetImplementedException extends RuntimeException {
+public enum MergeType {
 
-    private static final long serialVersionUID = -4810070779184281940L;
+    /**
+     * Two-way merge.
+     */
+    TWOWAY,
 
-    public NotYetImplementedException(final String message) {
-        super("Implement me: " + message + "!");
-    }
+    /**
+     * Three-way merge.
+     */
+    THREEWAY,
 
-    public NotYetImplementedException() {
-        super();
+    /**
+     * N-way merge.
+     */
+    NWAY;
+
+    /**
+     * At least two input files are needed.
+     */
+    public static final int TWOWAY_FILES = 2;
+    public static final int THREEWAY_FILES = 3;
+    public static final int MINFILES = TWOWAY_FILES;
+
+    @Override
+    public final String toString() {
+        return this.name();
     }
 }

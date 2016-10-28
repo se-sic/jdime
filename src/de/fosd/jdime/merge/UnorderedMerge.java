@@ -27,19 +27,19 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.Artifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.MergeType;
-import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.AddOperation;
-import de.fosd.jdime.common.operations.ConflictOperation;
-import de.fosd.jdime.common.operations.DeleteOperation;
-import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.config.merge.MergeType;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.AddOperation;
+import de.fosd.jdime.operations.ConflictOperation;
+import de.fosd.jdime.operations.DeleteOperation;
+import de.fosd.jdime.operations.MergeOperation;
 
-import static de.fosd.jdime.common.Artifacts.root;
-import static de.fosd.jdime.common.MergeScenario.BASE;
+import static de.fosd.jdime.artifact.Artifacts.root;
+import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**

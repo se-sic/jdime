@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +38,10 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
 
@@ -634,7 +636,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param right
      *            right alternative
      */
-    void setConflict(T left, T right) {
+    protected void setConflict(T left, T right) {
         this.conflict = true;
         this.left = left;
         this.right = right;
@@ -723,7 +725,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param parent
      *            the parent to set
      */
-    void setParent(T parent) {
+    protected void setParent(T parent) {
         this.parent = parent;
     }
 

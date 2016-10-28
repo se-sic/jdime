@@ -21,22 +21,25 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.common;
+package de.fosd.jdime.artifact;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.strdump.DumpMode;
+import de.fosd.jdime.util.Tuple;
+import de.fosd.jdime.util.UnorderedTuple;
 
-import static de.fosd.jdime.common.Artifacts.root;
-import static de.fosd.jdime.common.MergeScenario.LEFT;
-import static de.fosd.jdime.common.MergeScenario.RIGHT;
+import static de.fosd.jdime.artifact.Artifacts.root;
+import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
+import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
 import static de.fosd.jdime.stats.KeyEnums.Type.CLASS;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static de.fosd.jdime.stats.KeyEnums.Type.NODE;

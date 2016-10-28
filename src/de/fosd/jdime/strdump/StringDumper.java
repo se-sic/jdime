@@ -25,7 +25,7 @@ package de.fosd.jdime.strdump;
 
 import java.util.function.Function;
 
-import de.fosd.jdime.common.Artifact;
+import de.fosd.jdime.artifact.Artifact;
 
 /**
  * Implementations of this class dump <code>Artifact</code> (trees) to a <code>String</code>.
