@@ -115,7 +115,7 @@ public class CostModelMatcherTest extends JDimeTest {
     }
 
     // TODO remove
-    boolean show = true;
+    boolean show = false;
 
     public static void main(String[] args) throws Exception { // TODO remove
         JDimeTest.initDirectories();
@@ -151,12 +151,6 @@ public class CostModelMatcherTest extends JDimeTest {
 
         System.out.println(l.dump(DumpMode.PLAINTEXT_TREE));
         System.out.println(r.dump(DumpMode.PLAINTEXT_TREE));
-    }
-
-    @Test
-    public void testShow() throws Exception {
-        Matchings<TestArtifact> m = Matchings.of(left, right, 0);
-        show(m);
     }
 
     @Test
