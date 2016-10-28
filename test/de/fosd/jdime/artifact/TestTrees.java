@@ -23,19 +23,8 @@
  */
 package de.fosd.jdime.artifact;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import de.fosd.jdime.config.merge.MergeContext;
-import de.fosd.jdime.matcher.Matcher;
-import de.fosd.jdime.matcher.matching.Color;
-import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.stats.KeyEnums;
-import de.fosd.jdime.strdump.DumpMode;
 import de.fosd.jdime.util.Tuple;
-import de.fosd.jdime.util.UnorderedTuple;
 
 import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
@@ -216,7 +205,7 @@ public final class TestTrees {
         return Tuple.of(classLeft, classRight);
     }
 
-    private static TestArtifact conflictTree() {
+    public static TestArtifact conflictTree() {
         TestArtifact clazz = new TestArtifact("Class", CLASS);
         TestArtifact method = new TestArtifact("Method", CLASS);
 
@@ -251,90 +240,5 @@ public final class TestTrees {
         root(clazz).renumber();
 
         return clazz;
-    }
-
-    private static class MatchContext<T extends Artifact<T>> {
-
-        private MergeContext mergeContext;
-
-        private Set<T> hasOrderedChildren;
-        private Set<T> fullyOrderedSubtree;
-        private Map<T, KeyEnums.Type> types;
-
-        private Set<UnorderedTuple<T, T>> toBeMatched;
-
-        private MatchContext(MergeContext mergeContext) {
-            this.mergeContext = mergeContext;
-            this.hasOrderedChildren = new HashSet<>();
-            this.fullyOrderedSubtree = new HashSet<>();
-            this.types = new HashMap<>();
-            this.toBeMatched = new HashSet<>();
-        }
-
-        public void cache(T artifact) {
-            cacheOrdering(artifact);
-            cacheTypes(artifact);
-        }
-
-        private void cacheOrdering(T artifact) {
-            ArtifactList<T> children = artifact.getChildren();
-
-            children.forEach(this::cacheOrdering);
-
-            if (children.stream().allMatch(Artifact::isOrdered)) {
-                hasOrderedChildren.add(artifact);
-            }
-
-            if (children.stream().allMatch(fullyOrderedSubtree::contains) && artifact.isOrdered()) {
-                fullyOrderedSubtree.add(artifact);
-            }
-        }
-
-        private void cacheTypes(T artifact) {
-            types.put(artifact, artifact.getType());
-            artifact.getChildren().stream().forEach(this::cacheTypes);
-        }
-
-        public MergeContext getMergeContext() {
-            return mergeContext;
-        }
-
-        public boolean hasOrderedChildren(T artifact) {
-            return hasOrderedChildren.contains(artifact);
-        }
-
-        public boolean isFullyOrderedSubtree(T artifact) {
-            return fullyOrderedSubtree.contains(artifact);
-        }
-
-        public KeyEnums.Type getType(T artifact) {
-            return types.get(artifact);
-        }
-
-        public void addToBeMatched(UnorderedTuple<T, T> pair) {
-            toBeMatched.add(pair);
-        }
-
-        public Set<UnorderedTuple<T, T>> getToBeMatched() {
-            return toBeMatched;
-        }
-    }
-
-    public static void main(String[] args) {
-        Tuple<TestArtifact, TestArtifact> tests = tryTree();
-
-        MergeContext mergeContext = new MergeContext();
-        mergeContext.setLookAhead(TRY, MergeContext.LOOKAHEAD_FULL);
-        mergeContext.setLookAhead(METHOD, MergeContext.LOOKAHEAD_FULL);
-        mergeContext.setUseMCESubtreeMatcher(true);
-
-        Matcher<TestArtifact> matcher = new Matcher<>();
-
-        Matchings<TestArtifact> matches = matcher.match(mergeContext, tests.getX(), tests.getY(), Color.BLUE);
-
-        System.out.println(tests.getX().dump(DumpMode.PLAINTEXT_TREE, a -> ""));
-        System.out.println(tests.getY().dump(DumpMode.PLAINTEXT_TREE, a -> ""));
-
-        matches.stream().forEachOrdered(System.out::println);
     }
 }
