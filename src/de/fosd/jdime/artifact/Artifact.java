@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.artifact;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +45,8 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -112,6 +115,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     private int number;
 
+    private boolean hashValid;
+    private String hash;
+
     /**
      * Constructs a new <code>Artifact</code>.
      *
@@ -124,6 +130,8 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         this.matches = new LinkedHashMap<>();
         this.revision = rev;
         this.number = number;
+        this.hashValid = false;
+        this.hash = null;
     }
 
     /**
@@ -272,6 +280,51 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return identifier of the <code>Artifact</code>
      */
     public abstract String getId();
+
+    /**
+     * Returns a hash of the tree rooted in this {@code Artifact}.
+     *
+     * @return the tree hash
+     */
+    public String getTreeHash() {
+
+        if (hashValid) {
+            return hash;
+        }
+
+        MessageDigest digest = DigestUtils.getSha256Digest();
+        DigestUtils.updateDigest(digest, hashId());
+
+        if (hasChildren()) {
+            children.forEach(c -> DigestUtils.updateDigest(digest, c.getTreeHash()));
+            hash = "1" + Hex.encodeHexString(digest.digest());
+        } else {
+            hash = "0" + Hex.encodeHexString(digest.digest());
+        }
+
+        hashValid = true;
+        return hash;
+    }
+
+    /**
+     * Returns the {@code String} identifying this {@code Artifact} for the purposes of calculating the tree hash in
+     * {@link #getTreeHash()};
+     *
+     * @return the identifying {@code String} to be hashed
+     */
+    protected abstract String hashId();
+
+    /**
+     * Invalidates the hashes of this {@code Artifact} and all its parents.
+     */
+    protected void invalidateHash() {
+        hashValid = false;
+        hash = null;
+
+        if (parent != null) {
+            parent.invalidateHash();
+        }
+    }
 
     /**
      * Returns the <code>Matching</code> for a specific <code>Revision</code> or <code>null</code> if there is no such

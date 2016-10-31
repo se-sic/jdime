@@ -325,6 +325,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
+    protected String hashId() {
+        return astnode.getMatchingRepresentation();
+    }
+
+    @Override
     public KeyEnums.Type getType() {
         if (isMethod()) {
             return KeyEnums.Type.METHOD;

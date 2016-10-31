@@ -449,6 +449,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return getRevision() + ":" + getPath();
     }
 
+    @Override
+    protected String hashId() {
+        return file.getName();
+    }
+
     /**
      * Returns the path of this artifact.
      *
