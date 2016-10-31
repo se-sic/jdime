@@ -105,6 +105,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
+    protected String hashId() {
+        return label + type.name();
+    }
+
+    @Override
     public Optional<Supplier<String>> getUniqueLabel() {
         return Optional.empty();
     }
