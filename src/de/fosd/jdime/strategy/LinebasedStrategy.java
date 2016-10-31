@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
  *
@@ -26,18 +26,17 @@ package de.fosd.jdime.strategy;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.MergeScenario;
-import de.fosd.jdime.common.operations.MergeOperation;
+import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.MergeScenario;
+import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
@@ -82,12 +81,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      *
      * @param operation <code>MergeOperation</code> that is executed by this strategy
      * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @Override
-    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) throws IOException, InterruptedException {
+    public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
         FileArtifact target = null;
 
@@ -110,7 +106,13 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
         LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
         long runtime, startTime = System.currentTimeMillis();
-        Process pr = pb.start();
+        Process pr;
+
+        try {
+            pr = pb.start();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not run '" + String.join(" ", cmd) + "'.", e);
+        }
 
         StringBuilder processOutput = new StringBuilder();
         StringBuilder processErrorOutput = new StringBuilder();
@@ -122,6 +124,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             while ((line = r.readLine()) != null) {
                 processOutput.append(line).append(ls);
             }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process output.");
         }
 
         try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
@@ -130,12 +134,19 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             while ((line = r.readLine()) != null) {
                 processErrorOutput.append(line).append(ls);
             }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process error output.");
         }
 
         context.append(processOutput.toString());
         context.appendError(processErrorOutput.toString());
 
-        pr.waitFor();
+        try {
+            pr.waitFor();
+        } catch (InterruptedException e) {
+            LOG.log(Level.WARNING, e, () -> "Interrupted while waiting for the external command to finish.");
+        }
+
         runtime = System.currentTimeMillis() - startTime;
 
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
@@ -152,7 +163,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
-            ParseResult res = scenarioStatistics.addLineStatistics(processOutput.toString());
+            ParseResult res = scenarioStatistics.setLineStatistics(processOutput.toString());
 
             if (res.getConflicts() > 0) {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
@@ -161,36 +172,5 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             scenarioStatistics.setRuntime(runtime);
             statistics.addScenarioStatistics(scenarioStatistics);
         }
-    }
-
-    @Override
-    public final String toString() {
-        return "linebased";
-    }
-
-    /**
-     * Throws <code>UnsupportedOperationException</code>. You should use a structured strategy to dump a tree.
-     * 
-     * @param artifact
-     *            artifact to dump
-     * @param graphical
-     *            output option
-     */
-    @Override
-    public final String dumpTree(FileArtifact artifact, boolean graphical) {
-        throw new UnsupportedOperationException("Use a structured strategy to dump a tree.");
-    }
-
-    @Override
-    public String dumpFile(FileArtifact artifact, boolean graphical) throws IOException { //TODO: optionally save to outputfile
-        List<String> lines = Files.readAllLines(artifact.getFile().toPath(), StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder();
-
-        for (String line : lines) {
-            sb.append(line);
-            sb.append(System.lineSeparator());
-        }
-
-        return sb.toString();
     }
 }

@@ -1,3 +1,26 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2015 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
 package de.fosd.jdime;
 
 import java.io.File;
@@ -7,12 +30,12 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import de.fosd.jdime.common.ArtifactList;
-import de.fosd.jdime.common.FileArtifact;
-import de.fosd.jdime.common.MergeContext;
-import de.fosd.jdime.common.Revision;
-import de.fosd.jdime.common.operations.MergeOperation;
-import de.fosd.jdime.common.operations.Operation;
+import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
+import de.fosd.jdime.config.merge.Revision;
+import de.fosd.jdime.operations.MergeOperation;
+import de.fosd.jdime.operations.Operation;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
@@ -38,13 +61,14 @@ public class JDimeWrapper {
         // prepare the list of input files
         ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
-        for (Object filename : args) {
+        for (String filename : args) {
             try {
-                FileArtifact newArtifact = new FileArtifact(new File((String) filename));
+                File file = new File(filename);
 
-                // set the revision name, this will be used as condition for ifdefs
+                // the revision name, this will be used as condition for ifdefs
                 // as an example, I'll just use the filenames
-                newArtifact.setRevision(new Revision(FilenameUtils.getBaseName(newArtifact.getPath())));
+                Revision rev = new Revision(FilenameUtils.getBaseName(file.getPath()));
+                FileArtifact newArtifact = new FileArtifact(rev, file);
 
                 inputArtifacts.add(newArtifact);
             } catch (FileNotFoundException e) {
@@ -66,7 +90,7 @@ public class JDimeWrapper {
 
         // if there are no conflicts, run the conditional strategy
         if (context.getStatistics().hasConflicts()) {
-            context = (MergeContext) context.clone();
+            context = new MergeContext(context);
             context.collectStatistics(false);
             context.setMergeStrategy(conditional);
             // use regular merging outside of methods
