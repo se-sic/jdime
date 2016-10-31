@@ -42,6 +42,8 @@ import de.fosd.jdime.artifact.Artifacts;
  */
 final class CMMatchings<T extends Artifact<T>> extends ArrayList<CMMatching<T>> {
 
+    private static final long serialVersionUID = 1L;
+
     T left;
     T right;
 

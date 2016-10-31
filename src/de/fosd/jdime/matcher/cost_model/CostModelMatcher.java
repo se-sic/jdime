@@ -388,7 +388,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
     private Set<T> distinctSiblingFamilies(T m, CMMatchings<T> matchings, CMParameters<T> parameters) {
         Function<T, T> image = mChild -> image(mChild, matchings, parameters);
         Predicate<T> notNull = t -> t != null;
-        Function<T, T> getParent = Artifact::getParent;
+        Function<T, T> getParent = T::getParent;
 
         return siblings(m, matchings, parameters).stream().map(image).filter(notNull).map(getParent).collect(toSet());
     }
