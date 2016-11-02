@@ -63,27 +63,27 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected List<T> children = null;
+    protected List<T> children;
 
     /**
      * Left side of a conflict.
      */
-    protected T left = null;
+    protected T left;
 
     /**
      * Right side of a conflict.
      */
-    protected T right = null;
+    protected T right;
 
     /**
      * Whether this artifact represents a conflict.
      */
-    private boolean conflict = false;
+    private boolean conflict;
 
     /**
      * Whether this artifact represents a choice node.
      */
-    private boolean choice = false;
+    private boolean choice;
 
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
