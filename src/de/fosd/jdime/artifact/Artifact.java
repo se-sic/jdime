@@ -136,15 +136,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Adds a child.
-     *
-     * @param child
-     *            child to add
-     * @return added child
-     */
-    public abstract T addChild(T child);
-
-    /**
      * Adds a matching.
      *
      * @param matching
@@ -246,6 +237,20 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean exists();
 
     /**
+     * Adds a child.
+     *
+     * @param child
+     *            child to add
+     * @return added child
+     */
+    public abstract T addChild(T child);
+
+    /**
+     * Deletes the children of this {@code Artifact}.
+     */
+    public abstract void deleteChildren();
+
+    /**
      * Return child <code>Artifact</code> at position i.
      *
      * @param i
@@ -265,7 +270,23 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         return children;
     }
 
-    public abstract void deleteChildren();
+    /**
+     * Returns the number of children the <code>Artifact</code> has.
+     *
+     * @return number of children
+     */
+    public int getNumChildren() {
+        return children.size();
+    }
+
+    /**
+     * Returns true if the <code>Artifact</code> has children.
+     *
+     * @return true if the <code>Artifact</code> has children
+     */
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
 
     /**
      * Returns the identifier of the <code>Artifact</code>,
@@ -385,15 +406,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns the number of children the <code>Artifact</code> has.
-     *
-     * @return number of children
-     */
-    public int getNumChildren() {
-        return children.size();
-    }
-
-    /**
      * Returns the parent <code>Artifact</code>.
      *
      * @return the parent <code>Artifact</code>
@@ -489,15 +501,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean isChange() {
         return !hasMatches();
-    }
-
-    /**
-     * Returns true if the <code>Artifact</code> has children.
-     *
-     * @return true if the <code>Artifact</code> has children
-     */
-    public boolean hasChildren() {
-        return getNumChildren() > 0;
     }
 
     /**
