@@ -52,7 +52,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
         super(rev, 0);
         this.label = label;
         this.type = type;
-        this.children = new ArtifactList<>();
     }
 
     @Override
@@ -96,7 +95,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public void deleteChildren() {
-        this.children = new ArtifactList<>();
+        this.children.clear();
     }
 
     @Override

@@ -127,6 +127,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
      */
     protected Artifact(Revision rev, int number) {
+        this.children = new ArtifactList<>();
         this.matches = new LinkedHashMap<>();
         this.revision = rev;
         this.number = number;
@@ -252,7 +253,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return child <code>Artifact</code> at position i
      */
     public T getChild(int i) {
-        assert (children != null);
         return children.get(i);
     }
 
@@ -262,10 +262,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return the children of the <code>Artifact</code>
      */
     public List<T> getChildren() {
-        if (isLeaf()) {
-            return new ArtifactList<>();
-        }
-
         return children;
     }
 
@@ -394,11 +390,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return number of children
      */
     public int getNumChildren() {
-        if (isLeaf()) {
-            return 0;
-        }
-
-        return children == null ? 0 : children.size();
+        return children.size();
     }
 
     /**
@@ -795,7 +787,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public void setRevision(Revision revision, boolean recursive) {
         this.revision = revision;
 
-        if (recursive && children != null) {
+        if (recursive) {
             for (T child : children) {
                 child.setRevision(revision, true);
             }

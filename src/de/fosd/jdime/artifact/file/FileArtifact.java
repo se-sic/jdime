@@ -211,11 +211,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.file = file;
 
         if (isDirectory()) {
-            children = new ArtifactList<>();
             children.addAll(getDirContent(number));
             Collections.sort(children, comp);
-        } else {
-            children = null;
         }
     }
 
