@@ -63,7 +63,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected ArtifactList<T> children = null;
+    protected List<T> children = null;
 
     /**
      * Left side of a conflict.
@@ -261,7 +261,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *
      * @return the children of the <code>Artifact</code>
      */
-    public ArtifactList<T> getChildren() {
+    public List<T> getChildren() {
         if (isLeaf()) {
             return new ArtifactList<>();
         }
@@ -677,7 +677,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @param children
      *            the new children to set
      */
-    public void setChildren(ArtifactList<T> children) {
+    public void setChildren(List<T> children) {
         this.children = children;
     }
 

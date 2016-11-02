@@ -43,7 +43,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
@@ -283,8 +282,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the number of children of <code>m</code> violating ancestry
      */
     private int numAncestryViolatingChildren(T m, T n, CMMatchings<T> matchings, CMParameters<T> parameters) {
-        ArtifactList<T> mChildren = m.getChildren();
-        ArtifactList<T> nChildren = n.getChildren();
+        List<T> mChildren = m.getChildren();
+        List<T> nChildren = n.getChildren();
 
         Predicate<T> filter = a -> a != null && !nChildren.contains(a);
 

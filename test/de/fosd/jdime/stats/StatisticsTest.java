@@ -24,6 +24,7 @@
 package de.fosd.jdime.stats;
 
 import java.util.Arrays;
+import java.util.List;
 
 import de.fosd.jdime.JDimeTest;
 import de.fosd.jdime.Main;
@@ -58,7 +59,7 @@ public class StatisticsTest extends JDimeTest {
 
     @Test
     public void collectStatistics() throws Exception {
-        ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+        List<FileArtifact> inputArtifacts = new ArtifactList<>();
         String filePath = "SimpleTests/Bag/Bag.java";
 
         inputArtifacts.add(new FileArtifact(MergeScenario.LEFT, file(leftDir, filePath)));

@@ -24,12 +24,12 @@
 package de.fosd.jdime.operations;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;
@@ -91,7 +91,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      * @throws IOException
      *         if the dummy file used as BaseArtifact in a two-way-merge can not be created
      */
-    public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
+    public MergeOperation(List<T> inputArtifacts, T target, String leftCondition,
                           String rightCondition, boolean nway) throws IOException {
         Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
 

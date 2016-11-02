@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,7 +36,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.cost_model.CMMode;
@@ -229,7 +229,7 @@ public class Matcher<T extends Artifact<T>> {
      *         the <code>artifact</code> for which results are to be cached
      */
     private void cacheOrderingAndLabeling(T artifact) {
-        ArtifactList<T> children = artifact.getChildren();
+        List<T> children = artifact.getChildren();
 
         children.forEach(this::cacheOrderingAndLabeling);
 

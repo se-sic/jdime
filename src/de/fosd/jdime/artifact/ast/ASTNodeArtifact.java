@@ -26,6 +26,7 @@ package de.fosd.jdime.artifact.ast;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,7 +209,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     private void initializeChildren(Supplier<Integer> number) {
-        ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
+        List<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
             if (astnode != null) {
                 ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
@@ -244,7 +245,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             clone.setNumber(getNumber());
             clone.cloneMatches(this);
 
-            ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
+            List<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
             for (ASTNodeArtifact child : children) {
                 ASTNodeArtifact cloneChild = child.clone();
                 cloneChild.astnode.setParent(clone.astnode);

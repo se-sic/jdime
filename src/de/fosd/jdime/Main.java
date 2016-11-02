@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -40,7 +41,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
@@ -120,7 +120,7 @@ public final class Main {
             return;
         }
 
-        ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
+        List<FileArtifact> inputFiles = context.getInputFiles();
         FileArtifact output = context.getOutputFile();
 
         for (FileArtifact inputFile : inputFiles) {
@@ -419,7 +419,7 @@ public final class Main {
      *         If an input output exception occurs
      */
     public static void merge(MergeContext context) throws IOException, InterruptedException {
-        ArtifactList<FileArtifact> inFiles = context.getInputFiles();
+        List<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
 
         if (context.isFilterInputDirectories()) {
