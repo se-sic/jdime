@@ -70,8 +70,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
 
-    private boolean initialized = false;
-
     /**
      * Initializes parser.
      *
@@ -208,20 +206,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         initializeChildren(number);
     }
 
+    /**
+     * Adds {@code ASTNodeArtifact} children to this artifact encapsulating the children of the {@link #astnode}.
+     *
+     * @param number
+     *         supplies the numbers for the added children
+     */
     private void initializeChildren(Supplier<Integer> number) {
         List<ASTNodeArtifact> children = new ArtifactList<>();
+
         for (int i = 0; i < astnode.getNumChild(); i++) {
-            if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
-                child.setParent(this);
-                children.add(child);
-                if (!child.initialized) {
-                    child.initializeChildren(number);
-                }
-            }
+            ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
+
+            child.setParent(this);
+            children.add(child);
         }
+
         setChildren(children);
-        initialized = true;
     }
 
     /**
