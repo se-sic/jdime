@@ -282,11 +282,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     public void deleteChildren() {
-        while (hasChildren()) {
-            ASTNodeArtifact child = getChild(0);
-            child.astnode = null;
-            children.remove(0);
-        }
+        children.clear();
     }
 
     @Override

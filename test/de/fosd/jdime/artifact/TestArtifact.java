@@ -95,7 +95,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public void deleteChildren() {
-        this.children.clear();
+        children.clear();
     }
 
     @Override
