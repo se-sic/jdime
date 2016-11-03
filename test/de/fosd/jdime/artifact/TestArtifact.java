@@ -119,11 +119,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public boolean isLeaf() {
-        return children.isEmpty();
-    }
-
-    @Override
     public boolean isOrdered() {
         return type != KeyEnums.Type.METHOD;
     }

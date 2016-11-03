@@ -405,12 +405,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return !hasChildren();
     }
 
-    @Override
-    public final boolean isLeaf() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
     /**
      * Returns whether declaration order is significant for this node.
      *

@@ -616,13 +616,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean isEmpty();
 
     /**
-     * Returns true if the <code>Artifact</code> is a leaf.
-     *
-     * @return true if the <code>Artifact</code> is a leaf
-     */
-    public abstract boolean isLeaf();
-
-    /**
      * Returns true if the <code>Artifact</code> has already been merged.
      * @return true if the <code>Artifact</code> has already been merged
      */

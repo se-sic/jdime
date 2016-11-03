@@ -96,7 +96,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             if (target != null) {
                 LOG.fine("Deleting: " + target);
 
-                boolean isLeaf = target.isLeaf();
+                boolean isLeaf = !target.isDirectory();
                 boolean targetExists = target.exists();
                 String targetFileName = target.getFullPath();
 

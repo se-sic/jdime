@@ -613,11 +613,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final boolean isLeaf() {
-        return !file.isDirectory();
-    }
-
-    @Override
     public final boolean isOrdered() {
         return false;
     }
