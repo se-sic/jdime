@@ -262,12 +262,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns all children of the <code>Artifact</code>.
+     * Returns an unmodifiable view of the children of this {@code Artifact}.
      *
-     * @return the children of the <code>Artifact</code>
+     * @return an unmodifiable view of the children of this {@code Artifact}
+     * @see Collections#unmodifiableList(List)
      */
     public List<T> getChildren() {
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     /**
