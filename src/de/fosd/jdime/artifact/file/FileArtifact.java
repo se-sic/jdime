@@ -255,6 +255,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         children.add(added);
         Collections.sort(children, comp);
+        invalidateHash();
 
         return added;
     }
@@ -329,7 +330,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
             children.stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
 
             LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
-            children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && !c.hasChildren()));
+
+            if (children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && !c.hasChildren()))) {
+                invalidateHash();
+            }
         }
     }
 

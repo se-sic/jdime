@@ -58,6 +58,8 @@ public class TestArtifact extends Artifact<TestArtifact> {
     public TestArtifact addChild(TestArtifact child) {
         children.add(child);
         child.setParent(this);
+        invalidateHash();
+
         return child;
     }
 
@@ -96,6 +98,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public void deleteChildren() {
         children.clear();
+        invalidateHash();
     }
 
     @Override

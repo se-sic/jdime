@@ -668,6 +668,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public void setChildren(List<T> children) {
         this.children = children;
+        invalidateHash();
     }
 
     /**

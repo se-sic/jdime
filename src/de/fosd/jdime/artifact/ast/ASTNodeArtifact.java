@@ -24,7 +24,6 @@
 package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -272,6 +271,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         child.setParent(this);
         children.add(child);
+        invalidateHash();
 
         return child;
     }
@@ -281,8 +281,10 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return new ASTNodeArtifact(revision);
     }
 
+    @Override
     public void deleteChildren() {
         children.clear();
+        invalidateHash();
     }
 
     @Override
@@ -527,13 +529,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.finest(() -> String.format("[%s] Removing child %s", getId(), child.getId()));
         LOG.finest(() -> String.format("Children before removal: %s", getChildren()));
 
-        Iterator<ASTNodeArtifact> it = children.iterator();
-        ASTNodeArtifact elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (elem == child) {
-                it.remove();
-            }
+        if (children.removeIf(it -> it == child)) {
+            invalidateHash();
         }
 
         LOG.finest(() -> String.format("Children after removal: %s", getChildren()));
