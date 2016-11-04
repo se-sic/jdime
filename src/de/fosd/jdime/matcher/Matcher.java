@@ -26,7 +26,6 @@ package de.fosd.jdime.matcher;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,6 +47,7 @@ import de.fosd.jdime.matcher.ordered.EqualityMatcher;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.ordered.simpleTree.SimpleTreeMatcher;
+import de.fosd.jdime.matcher.unordered.IdenticalSubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
@@ -96,9 +96,11 @@ public class Matcher<T extends Artifact<T>> {
     private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
 
-    private UnorderedTuple<T, T> lookupTuple;
-    private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
-    private EqualityMatcher<T> equalityMatcher;
+    private IdenticalSubtreeMatcher<T> idSubtreeMatcher;
+
+//    private UnorderedTuple<T, T> lookupTuple;
+//    private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
+//    private EqualityMatcher<T> equalityMatcher;
 
     private CostModelMatcher<T> cmMatcher;
 
@@ -123,9 +125,9 @@ public class Matcher<T extends Artifact<T>> {
         orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
         mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
 
-        lookupTuple = UnorderedTuple.of(null, null);
-        trivialMatches = new HashMap<>();
-        equalityMatcher = new EqualityMatcher<>(null);
+//        lookupTuple = UnorderedTuple.of(null, null);
+//        trivialMatches = new HashMap<>();
+//        equalityMatcher = new EqualityMatcher<>(null);
 
         cmMatcher = new CostModelMatcher<>();
 
@@ -201,12 +203,15 @@ public class Matcher<T extends Artifact<T>> {
      *         the right node to be matched
      */
     private void cache(MergeContext context, T left, T right) {
-        trivialMatches.clear();
+//        trivialMatches.clear();
+//
+//        if (!cachedRoots.contains(left) || !cachedRoots.contains(right)) {
+//            Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
+//            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+//        }
 
-        if (!cachedRoots.contains(left) || !cachedRoots.contains(right)) {
-            Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
-            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
-        }
+        idSubtreeMatcher = new IdenticalSubtreeMatcher<>();
+        idSubtreeMatcher.matchTrees(left, right);
 
         if (!cachedRoots.contains(left)) {
             cacheOrderingAndLabeling(left);
@@ -354,30 +359,30 @@ public class Matcher<T extends Artifact<T>> {
      * @return the <code>Matchings</code>
      */
     private Optional<Matchings<T>> getTrivialMatchings(MergeContext context, T left, T right) {
-        lookupTuple.setX(left);
-        lookupTuple.setY(right);
+//        lookupTuple.setX(left);
+//        lookupTuple.setY(right);
+//
+//        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
+//            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
+//            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
+//        }
 
-        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
-            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
-            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
-        }
+        if (idSubtreeMatcher.hasMatched(left, right)) {
+//            Matchings<T> matchings = new Matchings<>();
+//
+//            matchings.add(trivialMatches.get(lookupTuple));
+//
+//            Iterator<T> lIt = left.getChildren().iterator();
+//            Iterator<T> rIt = right.getChildren().iterator();
+//
+//            while (lIt.hasNext() && rIt.hasNext()) {
+//                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
+//            }
+//
+//            lookupTuple.setX(null);
+//            lookupTuple.setY(null);
 
-        if (trivialMatches.containsKey(lookupTuple)) {
-            Matchings<T> matchings = new Matchings<>();
-
-            matchings.add(trivialMatches.get(lookupTuple));
-
-            Iterator<T> lIt = left.getChildren().iterator();
-            Iterator<T> rIt = right.getChildren().iterator();
-
-            while (lIt.hasNext() && rIt.hasNext()) {
-                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
-            }
-
-            lookupTuple.setX(null);
-            lookupTuple.setY(null);
-
-            return Optional.of(matchings);
+            return Optional.of(idSubtreeMatcher.match(context, left, right));
         } else {
             return Optional.empty();
         }

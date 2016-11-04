@@ -115,6 +115,11 @@ public class MergeTest extends JDimeTest {
     }
 
     @Test
+    public void testMovedMethod() {
+        runMerge("SimpleTests/MovedMethod.java");
+    }
+
+    @Test
     public void testBag() {
         runMerge("SimpleTests/Bag/Bag.java");
     }
