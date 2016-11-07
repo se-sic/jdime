@@ -13,6 +13,15 @@ import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
+import static java.util.stream.Collectors.summingInt;
+
+/**
+ * A {@link MatcherInterface matcher} that constructs {@link Matchings} between subtrees that match according to their
+ * {@link Artifact#getTreeHash()} method.
+ *
+ * @param <T>
+ *         the type of the {@link Artifact Artifacts} being matched
+ */
 public class IdenticalSubtreeMatcher<T extends Artifact<T>> implements MatcherInterface<T> {
 
     private Map<T, T> matches;
@@ -27,7 +36,7 @@ public class IdenticalSubtreeMatcher<T extends Artifact<T>> implements MatcherIn
     /**
      * Stores all matchings resulting from unique matching tree hashes in the left and right trees in this
      * {@link IdenticalSubtreeMatcher}. After this method was called, the
-     * {@link #match(MergeContext, Artifact, Artifact)} will return {@link Matchings} between the full trees if
+     * {@link #match(MergeContext, Artifact, Artifact)} method will return {@link Matchings} between the full trees if
      * {@link #hasMatched(Artifact, Artifact)} returns {@code true}.
      *
      * @param leftRoot
@@ -72,6 +81,13 @@ public class IdenticalSubtreeMatcher<T extends Artifact<T>> implements MatcherIn
         }
     }
 
+    /**
+     * Returns the subtree hashes that are unique in the given tree.
+     *
+     * @param treeRoot
+     *         the root of the tree to examine
+     * @return the unique hashes in the given tree and their corresponding nodes
+     */
     private Map<String, T> uniqueHashes(T treeRoot) {
         Map<String, T> hashes = new HashMap<>();
         Set<String> notUnique = new HashSet<>();
@@ -88,27 +104,55 @@ public class IdenticalSubtreeMatcher<T extends Artifact<T>> implements MatcherIn
         return hashes;
     }
 
+    /**
+     * Returns whether this {@link IdenticalSubtreeMatcher} has matched the {@link Artifact artifacts} {@code left} and
+     * {@code right} (and therefore their whole subtrees.
+     *
+     * @param left
+     *         the left {@link Artifact}
+     * @param right
+     *         the right {@link Artifact}
+     * @return true, iff a previous call to {@link #matchTrees(Artifact, Artifact)} resulted in matching {@code left}
+     * and {@code right}
+     */
     public boolean hasMatched(T left, T right) {
         return matches.get(left) == right;
     }
 
     @Override
     public Matchings<T> match(MergeContext context, T left, T right) {
+        Matchings<T> matchings = new Matchings<>();
 
         if (hasMatched(left, right)) {
-            return constructMatchings(new Matchings<>(), left, left.getTreeSize());
+            constructMatchings(matchings, left);
+            return matchings;
         }
 
-        return new Matchings<>();
+        return matchings;
     }
 
-    private Matchings<T> constructMatchings(Matchings<T> matchings, T left, int treeSize) {
-        Matching<T> matching = new Matching<>(left, matches.get(left), treeSize);
+    /**
+     * Adds {@link Matching matchings} between the subtrees rooted in {@code left} and its match in {@link #matches} to
+     * the given {@code matchings}.
+     *
+     * @param matchings
+     *         the {@link Matchings} to add to
+     * @param left
+     *         the root of the left tree that was matched
+     * @return the score of the {@link Matching} added for {@code left}
+     */
+    private int constructMatchings(Matchings<T> matchings, T left) {
+        int score = 1;
+
+        if (left.hasChildren()) {
+            score += left.getChildren().stream().collect(summingInt(c -> constructMatchings(matchings, c)));
+        }
+
+        Matching<T> matching = new Matching<>(left, matches.get(left), score);
+
         matching.setAlgorithm(IdenticalSubtreeMatcher.class.getSimpleName());
-
         matchings.add(matching);
-        left.getChildren().forEach(c -> constructMatchings(matchings, c, treeSize - 1));
 
-        return matchings;
+        return score;
     }
 }
