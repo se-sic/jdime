@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.Revision;
+import de.fosd.jdime.execption.NotYetImplementedException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.matcher.matching.Color;
@@ -110,10 +111,13 @@ public class Matcher<T extends Artifact<T>> {
 
     private Set<Artifact<T>> cachedRoots;
 
+    private T leftRoot;
+    private T rightRoot;
+    
     /**
-     * Constructs a new <code>Matcher</code>.
+     * Constructs a new <code>Matcher</code> matching the given trees.
      */
-    public Matcher() {
+    public Matcher(T leftRoot, T rightRoot) {
 
         // no method reference because this syntax makes setting a breakpoint for debugging easier
         MatcherInterface<T> rootMatcher = (context, left, right) -> {
@@ -135,39 +139,44 @@ public class Matcher<T extends Artifact<T>> {
         uniquelyLabeledChildren = new HashSet<>();
         fullyOrdered = new HashSet<>();
         cachedRoots = new HashSet<>();
+        
+        this.leftRoot = leftRoot;
+        this.rightRoot = rightRoot;
+    }
+
+    public Matcher(Matcher<T> oldMatcher, T leftRoot, T rightRoot) {
+        this(leftRoot, rightRoot);
+        throw new NotYetImplementedException("Implement the constructor reusing old caches."); // TODO implement reusing old caches
     }
 
     /**
-     * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+     * Calculates the matchings between the trees this {@link Matcher} was constructed for and stores the resulting
+     * {@link Matching matchings} in the matched {@link Artifact artifacts}.
      *
      * @param context
-     *         <code>MergeContext</code>
-     * @param left
-     *         left node
-     * @param right
-     *         right node
+     *         the {@link MergeContext} containing the configuration values to be used for matching
      * @param color
      *         color of the matching (for debug output only)
      * @return <code>Matchings</code> of the two nodes
      */
-    public Matchings<T> match(MergeContext context, T left, T right, Color color) {
+    public Matchings<T> match(MergeContext context, Color color) {
         Matchings<T> matchings;
 
         if (context.getCMMatcherMode() == CMMode.REPLACEMENT) {
-            matchings = cmMatcher.match(context, left, right);
+            matchings = cmMatcher.match(context, leftRoot, rightRoot);
         } else {
-            cache(context, left, right);
-            matchings = match(context, left, right);
+            cache(context, leftRoot, rightRoot);
+            matchings = match(context, leftRoot, rightRoot);
 
-            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(left, right).map(m -> !m.hasFullyMatched()).orElse(true)) {
-                matchings = cmMatcher.match(context, left, right, matchings);
+            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(leftRoot, rightRoot).map(m -> !m.hasFullyMatched()).orElse(true)) {
+                matchings = cmMatcher.match(context, leftRoot, rightRoot, matchings);
             }
         }
 
-        matchings.get(left, right).ifPresent(m -> {
+        matchings.get(leftRoot, rightRoot).ifPresent(m -> {
             LOG.fine(() -> {
-                Revision lRev = left.getRevision();
-                Revision rRev = right.getRevision();
+                Revision lRev = leftRoot.getRevision();
+                Revision rRev = rightRoot.getRevision();
                 return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
             });
         });
@@ -177,16 +186,16 @@ public class Matcher<T extends Artifact<T>> {
         storeMatchings(context, matchings, color);
 
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
+            LOG.finest(String.format("Dumping matching of %s and %s", leftRoot.getRevision(), rightRoot.getRevision()));
             System.out.println(matchings);
         }
 
         if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dump(DumpMode.PLAINTEXT_TREE));
+            LOG.fine(leftRoot.getRevision() + ".dumpTree():");
+            System.out.println(leftRoot.dump(DumpMode.PLAINTEXT_TREE));
 
-            LOG.fine(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dump(DumpMode.PLAINTEXT_TREE));
+            LOG.fine(rightRoot.getRevision() + ".dumpTree():");
+            System.out.println(rightRoot.dump(DumpMode.PLAINTEXT_TREE));
         }
 
         return matchings;
