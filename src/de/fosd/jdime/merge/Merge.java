@@ -80,7 +80,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             Objects.requireNonNull(target, "target must not be null!");
         }
 
-        Matcher<T> matcher;
+        Matcher<T> matcher = null;
         Matching<T> m;
 
         if (!left.hasMatching(r) && !right.hasMatching(l)) {
@@ -96,7 +96,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 }
 
                 // diff base right
-                matcher = new Matcher<>(base, right);
+                matcher = new Matcher<>(matcher, base, right);
                 m = matcher.match(context, Color.GREEN).get(base, right).get();
 
                 if (m.getScore() == 0) {
@@ -105,7 +105,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             // diff left right
-            matcher = new Matcher<>(left, right);
+            matcher = new Matcher<>(matcher, left, right);
             m = matcher.match(context, Color.BLUE).get(left, right).get();
 
             if (context.isDiffOnly() && left.isRoot() && left instanceof ASTNodeArtifact) {
