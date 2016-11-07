@@ -87,11 +87,6 @@ public class Matcher<T extends Artifact<T>> {
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
     private static final String ID = Matcher.class.getSimpleName();
 
-    private int calls = 0;
-    private int equalityCalls = 0;
-    private int orderedCalls = 0;
-    private int unorderedCalls = 0;
-
     private UnorderedMatcher<T> unorderedMatcher;
     private UnorderedMatcher<T> unorderedLabelMatcher;
     private OrderedMatcher<T> orderedMatcher;
@@ -180,8 +175,6 @@ public class Matcher<T extends Artifact<T>> {
                 return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
             });
         });
-
-        LOG.fine(this::getLog);
 
         storeMatchings(context, matchings, color);
 
@@ -312,10 +305,7 @@ public class Matcher<T extends Artifact<T>> {
         Optional<Matchings<T>> trivialMatches = getTrivialMatchings(context, left, right);
 
         if (trivialMatches.isPresent()) {
-            calls++;
-            equalityCalls++;
             logMatcherUse(EqualityMatcher.class, left, right);
-
             return trivialMatches.get();
         }
 
@@ -421,23 +411,15 @@ public class Matcher<T extends Artifact<T>> {
         boolean onlyOrderedChildren = orderedChildren.contains(left) && orderedChildren.contains(right);
         boolean onlyLabeledChildren = uniquelyLabeledChildren.contains(left) && uniquelyLabeledChildren.contains(right);
 
-        calls++;
-
         Matchings<T> matchings;
 
         if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
-            orderedCalls++;
-
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             matchings = mceSubtreeMatcher.match(context, left, right);
         } else if (onlyOrderedChildren) {
-            orderedCalls++;
-
             logMatcherUse(orderedMatcher.getClass(), left, right);
             matchings = orderedMatcher.match(context, left, right);
         } else {
-            unorderedCalls++;
-
             if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
                 matchings = unorderedLabelMatcher.match(context, left, right);
@@ -568,7 +550,7 @@ public class Matcher<T extends Artifact<T>> {
      * @param left the left <code>Artifact</code> that is matched
      * @param right the right <code>Artifact</code> that is matched
      */
-    private void logMatcherUse(Class<?> c, T left, T right) {
+    private void logMatcherUse(Class<? extends MatcherInterface> c, T left, T right) {
         LOG.finest(() -> {
             String matcherName = c.getSimpleName();
             return String.format("%s.match(%s, %s)", matcherName, left.getId(), right.getId());
@@ -615,17 +597,5 @@ public class Matcher<T extends Artifact<T>> {
                 LOG.finest(String.format("Store matching for %s and %s (%s).", left.getId(), right.getId(), matching.getAlgorithm()));
             }
         }
-    }
-
-    /**
-     * Returns a formatted string describing the logged call counts.
-     *
-     * @return a log of the call counts
-     */
-    private String getLog() {
-        assert (calls == unorderedCalls + orderedCalls + equalityCalls)
-                : String.format("Wrong sum for matcher calls: %d + %d + %d != %d",
-                unorderedCalls, orderedCalls, equalityCalls, calls);
-        return "Matcher calls (all/ordered/unordered/equality): " + calls + "/" + orderedCalls + "/" + unorderedCalls + "/" + equalityCalls;
     }
 }
