@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -52,16 +51,12 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
 import static de.fosd.jdime.config.JDimeConfig.*;
@@ -350,50 +345,14 @@ public final class Main {
             return false;
         }
 
-        Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
-
-            try {
-                return Optional.of(DumpMode.valueOf(mode.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                LOG.log(Level.WARNING, e, () -> "Invalid dump format " + mode);
-                return Optional.of(DumpMode.NONE);
-            }
-        };
-
-        Optional<Integer> inspectElement = config.getInteger(CLI_INSPECT_ELEMENT);
-        KeyEnums.Type scope = null;
-
-        if (inspectElement.isPresent()) {
-            scope = KeyEnums.Type.NODE;
-        } else if ((inspectElement = config.getInteger(CLI_INSPECT_METHOD)).isPresent()) {
-            scope = KeyEnums.Type.METHOD;
-        }
-
-        context.setInspectArtifact(inspectElement.orElse(0));
-        context.setInspectionScope(scope);
-
-        context.setDumpMode(config.get(CLI_DUMP, dmpModeParser).orElse(DumpMode.NONE));
-
         Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
 
-        if (mode.isPresent()) {
-
-            if (MODE_LIST.equals(mode.get())) {
-                printStrategies();
-                return false;
-            } else {
-
-                try {
-                    context.setMergeStrategy(MergeStrategy.parse(mode.get()));
-                } catch (StrategyNotFoundException e) {
-                    LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
-                    return false;
-                }
-            }
+        if (mode.isPresent() && MODE_LIST.equals(mode.get())) {
+            printStrategies();
+            return false;
         }
 
         context.configureFrom(config);
-
         return true;
     }
 

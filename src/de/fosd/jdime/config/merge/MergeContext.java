@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,7 @@ import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
+import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
@@ -310,12 +312,52 @@ public class MergeContext implements Cloneable {
      *         the <code>JDimeConfig</code> to query for config values
      */
     public void configureFrom(JDimeConfig config) {
+        configDump(config);
+        configInspect(config);
         configMerge(config);
         configErrorHandling(config);
         configInputOutput(config);
     }
 
+    private void configInspect(JDimeConfig config) {
+        // TODO make both inspections at the same time possible (Map<Type, ID>)
+
+        config.getInteger(CLI_INSPECT_ELEMENT).ifPresent(elId -> {
+            setInspectArtifact(elId);
+            setInspectionScope(KeyEnums.Type.NODE);
+        });
+
+        config.getInteger(CLI_INSPECT_METHOD).ifPresent(mId -> {
+            setInspectArtifact(mId);
+            setInspectionScope(KeyEnums.Type.METHOD);
+        });
+    }
+
+    private void configDump(JDimeConfig config) {
+        Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
+
+            try {
+                return Optional.of(DumpMode.valueOf(mode.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                LOG.log(Level.WARNING, e, () -> "Invalid dump format " + mode);
+                return Optional.empty();
+            }
+        };
+
+        config.get(CLI_DUMP, dmpModeParser).ifPresent(this::setDumpMode);
+    }
+
     private void configMerge(JDimeConfig config) {
+        {
+            String mode = config.get(CLI_MODE).map(String::toLowerCase)
+                                .orElseThrow(() -> new AbortException("No mode given."));
+
+            try {
+                setMergeStrategy(MergeStrategy.parse(mode));
+            } catch (StrategyNotFoundException e) {
+                throw new AbortException(e);
+            }
+        }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
 
@@ -504,6 +546,8 @@ public class MergeContext implements Cloneable {
             }
 
             setInputFiles(inputArtifacts);
+        } else {
+            throw new AbortException("No input files given.");
         }
 
         /*
