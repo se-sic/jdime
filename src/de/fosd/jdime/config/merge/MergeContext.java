@@ -310,13 +310,21 @@ public class MergeContext implements Cloneable {
      *         the <code>JDimeConfig</code> to query for config values
      */
     public void configureFrom(JDimeConfig config) {
+        configMerge(config);
+        configErrorHandling(config);
+        configInputOutput(config);
+    }
 
-        setUseMCESubtreeMatcher(config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false));
+    private void configMerge(JDimeConfig config) {
+
+        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
             setDiffOnly(diffOnly);
             config.getBoolean(CLI_CONSECUTIVE).ifPresent(this::setConsecutive);
         });
+
+        config.getBoolean(USE_MCESUBTREE_MATCHER).ifPresent(this::setUseMCESubtreeMatcher);
 
         config.get(CLI_LOOKAHEAD, val -> {
             try {
@@ -329,106 +337,25 @@ public class MergeContext implements Cloneable {
                 } else if ("full".equals(lcVal)) {
                     return Optional.of(MergeContext.LOOKAHEAD_FULL);
                 } else {
+                    LOG.warning(() -> "Invalid lookahead value '" + val + "'.");
                     return Optional.empty();
                 }
             }
         }).ifPresent(this::setLookAhead);
 
         for (KeyEnums.Type type : KeyEnums.Type.values()) {
-            Optional<Integer> lah = config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name());
-            lah.ifPresent(val -> setLookAhead(type, val));
+            config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name()).ifPresent(val -> setLookAhead(type, val));
         }
 
-        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
-        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
-        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+        configCostModelMatcher(config);
+    }
 
-        if (config.getBoolean(CLI_PRINT).orElse(false)) {
-            setPretend(true);
-            setQuiet(false);
-        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
-            setQuiet(true);
-        }
-
-        config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
-
+    private void configErrorHandling(JDimeConfig config) {
         config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
-
         config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
+    }
 
-        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
-
-        if (args.isPresent()) {
-            List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
-                                          .map(String::trim).map(File::new).collect(Collectors.toList());
-
-            boolean anyNonExistent = inputFiles.stream().filter(f -> !f.exists()).peek(f ->
-                    LOG.severe(() -> "Input file " + f + " does not exist.")).findFirst().isPresent();
-
-            if (anyNonExistent) {
-                throw new AbortException("All input files must exist.");
-            }
-
-            boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||
-                                      inputFiles.stream().allMatch(File::isFile);
-
-            if (!consistentTypes) {
-                throw new AbortException("Input files must be all directories or all files.");
-            }
-
-            Supplier<Revision> revSupplier;
-
-            if (isConditionalMerge()) {
-                revSupplier = new Revision.SuccessiveRevSupplier();
-            } else {
-
-                if (inputFiles.size() == MergeType.TWOWAY_FILES) {
-                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
-                } else if (inputFiles.size() == MergeType.THREEWAY_FILES) {
-                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
-                } else {
-                    revSupplier = new Revision.SuccessiveRevSupplier();
-                }
-            }
-
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-
-            for (File file : inputFiles) {
-
-                try {
-                    FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
-                    inputArtifacts.add(artifact);
-                } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", file));
-                    throw new AbortException(e);
-                } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", file));
-                    throw new AbortException(e);
-                }
-            }
-
-            setInputFiles(inputArtifacts);
-        }
-
-        /*
-         * TODO[low priority]
-         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
-         * compatible with gnu merge call syntax.
-         */
-        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
-            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
-
-            try {
-                File out = new File(outputFileName);
-                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
-
-                setOutputFile(outArtifact);
-                setPretend(false);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
-            }
-        });
-
+    private void configCostModelMatcher(JDimeConfig config) {
         config.get(CLI_CM, mode -> {
 
             try {
@@ -509,6 +436,92 @@ public class MergeContext implements Cloneable {
                 } catch (NumberFormatException e) {
                     LOG.log(WARNING, e, () -> "The cost model seed has an invalid format. Using the default.");
                 }
+            }
+        });
+    }
+
+    private void configInputOutput(JDimeConfig config) {
+        config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
+        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
+        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+
+        if (config.getBoolean(CLI_PRINT).orElse(false)) {
+            setPretend(true);
+            setQuiet(false);
+        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
+            setQuiet(true);
+        }
+
+        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
+
+        if (args.isPresent()) {
+            List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
+                                          .map(String::trim).map(File::new).collect(Collectors.toList());
+
+            boolean anyNonExistent = inputFiles.stream().filter(f -> !f.exists()).peek(f ->
+                    LOG.severe(() -> "Input file " + f + " does not exist.")).findFirst().isPresent();
+
+            if (anyNonExistent) {
+                throw new AbortException("All input files must exist.");
+            }
+
+            boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||
+                                      inputFiles.stream().allMatch(File::isFile);
+
+            if (!consistentTypes) {
+                throw new AbortException("Input files must be all directories or all files.");
+            }
+
+            Supplier<Revision> revSupplier;
+
+            if (isConditionalMerge()) {
+                revSupplier = new Revision.SuccessiveRevSupplier();
+            } else {
+
+                if (inputFiles.size() == MergeType.TWOWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
+                } else if (inputFiles.size() == MergeType.THREEWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
+                } else {
+                    revSupplier = new Revision.SuccessiveRevSupplier();
+                }
+            }
+
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+
+            for (File file : inputFiles) {
+
+                try {
+                    FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
+                    inputArtifacts.add(artifact);
+                } catch (FileNotFoundException e) {
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", file));
+                    throw new AbortException(e);
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", file));
+                    throw new AbortException(e);
+                }
+            }
+
+            setInputFiles(inputArtifacts);
+        }
+
+        /*
+         * TODO[low priority]
+         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
+         * compatible with gnu merge call syntax.
+         */
+        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
+            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
+
+            try {
+                File out = new File(outputFileName);
+                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
+
+                setOutputFile(outArtifact);
+                setPretend(false);
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
             }
         });
     }
