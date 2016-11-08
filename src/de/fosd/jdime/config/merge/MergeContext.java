@@ -359,8 +359,22 @@ public class MergeContext implements Cloneable {
         Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
         if (args.isPresent()) {
-            List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
+                                          .map(String::trim).map(File::new).collect(Collectors.toList());
+
+            boolean anyNonExistent = inputFiles.stream().filter(f -> !f.exists()).peek(f ->
+                    LOG.severe(() -> "Input file " + f + " does not exist.")).findFirst().isPresent();
+
+            if (anyNonExistent) {
+                throw new AbortException("All input files must exist.");
+            }
+
+            boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||
+                                      inputFiles.stream().allMatch(File::isFile);
+
+            if (!consistentTypes) {
+                throw new AbortException("Input files must be all directories or all files.");
+            }
 
             Supplier<Revision> revSupplier;
 
@@ -368,26 +382,27 @@ public class MergeContext implements Cloneable {
                 revSupplier = new Revision.SuccessiveRevSupplier();
             } else {
 
-                if (paths.size() == MergeType.TWOWAY_FILES) {
+                if (inputFiles.size() == MergeType.TWOWAY_FILES) {
                     revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
-                } else if (paths.size() == MergeType.THREEWAY_FILES) {
+                } else if (inputFiles.size() == MergeType.THREEWAY_FILES) {
                     revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
                 } else {
                     revSupplier = new Revision.SuccessiveRevSupplier();
                 }
             }
 
-            for (String path : paths) {
-                String fileName = path.trim();
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+
+            for (File file : inputFiles) {
 
                 try {
-                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(fileName));
+                    FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
                     inputArtifacts.add(artifact);
                 } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", fileName));
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", file));
                     throw new AbortException(e);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", fileName));
+                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", file));
                     throw new AbortException(e);
                 }
             }
