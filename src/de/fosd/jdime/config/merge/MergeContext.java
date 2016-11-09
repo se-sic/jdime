@@ -53,6 +53,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
+import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
@@ -564,6 +565,38 @@ public class MergeContext implements Cloneable {
                 LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
             }
         });
+
+        if (isPretend()) {
+            // TODO build FileArtifact that prints itself to the console when 'realised'
+            throw new AbortException("-p is currently not supported.");
+        } else {
+            File outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new)
+                    .orElseThrow(() -> new AbortException("Not output file or directory given."));
+
+            if (outFile.exists()) {
+
+                if (!isForceOverwriting()) {
+                    String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                    throw new AbortException(msg);
+                }
+
+                if (getInputFiles().stream().allMatch(FileArtifact::isDirectory) && !outFile.isDirectory()) {
+                    throw new AbortException("The output must be a directory when merging directories.");
+                }
+
+                if (getInputFiles().stream().allMatch(FileArtifact::isFile) && !outFile.isFile()) {
+                    throw new AbortException("The output must be a file when merging files.");
+                }
+
+                try {
+                    FileUtils.forceDelete(outFile);
+                } catch (IOException e) {
+                    throw new AbortException("Can not overwrite the output file or directory.", e);
+                }
+            }
+
+            // TODO build FileArtifact with appropriate type (File/Dir) based on inputs
+        }
     }
 
     /**
