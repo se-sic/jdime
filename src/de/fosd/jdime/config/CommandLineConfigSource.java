@@ -63,7 +63,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_OUTPUT = "o";
     public static final String CLI_RECURSIVE = "r";
     public static final String CLI_STATS = "s";
-    public static final String CLI_PRINT = "p";
+    public static final String CLI_PRETEND = "p";
     public static final String CLI_QUIET = "q";
     public static final String CLI_VERSION = "v";
     public static final String CLI_PROP_FILE = "pf";
@@ -243,9 +243,9 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_PRINT)
-                .longOpt("print")
-                .desc("(print/pretend) Prints the merge result to stdout instead of an output file.")
+        o = Option.builder(CLI_PRETEND)
+                .longOpt("pretend")
+                .desc("Prints the merge result to stdout instead of an output file. Defaults to true.")
                 .hasArg(false)
                 .build();
 

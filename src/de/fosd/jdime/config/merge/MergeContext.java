@@ -487,12 +487,8 @@ public class MergeContext implements Cloneable {
         config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
         config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
 
-        if (config.getBoolean(CLI_PRINT).orElse(false)) {
-            setPretend(true);
-            setQuiet(false);
-        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
-            setQuiet(true);
-        }
+        config.getBoolean(CLI_PRETEND).ifPresent(this::setPretend);
+        config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);
 
         Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
