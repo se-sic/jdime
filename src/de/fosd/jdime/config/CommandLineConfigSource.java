@@ -329,7 +329,7 @@ public class CommandLineConfigSource extends ConfigSource {
                 .desc("Accepts a comma separated list of two percentages. <float fixLower>,<float fixUpper> both " +
                         "from the range [0, 1]. If these percentages are given, a random number (from the given range) " +
                         "of matchings from the previous iteration will be fixed for the next.")
-                .hasArg(false)
+                .hasArg(true)
                 .build();
 
         options.addOption(o);
