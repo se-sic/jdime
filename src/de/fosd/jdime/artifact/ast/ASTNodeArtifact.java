@@ -514,10 +514,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                     left.getRevision().getName(), right.getRevision().getName());
             conflictOp.apply(context);
         }
-
-        if (!context.isQuiet() && context.hasOutput()) {
-            System.out.print(context.getStdIn());
-        }
     }
 
     /**

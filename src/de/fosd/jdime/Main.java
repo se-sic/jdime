@@ -130,6 +130,7 @@ public final class Main {
         }
 
         merge(context);
+        output(context);
 
         if (context.hasStatistics()) {
             outputStatistics(context.getStatistics());
@@ -148,6 +149,28 @@ public final class Main {
             }
 
             LOG.config(sb.toString());
+        }
+    }
+
+    /**
+     * Outputs the merge result to the filesystem or stdout depending on the {@link MergeContext} configuration.
+     *
+     * @param context
+     *         the {@link MergeContext} whose {@link MergeContext#getOutputFile()} to use
+     */
+    private static void output(MergeContext context) {
+        FileArtifact outFile = context.getOutputFile();
+
+        if (context.isPretend()) {
+            if (!context.isQuiet()) {
+                outFile.outputContent(System.out);
+            }
+        } else {
+            try {
+                outFile.writeContent();
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not write the merge result to the filesystem.");
+            }
         }
     }
 

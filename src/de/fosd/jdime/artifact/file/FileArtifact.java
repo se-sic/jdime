@@ -26,7 +26,7 @@ package de.fosd.jdime.artifact.file;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -658,10 +658,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
             try {
                 strategy.merge(operation, context);
-
-                if (!context.isQuiet() && context.hasOutput()) {
-                    System.out.print(context.getStdIn());
-                }
             } catch (AbortException e) {
                 throw e; // AbortExceptions must always cause the merge to be aborted
             } catch (RuntimeException e) {
@@ -710,12 +706,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     /**
      * Outputs the contents represented by this {@link FileArtifact} and its children using the given
-     * {@link PrintWriter}.
+     * {@link PrintStream}.
      *
      * @param to
-     *         the {@link PrintWriter} to write to
+     *         the {@link PrintStream} to write to
      */
-    public void outputContent(PrintWriter to) {
+    public void outputContent(PrintStream to) {
 
         if (isDirectory()) {
             getChildren().forEach(c -> c.outputContent(to));
