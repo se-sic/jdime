@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -70,6 +71,9 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      *         the presence condition for <code>artifact</code> or <code>null</code>
      */
     public AddOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+        Objects.requireNonNull(artifact, "The artifact to be added must not be null.");
+        Objects.requireNonNull(target, "The target to be added to must not be null.");
+
         this.artifact = artifact;
         this.target = target;
         this.mergeScenario = mergeScenario;
@@ -91,17 +95,13 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
             return;
         }
 
-        if (target != null) {
-            assert (target.exists());
-
-            if (context.isConditionalMerge(artifact) && condition != null) {
-                T choice = target.createChoiceArtifact(condition, artifact);
-                assert (choice.isChoice());
-                target.addChild(choice);
-            } else {
-                LOG.fine("no conditions");
-                target.addChild(artifact.clone());
-            }
+        if (context.isConditionalMerge(artifact) && condition != null) {
+            T choice = target.createChoiceArtifact(condition, artifact);
+            assert (choice.isChoice());
+            target.addChild(choice);
+        } else {
+            LOG.fine("no conditions");
+            target.addChild(artifact.clone());
         }
 
         if (context.hasStatistics()) {

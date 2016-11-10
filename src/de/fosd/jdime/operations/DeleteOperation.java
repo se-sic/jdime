@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -70,6 +71,9 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
      *         the condition under which the node is NOT deleted
      */
     public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+        Objects.requireNonNull(artifact, "The artifact to be deleted must not be null.");
+        Objects.requireNonNull(target, "The target to delete from must not be null.");
+
         this.artifact = artifact;
         this.target = target;
         this.mergeScenario = mergeScenario;
@@ -92,6 +96,8 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
             assert (choice.isChoice());
             target.addChild(choice);
         } else {
+            // TODO delete anyway.
+
             // Nothing to do :-)
             //
             // Why?

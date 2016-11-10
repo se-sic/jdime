@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.operations;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -68,10 +67,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
     /**
      * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
-     * will be output into <code>target</code> if output is enabled. <code>inputArtifacts</code> may not be
+     * will be output into <code>target</code>. Both <code>inputArtifacts</code> and <code>target</code> may not be
      * <code>null</code>. <br><br>
      *
-     * <code>inputArtifacts</code> must have either two or three elements which will be interpreted as
+     * The <code>inputArtifacts</code> list must have either two or three elements which will be interpreted as
      * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
      * three-way-merge for one of length three.
      *
@@ -88,12 +87,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      * @throws IllegalArgumentException
      *         if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
      *         {@link MergeScenario#isValid()}
-     * @throws IOException
-     *         if the dummy file used as BaseArtifact in a two-way-merge can not be created
      */
-    public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition,
-                          String rightCondition, boolean nway) throws IOException {
-        Objects.requireNonNull(inputArtifacts, "inputArtifacts must not be null!");
+    public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition, String rightCondition, boolean nway) {
+        Objects.requireNonNull(inputArtifacts, "The input artifacts must not be null.");
+        Objects.requireNonNull(target, "The target must not be null.");
 
         this.target = target;
 
@@ -156,7 +153,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      *         if <code>mergeScenario</code> is invalid
      */
     public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
-        Objects.requireNonNull(mergeScenario, "mergeScenario must not be null!");
+        Objects.requireNonNull(mergeScenario, "The merge scenario must not be null.");
+        Objects.requireNonNull(target, "The target must not be null.");
 
         if (!mergeScenario.isValid()) {
             throw new IllegalArgumentException("mergeScenario is invalid.");
@@ -181,10 +179,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         }
 
         LOG.fine(() -> "Applying: " + this);
-
-        if (target != null) {
-            assert (target.exists()) : this + ": target " + target.getId()  + " does not exist.";
-        }
 
         // FIXME: I think this could be done easier. It's just too fucking ugly.
         T artifact = mergeScenario.get(0);

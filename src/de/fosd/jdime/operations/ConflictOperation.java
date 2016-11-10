@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -57,9 +58,11 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
      * @param right right alternatives
      * @param target target node
      */
-    public ConflictOperation(final T left, final T right, final T target, final String leftCondition,
-                             final String rightCondition) {
-        super();
+    public ConflictOperation(T left, T right, T target, String leftCondition, String rightCondition) {
+        Objects.requireNonNull(left, "The left side of the conflict must not be null.");
+        Objects.requireNonNull(left, "The right side of the conflict must not be null.");
+        Objects.requireNonNull(left, "The parent for the conflict must not be null.");
+
         this.left = left;
         this.right = right;
         this.target = target;
@@ -77,27 +80,23 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     public void apply(MergeContext context) {
         LOG.fine(() -> "Applying: " + this);
 
-        if (target != null) {
-            assert (target.exists());
-
-            if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
-                LOG.fine("Create choice node");
-                T choice;
-                if (left.isChoice()) {
-                    choice = left;
-                } else {
-                    choice = target.createChoiceArtifact(leftCondition, left);
-                }
-
-                assert (choice.isChoice());
-                choice.addVariant(rightCondition, right);
-                target.addChild(choice);
+        if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
+            LOG.fine("Create choice node");
+            T choice;
+            if (left.isChoice()) {
+                choice = left;
             } else {
-                LOG.fine("Create conflict node");
-                T conflict = target.createConflictArtifact(left, right);
-                assert (conflict.isConflict());
-                target.addChild(conflict);
+                choice = target.createChoiceArtifact(leftCondition, left);
             }
+
+            assert (choice.isChoice());
+            choice.addVariant(rightCondition, right);
+            target.addChild(choice);
+        } else {
+            LOG.fine("Create conflict node");
+            T conflict = target.createConflictArtifact(left, right);
+            assert (conflict.isConflict());
+            target.addChild(conflict);
         }
     }
 
