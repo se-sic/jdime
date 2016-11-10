@@ -36,6 +36,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
@@ -537,56 +538,60 @@ public class MergeContext implements Cloneable {
             throw new AbortException("No input files given.");
         }
 
-//        /*
-//         * TODO[low priority]
-//         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
-//         * compatible with gnu merge call syntax.
-//         */
-//        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
-//            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
-//
-//            try {
-//                File out = new File(outputFileName);
-//                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
-//
-//                setOutputFile(outArtifact);
-//                setPretend(false);
-//            } catch (IOException e) {
-//                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
-//            }
-//        });
+        boolean inputDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
+        boolean inputFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
+
+        File outFile;
 
         if (isPretend()) {
-            // TODO build FileArtifact that prints itself to the console when 'realised'
-            throw new AbortException("-p is currently not supported.");
+            outFile = IntStream.range(0, Integer.MAX_VALUE).mapToObj(n -> {
+                if (inputDirs) {
+                    return new File("PretendDirectory_" + n);
+                } else if (inputFiles) {
+                    return new File("PretendFile_" + n);
+                } else { // This is prevented by a check above.
+                    return null;
+                }
+            }).filter(f -> !f.exists()).findFirst().orElseThrow(() ->
+                    new AbortException("Could not find an available file name for the pretend file or directory."));
         } else {
-            File outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new)
-                    .orElseThrow(() -> new AbortException("Not output file or directory given."));
+            outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new).orElseThrow(() ->
+                    new AbortException("Not output file or directory given."));
+        }
 
-            if (outFile.exists()) {
+        if (outFile.exists()) {
 
-                if (!isForceOverwriting()) {
-                    String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                    throw new AbortException(msg);
-                }
-
-                if (getInputFiles().stream().allMatch(FileArtifact::isDirectory) && !outFile.isDirectory()) {
-                    throw new AbortException("The output must be a directory when merging directories.");
-                }
-
-                if (getInputFiles().stream().allMatch(FileArtifact::isFile) && !outFile.isFile()) {
-                    throw new AbortException("The output must be a file when merging files.");
-                }
-
-                try {
-                    FileUtils.forceDelete(outFile);
-                } catch (IOException e) {
-                    throw new AbortException("Can not overwrite the output file or directory.", e);
-                }
+            if (!isForceOverwriting()) {
+                String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                throw new AbortException(msg);
             }
 
-            // TODO build FileArtifact with appropriate type (File/Dir) based on inputs
+            if (inputDirs && !outFile.isDirectory()) {
+                throw new AbortException("The output must be a directory when merging directories.");
+            }
+
+            if (inputFiles && !outFile.isFile()) {
+                throw new AbortException("The output must be a file when merging files.");
+            }
+
+            try {
+                FileUtils.forceDelete(outFile);
+            } catch (IOException e) {
+                throw new AbortException("Can not overwrite the output file or directory.", e);
+            }
         }
+
+        FileArtifact.FileType type;
+
+        if (inputDirs) {
+            type = FileArtifact.FileType.VDIR;
+        } else if (inputFiles) {
+            type = FileArtifact.FileType.VFILE;
+        } else { // This is prevented by a check above.
+            type = null;
+        }
+
+        setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
     }
 
     /**
