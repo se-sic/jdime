@@ -41,9 +41,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -52,6 +56,8 @@ import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
+import de.fosd.jdime.config.merge.Revision.SuccessiveNameSupplier;
+import de.fosd.jdime.config.merge.Revision.SuccessiveRevSupplier;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.execption.NotYetImplementedException;
 import de.fosd.jdime.merge.Merge;
@@ -148,6 +154,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
+     * A {@link Supplier} used for generating names for virtual {@link FileArtifact FileArtifacts}.
+     */
+    private static final SuccessiveNameSupplier virtualNameSupplier = new SuccessiveNameSupplier();
+
+    /**
      * The type of file this {@link FileArtifact} represents.
      */
     private final FileType type;
@@ -219,7 +230,51 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
-     * Constructs a new virtual {@link FileArtifact} representing the given non-existent {@link File}.
+     * Constructs a new virtual {@link FileArtifact} representing a non-existent {@link File} with a generated name. The
+     * new {@link FileArtifact} will always have the number 0.
+     *
+     * @param revision
+     *         the {@link Revision} the artifact belongs to
+     * @param type
+     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#VFILE} or
+     *         {@link FileType#VDIR}
+     * @throws IllegalArgumentException
+     *         if {@code type} is not virtual
+     */
+    public FileArtifact(Revision revision, FileType type) {
+        super(revision, 0);
+
+        if (!type.isVirtual()) {
+            throw new IllegalArgumentException("Type " + type + " is not virtual.");
+        }
+
+        this.type = type;
+        this.original = null;
+
+        File tempDir = FileUtils.getTempDirectory();
+        IntFunction<File> toFile;
+
+        if (type == FileType.VDIR) {
+            toFile = n -> {
+                synchronized (virtualNameSupplier) {
+                    return new File(tempDir, "VirtualDirectory_" + virtualNameSupplier.get());
+                }
+            };
+        } else {
+            toFile = n -> {
+                synchronized (virtualNameSupplier) {
+                    return new File(tempDir, "VirtualFile_" + virtualNameSupplier.get());
+                }
+            };
+        }
+
+        this.file = IntStream.range(0, Integer.MAX_VALUE).mapToObj(toFile).filter(f -> !f.exists()).findFirst()
+                .orElseThrow(() -> new AbortException("Could not find an available file name for the pretend file or directory."));
+    }
+
+    /**
+     * Constructs a new virtual {@link FileArtifact} representing the given non-existent {@link File}. The new
+     * {@link FileArtifact} will always have the number 0.
      *
      * @param revision
      *         the {@link Revision} the artifact belongs to

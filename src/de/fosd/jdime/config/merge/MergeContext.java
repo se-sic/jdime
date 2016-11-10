@@ -36,7 +36,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
@@ -541,47 +540,6 @@ public class MergeContext implements Cloneable {
         boolean inputDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
         boolean inputFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
 
-        File outFile;
-
-        if (isPretend()) {
-            outFile = IntStream.range(0, Integer.MAX_VALUE).mapToObj(n -> {
-                if (inputDirs) {
-                    return new File("PretendDirectory_" + n);
-                } else if (inputFiles) {
-                    return new File("PretendFile_" + n);
-                } else { // This is prevented by a check above.
-                    return null;
-                }
-            }).filter(f -> !f.exists()).findFirst().orElseThrow(() ->
-                    new AbortException("Could not find an available file name for the pretend file or directory."));
-        } else {
-            outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new).orElseThrow(() ->
-                    new AbortException("Not output file or directory given."));
-        }
-
-        if (outFile.exists()) {
-
-            if (!isForceOverwriting()) {
-                String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                throw new AbortException(msg);
-            }
-
-            if (inputDirs && !outFile.isDirectory()) {
-                throw new AbortException("The output must be a directory when merging directories.");
-            }
-
-            if (inputFiles && !outFile.isFile()) {
-                throw new AbortException("The output must be a file when merging files.");
-            }
-
-            try {
-                LOG.warning(() -> "Deleting " + outFile);
-                FileUtils.forceDelete(outFile);
-            } catch (IOException e) {
-                throw new AbortException("Can not overwrite the output file or directory.", e);
-            }
-        }
-
         FileArtifact.FileType type;
 
         if (inputDirs) {
@@ -592,7 +550,37 @@ public class MergeContext implements Cloneable {
             type = null;
         }
 
-        setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
+        if (isPretend()) {
+            setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
+        } else {
+            File outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new).orElseThrow(() ->
+                    new AbortException("Not output file or directory given."));
+
+            if (outFile.exists()) {
+
+                if (!isForceOverwriting()) {
+                    String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                    throw new AbortException(msg);
+                }
+
+                if (inputDirs && !outFile.isDirectory()) {
+                    throw new AbortException("The output must be a directory when merging directories.");
+                }
+
+                if (inputFiles && !outFile.isFile()) {
+                    throw new AbortException("The output must be a file when merging files.");
+                }
+
+                try {
+                    LOG.warning(() -> "Deleting " + outFile);
+                    FileUtils.forceDelete(outFile);
+                } catch (IOException e) {
+                    throw new AbortException("Can not overwrite the output file or directory.", e);
+                }
+            }
+
+            setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
+        }
     }
 
     /**
