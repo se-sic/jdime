@@ -112,25 +112,27 @@ public final class Main {
             return;
         }
 
+        ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
+
         if (context.isInspect()) {
-            inspectElement(context.getInputFiles().get(0), context.getInspectArtifact(),
-                    context.getInspectionScope());
-        } else if (context.getDumpMode() != DumpMode.NONE) {
+            inspectElement(inputFiles.get(0), context.getInspectArtifact(), context.getInspectionScope());
+            return;
+        }
 
-            for (FileArtifact artifact : context.getInputFiles()) {
-                dump(artifact, context.getDumpMode());
-            }
-        } else {
-            if (context.getInputFiles().size() < MergeType.MINFILES) {
-                printCLIHelp();
-                return;
-            }
+        if (context.getDumpMode() != DumpMode.NONE) {
+            inputFiles.forEach(artifact -> dump(artifact, context.getDumpMode()));
+            return;
+        }
 
-            merge(context);
+        if (inputFiles.size() < MergeType.MINFILES) {
+            printCLIHelp();
+            return;
+        }
 
-            if (context.hasStatistics()) {
-                outputStatistics(context.getStatistics());
-            }
+        merge(context);
+
+        if (context.hasStatistics()) {
+            outputStatistics(context.getStatistics());
         }
 
         if (LOG.isLoggable(Level.CONFIG)) {
