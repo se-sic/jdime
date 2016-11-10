@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -269,6 +270,22 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public List<T> getChildren() {
         return Collections.unmodifiableList(children);
+    }
+
+    /**
+     * Applies the given {@code action} to the children of this {@link Artifact} and invalidates the tree hash as
+     * necessary.
+     *
+     * @param action
+     *         the action to apply to the list of {@link #children}
+     */
+    protected void modifyChildren(Consumer<List<T>> action) {
+        int hashBefore = children.hashCode();
+        action.accept(children);
+
+        if (children.hashCode() != hashBefore) {
+            invalidateHash();
+        }
     }
 
     /**
