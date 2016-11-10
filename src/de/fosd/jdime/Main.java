@@ -91,7 +91,14 @@ public final class Main {
         try {
             run(args);
         } catch (AbortException e) {
-            LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
+
+            if (e.getCause() != null) {
+                LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
+            } else {
+                System.err.println(e.getMessage());
+                LOG.log(Level.SEVERE, e, () -> "Aborting the merge.");
+            }
+
             System.exit(EXIT_ABORTED);
         } catch (Throwable e) {
             LOG.log(Level.SEVERE, e, () -> "Uncaught exception.");
