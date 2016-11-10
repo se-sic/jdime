@@ -220,12 +220,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.original = file;
         this.file = file;
 
+        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
+
         if (isDirectory()) {
-            children = new ArtifactList<>();
             children.addAll(getDirContent(number));
             Collections.sort(children, comp);
-        } else {
-            children = null;
         }
     }
 
@@ -243,6 +242,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public FileArtifact(Revision revision, FileType type) {
         super(revision, 0);
+
+        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
 
         if (!type.isVirtual()) {
             throw new IllegalArgumentException("Type " + type + " is not virtual.");
@@ -288,6 +289,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public FileArtifact(Revision revision, File file, FileType type) {
         super(revision, 0);
+
+        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
 
         if (file.exists()) {
             throw new IllegalArgumentException("File '" + file + "' exists.");
