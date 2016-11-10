@@ -25,7 +25,8 @@ package de.fosd.jdime.artifact.file;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.CompositeFileComparator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.SEVERE;
 import static org.apache.commons.io.comparator.DirectoryFileComparator.DIRECTORY_COMPARATOR;
 import static org.apache.commons.io.comparator.NameFileComparator.NAME_COMPARATOR;
@@ -581,11 +583,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     @Override
     public final boolean isEmpty() {
-        assert (exists());
         if (isDirectory()) {
-            return file.listFiles().length == 0;
+            return children.isEmpty();
         } else {
-            return FileUtils.sizeOf(file) == 0;
+            return "".equals(getContent());
         }
     }
 
@@ -708,13 +709,85 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
+     * Outputs the contents represented by this {@link FileArtifact} and its children using the given
+     * {@link PrintWriter}.
+     *
+     * @param to
+     *         the {@link PrintWriter} to write to
+     */
+    public void outputContent(PrintWriter to) {
+
+        if (isDirectory()) {
+            getChildren().forEach(c -> c.outputContent(to));
+        } else {
+            to.println(getContent());
+            to.println();
+        }
+    }
+
+    /**
+     * Recursively writes the contents of this {@link FileArtifact} and its children to the files they represent.
+     *
+     * @throws IOException
+     *         if there is an exception accessing the filesystem
+     */
+    public void writeContent() throws IOException {
+
+        if (isFile()) {
+
+            if (type.isVirtual() && content != null) {
+                write();
+            } else {
+                if (content != null) {
+                    write();
+                } else {
+                    copy();
+                }
+            }
+        } else if (isDirectory()) {
+
+            for (FileArtifact child : children) {
+                child.writeContent();
+            }
+        }
+    }
+
+    /**
+     * Writes the {@link #content} of this {@link FileArtifact} to its {@link #file}.
+     *
+     * @throws IOException
+     *         see {@link FileUtils#openOutputStream(File)}
+     */
+    private void write() throws IOException {
+        try (OutputStreamWriter out = new OutputStreamWriter(FileUtils.openOutputStream(file), UTF_8)) {
+            out.write(content);
+        }
+    }
+
+    /**
+     * Copies the {@link #original} to the {@link #file} of this {@link FileArtifact}.
+     *
+     * @throws IOException
+     *         see {@link FileUtils#copyFile(File, File)}
+     */
+    private void copy() throws IOException {
+        FileUtils.copyFile(original, file);
+    }
+
+    /**
      * Returns the content of the {@link File} this {@link FileArtifact} represents. Will return an empty {@link String}
      * if there is an exception reading the content of non-virtual {@link FileArtifact FileArtifacts} or if the
      * {@link FileArtifact} is virtual and the content was not set to something other than an empty {@link String}.
+     * Also returns an empty {@link String} for directories.
      *
      * @return the content this {@link FileArtifact} represents
      */
     public String getContent() {
+
+        if (isDirectory()) {
+            LOG.warning("Returning an empty string as the contents of the directory " + file);
+            return "";
+        }
 
         if (content == null) {
             String content;
@@ -723,7 +796,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 content = "";
             } else {
                 try {
-                    content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                    content = FileUtils.readFileToString(original, UTF_8);
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
                     return "";
@@ -737,12 +810,18 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
-     * Sets the content this {@link FileArtifact} represents to the new value.
+     * Sets the content this {@link FileArtifact} represents to the new value. If this {@link FileArtifact} represents
+     * a directory, the call is ignored.
      *
      * @param content
      *         the new content
      */
     public void setContent(String content) {
-        this.content = content;
+
+        if (isFile()) {
+            this.content = content;
+        } else {
+            LOG.warning("Ignoring a call to setContent(String) on a FileArtifact representing a directory.");
+        }
     }
 }
