@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.artifact;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -56,9 +57,8 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public TestArtifact addChild(TestArtifact child) {
-        children.add(child);
         child.setParent(this);
-        invalidateHash();
+        modifyChildren(children -> children.add(child));
 
         return child;
     }
@@ -97,8 +97,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public void deleteChildren() {
-        children.clear();
-        invalidateHash();
+        modifyChildren(List::clear);
     }
 
     @Override

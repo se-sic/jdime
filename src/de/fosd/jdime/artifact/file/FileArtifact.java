@@ -211,8 +211,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.file = file;
 
         if (isDirectory()) {
-            children.addAll(getDirContent(number));
-            Collections.sort(children, comp);
+            modifyChildren(children -> {
+                children.addAll(getDirContent(number));
+                Collections.sort(children, comp);
+            });
         }
     }
 
@@ -253,9 +255,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
             throw new RuntimeException(e);
         }
 
-        children.add(added);
-        Collections.sort(children, comp);
-        invalidateHash();
+        modifyChildren(children -> {
+            children.add(added);
+            Collections.sort(children, comp);
+        });
 
         return added;
     }
@@ -303,7 +306,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         if (exists()) {
             if (isDirectory()) {
-                for (FileArtifact child : children) {
+                for (FileArtifact child : getChildren()) {
                     child.remove();
                 }
             } else {
@@ -327,13 +330,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public void filterNonJavaFiles() {
         if (isDirectory()) {
-            children.stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
+            getChildren().stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
 
             LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
-
-            if (children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && !c.hasChildren()))) {
-                invalidateHash();
-            }
+            modifyChildren(children -> {
+                children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && !c.hasChildren()));
+            });
         }
     }
 
@@ -430,7 +432,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isJavaFile()) {
             list.add(this);
         } else if (isDirectory()) {
-            children.forEach(c -> c.getJavaFiles(list));
+            getChildren().forEach(c -> c.getJavaFiles(list));
         }
 
         return list;

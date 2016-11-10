@@ -246,12 +246,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             clone.cloneMatches(this);
 
             List<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
-            for (ASTNodeArtifact child : children) {
+
+            for (ASTNodeArtifact child : getChildren()) {
                 ASTNodeArtifact cloneChild = child.clone();
                 cloneChild.astnode.setParent(clone.astnode);
                 cloneChild.setParent(clone);
                 cloneChildren.add(cloneChild);
             }
+
             clone.setChildren(cloneChildren);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
@@ -270,8 +272,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         assert (child.exists());
 
         child.setParent(this);
-        children.add(child);
-        invalidateHash();
+        modifyChildren(children -> children.add(child));
 
         return child;
     }
@@ -283,8 +284,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     @Override
     public void deleteChildren() {
-        children.clear();
-        invalidateHash();
+        modifyChildren(List::clear);
     }
 
     @Override
@@ -529,9 +529,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.finest(() -> String.format("[%s] Removing child %s", getId(), child.getId()));
         LOG.finest(() -> String.format("Children before removal: %s", getChildren()));
 
-        if (children.removeIf(it -> it == child)) {
-            invalidateHash();
-        }
+        modifyChildren(children -> children.removeIf(it -> it == child));
 
         LOG.finest(() -> String.format("Children after removal: %s", getChildren()));
     }

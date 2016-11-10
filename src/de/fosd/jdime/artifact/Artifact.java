@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,7 +65,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected List<T> children;
+    private List<T> children;
 
     /**
      * Left side of a conflict.
@@ -681,9 +682,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * Sets the children of the <code>Artifact</code>.
      *
      * @param children
-     *            the new children to set
+     *         the new children to set
+     * @throws NullPointerException
+     *         if {@code children} is {@code null}
      */
     public void setChildren(List<T> children) {
+        Objects.requireNonNull(children, "The list of children must not be null.");
+
         this.children = children;
         invalidateHash();
     }
