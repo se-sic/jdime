@@ -76,10 +76,6 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         Revision b = base.getRevision();
         Revision r = right.getRevision();
 
-        if (!context.isDiffOnly() && !context.isPretend()) {
-            Objects.requireNonNull(target, "target must not be null!");
-        }
-
         Matcher<T> matcher = new Matcher<>();
         Matching<T> m;
 
@@ -128,7 +124,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             throw new RuntimeException();
         }
 
-        if (target != null && target.isRoot() && !target.hasMatches()) {
+        if (target.isRoot() && !target.hasMatches()) {
             // hack to fix the matches for the merged root node
             target.cloneMatches(left);
         }
@@ -206,7 +202,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
         }
 
-        if (LOG.isLoggable(Level.FINEST) && target != null) {
+        if (LOG.isLoggable(Level.FINEST)) {
             LOG.finest(String.format("%s target.dumpTree() before merge:", logprefix));
             System.out.println(root(target).dump(PLAINTEXT_TREE));
         }

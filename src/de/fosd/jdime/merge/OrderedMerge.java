@@ -327,11 +327,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             : MergeType.THREEWAY;
                     T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(leftChild);
-                    T targetChild = target == null ? null : target.addChild(leftChild.clone());
-                    if (targetChild != null) {
-                        assert targetChild.exists();
-                        targetChild.deleteChildren();
-                    }
+
+                    T targetChild = target.addChild(leftChild.clone());
+                    targetChild.deleteChildren();
 
                     MergeScenario<T> childTriple = new MergeScenario<>(childType,
                             leftChild, baseChild, rightChild);
@@ -355,7 +353,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     rightdone = true;
                 }
             }
-            if (LOG.isLoggable(Level.FINEST) && target != null) {
+            if (LOG.isLoggable(Level.FINEST)) {
                 LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
                 System.out.println(root(target).dump(DumpMode.PLAINTEXT_TREE));
             }

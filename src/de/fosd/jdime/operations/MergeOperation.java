@@ -230,7 +230,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public String toString() {
-        String dst = target == null ? "" : target.getId();
+        String dst = target.getId();
         String mScenarioString = mergeScenario.toString(true);
         MergeType mergeType = mergeScenario.getMergeType();
 

@@ -117,14 +117,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
         return "ADD";
     }
 
-    /**
-     * Returns the target <code>Artifact</code>
-     * @return the target
-     */
-    public T getTarget() {
-        return target;
-    }
-
     @Override
     public String toString() {
         return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
