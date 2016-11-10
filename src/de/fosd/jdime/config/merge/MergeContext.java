@@ -270,7 +270,7 @@ public class MergeContext implements Cloneable {
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
-        this.outputFile = (toCopy.outputFile != null) ? toCopy.outputFile.clone() : null;
+        this.outputFile = toCopy.outputFile.clone();
         this.quiet = toCopy.quiet;
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;

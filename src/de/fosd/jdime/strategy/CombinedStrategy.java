@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -92,24 +91,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
             });
 
-            if (target != null) { // TODO this does not make sense with the new virtual FileArtifacts
-                LOG.fine("Deleting: " + target);
-
-                boolean isLeaf = target.isLeaf();
-                boolean targetExists = target.exists();
-                String targetFileName = target.getFullPath();
-
-                if (target.exists()) {
-                    target.remove();
-                }
-
-                target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName));
-            }
-
             subContext = new MergeContext(context);
             strategy = new StructuredStrategy();
 
-            subContext.setOutputFile(null);
             subContext.setMergeStrategy(strategy);
             subContext.collectStatistics(true);
 

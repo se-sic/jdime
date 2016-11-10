@@ -23,16 +23,12 @@
  */
 package de.fosd.jdime.artifact.file;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -41,13 +37,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -57,7 +51,6 @@ import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.config.merge.Revision.SuccessiveNameSupplier;
-import de.fosd.jdime.config.merge.Revision.SuccessiveRevSupplier;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.execption.NotYetImplementedException;
 import de.fosd.jdime.merge.Merge;
@@ -303,59 +296,29 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public FileArtifact addChild(FileArtifact child) {
 
-        if (!exists()) {
-            String msg = String.format("FileArtifact '%s' does not exist. Can not add '%s' as a child.", this, child);
-            throw new IllegalStateException(msg);
-        }
-
         if (!isDirectory()) {
             String msg = String.format("FileArtifact '%s' does not represent a directory. Can not add '%s' as a child.", this, child);
             throw new IllegalStateException(msg);
         }
 
-        File copy = new File(file, child.getFile().getName());
+        child.file = new File(file, child.file.getName());
 
-        try {
-            if (child.isFile()) {
-                LOG.fine(() -> String.format("Copying file %s to directory %s", child, this));
-                FileUtils.copyFile(child.file, copy);
-            } else if (child.isDirectory()) {
-                LOG.fine(() -> String.format("Copying directory %s to directory %s", child, this));
-                FileUtils.copyDirectory(child.file, copy);
-            }
-        } catch (IOException e) {
-            LOG.log(SEVERE, e, () -> String.format("Failed to add a FileArtifact representing '%s' as a child to '%s'.", child, this));
-            throw new RuntimeException(e);
-        }
-
-        FileArtifact added = new FileArtifact(getRevision(), copy);
-
-        children.add(added);
+        children.add(child);
         Collections.sort(children, comp);
 
-        return added;
+        child.setParent(this);
+
+        return child;
     }
 
     @Override
     public FileArtifact clone() {
-        LOG.finest(() -> "CLONE: " + this);
         return new FileArtifact(getRevision(), file);
     }
 
     @Override
     public final FileArtifact createEmptyArtifact(Revision revision) {
-
-        try {
-            File temp = Files.createTempFile(null, null).toFile();
-            temp.deleteOnExit();
-
-            FileArtifact emptyFile = new FileArtifact(revision, temp);
-
-            LOG.finest(() -> "Artifact is a dummy artifact. Using temporary file: " + emptyFile.getFullPath());
-            return emptyFile;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new FileArtifact(revision, FileType.VFILE);
     }
 
     @Override
@@ -370,25 +333,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public void deleteChildren() {
-        LOG.finest(() -> this + ".deleteChildren()");
-
-        if (exists()) {
-            if (isDirectory()) {
-                for (FileArtifact child : children) {
-                    child.remove();
-                }
-            } else {
-                remove();
-
-                try {
-                    if (!file.createNewFile()) {
-                        throw new IOException("File#createNewFile returned false.");
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+        children.clear();
     }
 
     /**
@@ -522,32 +467,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return file.getPath();
     }
 
-    /**
-     * Returns a reader that can be used to retrieve the content of the
-     * artifact.
-     *
-     * @return Reader
-     * @throws FileNotFoundException
-     *             If the artifact is a file which is not found
-     */
-    public final BufferedReader getReader() throws FileNotFoundException {
-        if (isFile()) {
-            return new BufferedReader(new FileReader(file));
-        } else {
-            throw new NotYetImplementedException();
-        }
-    }
-
-    /**
-     * Returns the list of (relative) filenames contained in this directory.
-     *
-     * @return list of relative filenames
-     */
-    public final List<String> getRelativeDirContent() {
-        assert (isDirectory());
-        return Arrays.asList(file.list());
-    }
-
     @Override
     public KeyEnums.Type getType() {
         return isDirectory() ? KeyEnums.Type.DIRECTORY : KeyEnums.Type.FILE;
@@ -647,7 +566,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return true if artifact is a directory
      */
     public final boolean isDirectory() {
-        return file.isDirectory();
+        return type.isDirectory();
     }
 
     /**
@@ -671,7 +590,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return true if artifact is a normal file
      */
     public final boolean isFile() {
-        return file.isFile();
+        return type.isFile();
     }
 
     @Override
@@ -765,29 +684,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
 
             context.resetStreams();
-        }
-    }
-
-    /**
-     * Removes the artifact's file.
-     */
-    public void remove() {
-        if (!exists()) {
-            return;
-        }
-
-        try {
-            if (isDirectory()) {
-                LOG.fine(() -> "Deleting directory recursively: " + file);
-                FileUtils.forceDelete(file);
-            } else if (isFile()) {
-                LOG.fine(() -> "Deleting file: " + file);
-                FileUtils.forceDelete(file);
-            } else {
-                throw new UnsupportedOperationException("Only files and directories can be removed at the moment");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
