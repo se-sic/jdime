@@ -245,7 +245,7 @@ public class CommandLineConfigSource extends ConfigSource {
 
         o = Option.builder(CLI_PRETEND)
                 .longOpt("pretend")
-                .desc("Prints the merge result to stdout instead of an output file. Defaults to true.")
+                .desc("Prints the merge result to stdout instead of an output file.")
                 .hasArg(false)
                 .build();
 
@@ -376,14 +376,10 @@ public class CommandLineConfigSource extends ConfigSource {
         Option opt = options.getOption(key);
         String optName = opt.getOpt();
 
-        if (!cmdLine.hasOption(optName)) {
-            return Optional.empty();
-        }
-
         if (opt.hasArg()) {
-            return Optional.of(cmdLine.getOptionValue(optName));
+            return Optional.ofNullable(cmdLine.getOptionValue(optName));
         } else {
-            return Optional.of("true");
+            return Optional.of(cmdLine.hasOption(optName) ? "true" : "false");
         }
     }
 }
