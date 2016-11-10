@@ -65,24 +65,13 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        assert (operation != null);
-        assert (context != null);
+        context.resetStreams();
 
         MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
         Map<Revision, FileArtifact> variants = scenario.getArtifacts();
 
-        FileArtifact nextFile;
-
         assert (variants.size() > 1);
 
-        context.resetStreams();
-
-        FileArtifact target = operation.getTarget();
-
-        if (!context.isDiffOnly() && target != null) {
-            assert (!target.exists() || target.isEmpty()) : "Would be overwritten: " + target;
-        }
-        
         /* ASTNodeArtifacts are created from the input files.
          * Then, a ASTNodeStrategy can be applied.
          * The result is pretty printed and can be written into the output file.
@@ -170,12 +159,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                     System.err.println(context.getStdErr());
                 }
 
-                // write output
-                if (!context.isPretend() && target != null) {
-                    assert (target.exists());
-                    target.write(context.getStdIn());
-                }
-
+                operation.getTarget().setContent(context.getStdIn());
             } catch (Throwable t) {
                 LOG.severe("Exception while merging:");
                 context.addCrash(scenario, t);

@@ -49,16 +49,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        FileArtifact target = null;
-
-        if (!context.isDiffOnly() && operation.getTarget() != null) {
-            target = operation.getTarget();
-
-            if (target.exists() && !target.isEmpty()) {
-                throw new AssertionError(String.format("Would be overwritten: %s", target));
-            }
-        }
-
         context.resetStreams();
 
         LOG.fine(() -> {
@@ -113,9 +103,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             context.appendError(subContext.getStdErr());
         }
 
-        if (!context.isPretend() && target != null) {
-            target.write(context.getStdIn());
-        }
+        operation.getTarget().setContent(context.getStdIn());
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();

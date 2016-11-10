@@ -85,15 +85,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-        FileArtifact target = null;
-
-        if (!context.isDiffOnly() && operation.getTarget() != null) {
-            target = operation.getTarget();
-
-            if (target.exists() && !target.isEmpty()) {
-                throw new AssertionError(String.format("Would be overwritten: %s", target));
-            }
-        }
 
         context.resetStreams();
 
@@ -155,10 +146,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             LOG.severe(() -> String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), context.getStdErr()));
         }
 
-        if (!context.isPretend() && target != null) {
-            LOG.fine("Writing output to: " + target.getFullPath());
-            target.write(context.getStdIn());
-        }
+        operation.getTarget().setContent(context.getStdIn());
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();

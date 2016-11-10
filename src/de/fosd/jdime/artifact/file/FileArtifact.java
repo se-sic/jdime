@@ -24,7 +24,6 @@
 package de.fosd.jdime.artifact.file;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -166,6 +165,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * The current {@link File} this {@link FileArtifact} represents.
      */
     private File file;
+
+    /**
+     * The content of this {@link FileArtifact}. The content will be retrieved from the {@link #original} {@link File}
+     * and written back to the {@link #file} after the merge.
+     */
+    private String content;
 
     /**
      * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
@@ -692,28 +697,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return file.getName();
     }
 
-    /**
-     * Writes the given <code>String</code> to this <code>FileArtifact</code>.
-     *
-     * @param str the <code>String</code> to write
-     */
-    public void write(String str) {
-        if (file.getParentFile() != null && !file.getParentFile().exists()) {
-
-            try {
-                FileUtils.forceMkdir(file.getParentFile());
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not create the parent folder of " + file);
-            }
-        }
-
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(str);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, e, () -> "Could not write to " + this);
-        }
-    }
-
     @Override
     public FileArtifact createConflictArtifact(FileArtifact left, FileArtifact right) {
         throw new NotYetImplementedException();
@@ -724,13 +707,42 @@ public class FileArtifact extends Artifact<FileArtifact> {
         throw new NotYetImplementedException();
     }
 
-    public final String getContent() {
+    /**
+     * Returns the content of the {@link File} this {@link FileArtifact} represents. Will return an empty {@link String}
+     * if there is an exception reading the content of non-virtual {@link FileArtifact FileArtifacts} or if the
+     * {@link FileArtifact} is virtual and the content was not set to something other than an empty {@link String}.
+     *
+     * @return the content this {@link FileArtifact} represents
+     */
+    public String getContent() {
 
-        try {
-            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
-            return "";
+        if (content == null) {
+            String content;
+
+            if (type.isVirtual()) {
+                content = "";
+            } else {
+                try {
+                    content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, e, () -> "Could not read the contents of " + this);
+                    return "";
+                }
+            }
+
+            this.content = content;
         }
+
+        return content;
+    }
+
+    /**
+     * Sets the content this {@link FileArtifact} represents to the new value.
+     *
+     * @param content
+     *         the new content
+     */
+    public void setContent(String content) {
+        this.content = content;
     }
 }

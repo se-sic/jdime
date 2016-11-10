@@ -96,19 +96,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         FileArtifact leftFile = triple.getLeft();
         FileArtifact rightFile = triple.getRight();
         FileArtifact baseFile = triple.getBase();
-        FileArtifact target = null;
 
         String lPath = leftFile.getPath();
         String bPath = baseFile.getPath();
         String rPath = rightFile.getPath();
-
-        if (!context.isDiffOnly() && operation.getTarget() != null) {
-            target = operation.getTarget();
-
-            if (target.exists() && !target.isEmpty()) {
-                throw new AssertionError(String.format("Would be overwritten: %s", target));
-            }
-        }
 
         context.resetStreams();
         System.setSecurityManager(noExitManager);
@@ -158,10 +149,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 LOG.severe(() -> String.format("Errors occurred while merging structurally.%n%s", context.getStdErr()));
             }
 
-            if (!context.isPretend() && target != null) {
-                LOG.fine("Writing output to: " + target.getFullPath());
-                target.write(context.getStdIn());
-            }
+            operation.getTarget().setContent(context.getStdIn());
 
             if (context.hasStatistics()) {
                 if (LOG.isLoggable(Level.FINE)) {
