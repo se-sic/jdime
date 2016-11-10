@@ -110,7 +110,56 @@ public class FileArtifact extends Artifact<FileArtifact> {
     };
 
     /**
-     * File in which the artifact is stored.
+     * The type of {@link File} a {@link FileArtifact} represents.
+     */
+    public enum FileType {
+
+        FILE,
+        DIR,
+        VFILE,
+        VDIR;
+
+        /**
+         * Returns whether this enum constant is a virtual one.
+         *
+         * @return true iff this enum constant is one of {@link #VFILE} or {@link #VDIR}
+         */
+        boolean isVirtual() {
+            return this == VFILE || this == VDIR;
+        }
+
+        /**
+         * Returns whether this enum constant is either {@link #FILE} or {@link #VFILE}.
+         *
+         * @return true iff this enum constant is one of {@link #FILE} or {@link #VFILE}
+         */
+        boolean isFile() {
+            return this == FILE || this == VFILE;
+        }
+
+        /**
+         * Returns whether this enum constant is either {@link #DIR} or {@link #VDIR}.
+         *
+         * @return true iff this enum constant is one of {@link #DIR} or {@link #VDIR}
+         */
+        boolean isDirectory() {
+            return this == DIR || this == VDIR;
+        }
+    }
+
+    /**
+     * The type of file this {@link FileArtifact} represents.
+     */
+    private final FileType type;
+
+    /**
+     * The original {@link File} this {@link FileArtifact} represents or {@code null} if {@link #type} is
+     * {@link FileType#VFILE} or {@link FileType#VDIR}.
+     */
+    private final File original;
+
+    /**
+     * The current {@link File} this {@link FileArtifact} represents.
      */
     private File file;
 
@@ -123,38 +172,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         the <code>Revision</code> the artifact belongs to
      * @param file
      *         the <code>File</code> in which the artifact is stored
-     * @throws FileNotFoundException
-     *         if <code>file</code> does not exist and <code>create</code> is <code>false</code>
-     * @throws IOException
-     *         never thrown by this constructor
+     * @throws IllegalArgumentException if {@code file} does not exist
      */
-    public FileArtifact(Revision revision, File file) throws IOException {
-        this(revision, file, false, false);
-    }
-
-    /**
-     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
-     * If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be added
-     * as children to this <code>FileArtifact</code>.
-     *
-     * @param revision
-     *         the <code>Revision</code> the artifact belongs to
-     * @param file
-     *         the <code>File</code> in which the artifact is stored
-     * @param create
-     *         whether to create that <code>file</code> if it does not exist
-     * @param createFile
-     *         whether to create a file (instead of a directory), ignored if <code>create</code>
-     *         is <code>false</code>
-     * @throws FileNotFoundException
-     *         if <code>file</code> does not exist and <code>create</code> is <code>false</code>
-     * @throws IOException
-     *         if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to
-     *         {@link java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but
-     *         <code>file</code> cannot be created.
-     */
-    public FileArtifact(Revision revision, File file, boolean create, boolean createFile) throws IOException {
-        this(revision, new AtomicInteger(0)::getAndIncrement, file, create, createFile);
+    public FileArtifact(Revision revision, File file) {
+        this(revision, new AtomicInteger(0)::getAndIncrement, file);
     }
 
     /**
@@ -168,46 +189,24 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         supplies first the number for this artifact and then in DFS order the number for its children
      * @param file
      *         the <code>File</code> in which the artifact is stored
-     * @param create
-     *         whether to create that <code>file</code> if it does not exist
-     * @param createFile
-     *         whether to create a file (instead of a directory), ignored if <code>create</code>
-     *         is <code>false</code>
-     * @throws FileNotFoundException
-     *         if <code>file</code> does not exist and <code>create</code> is <code>false</code>
-     * @throws IOException
-     *         if <code>createNonExistent</code> is <code>false</code> and <code>file</code> does not exist according to
-     *         {@link java.io.File#exists()}, or if <code>createNonExistent</code> is <code>true</code> but
-     *         <code>file</code> cannot be created.
+     * @throws IllegalArgumentException if {@code file} does not exist
      */
-    private FileArtifact(Revision revision, Supplier<Integer> number, File file, boolean create, boolean createFile) throws IOException {
+    private FileArtifact(Revision revision, Supplier<Integer> number, File file) {
         super(revision, number.get());
 
         if (!file.exists()) {
-            if (create) {
-                if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                    boolean createdParents = file.getParentFile().mkdirs();
-                    LOG.finest(() -> "Had to create parent directories: " + createdParents);
-                }
-
-                if (createFile) {
-                    if (file.createNewFile()) {
-                        LOG.finest(() -> "Created file" + file);
-                    } else {
-                        throw new IOException("Could not create " + file);
-                    }
-                } else {
-                    if (file.mkdir()) {
-                        LOG.finest(() -> "Created directory " + file);
-                    } else {
-                        throw new IOException("Could not create directory " + file);
-                    }
-                }
-            } else {
-                throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
-            }
+            throw new IllegalArgumentException("File '" + file + "' does not exist.");
         }
 
+        if (file.isFile()) {
+            this.type = FileType.FILE;
+        } else if (file.isDirectory()) {
+            this.type = FileType.DIR;
+        } else {
+            throw new IllegalArgumentException("File '" + file + "' is not a normal file or directory.");
+        }
+
+        this.original = file;
         this.file = file;
 
         if (isDirectory()) {
@@ -217,6 +216,33 @@ public class FileArtifact extends Artifact<FileArtifact> {
         } else {
             children = null;
         }
+    }
+
+    /**
+     * Constructs a new virtual {@link FileArtifact} representing the given non-existent {@link File}.
+     *
+     * @param revision
+     *         the {@link Revision} the artifact belongs to
+     * @param file
+     *         the non-existent file the new {@link FileArtifact} represents
+     * @param type
+     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#VFILE} or
+     *         {@link FileType#VDIR}
+     * @throws IllegalArgumentException
+     *         if {@code file} exists or {@code type} is not virtual
+     */
+    public FileArtifact(Revision revision, File file, FileType type) {
+        super(revision, 0);
+
+        if (file.exists()) {
+            throw new IllegalArgumentException("File '" + file + "' exists.");
+        } else if (!type.isVirtual()) {
+            throw new IllegalArgumentException("Type " + type + " is not virtual.");
+        }
+
+        this.type = type;
+        this.original = null;
+        this.file = file;
     }
 
     @Override
@@ -247,14 +273,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
             throw new RuntimeException(e);
         }
 
-        FileArtifact added;
-
-        try {
-            added = new FileArtifact(getRevision(), copy);
-        } catch (IOException e) {
-            // the constructor can not throw IOException
-            throw new RuntimeException(e);
-        }
+        FileArtifact added = new FileArtifact(getRevision(), copy);
 
         children.add(added);
         Collections.sort(children, comp);
@@ -265,12 +284,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public FileArtifact clone() {
         LOG.finest(() -> "CLONE: " + this);
-
-        try {
-            return new FileArtifact(getRevision(), file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new FileArtifact(getRevision(), file);
     }
 
     @Override
@@ -397,15 +411,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
         List<FileArtifact> artifacts = new ArrayList<>(files.length);
 
         for (File f : files) {
+            FileArtifact child = new FileArtifact(getRevision(), number, f);
 
-            try {
-                FileArtifact child = new FileArtifact(getRevision(), number, f, false, false);
-
-                child.setParent(this);
-                artifacts.add(child);
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, e, () -> "Could not create the FileArtifact for " + f);
-            }
+            child.setParent(this);
+            artifacts.add(child);
         }
 
         return artifacts;

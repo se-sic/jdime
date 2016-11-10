@@ -24,7 +24,6 @@
 package de.fosd.jdime;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -62,18 +61,15 @@ public class JDimeWrapper {
         ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
 
         for (String filename : args) {
-            try {
-                File file = new File(filename);
 
-                // the revision name, this will be used as condition for ifdefs
-                // as an example, I'll just use the filenames
-                Revision rev = new Revision(FilenameUtils.getBaseName(file.getPath()));
-                FileArtifact newArtifact = new FileArtifact(rev, file);
+            File file = new File(filename);
 
-                inputArtifacts.add(newArtifact);
-            } catch (FileNotFoundException e) {
-                System.err.println("Input file not found: " + filename);
-            }
+            // the revision name, this will be used as condition for ifdefs
+            // as an example, I'll just use the filenames
+            Revision rev = new Revision(FilenameUtils.getBaseName(file.getPath()));
+            FileArtifact newArtifact = new FileArtifact(rev, file);
+
+            inputArtifacts.add(newArtifact);
         }
 
         context.setInputFiles(inputArtifacts);

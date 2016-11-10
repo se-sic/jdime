@@ -1,30 +1,29 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
  * Copyright (C) 2014-2015 University of Passau, Germany
- *
+ * <p>
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- *
+ * <p>
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
- *
+ * <p>
  * Contributors:
- *     Olaf Lessenich <lessenic@fim.uni-passau.de>
- *     Georg Seibt <seibt@fim.uni-passau.de>
+ * Olaf Lessenich <lessenic@fim.uni-passau.de>
+ * Georg Seibt <seibt@fim.uni-passau.de>
  */
 package de.fosd.jdime.strategy;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -93,22 +92,18 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
                 return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
             });
 
-            if (target != null) {
+            if (target != null) { // TODO this does not make sense with the new virtual FileArtifacts
                 LOG.fine("Deleting: " + target);
 
                 boolean isLeaf = target.isLeaf();
                 boolean targetExists = target.exists();
                 String targetFileName = target.getFullPath();
 
-                try {
-                    if (target.exists()) {
-                        target.remove();
-                    }
-
-                    target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName), targetExists, isLeaf);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                if (target.exists()) {
+                    target.remove();
                 }
+
+                target = new FileArtifact(MergeScenario.MERGE, new File(targetFileName));
             }
 
             subContext = new MergeContext(context);

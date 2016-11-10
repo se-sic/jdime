@@ -24,7 +24,6 @@
 package de.fosd.jdime.config.merge;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -526,20 +525,11 @@ public class MergeContext implements Cloneable {
                 }
             }
 
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>(inputFiles.size());
 
             for (File file : inputFiles) {
-
-                try {
-                    FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
-                    inputArtifacts.add(artifact);
-                } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", file));
-                    throw new AbortException(e);
-                } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", file));
-                    throw new AbortException(e);
-                }
+                FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
+                inputArtifacts.add(artifact);
             }
 
             setInputFiles(inputArtifacts);
@@ -547,24 +537,24 @@ public class MergeContext implements Cloneable {
             throw new AbortException("No input files given.");
         }
 
-        /*
-         * TODO[low priority]
-         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
-         * compatible with gnu merge call syntax.
-         */
-        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
-            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
-
-            try {
-                File out = new File(outputFileName);
-                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
-
-                setOutputFile(outArtifact);
-                setPretend(false);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
-            }
-        });
+//        /*
+//         * TODO[low priority]
+//         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
+//         * compatible with gnu merge call syntax.
+//         */
+//        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
+//            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
+//
+//            try {
+//                File out = new File(outputFileName);
+//                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
+//
+//                setOutputFile(outArtifact);
+//                setPretend(false);
+//            } catch (IOException e) {
+//                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
+//            }
+//        });
 
         if (isPretend()) {
             // TODO build FileArtifact that prints itself to the console when 'realised'
