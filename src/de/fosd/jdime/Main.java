@@ -23,11 +23,9 @@
  */
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
@@ -54,7 +52,6 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
@@ -113,51 +110,6 @@ public final class Main {
 
         if (!parseCommandLineArgs(context, args)) {
             return;
-        }
-
-        ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
-        FileArtifact output = context.getOutputFile();
-
-        for (FileArtifact inputFile : inputFiles) {
-
-            if (inputFile.isDirectory() && !context.isRecursive()) {
-                String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
-
-                LOG.severe(msg);
-                System.err.println(msg);
-
-                return;
-            }
-        }
-
-        if (output != null && output.exists() && !output.isEmpty()) {
-            boolean overwrite;
-
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(System.in))) {
-                System.err.println("Output directory is not empty!");
-                System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-
-                String response = r.readLine().trim().toLowerCase();
-                overwrite = response.length() != 0 && response.charAt(0) == 'y';
-            }
-
-            if (overwrite) {
-                LOG.warning("File exists and will be overwritten.");
-
-                output.remove();
-
-                if (output.isDirectory()) {
-                    FileUtils.forceMkdir(output.getFile());
-                }
-            } else {
-                String msg = "File exists and will not be overwritten.";
-
-                LOG.severe(msg);
-                System.err.println(msg);
-
-                return;
-            }
-
         }
 
         if (context.isInspect()) {

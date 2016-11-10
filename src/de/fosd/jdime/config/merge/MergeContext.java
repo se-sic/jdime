@@ -575,6 +575,7 @@ public class MergeContext implements Cloneable {
             }
 
             try {
+                LOG.warning(() -> "Deleting " + outFile);
                 FileUtils.forceDelete(outFile);
             } catch (IOException e) {
                 throw new AbortException("Can not overwrite the output file or directory.", e);
