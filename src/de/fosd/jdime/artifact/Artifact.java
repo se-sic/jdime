@@ -31,9 +31,11 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -63,7 +65,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected List<T> children;
+    private List<T> children;
 
     /**
      * Left side of a conflict.
@@ -269,6 +271,22 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public List<T> getChildren() {
         return Collections.unmodifiableList(children);
+    }
+
+    /**
+     * Applies the given {@code action} to the children of this {@link Artifact} and invalidates the tree hash as
+     * necessary.
+     *
+     * @param action
+     *         the action to apply to the list of {@link #children}
+     */
+    protected void modifyChildren(Consumer<List<T>> action) {
+        int hashBefore = children.hashCode();
+        action.accept(children);
+
+        if (children.hashCode() != hashBefore) {
+            invalidateHash();
+        }
     }
 
     /**
@@ -664,9 +682,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * Sets the children of the <code>Artifact</code>.
      *
      * @param children
-     *            the new children to set
+     *         the new children to set
+     * @throws NullPointerException
+     *         if {@code children} is {@code null}
      */
     public void setChildren(List<T> children) {
+        Objects.requireNonNull(children, "The list of children must not be null.");
+
         this.children = children;
         invalidateHash();
     }
