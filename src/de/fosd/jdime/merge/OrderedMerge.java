@@ -353,9 +353,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     rightdone = true;
                 }
             }
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
-                System.out.println(root(target).dump(DumpMode.PLAINTEXT_TREE));
+
+            if (!context.isDiffOnly()) {
+                LOG.finest(() -> {
+                    String dump = root(target).dump(DumpMode.PLAINTEXT_TREE);
+                    return String.format("%s target.dumpTree() after processing child:%n%s", prefix(), dump);
+                });
             }
         }
     }

@@ -202,9 +202,11 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
         }
 
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(String.format("%s target.dumpTree() before merge:", logprefix));
-            System.out.println(root(target).dump(PLAINTEXT_TREE));
+        if (!context.isDiffOnly()) {
+            LOG.finest(() -> {
+                String dump = root(target).dump(PLAINTEXT_TREE);
+                return String.format("%s target.dumpTree() before merge:%n%s", logprefix, dump);
+            });
         }
 
         if (isOrdered) {

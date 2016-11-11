@@ -270,9 +270,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                 }
             }
 
-            if (LOG.isLoggable(Level.FINEST) && target != null) {
-                LOG.finest(String.format("%s target.dumpTree() after processing child:", prefix()));
-                System.out.println(root(target).dump(PLAINTEXT_TREE));
+            if (!context.isDiffOnly()) {
+                LOG.finest(() -> {
+                    String dump = root(target).dump(PLAINTEXT_TREE);
+                    return String.format("%s target.dumpTree() after processing child:%n%s", prefix(), dump);
+                });
             }
         }
     }
