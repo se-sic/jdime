@@ -323,7 +323,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public FileArtifact clone() {
-        return new FileArtifact(getRevision(), file);
+
+        if (type.isVirtual()) {
+            return new FileArtifact(getRevision(), file, type);
+        } else {
+            return new FileArtifact(getRevision(), file);
+        }
     }
 
     @Override
@@ -604,7 +609,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final boolean isLeaf() {
-        return !file.isDirectory();
+        return !hasChildren();
     }
 
     @Override
@@ -717,10 +722,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public void outputContent(PrintStream to) {
 
         if (isDirectory()) {
-            getChildren().forEach(c -> c.outputContent(to));
+            getChildren().forEach(c -> {
+                c.outputContent(to);
+                to.println();
+            });
         } else {
-            to.println(getContent());
-            to.println();
+            to.print(getContent());
         }
     }
 
