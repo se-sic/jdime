@@ -139,7 +139,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
 
             if (!context.isDiffOnly()) {
-                context.appendLine(targetNode.prettyPrint());
+                context.appendLine(targetNode.prettyPrint()); // TODO use setContent of Artifact
                 LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", context.getStdIn()));
             }
 
@@ -166,7 +166,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 Statistics statistics = context.getStatistics();
                 MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 
-                if (!context.isDiffOnly()) {
+                if (!context.isDiffOnly()) { // TODO use getContent
                     ParseResult parseResult = scenarioStatistics.setLineStatistics(context.getStdIn());
 
                     if (parseResult.getConflicts() > 0) {

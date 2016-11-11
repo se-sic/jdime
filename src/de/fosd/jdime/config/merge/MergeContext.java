@@ -369,6 +369,7 @@ public class MergeContext implements Cloneable {
         config.getBoolean(USE_MCESUBTREE_MATCHER).ifPresent(this::setUseMCESubtreeMatcher);
 
         config.get(CLI_LOOKAHEAD, val -> {
+            // TODO abort if invalid (negative, unparseable)
             try {
                 return Optional.of(Integer.parseInt(val));
             } catch (NumberFormatException e) {

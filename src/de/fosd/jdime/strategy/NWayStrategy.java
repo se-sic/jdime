@@ -119,6 +119,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 astMergeOp.apply(mergeContext);
 
                 if (LOG.isLoggable(Level.FINEST)) {
+                    // TODO us LOG instead of syso
                     LOG.finest("Structured merge finished.");
 
                     if (!context.isDiffOnly()) {
