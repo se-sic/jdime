@@ -30,21 +30,21 @@ import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 
 /**
- * @author Olaf Lessenich
+ * An {@link Operation} that adds a conflict or choice node to the target artifact depending on the
+ * {@link MergeContext} configuration.
  *
  * @param <T>
- *            type of artifact
+ *         the type of the {@link Artifact Artifacts}
  */
 public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(ConflictOperation.class.getCanonicalName());
     
-    private T type;
     private T left;
     private T right;
 
     /**
-     * Output Artifact.
+     * The target {@link Artifact} to add a conflict or choice node to.
      */
     private T target;
 
@@ -52,11 +52,14 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     private String rightCondition;
 
     /**
-     * Class constructor.
+     * Constructs a new {@link ConflictOperation} adding a conflict representation between the {@code left} and
+     * {@code right} alternative to the {@code target}.
      *
-     * @param left left alternatives
-     * @param right right alternatives
-     * @param target target node
+     * @param left the left alternative
+     * @param right the right alternative
+     * @param target the target {@link Artifact} to add a conflict representation to
+     * @param leftCondition the condition for the left alternative, may be {@code null}
+     * @param rightCondition the condition for the right alternative, may be {@code null}
      */
     public ConflictOperation(T left, T right, T target, String leftCondition, String rightCondition) {
         Objects.requireNonNull(left, "The left side of the conflict must not be null.");

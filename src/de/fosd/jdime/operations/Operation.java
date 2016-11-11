@@ -27,11 +27,10 @@ import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 
 /**
- * This class represents an operation that is applied to <code>Artifact</code>s.
+ * Abstract superclass for all operations being performed on {@link Artifact Artifacts}.
  *
  * @param <T>
- *         type of artifact
- * @author Olaf Lessenich
+ *         the type of the {@link Artifact Artifacts}
  */
 public abstract class Operation<T extends Artifact<T>> {
 

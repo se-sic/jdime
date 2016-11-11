@@ -40,12 +40,10 @@ import static de.fosd.jdime.stats.KeyEnums.Type.DIRECTORY;
 import static de.fosd.jdime.stats.KeyEnums.Type.FILE;
 
 /**
- * The operation merges <code>Artifact</code>s.
+ * An {@link Operation} merging a set of input {@link Artifact Artifacts}.
  *
  * @param <T>
- *         type of artifact
- *
- * @author Olaf Lessenich
+ *         the type of the {@link Artifact Artifacts}
  */
 public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
@@ -68,8 +66,8 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
      * will be output into <code>target</code>. Both <code>inputArtifacts</code> and <code>target</code> may not be
-     * <code>null</code>. <br><br>
-     *
+     * <code>null</code>.
+     * <p>
      * The <code>inputArtifacts</code> list must have either two or three elements which will be interpreted as
      * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
      * three-way-merge for one of length three.
@@ -78,9 +76,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      *         the input artifacts
      * @param target
      *         the output artifact
-     * @param leftCondition condition for left alternative
-     * @param rightCondition condition for right alternative
-     *
+     * @param leftCondition
+     *         condition for left alternative
+     * @param rightCondition
+     *         condition for right alternative
      * @param nway
      * @throws IllegalArgumentException
      *         if the size of <code>inputArtifacts</code> is invalid
@@ -140,17 +139,17 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
     /**
      * Constructs a new <code>MergeOperation</code> using the given <code>mergeScenario</code> and <code>target</code>.
-     * <code>mergeScenario</code> may be <code>null</code>.
      *
      * @param mergeScenario
      *         the <code>Artifact</code>s to be merged
      * @param target
      *         the output <code>Artifact</code>
-     * @param leftCondition condition for left alternative
-     * @param rightCondition condition for right alternative
-     *
+     * @param leftCondition
+     *         condition for left alternative
+     * @param rightCondition
+     *         condition for right alternative
      * @throws IllegalArgumentException
-     *         if <code>mergeScenario</code> is invalid
+     *         if the <code>MergeScenario</code> is invalid according to {@link MergeScenario#isValid()}
      */
     public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
         Objects.requireNonNull(mergeScenario, "The merge scenario must not be null.");

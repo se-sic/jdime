@@ -33,25 +33,22 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
 /**
- * The operation adds <code>Artifact</code>s.
- *
- * @author Olaf Lessenich
+ * An {@link Operation} that adds a given {@link Artifact} to the children of another {@link Artifact}.
  *
  * @param <T>
- *            type of artifact
- *
+ *         the type of the {@link Artifact Artifacts}
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
 
     /**
-     * The <code>Artifact</code> that is added by the operation.
+     * The {@link Artifact} that is being added to the children of {@link #target}.
      */
     private T artifact;
 
     /**
-     * The output <code>Artifact</code>.
+     * The {@link Artifact} to whose children {@link #artifact} is added.
      */
     private T target;
 

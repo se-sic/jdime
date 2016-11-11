@@ -33,25 +33,22 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
 /**
- * The operation deletes <code>Artifact</code>s.
- *
- * @author Olaf Lessenich
+ * An {@link Operation} that deletes an {@link Artifact} from the children of another {@link Artifact}.
  *
  * @param <T>
- *            type of artifact
- *
+ *         the type of the {@link Artifact Artifacts}
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
     /**
-     * The <code>Artifact</code> that is deleted by the operation.
+     * The {@link Artifact} that is deleted by this {@link Operation}.
      */
     private T artifact;
 
     /**
-     * The output <code>Artifact</code>.
+     * The {@link Artifact} from whose children to delete {@link #artifact} from.
      */
     private T target;
 
@@ -59,7 +56,8 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     private String condition;
 
     /**
-     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from <code>target</code>.
+     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from the children of
+     * <code>target</code>.
      *
      * @param artifact
      *         the <code>Artifact</code> to be deleted
