@@ -333,9 +333,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
             getChildren().stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
 
             LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
-            modifyChildren(children -> {
-                children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && !c.hasChildren()));
-            });
+            modifyChildren(cs -> cs.removeIf(c -> c.isFile() && !c.isJavaFile() || c.isDirectory() && !c.hasChildren()));
         }
     }
 

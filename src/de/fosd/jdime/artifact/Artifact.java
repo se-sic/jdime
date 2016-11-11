@@ -274,6 +274,21 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Sets the children of the <code>Artifact</code>.
+     *
+     * @param children
+     *         the new children to set
+     * @throws NullPointerException
+     *         if {@code children} is {@code null}
+     */
+    public void setChildren(List<T> children) {
+        Objects.requireNonNull(children, "The list of children must not be null.");
+
+        this.children = children;
+        invalidateHash();
+    }
+
+    /**
      * Applies the given {@code action} to the children of this {@link Artifact} and invalidates the tree hash as
      * necessary.
      *
@@ -677,21 +692,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            merge context
      */
     public abstract void merge(MergeOperation<T> operation, MergeContext context);
-
-    /**
-     * Sets the children of the <code>Artifact</code>.
-     *
-     * @param children
-     *         the new children to set
-     * @throws NullPointerException
-     *         if {@code children} is {@code null}
-     */
-    public void setChildren(List<T> children) {
-        Objects.requireNonNull(children, "The list of children must not be null.");
-
-        this.children = children;
-        invalidateHash();
-    }
 
     /**
      * Marks this <code>Artifact</code> as a conflict.
