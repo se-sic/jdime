@@ -1,4 +1,5 @@
 rootProject.name = 'JDime'
+rootProject.buildFileName = 'build.gradle.kts'
 
 if (!ext.JNM_MAVEN.toBoolean()) {
     includeFlat('JNativeMerge')
