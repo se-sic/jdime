@@ -106,12 +106,11 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public String getName() {
-        return "ADD";
-    }
-
-    @Override
     public String toString() {
-        return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
+        if (condition == null) {
+            return String.format("%s: %s TO %s", getId(), artifact.getId(), target.getId());
+        } else {
+            return String.format("%s: %s TO %s CONDITION %s", getId(), artifact.getId(), target.getId(), condition);
+        }
     }
 }

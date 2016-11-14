@@ -116,12 +116,11 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public String getName() {
-        return "DELETE";
-    }
-
-    @Override
     public String toString() {
-        return getId() + ": " + getName() + " " + artifact;
+        if (condition == null) {
+            return String.format("%s: %s FROM %s", getId(), artifact.getId(), target.getId());
+        } else {
+            return String.format("%s: %s FROM %s CONDITION %s", getId(), artifact.getId(), target.getId(), condition);
+        }
     }
 }

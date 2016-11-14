@@ -107,13 +107,16 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public final String getName() {
-        return "CONFLICT";
-    }
-
-    @Override
     public final String toString() {
-        return getId() + ": " + getName() + " {" + left + "} <~~> {" + right
-                + "}";
+        String lId = left != null ? left.getId() : "NONE";
+        String rId = right != null ? right.getId() : "NONE";
+        String tId = target.getId();
+
+        if (leftCondition == null && rightCondition == null) {
+            return String.format("%s: BETWEEN %s AND %s UNDER %s", getId(), lId, rId, tId);
+        } else {
+            String format = "%s: BETWEEN %s (CONDITION %s) AND %s (CONDITION %s) UNDER %s";
+            return String.format(format, getId(), lId, leftCondition, rId, rightCondition, tId);
+        }
     }
 }

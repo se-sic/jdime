@@ -195,11 +195,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
         return mergeScenario;
     }
 
-    @Override
-    public String getName() {
-        return "MERGE";
-    }
-
     /**
      * Returns the target @code{Artifact}.
      *
@@ -211,10 +206,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public String toString() {
-        String dst = target.getId();
-        String mScenarioString = mergeScenario.toString(true);
         MergeType mergeType = mergeScenario.getMergeType();
+        String mScenarioString = mergeScenario.toString(true);
+        String dst = target.getId();
 
-        return String.format("%s: %s %s %s INTO %s", getId(), getName(), mergeType, mScenarioString, dst);
+        return String.format("%s: %s %s INTO %s", getId(), mergeType, mScenarioString, dst);
     }
 }
