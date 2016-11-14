@@ -23,9 +23,7 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
-import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
@@ -101,10 +99,8 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                     LOG.finest(String.format("Plaintext tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
                 }
 
-                String lCond = merged.getRevision().getName();
-                String rCond = next.getRevision().getName();
                 MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(BASE), next);
-                MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode, lCond, rCond);
+                MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode);
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest("ASTMOperation.apply(context)");

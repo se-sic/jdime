@@ -55,11 +55,16 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
      * Constructs a new {@link ConflictOperation} adding a conflict representation between the {@code left} and
      * {@code right} alternative to the {@code target}.
      *
-     * @param left the left alternative
-     * @param right the right alternative
-     * @param target the target {@link Artifact} to add a conflict representation to
-     * @param leftCondition the condition for the left alternative, may be {@code null}
-     * @param rightCondition the condition for the right alternative, may be {@code null}
+     * @param left
+     *         the left alternative
+     * @param right
+     *         the right alternative
+     * @param target
+     *         the target {@link Artifact} to add a conflict representation to
+     * @param leftCondition
+     *         the condition for the left alternative, may be {@code null}
+     * @param rightCondition
+     *         the condition for the right alternative, may be {@code null}
      */
     public ConflictOperation(T left, T right, T target, String leftCondition, String rightCondition) {
         Objects.requireNonNull(target, "The parent for the conflict must not be null.");

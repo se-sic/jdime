@@ -24,8 +24,6 @@
 package de.fosd.jdime.merge;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
@@ -158,7 +156,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
 
                     for (T rightChild : rightChildren) {
 
-                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, triple, l.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, l.getName());
                         delOp.apply(context);
                     }
                     return;
@@ -179,7 +177,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 } else {
 
                     for (T leftChild : leftChildren) {
-                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, triple, r.getName());
+                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, r.getName());
                         delOp.apply(context);
                     }
                     return;

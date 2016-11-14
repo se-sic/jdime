@@ -52,7 +52,6 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      */
     private T target;
 
-    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
@@ -62,18 +61,15 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      *         the <code>Artifact</code> to be added
      * @param target
      *         the <code>Artifact</code> to add to
-     * @param mergeScenario
-     *         the current <code>MergeScenario</code>
      * @param condition
      *         the presence condition for <code>artifact</code> or <code>null</code>
      */
-    public AddOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+    public AddOperation(T artifact, T target, String condition) {
         Objects.requireNonNull(artifact, "The artifact to be added must not be null.");
         Objects.requireNonNull(target, "The target to be added to must not be null.");
 
         this.artifact = artifact;
         this.target = target;
-        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;

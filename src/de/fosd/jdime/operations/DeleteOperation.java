@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
-import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -52,7 +51,9 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
      */
     private T target;
 
-    private MergeScenario<T> mergeScenario;
+    /**
+     * The condition under which the {@link #artifact} is <b>NOT</b> deleted from {@link #target}.
+     */
     private String condition;
 
     /**
@@ -63,18 +64,15 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
      *         the <code>Artifact</code> to be deleted
      * @param target
      *         the <code>Artifact</code> to delete from
-     * @param mergeScenario
-     *         the current <code>MergeScenario</code>
      * @param condition
      *         the condition under which the node is NOT deleted
      */
-    public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+    public DeleteOperation(T artifact, T target, String condition) {
         Objects.requireNonNull(artifact, "The artifact to be deleted must not be null.");
         Objects.requireNonNull(target, "The target to delete from must not be null.");
 
         this.artifact = artifact;
         this.target = target;
-        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;

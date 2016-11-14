@@ -32,6 +32,7 @@ import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;
+import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -59,10 +60,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      */
     private T target;
 
-    private boolean nway = false;
-    private String leftCondition;
-    private String rightCondition;
-
     /**
      * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result
      * will be output into <code>target</code>. Both <code>inputArtifacts</code> and <code>target</code> may not be
@@ -70,24 +67,23 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      * <p>
      * The <code>inputArtifacts</code> list must have either two or three elements which will be interpreted as
      * [LeftArtifact, (BaseArtifact,) RightArtifact]. A two-way-merge will be performed for a list of length 2, a
-     * three-way-merge for one of length three.
+     * three-way-merge for one of length three. If {@code nway} is {@code true} then any number of input
+     * {@link Artifact Artifacts} not smaller than {@value MergeType#MINFILES} is permitted and an n-way merge will be
+     * performed.
      *
      * @param inputArtifacts
      *         the input artifacts
      * @param target
      *         the output artifact
-     * @param leftCondition
-     *         condition for left alternative
-     * @param rightCondition
-     *         condition for right alternative
      * @param nway
+     *         whether to perform an n-way merge
      * @throws IllegalArgumentException
      *         if the size of <code>inputArtifacts</code> is invalid
      * @throws IllegalArgumentException
      *         if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
      *         {@link MergeScenario#isValid()}
      */
-    public MergeOperation(ArtifactList<T> inputArtifacts, T target, String leftCondition, String rightCondition, boolean nway) {
+    public MergeOperation(ArtifactList<T> inputArtifacts, T target, boolean nway) {
         Objects.requireNonNull(inputArtifacts, "The input artifacts must not be null.");
         Objects.requireNonNull(target, "The target must not be null.");
 
@@ -99,7 +95,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
         if (numArtifacts < MergeType.MINFILES) {
             String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
-            throw new IllegalArgumentException(msg);
+            throw new AbortException(msg);
         }
 
         if (nway) {
@@ -121,7 +117,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
                 LOG.finest("Created THREE-way scenario");
             } else {
                 String msg = String.format("Invalid number of artifacts (%d) for a MergeOperation.", numArtifacts);
-                throw new IllegalArgumentException(msg);
+                throw new AbortException(msg);
             }
 
             this.mergeScenario = new MergeScenario<>(mergeType, left, base, right);
@@ -129,11 +125,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
             if (!mergeScenario.isValid()) {
                 throw new IllegalArgumentException("The artifacts in inputArtifacts produced an invalid MergeScenario.");
             }
-        }
-
-        if (leftCondition != null || rightCondition != null) {
-            this.leftCondition = leftCondition;
-            this.rightCondition = rightCondition;
         }
     }
 
@@ -144,14 +135,10 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      *         the <code>Artifact</code>s to be merged
      * @param target
      *         the output <code>Artifact</code>
-     * @param leftCondition
-     *         condition for left alternative
-     * @param rightCondition
-     *         condition for right alternative
      * @throws IllegalArgumentException
      *         if the <code>MergeScenario</code> is invalid according to {@link MergeScenario#isValid()}
      */
-    public MergeOperation(MergeScenario<T> mergeScenario, T target, String leftCondition, String rightCondition) {
+    public MergeOperation(MergeScenario<T> mergeScenario, T target) {
         Objects.requireNonNull(mergeScenario, "The merge scenario must not be null.");
         Objects.requireNonNull(target, "The target must not be null.");
 
@@ -161,11 +148,6 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
 
         this.mergeScenario = mergeScenario;
         this.target = target;
-
-        if (leftCondition != null || rightCondition != null) {
-            this.leftCondition = leftCondition;
-            this.rightCondition = rightCondition;
-        }
     }
 
     @Override

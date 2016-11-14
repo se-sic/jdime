@@ -131,11 +131,6 @@ public final class Main {
             return;
         }
 
-        if (inputFiles.size() < MergeType.MINFILES) {
-            printCLIHelp();
-            return;
-        }
-
         merge(context);
         output(context);
 
@@ -370,7 +365,7 @@ public final class Main {
         }
 
         boolean conditional = context.isConditionalMerge();
-        MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
+        MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, conditional);
 
         merge.apply(context);
     }

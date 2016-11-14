@@ -115,10 +115,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 
-            String lCond = left.getRevision().getName();
-            String rCond = right.getRevision().getName();
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
-            MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode, lCond, rCond);
+            MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
             LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
