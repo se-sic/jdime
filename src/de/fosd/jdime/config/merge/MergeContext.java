@@ -175,12 +175,6 @@ public class MergeContext implements Cloneable {
     private boolean useMCESubtreeMatcher;
 
     /**
-     * The standard out/error streams used during the merge.
-     */
-    private StringWriter stdErr;
-    private StringWriter stdIn;
-
-    /**
      * How many levels to keep searching for matches in the subtree if the
      * currently compared nodes are not equal. If there are no matches within
      * the specified number of levels, do not look for matches deeper in the
@@ -226,8 +220,6 @@ public class MergeContext implements Cloneable {
         this.collectStatistics = false;
         this.statistics = null;
         this.useMCESubtreeMatcher = false;
-        this.stdErr = new StringWriter();
-        this.stdIn = new StringWriter();
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
@@ -277,12 +269,6 @@ public class MergeContext implements Cloneable {
         this.collectStatistics = toCopy.collectStatistics;
         this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
-
-        this.stdErr = new StringWriter();
-        this.stdErr.append(toCopy.stdErr.toString());
-
-        this.stdIn = new StringWriter();
-        this.stdIn.append(toCopy.stdIn.toString());
 
         this.lookAhead = toCopy.lookAhead;
         this.lookAheads = new HashMap<>(toCopy.lookAheads);
@@ -594,48 +580,6 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Append a String to stdIN.
-     *
-     * @param s
-     *         String to append
-     */
-    public void append(String s) {
-        stdIn.append(s);
-    }
-
-    /**
-     * Append a String to stdERR.
-     *
-     * @param s
-     *         String to append
-     */
-    public void appendError(String s) {
-        stdErr.append(s);
-    }
-
-    /**
-     * Appends a line to the saved stdin buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendLine(String line) {
-        stdIn.append(line);
-        stdIn.append(System.lineSeparator());
-    }
-
-    /**
-     * Appends a line to the saved stderr buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendErrorLine(String line) {
-        stdErr.append(line);
-        stdErr.append(System.lineSeparator());
-    }
-
-    /**
      * Returns the input files for the merge.
      *
      * @return the input files
@@ -714,42 +658,6 @@ public class MergeContext implements Cloneable {
      */
     public boolean hasStatistics() {
         return collectStatistics;
-    }
-
-    /**
-     * Returns the saved standard error buffer as a <code>String</code>.
-     *
-     * @return the stdErr buffer as a <code>String</code>
-     */
-    public String getStdErr() {
-        return stdErr.toString();
-    }
-
-    /**
-     * Returns the saved standard input buffer as a <code>String</code>.
-     *
-     * @return the stdIn buffer as a <code>String</code>
-     */
-    public String getStdIn() {
-        return stdIn.toString();
-    }
-
-    /**
-     * Returns true if stdErr is not empty.
-     *
-     * @return true if stdErr is not empty
-     */
-    public boolean hasErrors() {
-        return stdErr.getBuffer().length() != 0;
-    }
-
-    /**
-     * Returns true if stdIn is not empty.
-     *
-     * @return true if stdIn is not empty
-     */
-    public boolean hasOutput() {
-        return stdIn.getBuffer().length() != 0;
     }
 
     /**
@@ -923,14 +831,6 @@ public class MergeContext implements Cloneable {
      */
     public void setRecursive(boolean recursive) {
         this.recursive = recursive;
-    }
-
-    /**
-     * Resets the input streams.
-     */
-    public void resetStreams() {
-        stdIn = new StringWriter();
-        stdErr = new StringWriter();
     }
 
     /**

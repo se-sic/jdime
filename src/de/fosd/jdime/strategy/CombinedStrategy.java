@@ -49,8 +49,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        context.resetStreams();
-
         LOG.fine(() -> {
             MergeScenario<FileArtifact> triple = operation.getMergeScenario();
             String leftPath = triple.getLeft().getPath();
@@ -94,16 +92,6 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
         long runtime = System.currentTimeMillis() - startTime;
         LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
-
-        if (subContext.hasOutput()) {
-            context.append(subContext.getStdIn());
-        }
-
-        if (subContext.hasErrors()) {
-            context.appendError(subContext.getStdErr());
-        }
-
-        operation.getTarget().setContent(context.getStdIn());
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();

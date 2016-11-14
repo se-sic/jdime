@@ -65,8 +65,6 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        context.resetStreams();
-
         MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
         Map<Revision, FileArtifact> variants = scenario.getArtifacts();
 
@@ -90,32 +88,35 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
         targetNode = new ASTNodeArtifact(variants.get(it.next()));
 
         while (it.hasNext()) {
-
             merged = targetNode;
             next = new ASTNodeArtifact(variants.get(it.next()));
 
             try {
-                mergeContext = context;
-                mergeContext.resetStreams();
-
                 long cmdStart = System.currentTimeMillis();
 
+                mergeContext = context;
                 targetNode = ASTNodeArtifact.createProgram(merged);
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest(String.format("Plaintext tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
                 }
 
+                String lCond = merged.getRevision().getName();
+                String rCond = next.getRevision().getName();
                 MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(BASE), next);
-
-                MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode,
-                        merged.getRevision().getName(), next.getRevision().getName());
+                MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(astScenario, targetNode, lCond, rCond);
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest("ASTMOperation.apply(context)");
                 }
 
                 astMergeOp.apply(mergeContext);
+                long runtime = System.currentTimeMillis() - cmdStart;
+                LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
+
+                if (!context.isDiffOnly()) {
+                    operation.getTarget().setContent(targetNode.prettyPrint());
+                }
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest("Structured merge finished.");
@@ -133,29 +134,12 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                     }
                 }
 
-                try (BufferedReader buf = new BufferedReader(new StringReader(targetNode.prettyPrint()))) {
-                    String line;
-                    while ((line = buf.readLine()) != null) {
-                        context.appendLine(line);
-                    }
-                }
-
-                long runtime = System.currentTimeMillis() - cmdStart;
-
                 if (LOG.isLoggable(Level.FINE)) {
 
                     try (FileWriter fw = new FileWriter(merged + ".dot")) {
                         fw.write(targetNode.dump(GRAPHVIZ_TREE));
                     }
                 }
-
-                LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
-
-                if (context.hasErrors()) {
-                    LOG.warning(String.format("Context has errors:%n%s", context.getStdErr()));
-                }
-
-                operation.getTarget().setContent(context.getStdIn());
             } catch (Throwable t) {
                 LOG.severe("Exception while merging:");
                 context.addCrash(scenario, t);

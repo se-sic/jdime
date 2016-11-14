@@ -93,6 +93,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 
+        FileArtifact target = operation.getTarget();
         FileArtifact leftFile = triple.getLeft();
         FileArtifact rightFile = triple.getRight();
         FileArtifact baseFile = triple.getBase();
@@ -101,7 +102,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         String bPath = baseFile.getPath();
         String rPath = rightFile.getPath();
 
-        context.resetStreams();
         System.setSecurityManager(noExitManager);
 
         LOG.fine(() -> String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
@@ -127,9 +127,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             astMergeOp.apply(context);
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
+            if (!context.isDiffOnly()) {
+                target.setContent(targetNode.prettyPrint());
+            }
+
             long runtime = System.currentTimeMillis() - startTime;
 
             LOG.fine("Structured merge finished.");
+            LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
             if (!context.isDiffOnly()) {
                 LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
@@ -139,17 +144,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
 
             if (!context.isDiffOnly()) {
-                context.appendLine(targetNode.prettyPrint()); // TODO use setContent of Artifact
-                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", context.getStdIn()));
+                LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", target.getContent()));
             }
-
-            LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
-
-            if (context.hasErrors()) {
-                LOG.severe(() -> String.format("Errors occurred while merging structurally.%n%s", context.getStdErr()));
-            }
-
-            operation.getTarget().setContent(context.getStdIn());
 
             if (context.hasStatistics()) {
                 if (LOG.isLoggable(Level.FINE)) {
@@ -166,8 +162,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 Statistics statistics = context.getStatistics();
                 MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 
-                if (!context.isDiffOnly()) { // TODO use getContent
-                    ParseResult parseResult = scenarioStatistics.setLineStatistics(context.getStdIn());
+                if (!context.isDiffOnly()) {
+                    ParseResult parseResult = scenarioStatistics.setLineStatistics(target.getContent());
 
                     if (parseResult.getConflicts() > 0) {
                         scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();

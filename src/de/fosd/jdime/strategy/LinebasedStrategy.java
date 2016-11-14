@@ -86,8 +86,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 
-        context.resetStreams();
-
         List<String> cmd = new ArrayList<>();
         cmd.add(BASECMD);
         cmd.addAll(BASEARGS);
@@ -129,9 +127,6 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             LOG.log(Level.SEVERE, e, () -> "Could not fully read the process error output.");
         }
 
-        context.append(processOutput.toString());
-        context.appendError(processErrorOutput.toString());
-
         try {
             pr.waitFor();
         } catch (InterruptedException e) {
@@ -139,14 +134,18 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         }
 
         runtime = System.currentTimeMillis() - startTime;
-
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
-        if (context.hasErrors()) {
-            LOG.severe(() -> String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), context.getStdErr()));
+        if (!context.isDiffOnly()) {
+            operation.getTarget().setContent(processOutput.toString());
         }
 
-        operation.getTarget().setContent(context.getStdIn());
+        if (processErrorOutput.length() > 0) {
+            LOG.severe(() -> {
+                String errors = processErrorOutput.toString();
+                return String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), errors);
+            });
+        }
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
