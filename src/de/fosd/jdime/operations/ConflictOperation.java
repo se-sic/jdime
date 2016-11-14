@@ -62,9 +62,7 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
      * @param rightCondition the condition for the right alternative, may be {@code null}
      */
     public ConflictOperation(T left, T right, T target, String leftCondition, String rightCondition) {
-        Objects.requireNonNull(left, "The left side of the conflict must not be null.");
-        Objects.requireNonNull(left, "The right side of the conflict must not be null.");
-        Objects.requireNonNull(left, "The parent for the conflict must not be null.");
+        Objects.requireNonNull(target, "The parent for the conflict must not be null.");
 
         this.left = left;
         this.right = right;
