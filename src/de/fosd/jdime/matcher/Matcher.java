@@ -175,16 +175,15 @@ public class Matcher<T extends Artifact<T>> {
         storeMatchings(context, matchings, color);
 
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
-            System.out.println(matchings);
+            Revision lRev = left.getRevision();
+            Revision rRev = right.getRevision();
+            String msg = String.format("Dumping matching of %s and %s%n%s", lRev, rRev, matchings);
+            LOG.finest(msg);
         }
 
         if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dump(DumpMode.PLAINTEXT_TREE));
-
-            LOG.fine(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dump(DumpMode.PLAINTEXT_TREE));
+            LOG.fine(String.format("%s.dumpTree():%n%s", left.getRevision(), left.dump(DumpMode.PLAINTEXT_TREE)));
+            LOG.fine(String.format("%s.dumpTree():%n%s", right.getRevision(), right.dump(DumpMode.PLAINTEXT_TREE)));
         }
 
         return matchings;

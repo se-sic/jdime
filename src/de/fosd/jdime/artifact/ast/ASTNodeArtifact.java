@@ -300,9 +300,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
 
-        if (LOG.isLoggable(Level.FINEST)) {
-            System.out.println(Artifacts.root(this).dump(PLAINTEXT_TREE));
-        }
+        LOG.finest(() -> Artifacts.root(this).dump(PLAINTEXT_TREE));
 
         String indent = isRoot() ? "" : astnode.extractIndent();
         String prettyprint = indent + astnode.prettyPrint();

@@ -103,8 +103,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 targetNode = ASTNodeArtifact.createProgram(merged);
 
                 if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest("Plaintext tree dump of target node:");
-                    System.out.println(targetNode.dump(PLAINTEXT_TREE));
+                    LOG.finest(String.format("Plaintext tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
                 }
 
                 MergeScenario<ASTNodeArtifact> astScenario = new MergeScenario<>(MergeType.TWOWAY, merged, merged.createEmptyArtifact(BASE), next);
@@ -119,22 +118,18 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 astMergeOp.apply(mergeContext);
 
                 if (LOG.isLoggable(Level.FINEST)) {
-                    // TODO us LOG instead of syso
                     LOG.finest("Structured merge finished.");
 
                     if (!context.isDiffOnly()) {
-                        LOG.finest("Plaintext tree dump of target node:");
-                        System.out.println(targetNode.dump(PLAINTEXT_TREE));
+                        String dump = targetNode.dump(PLAINTEXT_TREE);
+                        LOG.finest(String.format("Plaintext tree dump of target node:%n%s", dump));
                     }
 
-                    LOG.finest("Pretty-printing merged:");
-                    System.out.println(merged.prettyPrint());
-                    LOG.finest("Pretty-printing next:");
-                    System.out.println(next.prettyPrint());
+                    LOG.finest(String.format("Pretty-printing merged:%n%s", merged.prettyPrint()));
+                    LOG.finest(String.format("Pretty-printing next:%n%s", next.prettyPrint()));
 
                     if (!context.isDiffOnly()) {
-                        LOG.finest("Pretty-printing target:");
-                        System.out.print(targetNode.prettyPrint());
+                        LOG.finest(String.format("Pretty-printing target:%n%s", targetNode.prettyPrint()));
                     }
                 }
 
@@ -157,7 +152,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 LOG.fine(() -> String.format("Structured merge time was %s ms.", runtime));
 
                 if (context.hasErrors()) {
-                    System.err.println(context.getStdErr());
+                    LOG.warning(String.format("Context has errors:%n%s", context.getStdErr()));
                 }
 
                 operation.getTarget().setContent(context.getStdIn());
