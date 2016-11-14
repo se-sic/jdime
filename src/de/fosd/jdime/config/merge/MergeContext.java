@@ -369,21 +369,30 @@ public class MergeContext implements Cloneable {
         config.getBoolean(USE_MCESUBTREE_MATCHER).ifPresent(this::setUseMCESubtreeMatcher);
 
         config.get(CLI_LOOKAHEAD, val -> {
-            // TODO abort if invalid (negative, unparseable)
+            String msg = "Invalid lookahead level '" + val + "'. Must be one of 'off', 'full' or a non-negative integer.";
+            RuntimeException abort = new AbortException(msg);
+
+            int lah;
+
             try {
-                return Optional.of(Integer.parseInt(val));
+                lah = Integer.parseInt(val);
             } catch (NumberFormatException e) {
                 String lcVal = val.trim().toLowerCase();
 
                 if ("off".equals(lcVal)) {
-                    return Optional.of(MergeContext.LOOKAHEAD_OFF);
+                    lah = MergeContext.LOOKAHEAD_OFF;
                 } else if ("full".equals(lcVal)) {
-                    return Optional.of(MergeContext.LOOKAHEAD_FULL);
+                    lah = MergeContext.LOOKAHEAD_FULL;
                 } else {
-                    LOG.warning(() -> "Invalid lookahead value '" + val + "'.");
-                    return Optional.empty();
+                    throw abort;
                 }
             }
+
+            if (lah < 0) {
+                throw abort;
+            }
+
+            return Optional.of(lah);
         }).ifPresent(this::setLookAhead);
 
         for (KeyEnums.Type type : KeyEnums.Type.values()) {

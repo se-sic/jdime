@@ -170,7 +170,7 @@ public class CommandLineConfigSource extends ConfigSource {
 
         o = Option.builder(CLI_LOOKAHEAD)
                 .longOpt("lookahead")
-                .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
+                .desc("Use heuristics for matching. Supply 'off', 'full', or a non-negative integer as the argument.")
                 .hasArg()
                 .argName("level")
                 .build();
