@@ -146,13 +146,13 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
             });
         }
 
+        copyMatches(toCopy);
+
         this.conflict = toCopy.conflict;
         this.choice = toCopy.choice;
         this.merged = toCopy.merged;
         this.revision = toCopy.revision;
         this.number = toCopy.number;
-
-        copyMatches(toCopy);
     }
 
     /**
@@ -201,7 +201,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         toCopy.matches.entrySet().forEach(en -> {
             Matching<T> clone = en.getValue().clone();
-            clone.updateMatching((T) this); // TODO implement updateMatching without relying in getId()
+
+            try {
+                // We assume that Artifact trees all have the same dynamic type.
+                @SuppressWarnings("unchecked") T artifact = (T) this;
+                @SuppressWarnings("unchecked") T toReplace = (T) toCopy;
+                clone.updateMatching(artifact, toReplace);
+            } catch (ClassCastException e) {
+                LOG.log(Level.SEVERE, e, () -> "Failed to update a Matching.");
+                return;
+            }
 
             matches.put(en.getKey(), clone);
         });
