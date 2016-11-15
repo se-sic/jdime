@@ -120,7 +120,7 @@ public class MergeContext implements Cloneable {
     /**
      * Input Files.
      */
-    private ArtifactList<FileArtifact> inputFiles;
+    private List<FileArtifact> inputFiles;
 
     /**
      * If true and the input files are directories, any files not representing java source code files or directories
@@ -513,7 +513,7 @@ public class MergeContext implements Cloneable {
                 }
             }
 
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>(inputFiles.size());
+            List<FileArtifact> inputArtifacts = new ArtifactList<>(inputFiles.size());
 
             for (File file : inputFiles) {
                 FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
@@ -576,7 +576,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the input files
      */
-    public ArtifactList<FileArtifact> getInputFiles() {
+    public List<FileArtifact> getInputFiles() {
         return inputFiles;
     }
 
@@ -586,7 +586,7 @@ public class MergeContext implements Cloneable {
      * @param inputFiles
      *         the new input files
      */
-    public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
+    public void setInputFiles(List<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
     }
 

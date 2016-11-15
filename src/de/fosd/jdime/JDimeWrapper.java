@@ -25,6 +25,7 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,7 +59,7 @@ public class JDimeWrapper {
         context.setQuiet(false);
 
         // prepare the list of input files
-        ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+        List<FileArtifact> inputArtifacts = new ArtifactList<>();
 
         for (String filename : args) {
 

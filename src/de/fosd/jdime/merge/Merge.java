@@ -74,7 +74,7 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         Revision b = base.getRevision();
         Revision r = right.getRevision();
 
-        Matcher<T> matcher = new Matcher<>();
+        Matcher<T> matcher = null;
         Matching<T> m;
 
         if (!left.hasMatching(r) && !right.hasMatching(l)) {
@@ -82,14 +82,16 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
                 // 3-way merge
 
                 // diff base left
-                m = matcher.match(context, base, left, Color.GREEN).get(base, left).get();
+                matcher = new Matcher<>(base, left);
+                m = matcher.match(context, Color.GREEN).get(base, left).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), left.getId()));
                 }
 
                 // diff base right
-                m = matcher.match(context, base, right, Color.GREEN).get(base, right).get();
+                matcher = new Matcher<>(matcher, base, right);
+                m = matcher.match(context, Color.GREEN).get(base, right).get();
 
                 if (m.getScore() == 0) {
                     LOG.fine(() -> String.format("%s and %s have no matches.", base.getId(), right.getId()));
@@ -97,7 +99,8 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             // diff left right
-            m = matcher.match(context, left, right, Color.BLUE).get(left, right).get();
+            matcher = new Matcher<>(matcher, left, right);
+            m = matcher.match(context, Color.BLUE).get(left, right).get();
 
             if (context.isDiffOnly() && left.isRoot() && left instanceof ASTNodeArtifact) {
                 assert (right.isRoot());

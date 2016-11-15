@@ -24,8 +24,8 @@
 package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,8 +68,6 @@ import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
-
-    private boolean initialized = false;
 
     /**
      * Initializes parser.
@@ -217,8 +215,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private ASTNodeArtifact(ASTNodeArtifact toCopy) {
         super(toCopy);
 
-        this.initialized = toCopy.initialized;
-
         try {
             this.astnode = toCopy.astnode.clone();
         } catch (CloneNotSupportedException e) {
@@ -226,20 +222,23 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
     }
 
+    /**
+     * Adds {@code ASTNodeArtifact} children to this artifact encapsulating the children of the {@link #astnode}.
+     *
+     * @param number
+     *         supplies the numbers for the added children
+     */
     private void initializeChildren(Supplier<Integer> number) {
-        ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
+        List<ASTNodeArtifact> children = new ArtifactList<>();
+
         for (int i = 0; i < astnode.getNumChild(); i++) {
-            if (astnode != null) {
-                ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
-                child.setParent(this);
-                children.add(child);
-                if (!child.initialized) {
-                    child.initializeChildren(number);
-                }
-            }
+            ASTNodeArtifact child = new ASTNodeArtifact(getRevision(), number, astnode.getChild(i));
+
+            child.setParent(this);
+            children.add(child);
         }
+
         setChildren(children);
-        initialized = true;
     }
 
     /**
@@ -263,7 +262,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         assert (this.exists());
         assert (child.exists());
 
-        children.add(child);
+        modifyChildren(children -> children.add(child));
         child.setParent(this);
 
         return child;
@@ -274,12 +273,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return new ASTNodeArtifact(revision);
     }
 
+    @Override
     public void deleteChildren() {
-        while (hasChildren()) {
-            ASTNodeArtifact child = getChild(0);
-            child.astnode = null;
-            children.remove(0);
-        }
+        modifyChildren(List::clear);
     }
 
     @Override
@@ -315,6 +311,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     @Override
     public final String getId() {
         return getRevision() + ":" + getNumber();
+    }
+
+    @Override
+    protected String hashId() {
+        return astnode.getMatchingRepresentation();
     }
 
     @Override
@@ -393,12 +394,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     @Override
     public final boolean isEmpty() {
         return !hasChildren();
-    }
-
-    @Override
-    public final boolean isLeaf() {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     /**
@@ -519,14 +514,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.finest(() -> String.format("[%s] Removing child %s", getId(), child.getId()));
         LOG.finest(() -> String.format("Children before removal: %s", getChildren()));
 
-        Iterator<ASTNodeArtifact> it = children.iterator();
-        ASTNodeArtifact elem;
-        while (it.hasNext()) {
-            elem = it.next();
-            if (elem == child) {
-                it.remove();
-            }
-        }
+        modifyChildren(children -> children.removeIf(it -> it == child));
 
         LOG.finest(() -> String.format("Children after removal: %s", getChildren()));
     }

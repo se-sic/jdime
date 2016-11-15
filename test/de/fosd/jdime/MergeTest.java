@@ -25,6 +25,7 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.List;
 
 import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -78,7 +79,7 @@ public class MergeTest extends JDimeTest {
      */
     private void runMerge(String filePath) {
         try {
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
+            List<FileArtifact> inputArtifacts = new ArtifactList<>();
 
             inputArtifacts.add(new FileArtifact(LEFT, file(leftDir, filePath)));
             inputArtifacts.add(new FileArtifact(BASE, file(baseDir, filePath)));
@@ -114,6 +115,11 @@ public class MergeTest extends JDimeTest {
         } catch (Exception e) {
             fail(e.toString());
         }
+    }
+
+    @Test
+    public void testMovedMethod() {
+        runMerge("SimpleTests/MovedMethod.java");
     }
 
     @Test

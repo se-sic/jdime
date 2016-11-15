@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.artifact;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -52,13 +53,13 @@ public class TestArtifact extends Artifact<TestArtifact> {
         super(rev, 0);
         this.label = label;
         this.type = type;
-        this.children = new ArtifactList<>();
     }
 
     @Override
     public TestArtifact addChild(TestArtifact child) {
-        children.add(child);
         child.setParent(this);
+        modifyChildren(children -> children.add(child));
+
         return child;
     }
 
@@ -96,12 +97,17 @@ public class TestArtifact extends Artifact<TestArtifact> {
 
     @Override
     public void deleteChildren() {
-        this.children = new ArtifactList<>();
+        modifyChildren(List::clear);
     }
 
     @Override
     public String getId() {
         return String.format("%s : %s : %d", getRevision(), label, getNumber());
+    }
+
+    @Override
+    protected String hashId() {
+        return label + type.name();
     }
 
     @Override
@@ -112,11 +118,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public boolean isEmpty() {
         return false;
-    }
-
-    @Override
-    public boolean isLeaf() {
-        return children.isEmpty();
     }
 
     @Override

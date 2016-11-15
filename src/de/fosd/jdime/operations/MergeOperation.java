@@ -23,12 +23,13 @@
  */
 package de.fosd.jdime.operations;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;
@@ -83,7 +84,7 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
      *         if the artifacts in <code>inputArtifacts</code> produce an invalid <code>MergeScenario</code> according to
      *         {@link MergeScenario#isValid()}
      */
-    public MergeOperation(ArtifactList<T> inputArtifacts, T target, boolean nway) {
+    public MergeOperation(List<T> inputArtifacts, T target, boolean nway) {
         Objects.requireNonNull(inputArtifacts, "The input artifacts must not be null.");
         Objects.requireNonNull(target, "The target must not be null.");
 

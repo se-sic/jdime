@@ -23,16 +23,18 @@
  */
 package de.fosd.jdime.artifact;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -44,6 +46,8 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -60,27 +64,27 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected ArtifactList<T> children = null;
+    private List<T> children;
 
     /**
      * Left side of a conflict.
      */
-    protected T left = null;
+    protected T left;
 
     /**
      * Right side of a conflict.
      */
-    protected T right = null;
+    protected T right;
 
     /**
      * Whether this artifact represents a conflict.
      */
-    private boolean conflict = false;
+    private boolean conflict;
 
     /**
      * Whether this artifact represents a choice node.
      */
-    private boolean choice = false;
+    private boolean choice;
 
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
@@ -112,6 +116,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     private int number;
 
+    private boolean hashValid;
+    private String hash;
+
     /**
      * Constructs a new <code>Artifact</code>.
      *
@@ -121,9 +128,12 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
      */
     protected Artifact(Revision rev, int number) {
-        this.matches = new LinkedHashMap<>();
+        this.children = new ArtifactList<>();
+        this.matches = new HashMap<>();
         this.revision = rev;
         this.number = number;
+        this.hashValid = false;
+        this.hash = null;
     }
 
     /**
@@ -133,7 +143,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         the {@link Artifact} to copy
      * @see #copy()
      */
-    @SuppressWarnings("unchecked")
     protected Artifact(Artifact<T> toCopy) {
         this.children = new ArtifactList<>();
         this.left = toCopy.left != null ? Artifacts.copyTree(toCopy.left) : null;
@@ -154,15 +163,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         this.revision = toCopy.revision;
         this.number = toCopy.number;
     }
-
-    /**
-     * Adds a child.
-     *
-     * @param child
-     *            child to add
-     * @return added child
-     */
-    public abstract T addChild(T child);
 
     /**
      * Adds a matching.
@@ -288,6 +288,20 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean exists();
 
     /**
+     * Adds a child.
+     *
+     * @param child
+     *            child to add
+     * @return added child
+     */
+    public abstract T addChild(T child);
+
+    /**
+     * Deletes the children of this {@code Artifact}.
+     */
+    public abstract void deleteChildren();
+
+    /**
      * Return child <code>Artifact</code> at position i.
      *
      * @param i
@@ -295,24 +309,67 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return child <code>Artifact</code> at position i
      */
     public T getChild(int i) {
-        assert (children != null);
         return children.get(i);
     }
 
     /**
-     * Returns all children of the <code>Artifact</code>.
+     * Returns an unmodifiable view of the children of this {@code Artifact}.
      *
-     * @return the children of the <code>Artifact</code>
+     * @return an unmodifiable view of the children of this {@code Artifact}
+     * @see Collections#unmodifiableList(List)
      */
-    public ArtifactList<T> getChildren() {
-        if (isLeaf()) {
-            return new ArtifactList<>();
-        }
-
-        return children;
+    public List<T> getChildren() {
+        return Collections.unmodifiableList(children);
     }
 
-    public abstract void deleteChildren();
+    /**
+     * Sets the children of the <code>Artifact</code>.
+     *
+     * @param children
+     *         the new children to set
+     * @throws NullPointerException
+     *         if {@code children} is {@code null}
+     */
+    public void setChildren(List<T> children) {
+        Objects.requireNonNull(children, "The list of children must not be null.");
+
+        this.children = children;
+        invalidateHash();
+    }
+
+    /**
+     * Applies the given {@code action} to the children of this {@link Artifact} and invalidates the tree hash as
+     * necessary.
+     *
+     * @param action
+     *         the action to apply to the list of {@link #children}
+     */
+    protected void modifyChildren(Consumer<List<T>> action) {
+        int hashBefore = children.hashCode();
+        action.accept(children);
+
+        if (children.hashCode() != hashBefore) {
+            invalidateHash();
+        }
+    }
+
+    /**
+     * Returns the number of children the <code>Artifact</code> has.
+     *
+     * @return number of children
+     */
+    public int getNumChildren() {
+        return children.size();
+    }
+
+    /**
+     * Returns true if the <code>Artifact</code> has children.
+     *
+     * @return true if the <code>Artifact</code> has children
+     */
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
 
     /**
      * Returns the identifier of the <code>Artifact</code>,
@@ -323,6 +380,51 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return identifier of the <code>Artifact</code>
      */
     public abstract String getId();
+
+    /**
+     * Returns a hash of the tree rooted in this {@code Artifact}.
+     *
+     * @return the tree hash
+     */
+    public String getTreeHash() {
+
+        if (hashValid) {
+            return hash;
+        }
+
+        MessageDigest digest = DigestUtils.getSha256Digest();
+        DigestUtils.updateDigest(digest, hashId());
+
+        if (hasChildren()) {
+            children.forEach(c -> DigestUtils.updateDigest(digest, c.getTreeHash()));
+            hash = "1" + Hex.encodeHexString(digest.digest());
+        } else {
+            hash = "0" + Hex.encodeHexString(digest.digest());
+        }
+
+        hashValid = true;
+        return hash;
+    }
+
+    /**
+     * Returns the {@code String} identifying this {@code Artifact} for the purposes of calculating the tree hash in
+     * {@link #getTreeHash()};
+     *
+     * @return the identifying {@code String} to be hashed
+     */
+    protected abstract String hashId();
+
+    /**
+     * Invalidates the hashes of this {@code Artifact} and all its parents.
+     */
+    protected void invalidateHash() {
+        hashValid = false;
+        hash = null;
+
+        if (parent != null) {
+            parent.invalidateHash();
+        }
+    }
 
     /**
      * Returns the <code>Matching</code> for a specific <code>Revision</code> or <code>null</code> if there is no such
@@ -384,19 +486,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         for (Artifact<T> child : children) {
             child.renumber(number);
         }
-    }
-
-    /**
-     * Returns the number of children the <code>Artifact</code> has.
-     *
-     * @return number of children
-     */
-    public int getNumChildren() {
-        if (isLeaf()) {
-            return 0;
-        }
-
-        return children == null ? 0 : children.size();
     }
 
     /**
@@ -495,15 +584,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     public boolean isChange() {
         return !hasMatches();
-    }
-
-    /**
-     * Returns true if the <code>Artifact</code> has children.
-     *
-     * @return true if the <code>Artifact</code> has children
-     */
-    public boolean hasChildren() {
-        return getNumChildren() > 0;
     }
 
     /**
@@ -619,13 +699,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean isEmpty();
 
     /**
-     * Returns true if the <code>Artifact</code> is a leaf.
-     *
-     * @return true if the <code>Artifact</code> is a leaf
-     */
-    public abstract boolean isLeaf();
-
-    /**
      * Returns true if the <code>Artifact</code> has already been merged.
      * @return true if the <code>Artifact</code> has already been merged
      */
@@ -668,16 +741,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            merge context
      */
     public abstract void merge(MergeOperation<T> operation, MergeContext context);
-
-    /**
-     * Sets the children of the <code>Artifact</code>.
-     *
-     * @param children
-     *            the new children to set
-     */
-    public void setChildren(ArtifactList<T> children) {
-        this.children = children;
-    }
 
     /**
      * Marks this <code>Artifact</code> as a conflict.
@@ -793,7 +856,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public void setRevision(Revision revision, boolean recursive) {
         this.revision = revision;
 
-        if (recursive && children != null) {
+        if (recursive) {
             for (T child : children) {
                 child.setRevision(revision, true);
             }

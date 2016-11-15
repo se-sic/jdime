@@ -220,11 +220,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.original = file;
         this.file = file;
 
-        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
-
         if (isDirectory()) {
-            children.addAll(getDirContent(number));
-            Collections.sort(children, comp);
+            modifyChildren(children -> {
+                children.addAll(getDirContent(number));
+                Collections.sort(children, comp);
+            });
         }
     }
 
@@ -242,8 +242,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public FileArtifact(Revision revision, FileType type) {
         super(revision, 0);
-
-        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
 
         if (!type.isVirtual()) {
             throw new IllegalArgumentException("Type " + type + " is not virtual.");
@@ -290,8 +288,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public FileArtifact(Revision revision, File file, FileType type) {
         super(revision, 0);
 
-        this.children = new ArtifactList<>(); // TODO remove once the fixes to the Artifact class are merged
-
         if (file.exists()) {
             throw new IllegalArgumentException("File '" + file + "' exists.");
         } else if (!type.isVirtual()) {
@@ -329,8 +325,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         child.file = new File(file, child.file.getName());
 
-        children.add(child);
-        Collections.sort(children, comp);
+        modifyChildren(children -> {
+            children.add(child);
+            Collections.sort(children, comp);
+        });
 
         child.setParent(this);
 
@@ -359,7 +357,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public void deleteChildren() {
-        children.clear();
+       modifyChildren(List::clear);
     }
 
     /**
@@ -369,10 +367,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public void filterNonJavaFiles() {
         if (isDirectory()) {
-            children.stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
+            getChildren().stream().filter(FileArtifact::isDirectory).forEach(FileArtifact::filterNonJavaFiles);
 
             LOG.fine(() -> "Filtering out the children not representing java source code files from " + this);
-            children.removeIf(c -> (c.isFile() && !c.isJavaFile()) || (c.isDirectory() && c.getChildren().isEmpty()));
+            modifyChildren(cs -> cs.removeIf(c -> c.isFile() && !c.isJavaFile() || c.isDirectory() && !c.hasChildren()));
         }
     }
 
@@ -464,7 +462,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isJavaFile()) {
             list.add(this);
         } else if (isDirectory()) {
-            children.forEach(c -> c.getJavaFiles(list));
+            getChildren().forEach(c -> c.getJavaFiles(list));
         }
 
         return list;
@@ -482,6 +480,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public final String getId() {
         return getRevision() + ":" + getPath();
+    }
+
+    @Override
+    protected String hashId() {
+        return file.getName();
     }
 
     /**
@@ -603,7 +606,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public final boolean isEmpty() {
         if (isDirectory()) {
-            return children.isEmpty();
+            return !hasChildren();
         } else {
             return "".equals(getContent());
         }
@@ -616,11 +619,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public final boolean isFile() {
         return type.isFile();
-    }
-
-    @Override
-    public final boolean isLeaf() {
-        return !hasChildren();
     }
 
     @Override
@@ -760,7 +758,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
         } else if (isDirectory()) {
 
-            for (FileArtifact child : children) {
+            for (FileArtifact child : getChildren()) {
                 child.writeContent();
             }
         }

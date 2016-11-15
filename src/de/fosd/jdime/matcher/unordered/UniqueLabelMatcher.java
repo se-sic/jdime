@@ -79,8 +79,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         }
 
         List<Matchings<T>> childrenMatchings = new ArrayList<>();
-        List<T> leftChildren = left.getChildren();
-        List<T> rightChildren = right.getChildren();
+        List<T> leftChildren = new ArrayList<>(left.getChildren());
+        List<T> rightChildren = new ArrayList<>(right.getChildren());
 
         Collections.sort(leftChildren, comp);
         Collections.sort(rightChildren, comp);
