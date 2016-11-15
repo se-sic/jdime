@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.FILE;
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
+import static de.fosd.jdime.strategy.MergeStrategy.STRUCTURED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -68,7 +69,7 @@ public class StatisticsTest extends JDimeTest {
         inputArtifacts.add(new FileArtifact(MergeScenario.BASE, file(baseDir, filePath)));
         inputArtifacts.add(new FileArtifact(MergeScenario.RIGHT, file(rightDir, filePath)));
 
-        context.setMergeStrategy(MergeStrategy.parse("structured"));
+        context.setMergeStrategy(MergeStrategy.parse(STRUCTURED).get());
         context.setInputFiles(inputArtifacts);
         context.setOutputFile(new FileArtifact(MergeScenario.MERGE, VFILE));
 

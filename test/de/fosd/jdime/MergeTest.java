@@ -40,6 +40,9 @@ import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
 import static de.fosd.jdime.config.merge.MergeScenario.MERGE;
 import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
+import static de.fosd.jdime.strategy.MergeStrategy.COMBINED;
+import static de.fosd.jdime.strategy.MergeStrategy.LINEBASED;
+import static de.fosd.jdime.strategy.MergeStrategy.STRUCTURED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -49,7 +52,7 @@ import static org.junit.Assert.fail;
  */
 public class MergeTest extends JDimeTest {
 
-    private static final String[] STRATEGIES = { "linebased", "structured", "combined" };
+    private static final String[] STRATEGIES = { LINEBASED, STRUCTURED, COMBINED };
 
     private MergeContext context;
 
@@ -82,7 +85,7 @@ public class MergeTest extends JDimeTest {
             inputArtifacts.add(new FileArtifact(RIGHT, file(rightDir, filePath)));
 
             for (String strategy : STRATEGIES) {
-                context.setMergeStrategy(MergeStrategy.parse(strategy));
+                context.setMergeStrategy(MergeStrategy.parse(strategy).get());
                 context.setInputFiles(inputArtifacts);
 
                 File out = Files.createTempFile("jdime-tests", ".java").toFile();
