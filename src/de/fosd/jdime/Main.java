@@ -96,7 +96,10 @@ public final class Main {
                 LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
             } else {
                 System.err.println(e.getMessage());
-                LOG.log(Level.SEVERE, e, () -> "Aborting the merge.");
+                System.err.println();
+                printCLIHelp();
+
+                LOG.log(Level.FINE, e, () -> "Aborting the merge.");
             }
 
             System.exit(EXIT_ABORTED);

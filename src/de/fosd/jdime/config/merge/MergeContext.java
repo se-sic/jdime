@@ -306,8 +306,6 @@ public class MergeContext implements Cloneable {
     }
 
     private void configInspect(JDimeConfig config) {
-        // TODO make both inspections at the same time possible (Map<Type, ID>)
-
         config.getInteger(CLI_INSPECT_ELEMENT).ifPresent(elId -> {
             setInspectArtifact(elId);
             setInspectionScope(KeyEnums.Type.NODE);
@@ -335,14 +333,8 @@ public class MergeContext implements Cloneable {
 
     private void configMerge(JDimeConfig config) {
         {
-            String mode = config.get(CLI_MODE).map(String::toLowerCase)
-                                .orElseThrow(() -> new AbortException("No mode given."));
-
-            try {
-                setMergeStrategy(MergeStrategy.parse(mode));
-            } catch (StrategyNotFoundException e) {
-                throw new AbortException(e);
-            }
+            String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
+            setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
         }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
