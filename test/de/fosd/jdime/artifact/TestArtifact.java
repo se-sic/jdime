@@ -63,7 +63,7 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public TestArtifact clone() {
+    public TestArtifact copy() {
         throw new NotYetImplementedException();
     }
 

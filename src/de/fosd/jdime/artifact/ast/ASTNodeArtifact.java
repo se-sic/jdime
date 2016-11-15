@@ -207,6 +207,25 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         initializeChildren(number);
     }
 
+    /**
+     * Copies the given {@link Artifact}.
+     *
+     * @param toCopy
+     *         to {@link Artifact} to copy
+     * @see #copy()
+     */
+    private ASTNodeArtifact(ASTNodeArtifact toCopy) {
+        super(toCopy);
+
+        this.initialized = toCopy.initialized;
+
+        try {
+            this.astnode = toCopy.astnode.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void initializeChildren(Supplier<Integer> number) {
         ArtifactList<ASTNodeArtifact> children = new ArtifactList<>();
         for (int i = 0; i < astnode.getNumChild(); i++) {
@@ -233,32 +252,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public ASTNodeArtifact clone() {
-        assert (exists());
-
-        ASTNodeArtifact clone = null;
-
-        try {
-            clone = new ASTNodeArtifact(getRevision(), astnode.clone());
-            clone.setRevision(getRevision());
-            clone.setNumber(getNumber());
-            clone.cloneMatches(this);
-
-            ArtifactList<ASTNodeArtifact> cloneChildren = new ArtifactList<>();
-            for (ASTNodeArtifact child : children) {
-                ASTNodeArtifact cloneChild = child.clone();
-                cloneChild.astnode.setParent(clone.astnode);
-                cloneChild.setParent(clone);
-                cloneChildren.add(cloneChild);
-            }
-            clone.setChildren(cloneChildren);
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
-
-        assert (clone.exists());
-
-        return clone;
+    public ASTNodeArtifact copy() {
+        return new ASTNodeArtifact(this);
     }
 
     @Override
@@ -268,8 +263,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         assert (this.exists());
         assert (child.exists());
 
-        child.setParent(this);
         children.add(child);
+        child.setParent(this);
 
         return child;
     }

@@ -303,6 +303,22 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.file = file;
     }
 
+    /**
+     * Copies the given {@link FileArtifact} detached from its tree.
+     *
+     * @param toCopy
+     *         the {@link FileArtifact} to copy
+     * @see #copy()
+     */
+    private FileArtifact(FileArtifact toCopy) {
+        super(toCopy);
+
+        this.type = toCopy.type;
+        this.original = toCopy.original;
+        this.file = toCopy.file;
+        this.content = toCopy.content;
+    }
+
     @Override
     public FileArtifact addChild(FileArtifact child) {
 
@@ -322,13 +338,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public FileArtifact clone() {
-
-        if (type.isVirtual()) {
-            return new FileArtifact(getRevision(), file, type);
-        } else {
-            return new FileArtifact(getRevision(), file);
-        }
+    public FileArtifact copy() {
+        return new FileArtifact(this);
     }
 
     @Override
@@ -739,12 +750,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isFile()) {
 
             if (type.isVirtual() && content != null) {
-                write();
+                writeToFile();
             } else {
                 if (content != null) {
-                    write();
+                    writeToFile();
                 } else {
-                    copy();
+                    copyFile();
                 }
             }
         } else if (isDirectory()) {
@@ -761,7 +772,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @throws IOException
      *         see {@link FileUtils#openOutputStream(File)}
      */
-    private void write() throws IOException {
+    private void writeToFile() throws IOException {
         try (OutputStreamWriter out = new OutputStreamWriter(FileUtils.openOutputStream(file), UTF_8)) {
             out.write(content);
         }
@@ -773,7 +784,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @throws IOException
      *         see {@link FileUtils#copyFile(File, File)}
      */
-    private void copy() throws IOException {
+    private void copyFile() throws IOException {
         FileUtils.copyFile(original, file);
     }
 

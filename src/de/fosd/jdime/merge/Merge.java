@@ -122,9 +122,9 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             throw new RuntimeException();
         }
 
+        // TODO figure out how to record matches in the target root node without this hack
         if (target.isRoot() && !target.hasMatches()) {
-            // hack to fix the matches for the merged root node
-            target.cloneMatches(left);
+            target.copyMatches(left);
         }
 
         // check if one or both the nodes have no children

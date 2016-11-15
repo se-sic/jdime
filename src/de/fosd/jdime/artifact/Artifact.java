@@ -127,6 +127,35 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Copies the given {@link Artifact} detached from its tree.
+     *
+     * @param toCopy
+     *         the {@link Artifact} to copy
+     * @see #copy()
+     */
+    @SuppressWarnings("unchecked")
+    protected Artifact(Artifact<T> toCopy) {
+        this.children = new ArtifactList<>();
+        this.left = toCopy.left != null ? Artifacts.copyTree(toCopy.left) : null;
+        this.right = toCopy.right != null ? Artifacts.copyTree(toCopy.right) : null;
+
+        if (toCopy.variants != null) {
+            this.variants = new HashMap<>();
+            toCopy.variants.entrySet().forEach(en -> {
+                variants.put(en.getKey(), Artifacts.copyTree(en.getValue()));
+            });
+        }
+
+        this.conflict = toCopy.conflict;
+        this.choice = toCopy.choice;
+        this.merged = toCopy.merged;
+        this.revision = toCopy.revision;
+        this.number = toCopy.number;
+
+        copyMatches(toCopy);
+    }
+
+    /**
      * Adds a child.
      *
      * @param child
@@ -146,24 +175,37 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Clones matches from another artifact.
+     * Copies this {@link Artifact} detached from its tree (meaning {@link #parent} will be {@code null} and
+     * {@link Artifact#children} will be empty. Subclasses must implement this method by using their own private
+     * copy constructor that calls the protected copy constructor of the {@link Artifact} base class.
      *
-     * @param other
-     *            artifact to clone matches from
+     * @return a copy of this {@link Artifact}
+     * @see Artifacts#copyTree(Artifact)
      */
-    @SuppressWarnings("unchecked")
-    public void cloneMatches(T other) {
-        matches = new LinkedHashMap<>();
+    public abstract T copy();
 
-        for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
-            Matching<T> m = entry.getValue().clone();
-            m.updateMatching((T) this);
+    /**
+     * Copies the {@link Artifact#matches} of {@code toCopy}, replaces {@code toCopy} with {@code this} in them and
+     * adds them to {@code this} {@link Artifact}.
+     *
+     * @param toCopy
+     *         the {@link Artifact} to copy the {@link Artifact#matches} from
+     */
+    public void copyMatches(Artifact<T> toCopy) {
 
-            matches.put(entry.getKey(), m);
+        if (toCopy.matches == null) {
+            return;
         }
-    }
 
-    public abstract T clone();
+        this.matches = new HashMap<>();
+
+        toCopy.matches.entrySet().forEach(en -> {
+            Matching<T> clone = en.getValue().clone();
+            clone.updateMatching((T) this); // TODO implement updateMatching without relying in getId()
+
+            matches.put(en.getKey(), clone);
+        });
+    }
 
     /**
      * Returns an <code>Artifact</code> that represents a merge conflict.

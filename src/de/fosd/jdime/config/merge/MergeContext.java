@@ -256,13 +256,13 @@ public class MergeContext implements Cloneable {
         this.forceOverwriting = toCopy.forceOverwriting;
 
         this.inputFiles = new ArtifactList<>();
-        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::clone).collect(Collectors.toList()));
+        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::copy).collect(Collectors.toList()));
 
         this.filterInputDirectories = toCopy.filterInputDirectories;
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
-        this.outputFile = toCopy.outputFile.clone();
+        this.outputFile = toCopy.outputFile.copy();
         this.quiet = toCopy.quiet;
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;

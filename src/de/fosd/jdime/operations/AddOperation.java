@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
@@ -94,7 +95,7 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
             target.addChild(choice);
         } else {
             LOG.fine("no conditions");
-            target.addChild(artifact.clone());
+            target.addChild(Artifacts.copyTree(artifact)); // TODO remove .copy() and pass a copy to the constructor wherever AddOperation is used
         }
 
         if (context.hasStatistics()) {
