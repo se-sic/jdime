@@ -87,7 +87,8 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
         LOG.fine(() -> "Applying: " + this);
 
         if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
-            LOG.fine("Create choice node");
+            LOG.fine("Creating a choice node.");
+
             T choice;
             if (left.isChoice()) {
                 choice = left;
@@ -95,14 +96,11 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
                 choice = target.createChoiceArtifact(leftCondition, left);
             }
 
-            assert (choice.isChoice());
             choice.addVariant(rightCondition, right);
             target.addChild(choice);
         } else {
-            LOG.fine("Create conflict node");
-            T conflict = target.createConflictArtifact(left, right);
-            assert (conflict.isConflict());
-            target.addChild(conflict);
+            LOG.fine("Creating a conflict node.");
+            target.addChild(target.createConflictArtifact(left, right));
         }
     }
 

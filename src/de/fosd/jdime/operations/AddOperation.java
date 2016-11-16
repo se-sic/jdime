@@ -27,9 +27,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.config.merge.MergeContext;
-import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
@@ -79,23 +77,13 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public void apply(MergeContext context) {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-
         LOG.fine(() -> "Applying: " + this);
 
-        if (artifact.isChoice()) {
-            target.addChild(artifact);
-            return;
-        }
-
         if (context.isConditionalMerge(artifact) && condition != null) {
-            T choice = target.createChoiceArtifact(condition, artifact);
-            assert (choice.isChoice());
-            target.addChild(choice);
+            LOG.fine("Creating a choice node.");
+            target.addChild(target.createChoiceArtifact(condition, artifact));
         } else {
-            LOG.fine("no conditions");
-            target.addChild(Artifacts.copyTree(artifact)); // TODO remove .copy() and pass a copy to the constructor wherever AddOperation is used
+            target.addChild(artifact);
         }
 
         if (context.hasStatistics()) {

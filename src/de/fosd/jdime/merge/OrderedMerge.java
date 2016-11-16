@@ -39,6 +39,7 @@ import de.fosd.jdime.operations.DeleteOperation;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strdump.DumpMode;
 
+import static de.fosd.jdime.artifact.Artifacts.copyTree;
 import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 
@@ -164,7 +165,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 }
                             } else {
                                 // add the left change
-                                AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                                AddOperation<T> addOp = new AddOperation<>(copyTree(leftChild), target, l.getName());
                                 leftChild.setMerged();
                                 addOp.apply(context);
                             }
@@ -186,7 +187,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
 
                         // add the left change
-                        AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
+                        AddOperation<T> addOp = new AddOperation<>(copyTree(leftChild), target, l.getName());
                         leftChild.setMerged();
                         addOp.apply(context);
                     }
@@ -264,7 +265,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
                                 // add the right change
-                                AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                                AddOperation<T> addOp = new AddOperation<>(copyTree(rightChild), target, r.getName());
                                 rightChild.setMerged();
                                 addOp.apply(context);
                             }
@@ -286,7 +287,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
 
                         // add the right change
-                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
+                        AddOperation<T> addOp = new AddOperation<>(copyTree(rightChild), target, r.getName());
                         rightChild.setMerged();
                         addOp.apply(context);
                     }
