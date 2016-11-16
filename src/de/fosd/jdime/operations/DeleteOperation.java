@@ -81,16 +81,11 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public void apply(MergeContext context) {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-
         LOG.fine(() -> "Applying: " + this);
 
         if (context.isConditionalMerge(artifact) && condition != null) {
-            // we need to insert a choice node
-            T choice = target.createChoiceArtifact(condition, artifact);
-            assert (choice.isChoice());
-            target.addChild(choice);
+            LOG.fine("Creating a choice node.");
+            target.addChild(target.createChoiceArtifact(condition, artifact));
         } else {
             // TODO delete anyway.
 
