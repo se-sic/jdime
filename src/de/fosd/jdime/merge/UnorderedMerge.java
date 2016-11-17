@@ -219,7 +219,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(leftChild);
 
-                    T targetChild = target.addChild(leftChild.copy());
+                    T targetChild = leftChild.copy();
+                    target.addChild(targetChild);
 
                     MergeScenario<T> childTriple = new MergeScenario<>(childType,
                             leftChild, baseChild, rightMatch);
@@ -250,7 +251,8 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     T baseChild = mBase == null ? rightChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(rightChild);
 
-                    T targetChild = target.addChild(rightChild.copy());
+                    T targetChild = rightChild.copy();
+                    target.addChild(targetChild);
 
                     MergeScenario<T> childTriple = new MergeScenario<>(childType,
                             leftMatch, baseChild, rightChild);

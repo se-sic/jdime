@@ -329,7 +329,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
                             : mBase.getMatchingArtifact(leftChild);
 
-                    T targetChild = target.addChild(leftChild.copy());
+                    T targetChild = leftChild.copy();
+                    target.addChild(targetChild);
 
                     MergeScenario<T> childTriple = new MergeScenario<>(childType,
                             leftChild, baseChild, rightChild);

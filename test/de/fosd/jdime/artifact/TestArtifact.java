@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.artifact;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -56,11 +55,8 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public TestArtifact addChild(TestArtifact child) {
-        child.setParent(this);
-        modifyChildren(children -> children.add(child));
-
-        return child;
+    protected TestArtifact self() {
+        return this;
     }
 
     @Override
@@ -93,11 +89,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public boolean exists() {
         return true;
-    }
-
-    @Override
-    public void deleteChildren() {
-        modifyChildren(List::clear);
     }
 
     @Override

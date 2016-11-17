@@ -165,6 +165,21 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Must be implemented as:
+     * <p>
+     * {@code
+     * protected T self() {
+     *     return this;
+     * }
+     * }
+     * <p>
+     * This method solves some issues caused by the recursive generic type signature of the {@link Artifact} class.
+     *
+     * @return {@code this}
+     */
+    protected abstract T self();
+
+    /**
      * Adds a matching.
      *
      * @param matching
@@ -201,16 +216,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         toCopy.matches.entrySet().forEach(en -> {
             Matching<T> clone = en.getValue().clone();
-
-            try {
-                // We assume that Artifact trees all have the same dynamic type.
-                @SuppressWarnings("unchecked") T artifact = (T) this;
-                @SuppressWarnings("unchecked") T toReplace = (T) toCopy;
-                clone.updateMatching(artifact, toReplace);
-            } catch (ClassCastException e) {
-                LOG.log(Level.SEVERE, e, () -> "Failed to update a Matching.");
-                return;
-            }
+            clone.updateMatching(self(), toCopy.self());
 
             matches.put(en.getKey(), clone);
         });
@@ -288,18 +294,43 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean exists();
 
     /**
-     * Adds a child.
+     * Adds the given {@link Artifact} to the children of this {@link Artifact} and sets the {@link #parent}
+     * accordingly.
      *
      * @param child
-     *            child to add
-     * @return added child
+     *         the {@link Artifact} to add as a child
      */
-    public abstract T addChild(T child);
+    public void addChild(T child) {
+
+        if (canAddChild(child)) {
+            children.add(child);
+            child.setParent(self());
+            invalidateHash();
+        }
+    }
 
     /**
-     * Deletes the children of this {@code Artifact}.
+     * Determines whether the given {@link Artifact} {@code toAdd} may be added to the children of this
+     * {@link Artifact}. Any child passed to {@link #addChild(Artifact)} will not be added if this method returns
+     * {@code false} for it. Subclasses overriding this method should log the reason for returning {@code false} if they
+     * do so. The default implementation returns {@code true}.
+     *
+     * @param toAdd
+     *         the {@link Artifact} to add
      */
-    public abstract void deleteChildren();
+    protected boolean canAddChild(T toAdd) {
+        return true;
+    }
+
+    /**
+     * Removes all children of this {@link Artifact}.
+     */
+    public void clearChildren() {
+        if (hasChildren()) {
+            children.clear();
+            invalidateHash();
+        }
+    }
 
     /**
      * Return child <code>Artifact</code> at position i.

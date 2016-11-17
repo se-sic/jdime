@@ -99,7 +99,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
             // For ASTNodeArtifacts, the important method we rely on here is
             // StructuredStrategy.merge(), which calls
             // ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-            // which then calls deleteChildren() on the created Program.
+            // which then calls clearChildren() on the created Program.
         }
 
         if (context.hasStatistics()) {

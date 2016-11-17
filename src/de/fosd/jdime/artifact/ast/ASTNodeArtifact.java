@@ -142,7 +142,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         ASTNodeArtifact p = new ASTNodeArtifact(artifact.getRevision(), program);
-        p.deleteChildren();
+        p.clearChildren();
 
         return p;
     }
@@ -241,6 +241,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         setChildren(children);
     }
 
+    @Override
+    protected ASTNodeArtifact self() {
+        return this;
+    }
+
     /**
      * Returns the encapsulated JastAddJ ASTNode
      *
@@ -256,26 +261,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     @Override
-    public ASTNodeArtifact addChild(ASTNodeArtifact child) {
-        LOG.finest(() -> String.format("%s.addChild(%s)", getId(), child.getId()));
-
-        assert (this.exists());
-        assert (child.exists());
-
-        modifyChildren(children -> children.add(child));
-        child.setParent(this);
-
-        return child;
-    }
-
-    @Override
     public ASTNodeArtifact createEmptyArtifact(Revision revision) {
         return new ASTNodeArtifact(revision);
-    }
-
-    @Override
-    public void deleteChildren() {
-        modifyChildren(List::clear);
     }
 
     @Override

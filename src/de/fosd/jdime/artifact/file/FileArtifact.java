@@ -316,23 +316,27 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public FileArtifact addChild(FileArtifact child) {
+    protected FileArtifact self() {
+        return this;
+    }
+
+    @Override
+    public void addChild(FileArtifact child) {
+        super.addChild(child);
+
+        child.file = new File(file, child.file.getName());
+        modifyChildren(ch -> Collections.sort(ch, comp));
+    }
+
+    @Override
+    protected boolean canAddChild(FileArtifact toAdd) {
 
         if (!isDirectory()) {
-            String msg = String.format("FileArtifact '%s' does not represent a directory. Can not add '%s' as a child.", this, child);
+            String msg = String.format("FileArtifact '%s' does not represent a directory. Can not add '%s' as a child.", this, toAdd);
             throw new IllegalStateException(msg);
         }
 
-        child.file = new File(file, child.file.getName());
-
-        modifyChildren(children -> {
-            children.add(child);
-            Collections.sort(children, comp);
-        });
-
-        child.setParent(this);
-
-        return child;
+        return true;
     }
 
     @Override
@@ -353,11 +357,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     public final boolean exists() {
         return file.exists();
-    }
-
-    @Override
-    public void deleteChildren() {
-       modifyChildren(List::clear);
     }
 
     /**
