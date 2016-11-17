@@ -25,7 +25,6 @@ package de.fosd.jdime.config.merge;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,12 +44,12 @@ import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
+import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
-import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.io.FileUtils;
 
@@ -305,6 +304,12 @@ public class MergeContext implements Cloneable {
         configInputOutput(config);
     }
 
+    /**
+     * Reads configuration options related to the {@link Artifact} inspection functionality.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configInspect(JDimeConfig config) {
         config.getInteger(CLI_INSPECT_ELEMENT).ifPresent(elId -> {
             setInspectArtifact(elId);
@@ -317,6 +322,12 @@ public class MergeContext implements Cloneable {
         });
     }
 
+    /**
+     * Reads configuration options related to the {@link Artifact} dump functionality.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configDump(JDimeConfig config) {
         Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
 
@@ -331,6 +342,12 @@ public class MergeContext implements Cloneable {
         config.get(CLI_DUMP, dmpModeParser).ifPresent(this::setDumpMode);
     }
 
+    /**
+     * Reads configuration options determining how the merge is to be executed.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configMerge(JDimeConfig config) {
         {
             String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
@@ -380,11 +397,23 @@ public class MergeContext implements Cloneable {
         configCostModelMatcher(config);
     }
 
+    /**
+     * Reads configuration options determining how to handle errors while merging.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configErrorHandling(JDimeConfig config) {
         config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
         config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
     }
 
+    /**
+     * Reads configuration options determining how the {@link CostModelMatcher} operates.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configCostModelMatcher(JDimeConfig config) {
         config.get(CLI_CM, mode -> {
 
@@ -470,6 +499,13 @@ public class MergeContext implements Cloneable {
         });
     }
 
+    /**
+     * Reads configuration options determining how to output the merge results and reads the additional arguments
+     * to configure the input files for the merge.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
     private void configInputOutput(JDimeConfig config) {
         config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
         config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
