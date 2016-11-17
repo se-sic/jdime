@@ -919,6 +919,8 @@ public class MergeContext implements Cloneable {
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
+     *
+     * @return whether choice nodes should be inserted instead of direct merging
      */
     public boolean isConditionalMerge() {
         return conditionalMerge;
@@ -1049,6 +1051,8 @@ public class MergeContext implements Cloneable {
      *
      * @param scenario
      *         <code>MergeScenario</code> which crashed
+     * @param t
+     *         the crash that occurred
      */
     public void addCrash(MergeScenario<?> scenario, Throwable t) {
         crashes.put(scenario, t);
@@ -1111,7 +1115,9 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Whether to inspect an artifact instead of merging.
+     * Whether to inspect an {@link Artifact} instead of merging.
+     *
+     * @return whether an {@link Artifact} should be inspected instead of merging
      */
     public boolean isInspect() {
         return inspectArtifact > 0;

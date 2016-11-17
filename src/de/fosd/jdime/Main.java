@@ -30,7 +30,6 @@ import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -44,7 +43,6 @@ import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
-import de.fosd.jdime.config.merge.MergeType;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
@@ -116,7 +114,7 @@ public final class Main {
      * @param args
      *         command line arguments
      */
-    public static void run(String[] args) throws IOException, ParseException, InterruptedException {
+    public static void run(String[] args) {
         MergeContext context = new MergeContext();
 
         if (!parseCommandLineArgs(context, args)) {
@@ -355,12 +353,8 @@ public final class Main {
      *
      * @param context
      *         merge context
-     * @throws InterruptedException
-     *         If a thread is interrupted
-     * @throws IOException
-     *         If an input output exception occurs
      */
-    public static void merge(MergeContext context) throws IOException, InterruptedException {
+    public static void merge(MergeContext context) {
         List<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
 

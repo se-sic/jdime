@@ -317,6 +317,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *
      * @param toAdd
      *         the {@link Artifact} to add
+     * @return whether the {@code child} may be added
      */
     protected boolean canAddChild(T toAdd) {
         return true;
@@ -904,8 +905,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+     *
+     * @return the variants represented by this choice {@link Artifact}
      */
-    public HashMap<String, T> getVariants() {
+    public Map<String, T> getVariants() {
         return variants;
     }
 
