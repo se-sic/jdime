@@ -51,10 +51,13 @@ import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strdump.DumpMode;
+import de.uni_passau.fim.seibt.gitwrapper.process.ToolNotWorkingException;
+import de.uni_passau.fim.seibt.gitwrapper.repo.GitWrapper;
 import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.GIT_COMMAND;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
@@ -75,6 +78,11 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
+
+    /**
+     * The default git command.
+     */
+    public static final String DEFAULT_GIT_CMD = "git";
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -197,6 +205,8 @@ public class MergeContext implements Cloneable {
     private boolean cmMatcherParallel;
     private boolean cmMatcherFixRandomPercentage;
 
+    private GitWrapper git;
+
     /**
      * Constructs a new <code>MergeContext</code> initializing all options to their default values.
      */
@@ -236,6 +246,7 @@ public class MergeContext implements Cloneable {
         this.costModelIterations = 100;
         this.cmMatcherParallel = true;
         this.cmMatcherFixRandomPercentage = true;
+        this.git = null;
     }
 
     /**
@@ -287,6 +298,8 @@ public class MergeContext implements Cloneable {
         this.costModelIterations = toCopy.costModelIterations;
         this.cmMatcherParallel = toCopy.cmMatcherParallel;
         this.cmMatcherFixRandomPercentage = toCopy.cmMatcherFixRandomPercentage;
+
+        this.git = toCopy.git; // GitWrapper is stateless
     }
 
     /**
@@ -352,6 +365,16 @@ public class MergeContext implements Cloneable {
         {
             String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
             setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
+        }
+
+        {
+            String gitCmd = config.get(GIT_COMMAND).orElse(DEFAULT_GIT_CMD);
+
+            try {
+                setGit(new GitWrapper(gitCmd));
+            } catch (ToolNotWorkingException e) {
+                throw new AbortException(e.getMessage());
+            }
         }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
@@ -1204,5 +1227,24 @@ public class MergeContext implements Cloneable {
 
     public void setCmMatcherFixRandomPercentage(boolean cmMatcherFixRandomPercentage) {
         this.cmMatcherFixRandomPercentage = cmMatcherFixRandomPercentage;
+    }
+
+    /**
+     * Returns the {@link GitWrapper} to be used for executing native git commands.
+     *
+     * @return the {@link GitWrapper}
+     */
+    public GitWrapper getGit() {
+        return git;
+    }
+
+    /**
+     * Sets the {@link GitWrapper} to the new value.
+     *
+     * @param git
+     *         the {@link GitWrapper} to be used
+     */
+    public void setGit(GitWrapper git) {
+        this.git = git;
     }
 }

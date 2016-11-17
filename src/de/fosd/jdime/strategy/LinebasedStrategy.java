@@ -23,15 +23,10 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
+import java.io.File;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
@@ -40,6 +35,8 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
+import de.uni_passau.fim.seibt.gitwrapper.process.ProcessExecutor.ExecRes;
+import de.uni_passau.fim.seibt.gitwrapper.repo.GitWrapper;
 
 /**
  * Performs an unstructured, line based merge.
@@ -51,16 +48,11 @@ import de.fosd.jdime.stats.parser.ParseResult;
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
-    
-    /**
-     * The command to use for merging.
-     */
-    private static final String BASECMD = "git";
-    
-    /**
-     * The arguments for <code>BASECMD</code>.
-     */
-    private static final List<String> BASEARGS = Arrays.asList("merge-file", "-q", "-p");
+
+    private static final File WORKING_DIR = new File(".");
+    private static final String MERGE_FILE = "merge-file";
+    private static final String QUIET = "-q";
+    private static final String PRINT = "-p";
 
     /**
      * This line-based <code>merge</code> method uses the merging routine of
@@ -84,73 +76,22 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        MergeScenario<FileArtifact> triple = operation.getMergeScenario();
 
-        List<String> cmd = new ArrayList<>();
-        cmd.add(BASECMD);
-        cmd.addAll(BASEARGS);
-        cmd.addAll(triple.asList().stream().limit(3).map(FileArtifact::getPath).collect(Collectors.toList()));
-
-        ProcessBuilder pb = new ProcessBuilder(cmd);
-
-        LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
         long runtime, startTime = System.currentTimeMillis();
-        Process pr;
 
-        try {
-            pr = pb.start();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not run '" + String.join(" ", cmd) + "'.", e);
-        }
-
-        StringBuilder processOutput = new StringBuilder();
-        StringBuilder processErrorOutput = new StringBuilder();
-        String ls = System.lineSeparator();
-
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
-            String line;
-
-            while ((line = r.readLine()) != null) {
-                processOutput.append(line).append(ls);
-            }
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process output.");
-        }
-
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
-            String line;
-
-            while ((line = r.readLine()) != null) {
-                processErrorOutput.append(line).append(ls);
-            }
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process error output.");
-        }
-
-        try {
-            pr.waitFor();
-        } catch (InterruptedException e) {
-            LOG.log(Level.WARNING, e, () -> "Interrupted while waiting for the external command to finish.");
-        }
+        ExecRes execRes = mergeFiles(operation, context);
 
         runtime = System.currentTimeMillis() - startTime;
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
         if (!context.isDiffOnly()) {
-            operation.getTarget().setContent(processOutput.toString());
-        }
-
-        if (processErrorOutput.length() > 0) {
-            LOG.severe(() -> {
-                String errors = processErrorOutput.toString();
-                return String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), errors);
-            });
+            operation.getTarget().setContent(execRes.stdOut);
         }
 
         if (context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
-            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
-            ParseResult res = scenarioStatistics.setLineStatistics(processOutput.toString());
+            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(operation.getMergeScenario());
+            ParseResult res = scenarioStatistics.setLineStatistics(execRes.stdOut);
 
             if (res.getConflicts() > 0) {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
@@ -159,5 +100,31 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             scenarioStatistics.setRuntime(runtime);
             statistics.addScenarioStatistics(scenarioStatistics);
         }
+    }
+
+    /**
+     * Passes {@link MergeScenario#getLeft()}, {@link MergeScenario#getBase()} and {@link MergeScenario#getRight()}
+     * to a call to {@code git merge-file} and returns the result of the command execution.
+     *
+     * @param op
+     *         the {@link MergeOperation} containing the {@link FileArtifact FileAritfacts} to be merged
+     * @param context
+     *         the {@link MergeContext} containing the {@link GitWrapper} to be used
+     * @return the result of the execution of {@code git merge-file}
+     * @throws RuntimeException
+     *         if the native git execution fails
+     */
+    public static ExecRes mergeFiles(MergeOperation<FileArtifact> op, MergeContext context) {
+        MergeScenario<FileArtifact> triple = op.getMergeScenario();
+
+        String left = triple.getLeft().getPath();
+        String base = triple.getBase().getPath();
+        String right = triple.getRight().getPath();
+
+        GitWrapper git = context.getGit();
+        Supplier<RuntimeException> failed = () -> new RuntimeException("Failed to merge using 'git merge-file'.");
+
+        Optional<ExecRes> oRes = git.exec(WORKING_DIR, MERGE_FILE, QUIET, PRINT, left, base, right);
+        return oRes.map(r -> git.failedPrefix(r) ? null : r).orElseThrow(failed);
     }
 }
