@@ -24,6 +24,7 @@
 package de.fosd.jdime.strategy;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -51,6 +52,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      * @param strategies the {@link MergeStrategy MergeStrategies} to combine
      */
     public CombinedStrategy(List<MergeStrategy<FileArtifact>> strategies) {
+        Objects.requireNonNull(strategies, "The list of merge strategies may not be null.");
         this.strategies = strategies;
     }
 
@@ -70,42 +72,38 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             return String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", leftPath, basePath, rightPath);
         });
 
+        MergeContext subContext = null;
         long startTime = System.currentTimeMillis();
 
-        MergeContext subContext = new MergeContext(context);
-        MergeStrategy<FileArtifact> strategy = new LinebasedStrategy();
-
-        subContext.setOutputFile(null);
-        subContext.setMergeStrategy(strategy);
-        subContext.collectStatistics(true);
-
-        LOG.fine("Trying line based strategy.");
-
-        strategy.merge(operation, subContext);
-
-        if (subContext.getStatistics().hasConflicts()) {
-            long conflicts = subContext.getStatistics().getConflictStatistics().getSum();
-
-            LOG.fine(() -> {
-                String noun = conflicts > 1 ? "conflicts" : "conflict";
-                return String.format("Got %d %s. Need to use structured strategy.", conflicts, noun);
-            });
-
+        for (MergeStrategy<FileArtifact> strategy : strategies) {
             subContext = new MergeContext(context);
-            strategy = new StructuredStrategy();
 
             subContext.setMergeStrategy(strategy);
+
             subContext.collectStatistics(true);
+            subContext.getStatistics().removeScenarioStatistics(operation.getMergeScenario());
 
             strategy.merge(operation, subContext);
-        } else {
-            LOG.fine("Line based strategy worked fine.");
+
+            Statistics stats = subContext.getStatistics();
+
+            if (stats.hasConflicts()) {
+                long conflicts = subContext.getStatistics().getConflictStatistics().getSum();
+
+                LOG.fine(() -> {
+                    String noun = conflicts > 1 ? "conflicts" : "conflict";
+                    return String.format("%s produced %d %s.", strategy, conflicts, noun);
+                });
+            } else {
+                LOG.fine(() -> strategy + " produced no conflicts.");
+                break;
+            }
         }
 
         long runtime = System.currentTimeMillis() - startTime;
         LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
 
-        if (context.hasStatistics()) {
+        if (subContext != null && context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             Statistics subStatistics = subContext.getStatistics();
             MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
