@@ -50,6 +50,7 @@ import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
+import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.gitwrapper.process.ToolNotWorkingException;
 import de.uni_passau.fim.seibt.gitwrapper.repo.GitWrapper;
@@ -182,6 +183,13 @@ public class MergeContext implements Cloneable {
     private boolean useMCESubtreeMatcher;
 
     /**
+     * Whether {@link StructuredStrategy} act semi-structured, that is whether it should perform line based merging
+     * on the configured {@link #semiStructuredLevel}.
+     */
+    private boolean semiStructured;
+    private KeyEnums.Level semiStructuredLevel;
+
+    /**
      * How many levels to keep searching for matches in the subtree if the
      * currently compared nodes are not equal. If there are no matches within
      * the specified number of levels, do not look for matches deeper in the
@@ -229,6 +237,8 @@ public class MergeContext implements Cloneable {
         this.collectStatistics = false;
         this.statistics = null;
         this.useMCESubtreeMatcher = false;
+        this.semiStructured = false;
+        this.semiStructuredLevel = KeyEnums.Level.METHOD;
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
@@ -279,6 +289,8 @@ public class MergeContext implements Cloneable {
         this.collectStatistics = toCopy.collectStatistics;
         this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
+        this.semiStructured = toCopy.semiStructured;
+        this.semiStructuredLevel = toCopy.semiStructuredLevel;
 
         this.lookAhead = toCopy.lookAhead;
         this.lookAheads = new HashMap<>(toCopy.lookAheads);
@@ -1075,6 +1087,46 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
+    }
+
+    /**
+     * Returns whether the {@link StructuredStrategy} should act semi-structured, that is whether it should perform line
+     * based merging on the configured {@link #semiStructuredLevel}.
+     *
+     * @return whether the {@link StructuredStrategy} should act semi-structured
+     */
+    public boolean isSemiStructured() {
+        return semiStructured;
+    }
+
+    /**
+     * Sets whether the {@link StructuredStrategy} should act semi-structured, that is whether it should perform line
+     * based merging on the configured {@link #semiStructuredLevel}.
+     *
+     * @param semiStructured
+     *         whether the {@link StructuredStrategy} should act semi-structured
+     */
+    public void setSemiStructured(boolean semiStructured) {
+        this.semiStructured = semiStructured;
+    }
+
+    /**
+     * Returns the level for which line based merging is used if {@link #semiStructured} is true.
+     *
+     * @return the level for which line based merging is used
+     */
+    public KeyEnums.Level getSemiStructuredLevel() {
+        return semiStructuredLevel;
+    }
+
+    /**
+     * Sets the level for which line based merging is used if {@link #semiStructured} is true.
+     *
+     * @param semiStructuredLevel
+     *         the level for which line based merging is used
+     */
+    public void setSemiStructuredLevel(KeyEnums.Level semiStructuredLevel) {
+        this.semiStructuredLevel = semiStructuredLevel;
     }
 
     /**

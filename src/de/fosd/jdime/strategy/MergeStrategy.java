@@ -32,7 +32,6 @@ import java.util.Optional;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
-import de.fosd.jdime.execption.NotYetImplementedException;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
@@ -104,8 +103,8 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
                 strategy = new LinebasedStrategy();
                 break;
             case SEMISTRUCTURED:
-                throw new NotYetImplementedException("Semistructured strategy has not been implemented yet.");
-                //break;
+                strategy = new SemiStructuredStrategy();
+                break;
             case STRUCTURED:
                 strategy = new StructuredStrategy();
                 break;
