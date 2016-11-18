@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.fosd.jdime.matcher.cost_model.CMMode;
+import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.sources.ConfigSource;
 import org.apache.commons.cli.CommandLine;
@@ -195,15 +196,20 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_MODE)
-                .longOpt("mode")
-                .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
-                        "prettyprint, nway)")
-                .hasArg()
-                .argName("mode")
-                .build();
+        {
+            String strategies = String.join(", ", MergeStrategy.listStrategies());
 
-        options.addOption(o);
+            o = Option.builder(CLI_MODE)
+                            .longOpt("mode")
+                            .desc("Set the mode to one of (" + strategies + ") or a comma separated combination " +
+                                    "thereof. In the latter case the strategies will be executed in order until one " +
+                                    "does not produce conflicts.")
+                            .hasArg()
+                            .argName("mode")
+                            .build();
+
+            options.addOption(o);
+        }
 
         {
             String formats = Arrays.stream(DumpMode.values()).map(DumpMode::name).reduce("", (s, s2) -> s + " " + s2);

@@ -32,6 +32,7 @@ import java.util.Optional;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.execption.NotYetImplementedException;
 import de.fosd.jdime.merge.MergeInterface;
 
 /**
@@ -47,12 +48,9 @@ import de.fosd.jdime.merge.MergeInterface;
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
     public static final String LINEBASED = "linebased";
-    public static final String UNSTRUCTURED = "unstructured";
+    public static final String SEMISTRUCTURED = "semistructured";
     public static final String STRUCTURED = "structured";
-    public static final String COMBINED = "combined";
-    public static final String AUTOTUNING = "autotuning";
     public static final String NWAY = "nway";
-    public static final String VARIANTS = "variants";
 
     /**
      * Returns an unmodifiable <code>List</code> containing the names of available strategies.
@@ -60,7 +58,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
      * @return names of available strategies
      */
     public static List<String> listStrategies() {
-        return Arrays.asList(LINEBASED, UNSTRUCTURED, STRUCTURED, COMBINED, AUTOTUNING, NWAY, VARIANTS);
+        return Arrays.asList(LINEBASED, SEMISTRUCTURED, STRUCTURED, NWAY);
     }
 
     /**
@@ -102,13 +100,16 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
         MergeStrategy<FileArtifact> strategy = null;
 
         switch (name) {
-            case LINEBASED: case UNSTRUCTURED:
+            case LINEBASED:
                 strategy = new LinebasedStrategy();
                 break;
+            case SEMISTRUCTURED:
+                throw new NotYetImplementedException("Semistructured strategy has not been implemented yet.");
+                //break;
             case STRUCTURED:
                 strategy = new StructuredStrategy();
                 break;
-            case NWAY: case VARIANTS:
+            case NWAY:
                 strategy = new NWayStrategy();
                 break;
             default:
