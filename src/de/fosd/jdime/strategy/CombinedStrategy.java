@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -41,6 +42,17 @@ import de.fosd.jdime.stats.Statistics;
 public class CombinedStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(CombinedStrategy.class.getCanonicalName());
+
+    private List<MergeStrategy<FileArtifact>> strategies;
+
+    /**
+     * Constructs a new {@link CombinedStrategy} combining the given {@link MergeStrategy MergeStrategies}.
+     *
+     * @param strategies the {@link MergeStrategy MergeStrategies} to combine
+     */
+    public CombinedStrategy(List<MergeStrategy<FileArtifact>> strategies) {
+        this.strategies = strategies;
+    }
 
     /**
      * TODO: high-level documentation

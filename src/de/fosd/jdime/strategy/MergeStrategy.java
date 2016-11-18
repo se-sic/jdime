@@ -23,12 +23,12 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -46,8 +46,6 @@ import de.fosd.jdime.merge.MergeInterface;
  */
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
-    private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
-
     public static final String LINEBASED = "linebased";
     public static final String UNSTRUCTURED = "unstructured";
     public static final String STRUCTURED = "structured";
@@ -56,31 +54,34 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
     public static final String NWAY = "nway";
     public static final String VARIANTS = "variants";
 
-    static {
-        Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
-        LinebasedStrategy lineBased = new LinebasedStrategy();
-        StructuredStrategy structured = new StructuredStrategy();
-        CombinedStrategy combined = new CombinedStrategy();
-        NWayStrategy nway = new NWayStrategy();
-
-        entries.put(LINEBASED, lineBased);
-        entries.put(UNSTRUCTURED, lineBased);
-        entries.put(STRUCTURED, structured);
-        entries.put(COMBINED, combined);
-        entries.put(AUTOTUNING, combined);
-        entries.put(NWAY, nway);
-        entries.put(VARIANTS, nway);
-
-        strategyMap = Collections.unmodifiableMap(entries);
-    }
-
     /**
-     * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
+     * Returns an unmodifiable <code>List</code> containing the names of available strategies.
      *
      * @return names of available strategies
      */
-    public static Set<String> listStrategies() {
-        return strategyMap.keySet();
+    public static List<String> listStrategies() {
+        return Arrays.asList(LINEBASED, UNSTRUCTURED, STRUCTURED, COMBINED, AUTOTUNING, NWAY, VARIANTS);
+    }
+
+    /**
+     * Returns a {@link CombinedStrategy} for the given {@link MergeStrategy MergeStrategies}.
+     *
+     * @param firstName the first strategy name
+     * @param secondName the second strategy name
+     * @param otherNames the other strategy names
+     * @return a {@link CombinedStrategy} for the given names
+     */
+    public static Optional<MergeStrategy<FileArtifact>> parse(String firstName, String secondName, String... otherNames) {
+        List<String> names = new ArrayList<>(2 + (otherNames != null ? otherNames.length : 0));
+
+        names.add(firstName);
+        names.add(secondName);
+
+        if (otherNames != null) {
+            Collections.addAll(names, otherNames);
+        }
+
+        return parse(String.join(",", names));
     }
 
     /**
@@ -96,7 +97,43 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
      */
     public static Optional<MergeStrategy<FileArtifact>> parse(String name) {
         Objects.requireNonNull(name, "name may not be null!");
-        return Optional.ofNullable(strategyMap.get(name.trim().toLowerCase()));
+
+        name = name.trim().toLowerCase();
+        MergeStrategy<FileArtifact> strategy = null;
+
+        switch (name) {
+            case LINEBASED: case UNSTRUCTURED:
+                strategy = new LinebasedStrategy();
+                break;
+            case STRUCTURED:
+                strategy = new StructuredStrategy();
+                break;
+            case NWAY: case VARIANTS:
+                strategy = new NWayStrategy();
+                break;
+            default:
+                if (name.indexOf(',') != -1) {
+                    String[] names = name.split(",");
+
+                    if (names.length > 0) {
+                        List<MergeStrategy<FileArtifact>> strategies = new ArrayList<>(names.length);
+
+                        for (String subName : names) {
+                            Optional<MergeStrategy<FileArtifact>> optStrategy = parse(subName);
+
+                            if (optStrategy.isPresent()) {
+                                strategies.add(optStrategy.get());
+                            } else {
+                                return Optional.empty();
+                            }
+                        }
+
+                        strategy = new CombinedStrategy(strategies);
+                    }
+                }
+        }
+
+        return Optional.ofNullable(strategy);
     }
 
     @Override

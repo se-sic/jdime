@@ -25,6 +25,7 @@ package de.fosd.jdime;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.fosd.jdime.artifact.ArtifactList;
@@ -54,13 +55,44 @@ import static org.junit.Assert.fail;
  */
 public class MergeTest extends JDimeTest {
 
-    private static final String[] STRATEGIES = { LINEBASED, STRUCTURED, COMBINED };
+    /**
+     * The name and directory name of a {@link MergeStrategy}.
+     */
+    private static final class MStrategy {
+
+        /**
+         * The name to be passed to {@link MergeStrategy#parse(String)}.
+         */
+        private final String name;
+
+        /**
+         * The directory name to be used to retrieve expected merge results.
+         */
+        private final String dirName;
+
+        public MStrategy(String name) {
+            this.name = name;
+            this.dirName = name;
+        }
+
+        public MStrategy(String name, String dirName) {
+            this.name = name;
+            this.dirName = dirName;
+        }
+    }
+
+    private static List<MStrategy> STRATEGIES;
 
     private MergeContext context;
 
     @BeforeClass
     public static void init() throws Exception {
         JDimeConfig.setLogLevel("WARNING");
+
+        STRATEGIES = new ArrayList<>();
+        STRATEGIES.add(new MStrategy(LINEBASED));
+        STRATEGIES.add(new MStrategy(STRUCTURED));
+        STRATEGIES.add(new MStrategy(String.join(",", LINEBASED, STRUCTURED), COMBINED));
     }
 
     @Before
@@ -86,8 +118,8 @@ public class MergeTest extends JDimeTest {
             inputArtifacts.add(new FileArtifact(BASE, file(baseDir, filePath)));
             inputArtifacts.add(new FileArtifact(RIGHT, file(rightDir, filePath)));
 
-            for (String strategy : STRATEGIES) {
-                context.setMergeStrategy(MergeStrategy.parse(strategy).get());
+            for (MStrategy strategy : STRATEGIES) {
+                context.setMergeStrategy(MergeStrategy.parse(strategy.name).get());
                 context.setInputFiles(inputArtifacts);
 
                 File out = Files.createTempFile("jdime-tests", ".java").toFile();
@@ -97,7 +129,7 @@ public class MergeTest extends JDimeTest {
 
                 Main.merge(context);
 
-                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy, filePath), UTF_8));
+                String expected = normalize(FileUtils.readFileToString(file("threeway", strategy.dirName, filePath), UTF_8));
                 String output = normalize(context.getOutputFile().getContent());
 
                 try {
