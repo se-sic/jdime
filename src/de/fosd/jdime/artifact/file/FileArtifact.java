@@ -746,6 +746,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         if (isFile()) {
 
+            // FIXME rethink this if/else
             if (type.isVirtual() && content != null) {
                 writeToFile();
             } else {

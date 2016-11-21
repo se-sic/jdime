@@ -26,14 +26,18 @@ package de.fosd.jdime.strategy;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.Permission;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.ast.SemiStructuredArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
+import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
@@ -113,6 +117,12 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact base = new ASTNodeArtifact(baseFile);
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
+            if (context.isSemiStructured()) {
+                left = makeSemistructured(left, context.getSemiStructuredLevel());
+                base = makeSemistructured(base, context.getSemiStructuredLevel());
+                right = makeSemistructured(right, context.getSemiStructuredLevel());
+            }
+
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
 
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
@@ -138,8 +148,10 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             }
 
-            LOG.finest(() -> String.format("Pretty-printing left:%n%s", left.prettyPrint()));
-            LOG.finest(() -> String.format("Pretty-printing right:%n%s", right.prettyPrint()));
+            ASTNodeArtifact finalLeft = left;
+            LOG.finest(() -> String.format("Pretty-printing left:%n%s", finalLeft.prettyPrint()));
+            ASTNodeArtifact finalRight = right;
+            LOG.finest(() -> String.format("Pretty-printing right:%n%s", finalRight.prettyPrint()));
 
             if (!context.isDiffOnly()) {
                 LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", target.getContent()));
@@ -178,5 +190,20 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         } finally {
             System.setSecurityManager(systemSecurityManager);
         }
+    }
+
+    private ASTNodeArtifact makeSemistructured(ASTNodeArtifact artifact, KeyEnums.Level level) {
+        ASTNodeArtifact transformed;
+
+        if (artifact.getLevel() == level) {
+            transformed = new SemiStructuredArtifact(artifact);
+        } else {
+            List<ASTNodeArtifact> children = new ArrayList<>(artifact.getChildren());
+            children.forEach(c -> makeSemistructured(c, level));
+
+            transformed = artifact;
+        }
+
+        return transformed;
     }
 }

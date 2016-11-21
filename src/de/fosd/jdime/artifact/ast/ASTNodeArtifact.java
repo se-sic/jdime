@@ -170,7 +170,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @param revision
      *         the <code>Revision</code> for this <code>ASTNodeArtifact</code>
      */
-    private ASTNodeArtifact(Revision revision) {
+    protected ASTNodeArtifact(Revision revision) {
         this(revision, new AtomicInteger()::getAndIncrement, new ASTNode<>());
     }
 
@@ -212,7 +212,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *         to {@link Artifact} to copy
      * @see #copy()
      */
-    private ASTNodeArtifact(ASTNodeArtifact toCopy) {
+    protected ASTNodeArtifact(ASTNodeArtifact toCopy) {
         super(toCopy);
 
         try {
@@ -247,12 +247,34 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     /**
-     * Returns the encapsulated JastAddJ ASTNode
+     * Returns the encapsulated ExtendJ AST node.
      *
-     * @return encapsulated ASTNode object from JastAddJ
+     * @return the encapsulated AST node
      */
-    public final ASTNode<?> getASTNode() {
+    protected final ASTNode<?> getASTNode() {
         return astnode;
+    }
+
+    /**
+     * Sets the encapsulated AST node. This method adjusts the parent pointers and children lists of all AST nodes
+     * encapsulated in the parent and children of this {@link ASTNodeArtifact}.
+     *
+     * @param astnode
+     *         the new AST node
+     */
+    protected final void setASTNode(ASTNode<?> astnode) {
+        ASTNodeArtifact parent = getParent();
+
+        if (parent != null) {
+            astnode.setParent(parent.astnode);
+        }
+
+        astnode.removeChildren();
+        for (ASTNodeArtifact child : getChildren()) {
+            astnode.setChild(child.astnode, astnode.getNumChildNoTransform());
+        }
+
+        this.astnode = astnode;
     }
 
     @Override

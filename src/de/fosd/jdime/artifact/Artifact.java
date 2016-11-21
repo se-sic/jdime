@@ -310,6 +310,25 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Replaces the child at the specified position in the list of children of this {@link Artifact} with the specified
+     * child.
+     *
+     * @param child
+     *         the child to be added at the specified position
+     * @param index
+     *         the index of the child to replace
+     * @see List#set(int, Object)
+     */
+    public void setChild(T child, int index) {
+
+        if (canAddChild(child)) {
+            children.set(index, child);
+            child.setParent(self());
+            invalidateHash();
+        }
+    }
+
+    /**
      * Determines whether the given {@link Artifact} {@code toAdd} may be added to the children of this
      * {@link Artifact}. Any child passed to {@link #addChild(Artifact)} will not be added if this method returns
      * {@code false} for it. Subclasses overriding this method should log the reason for returning {@code false} if they
@@ -331,6 +350,19 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
             children.clear();
             invalidateHash();
         }
+    }
+
+    /**
+     * Returns the index of the first occurrence of the specified child in the list of children, or -1 if the given
+     * {@link Artifact} is not a child of this {@link Artifact}.
+     *
+     * @param child
+     *         the child whose index is to be returned
+     * @return the index of the child or -1
+     * @see List#indexOf(Object)
+     */
+    public int indexOf(T child) {
+        return children.indexOf(child);
     }
 
     /**
