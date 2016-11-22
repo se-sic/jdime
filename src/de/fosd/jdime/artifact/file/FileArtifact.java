@@ -746,15 +746,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         if (isFile()) {
 
-            // FIXME rethink this if/else
-            if (type.isVirtual() && content != null) {
+            if (content != null) {
                 writeToFile();
+            } else if (!type.isVirtual()) {
+                copyFile();
             } else {
-                if (content != null) {
-                    writeToFile();
-                } else {
-                    copyFile();
-                }
+                touchFile();
             }
         } else if (isDirectory()) {
 
@@ -784,6 +781,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     private void copyFile() throws IOException {
         FileUtils.copyFile(original, file);
+    }
+
+    /**
+     * Creates an empty version of the {@link #file} on disk.
+     *
+     * @throws IOException
+     *         see {@link FileUtils#touch(File)}
+     */
+    private void touchFile() throws IOException {
+        FileUtils.touch(file);
     }
 
     /**
