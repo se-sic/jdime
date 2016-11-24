@@ -56,6 +56,11 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
     }
 
     @Override
+    protected String hashId() {
+        return content.getContent();
+    }
+
+    @Override
     public void merge(MergeOperation<ASTNodeArtifact> operation, MergeContext context) {
         SemiStructuredArtifact left, base, right, target;
 
@@ -91,9 +96,9 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             throw new RuntimeException("Could not write the SemiStructuredArtifacts to disk.", e);
         }
 
-        MergeScenario<FileArtifact> fileMergeScenatio = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);
-        MergeOperation<FileArtifact> fileMerge = new MergeOperation<>(fileMergeScenatio, target.content);
-        LinebasedStrategy.mergeFiles(fileMerge, context);
+        MergeScenario<FileArtifact> fileMergeScenario = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);
+        MergeOperation<FileArtifact> fileMerge = new MergeOperation<>(fileMergeScenario, target.content);
+        new LinebasedStrategy().merge(fileMerge, context);
 
         target.setASTNode(new SemiStructuredASTNode(target.content));
     }

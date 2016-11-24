@@ -43,6 +43,7 @@ import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
 
+import static de.fosd.jdime.stats.KeyEnums.Type.BLOCK;
 import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -195,7 +196,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
     private ASTNodeArtifact makeSemistructured(ASTNodeArtifact artifact, KeyEnums.Level level) {
         ASTNodeArtifact transformed;
 
-        if (artifact.getLevel() == level) {
+        if (artifact.getType() == BLOCK && artifact.getLevel() == level) {
             transformed = new SemiStructuredArtifact(artifact);
         } else {
             List<ASTNodeArtifact> children = new ArrayList<>(artifact.getChildren());

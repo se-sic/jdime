@@ -47,6 +47,7 @@ import de.fosd.jdime.operations.Operation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.jastadd.extendj.ast.ASTNode;
+import org.jastadd.extendj.ast.Block;
 import org.jastadd.extendj.ast.BytecodeParser;
 import org.jastadd.extendj.ast.BytecodeReader;
 import org.jastadd.extendj.ast.ClassDecl;
@@ -335,6 +336,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             return KeyEnums.Type.CLASS;
         } else if (astnode instanceof TryStmt){
             return KeyEnums.Type.TRY;
+        } else if (astnode instanceof Block) {
+            return KeyEnums.Type.BLOCK;
         } else {
             return KeyEnums.Type.NODE;
         }
