@@ -119,9 +119,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             if (context.isSemiStructured()) {
-                left = makeSemistructured(left, context.getSemiStructuredLevel());
-                base = makeSemistructured(base, context.getSemiStructuredLevel());
-                right = makeSemistructured(right, context.getSemiStructuredLevel());
+                left = makeSemiStructured(left, context.getSemiStructuredLevel());
+                base = makeSemiStructured(base, context.getSemiStructuredLevel());
+                right = makeSemiStructured(right, context.getSemiStructuredLevel());
             }
 
             ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
@@ -193,14 +193,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         }
     }
 
-    private ASTNodeArtifact makeSemistructured(ASTNodeArtifact artifact, KeyEnums.Level level) {
+    private ASTNodeArtifact makeSemiStructured(ASTNodeArtifact artifact, KeyEnums.Level level) {
         ASTNodeArtifact transformed;
 
         if (artifact.getType() == BLOCK && artifact.getLevel() == level) {
             transformed = new SemiStructuredArtifact(artifact);
         } else {
             List<ASTNodeArtifact> children = new ArrayList<>(artifact.getChildren());
-            children.forEach(c -> makeSemistructured(c, level));
+            children.forEach(c -> makeSemiStructured(c, level));
 
             transformed = artifact;
         }

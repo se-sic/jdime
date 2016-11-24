@@ -151,7 +151,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     /**
      * Encapsulated ASTNode.
      */
-    private ASTNode<?> astnode = null;
+    protected ASTNode<?> astnode;
 
     /**
      * Constructs a new <code>ASTNodeArtifact</code> (tree) representing the AST of the code in <code>artifact</code>.
@@ -267,7 +267,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         ASTNodeArtifact parent = getParent();
 
         if (parent != null) {
-            astnode.setParent(parent.astnode);
+            parent.astnode.setChild(astnode, parent.astnode.getIndexOfChild(this.astnode));
         }
 
         astnode.removeChildren();

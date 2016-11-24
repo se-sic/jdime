@@ -22,11 +22,13 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         this.content = new FileArtifact(getRevision(), VFILE);
         this.content.setContent(toEncapsulate.prettyPrint());
 
+        this.astnode = new SemiStructuredASTNode(this);
+
         ASTNodeArtifact parent = toEncapsulate.getParent();
 
         if (parent != null) {
             parent.setChild(this, parent.indexOf(toEncapsulate));
-            parent.getASTNode().setChild(getASTNode(), parent.getASTNode().getIndexOfChild(toEncapsulate.getASTNode()));
+            parent.astnode.setChild(this.astnode, parent.astnode.getIndexOfChild(toEncapsulate.astnode));
         }
     }
 
@@ -37,12 +39,13 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
 
     private SemiStructuredArtifact(SemiStructuredArtifact toCopy) {
         super(toCopy);
+
         this.content = toCopy.content.copy();
+        ((SemiStructuredASTNode) this.astnode).setArtifact(this);
     }
 
-    @Override
-    public String prettyPrint() {
-        return content.prettyPrint();
+    FileArtifact getContent() {
+        return content;
     }
 
     @Override
@@ -99,7 +102,5 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         MergeScenario<FileArtifact> fileMergeScenario = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);
         MergeOperation<FileArtifact> fileMerge = new MergeOperation<>(fileMergeScenario, target.content);
         new LinebasedStrategy().merge(fileMerge, context);
-
-        target.setASTNode(new SemiStructuredASTNode(target.content));
     }
 }
