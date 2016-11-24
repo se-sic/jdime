@@ -61,6 +61,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     private static final String MERGE_FILE = "merge-file";
     private static final String QUIET = "-q";
     private static final String PRINT = "-p";
+    private static final String LABEL = "-L";
 
     private static final FileRepo repo = new FileRepo();
 
@@ -195,26 +196,34 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      */
     public static ExecRes mergeFiles(MergeOperation<FileArtifact> op, MergeContext context) {
         Supplier<RuntimeException> failed = () -> new RuntimeException("Failed to merge using 'git merge-file'.");
-        String left, base, right;
+        String leftP, baseP, rightP; // The paths to merge.
+        String leftL, baseL, rightL; // The labels to use.
 
         {
-            MergeScenario<FileArtifact> triple = op.getMergeScenario();
-            Optional<File> oLeft = repo.fileFor(triple.getLeft());
-            Optional<File> oBase = repo.fileFor(triple.getBase());
-            Optional<File> oRight = repo.fileFor(triple.getRight());
+            FileArtifact l = op.getMergeScenario().getLeft();
+            FileArtifact b = op.getMergeScenario().getBase();
+            FileArtifact r = op.getMergeScenario().getRight();
+
+            Optional<File> oLeft = repo.fileFor(l);
+            Optional<File> oBase = repo.fileFor(b);
+            Optional<File> oRight = repo.fileFor(r);
 
             if (oLeft.isPresent() && oBase.isPresent() && oRight.isPresent()) {
-                left = oLeft.get().getPath();
-                base = oBase.get().getPath();
-                right = oRight.get().getPath();
+                leftP = oLeft.get().getPath();
+                baseP = oBase.get().getPath();
+                rightP = oRight.get().getPath();
             } else {
                 throw failed.get();
             }
+
+            leftL = l.getPath();
+            baseL = b.getPath();
+            rightL = r.getPath();
         }
 
         GitWrapper git = context.getGit();
 
-        Optional<ExecRes> oRes = git.exec(WORKING_DIR, MERGE_FILE, QUIET, PRINT, left, base, right);
+        Optional<ExecRes> oRes = git.exec(WORKING_DIR, MERGE_FILE, QUIET, PRINT, LABEL, leftL, LABEL, baseL, LABEL, rightL, leftP, baseP, rightP);
         return oRes.map(r -> git.failedPrefix(r) ? null : r).orElseThrow(failed);
     }
 }
