@@ -61,6 +61,7 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.CompositeFileComparator;
 
@@ -484,6 +485,15 @@ public class FileArtifact extends Artifact<FileArtifact> {
     @Override
     protected String hashId() {
         return file.getName();
+    }
+
+    /**
+     * Returns the SHA256 hash of the content of this {@link FileArtifact} encoded in a hexadecimal {@link String}.
+     *
+     * @return the hexadecimal content hash
+     */
+    public String getContentHash() {
+        return DigestUtils.sha256Hex(getContent());
     }
 
     /**
