@@ -133,7 +133,7 @@ public class MergeTest extends JDimeTest {
                 String output = normalize(context.getOutputFile().getContent());
 
                 try {
-                    assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
+                    assertEquals("Strategy " + strategy.name + " resulted in unexpected output.", expected, output);
                 } catch (Exception e) {
                     System.out.println("----------Expected:-----------");
                     System.out.println(expected);
