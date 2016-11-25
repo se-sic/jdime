@@ -93,7 +93,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 long cmdStart = System.currentTimeMillis();
 
                 mergeContext = context;
-                targetNode = ASTNodeArtifact.createProgram(merged);
+                targetNode = merged.copy();
 
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.finest(String.format("Plaintext tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));

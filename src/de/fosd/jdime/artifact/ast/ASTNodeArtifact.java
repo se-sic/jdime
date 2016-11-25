@@ -125,30 +125,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     /**
-     * @param artifact
-     *            artifact to create program from
-     * @return ASTNodeArtifact
-     */
-    public static ASTNodeArtifact createProgram(ASTNodeArtifact artifact) {
-        assert (artifact.astnode != null);
-        assert (artifact.astnode instanceof Program);
-
-        Program old = (Program) artifact.astnode;
-        Program program;
-
-        try {
-            program = old.clone();
-        } catch (CloneNotSupportedException e) {
-            program = new Program();
-        }
-
-        ASTNodeArtifact p = new ASTNodeArtifact(artifact.getRevision(), program);
-        p.clearChildren();
-
-        return p;
-    }
-
-    /**
      * Encapsulated ASTNode.
      */
     protected ASTNode<?> astnode;

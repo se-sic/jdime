@@ -124,7 +124,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 right = makeSemiStructured(right, context.getSemiStructuredLevel());
             }
 
-            ASTNodeArtifact targetNode = ASTNodeArtifact.createProgram(left);
+            ASTNodeArtifact targetNode = left.copy();
 
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
             MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
