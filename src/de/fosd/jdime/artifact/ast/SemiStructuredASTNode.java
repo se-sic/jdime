@@ -40,6 +40,16 @@ public class SemiStructuredASTNode extends Block {
     }
 
     @Override
+    public void init$Children() {
+        // Block adds an empty List as the first child. A SemiStructuredASTNode does not have children.
+    }
+
+    @Override
+    protected int numChildren() {
+        return 0; // Block returns 1...
+    }
+
+    @Override
     public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
         sb.append(artifact.getContent().getContent().trim());
     }
