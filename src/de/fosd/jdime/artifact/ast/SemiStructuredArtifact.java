@@ -21,6 +21,8 @@ import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
  */
 public class SemiStructuredArtifact extends ASTNodeArtifact {
 
+    private static final LinebasedStrategy linebased = new LinebasedStrategy();
+
     private FileArtifact content;
 
     /**
@@ -149,6 +151,6 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
 
         MergeScenario<FileArtifact> fileMergeScenario = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);
         MergeOperation<FileArtifact> fileMerge = new MergeOperation<>(fileMergeScenario, target.content);
-        new LinebasedStrategy().merge(fileMerge, context);
+        linebased.merge(fileMerge, context);
     }
 }

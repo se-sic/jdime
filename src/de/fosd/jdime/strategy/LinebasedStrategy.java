@@ -194,7 +194,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      * @throws RuntimeException
      *         if the native git execution fails
      */
-    public static ExecRes mergeFiles(MergeOperation<FileArtifact> op, MergeContext context) {
+    private ExecRes mergeFiles(MergeOperation<FileArtifact> op, MergeContext context) {
         Supplier<RuntimeException> failed = () -> new RuntimeException("Failed to merge using 'git merge-file'.");
         String leftP, baseP, rightP; // The paths to merge.
         String leftL, baseL, rightL; // The labels to use.
