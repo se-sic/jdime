@@ -2,20 +2,37 @@ package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
 
+import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strategy.LinebasedStrategy;
+import org.jastadd.extendj.ast.ASTNode;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
 
+/**
+ * An {@link Artifact} that is part of an {@link ASTNodeArtifact} tree. It replaces a subtree of {@link ASTNodeArtifact}
+ * by storing their {@link Artifact#prettyPrint()} and merging it line based.
+ */
 public class SemiStructuredArtifact extends ASTNodeArtifact {
 
     private FileArtifact content;
 
+    /**
+     * <em>This constructor may modify the tree {@code toEncapsulate} is a part of.</em>
+     * <p>
+     * Constructs an new {@link SemiStructuredArtifact} that that encapsulates the {@link Artifact#prettyPrint()} of
+     * the given {@link Artifact} {@code toEncapsulate}. If {@code toEncapsulate} has a parent {@link Artifact}, it is
+     * replaced in the children of that parent by this {@link SemiStructuredArtifact}. The encapsulated {@link ASTNode}
+     * tree is changed in the same way.
+     *
+     * @param toEncapsulate
+     *         the {@link ASTNodeArtifact} to encapsulate
+     */
     public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate) {
         super(toEncapsulate);
 
@@ -32,11 +49,25 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         }
     }
 
+    /**
+     * Constructs an empty {@link SemiStructuredArtifact} with the given {@link Revision}.
+     *
+     * @param revision
+     *         the {@link Revision} for this {@link SemiStructuredArtifact}
+     * @see ASTNodeArtifact#ASTNodeArtifact(Revision)
+     */
     private SemiStructuredArtifact(Revision revision) {
         super(revision);
         this.content = new FileArtifact(revision, VFILE);
     }
 
+    /**
+     * Copies the given {@link SemiStructuredArtifact}.
+     *
+     * @param toCopy
+     *         the {@link SemiStructuredArtifact} to copy
+     * @see ASTNodeArtifact#ASTNodeArtifact(ASTNodeArtifact)
+     */
     private SemiStructuredArtifact(SemiStructuredArtifact toCopy) {
         super(toCopy);
 
@@ -44,6 +75,13 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         ((SemiStructuredASTNode) this.astnode).setArtifact(this);
     }
 
+    /**
+     * Returns the {@link FileArtifact} whose {@link FileArtifact#getContent()} represents the pretty printed code
+     * of the subtree this {@link SemiStructuredArtifact} replaced.
+     *
+     * @return the {@link FileArtifact} representing the pretty printed subtree this {@link SemiStructuredArtifact}
+     *         replaced
+     */
     FileArtifact getContent() {
         return content;
     }
