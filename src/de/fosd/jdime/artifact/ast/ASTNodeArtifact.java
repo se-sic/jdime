@@ -54,11 +54,11 @@ import org.jastadd.extendj.ast.ClassDecl;
 import org.jastadd.extendj.ast.ConstructorDecl;
 import org.jastadd.extendj.ast.ImportDecl;
 import org.jastadd.extendj.ast.InterfaceDecl;
-import org.jastadd.extendj.ast.JavaParser;
 import org.jastadd.extendj.ast.Literal;
 import org.jastadd.extendj.ast.MethodDecl;
 import org.jastadd.extendj.ast.Program;
 import org.jastadd.extendj.ast.TryStmt;
+import org.jastadd.extendj.parser.JavaParser;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -69,20 +69,6 @@ import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     private static final Logger LOG = Logger.getLogger(ASTNodeArtifact.class.getCanonicalName());
-
-    /**
-     * Initializes parser.
-     *
-     * @param p
-     *            program
-     */
-    private static void initParser(Program p) {
-        JavaParser parser = (is, fileName) -> new org.jastadd.extendj.parser.JavaParser().parse(is, fileName);
-        BytecodeReader bytecodeParser = (is, fullName, program) -> new BytecodeParser(is, fullName).parse(null, null, program);
-
-        p.initJavaParser(parser);
-        p.initBytecodeReader(bytecodeParser);
-    }
 
     /**
      * Parses the content of the given <code>FileArtifact</code> to an AST. If the <code>artifact</code> is empty,
@@ -120,7 +106,13 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     private static Program initProgram() {
         Program program = new Program();
         program.state().reset();
-        initParser(program);
+
+        JavaParser javaParser = new JavaParser();
+        BytecodeReader byteCodeParser = (is, fullName, p) -> new BytecodeParser(is, fullName).parse(null, null, p);
+
+        program.initJavaParser(javaParser::parse);
+        program.initBytecodeReader(byteCodeParser);
+
         return program;
     }
 
