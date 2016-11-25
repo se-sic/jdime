@@ -8,16 +8,33 @@ import org.jastadd.extendj.ast.Stmt;
 
 import static java.util.regex.Pattern.MULTILINE;
 
+/**
+ * A {@link Block} that refers to the {@link SemiStructuredArtifact#getContent() content} of a
+ * {@link SemiStructuredArtifact} for its pretty printing.
+ */
 public class SemiStructuredASTNode extends Block {
 
     private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\s*$|\\R^\\s*\\}\\s*\\z", MULTILINE);
 
     private SemiStructuredArtifact artifact;
 
+    /**
+     * Constructs a new {@link SemiStructuredASTNode} referring to the given {@code artifact} for its pretty printing
+     * via {@link SemiStructuredArtifact#getContent()}.
+     *
+     * @param artifact
+     *         the {@link SemiStructuredArtifact} to refer to
+     */
     public SemiStructuredASTNode(SemiStructuredArtifact artifact) {
         this.artifact = artifact;
     }
 
+    /**
+     * Sets the {@link SemiStructuredArtifact} to refer to the given {@code artifact}.
+     *
+     * @param artifact
+     *         the new {@link SemiStructuredArtifact} to refer to for pretty printing
+     */
     void setArtifact(SemiStructuredArtifact artifact) {
         this.artifact = artifact;
     }
