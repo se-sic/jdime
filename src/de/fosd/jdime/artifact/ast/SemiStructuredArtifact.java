@@ -10,6 +10,7 @@ import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import org.jastadd.extendj.ast.ASTNode;
+import org.jastadd.extendj.ast.Block;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
@@ -29,12 +30,21 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
      * the given {@link Artifact} {@code toEncapsulate}. If {@code toEncapsulate} has a parent {@link Artifact}, it is
      * replaced in the children of that parent by this {@link SemiStructuredArtifact}. The encapsulated {@link ASTNode}
      * tree is changed in the same way.
+     * <p>
+     * Currently this {@link Artifact} can only replace {@link ASTNodeArtifact} containing {@link Block} AST nodes.
      *
      * @param toEncapsulate
      *         the {@link ASTNodeArtifact} to encapsulate
+     * @throws IllegalArgumentException
+     *         if the {@link ASTNode} contained in {@code toEncapsulate} is not assignable to
+     *         a {@link Block}
      */
     public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate) {
         super(toEncapsulate);
+
+        if (!Block.class.isAssignableFrom(toEncapsulate.astnode.getClass())) {
+            throw new IllegalArgumentException("Can only replace ASTNodeArtifacts containing 'Block' AST nodes.");
+        }
 
         this.content = new FileArtifact(getRevision(), VFILE);
         this.content.setContent(toEncapsulate.prettyPrint());
