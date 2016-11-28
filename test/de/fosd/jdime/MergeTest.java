@@ -56,7 +56,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- *
+ * Executes merge tests defined in the file JDimeMergeTests.json.
  */
 @RunWith(Parameterized.class)
 public class MergeTest extends JDimeTest {
