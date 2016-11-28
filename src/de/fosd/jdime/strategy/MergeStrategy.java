@@ -47,7 +47,6 @@ import de.fosd.jdime.merge.MergeInterface;
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
     public static final String LINEBASED = "linebased";
-    public static final String COMBINED = "combined"; // This constant only exists for compatibility with the test suite.
     public static final String SEMISTRUCTURED = "semistructured";
     public static final String STRUCTURED = "structured";
     public static final String NWAY = "nway";

@@ -167,6 +167,8 @@ test {
     enableAssertions = true
 }
 
+def testFilesBranch = "feature/external_testcases"
+
 task getTestFiles {
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
@@ -190,7 +192,7 @@ task getTestFiles {
         def grgit = Grgit.open(dir: testFilesDir)
 
         grgit.fetch()
-        def status = grgit.branch.status(name: 'master')
+        def status = grgit.branch.status(name: testFilesBranch)
         grgit.close()
 
         return status.behindCount == 0
@@ -200,10 +202,10 @@ task getTestFiles {
         if (testFilesDir.exists()) {
             def grgit = Grgit.open(dir: testFilesDir)
 
-            grgit.merge(head: 'origin/master')
+            grgit.merge(head: 'origin/' + testFilesBranch)
             grgit.close()
         } else {
-            Grgit.clone(dir: testFilesDir, uri: gitURI).close()
+            Grgit.clone(dir: testFilesDir, refToCheckout: testFilesBranch, uri: gitURI).close()
         }
     }
 }
