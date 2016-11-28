@@ -105,7 +105,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      */
     private static Program initProgram() {
         Program program = new Program();
-        program.state().reset();
 
         JavaParser javaParser = new JavaParser();
         BytecodeReader byteCodeParser = (is, fullName, p) -> new BytecodeParser(is, fullName).parse(null, null, p);
