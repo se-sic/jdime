@@ -1,0 +1,62 @@
+[
+  {
+    "name" : "Moved Method",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/MovedMethod.java"
+  },
+  {
+    "name" : "Bag No. 1",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag.java"
+  },
+  {
+    "name" : "Bag No. 2",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag2.java"
+  },
+  {
+    "name" : "Bag No. 3",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag3.java"
+  },
+  {
+    "name" : "Import Conflict",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ImportMess.java"
+  },
+  {
+    "name" : "Expression Test",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ExprTest.java"
+  },
+  {
+    "name" : "Deletion/Insertion",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/DeletionInsertion.java"
+  },
+  {
+    "name" : "Variable Declaration",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/VariableDeclaration.java"
+  },
+  {
+    "name" : "Changed Method",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod.java"
+  },
+  {
+    "name" : "Changed Method No. 2",
+    "strategies" : ["linebased", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod2.java"
+  }
+]

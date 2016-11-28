@@ -24,9 +24,13 @@
 package de.fosd.jdime;
 
 import java.io.File;
-import java.nio.file.Files;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import com.google.gson.Gson;
 import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
@@ -37,29 +41,50 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
 import static de.fosd.jdime.config.merge.MergeScenario.MERGE;
 import static de.fosd.jdime.config.merge.MergeScenario.RIGHT;
-import static de.fosd.jdime.strategy.MergeStrategy.LINEBASED;
-import static de.fosd.jdime.strategy.MergeStrategy.STRUCTURED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Tests the merge functionality of JDime as a black-box.
+ *
  */
+@RunWith(Parameterized.class)
 public class MergeTest extends JDimeTest {
 
-    private static final String[] STRATEGIES = { LINEBASED, STRUCTURED, LINEBASED + "," + STRUCTURED };
-
+    private MergeTestCase testCase;
     private MergeContext context;
+
+    @Parameters(name = "MergeTest: {0}")
+    public static Iterable<?> data() throws Exception {
+        Gson gson = new Gson();
+
+        List<MergeTestCase> testCases;
+        File testCasesFile = file("JDimeMergeTests.json");
+
+        try (FileReader reader = new FileReader(testCasesFile)) {
+            testCases = Arrays.asList(gson.fromJson(reader, MergeTestCase[].class));
+        }
+
+        return testCases;
+    }
 
     @BeforeClass
     public static void init() throws Exception {
         JDimeConfig.setLogLevel("WARNING");
+    }
+
+    public MergeTest(MergeTestCase testCase) {
+        this.testCase = testCase;
     }
 
     @Before
@@ -69,103 +94,65 @@ public class MergeTest extends JDimeTest {
         context.setPretend(false);
     }
 
-    /**
-     * Merges files under 'leftDir/filePath', 'rightDir/filePath' and 'baseDir/filePath' (if <code>threeWay</code> is
-     * <code>true</code>). Merges will be performed using the strategies in {@link #STRATEGIES} and the output will
-     * be compared with the file in '/threeway/strategy/filePath'.
-     *
-     * @param filePath
-     *         the path to the files to be merged
-     */
-    private void runMerge(String filePath) {
-        try {
-            List<FileArtifact> inputArtifacts = new ArtifactList<>();
+    @Test
+    public void mergeTest() {
+        assertTrue("The " + MergeTestCase.class.getSimpleName() + " named " + testCase + " is invalid.", testCase.valid());
 
-            inputArtifacts.add(new FileArtifact(LEFT, file(leftDir, filePath)));
-            inputArtifacts.add(new FileArtifact(BASE, file(baseDir, filePath)));
-            inputArtifacts.add(new FileArtifact(RIGHT, file(rightDir, filePath)));
+        List<FileArtifact> inputs = new ArtifactList<>();
 
-            for (String strategy : STRATEGIES) {
-                context.setMergeStrategy(MergeStrategy.parse(strategy).get());
-                context.setInputFiles(inputArtifacts);
-
-                File out = Files.createTempFile("jdime-tests", ".java").toFile();
-                out.deleteOnExit();
-
-                context.setOutputFile(new FileArtifact(MERGE, out));
-
-                Main.merge(context);
-
-                String dirName = strategy.replaceAll(",", "_");
-
-                String expected = normalize(FileUtils.readFileToString(file("threeway", dirName, filePath), UTF_8));
-                String output = normalize(context.getOutputFile().getContent());
-
-                try {
-                    assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
-                } catch (Exception e) {
-                    System.out.println("----------Expected:-----------");
-                    System.out.println(expected);
-                    System.out.println("----------Received:-----------");
-                    System.out.println(output);
-                    System.out.println("------------------------------");
-                    System.out.println();
-
-                    throw e;
-                }
-            }
-        } catch (Exception e) {
-            fail(e.toString());
+        switch (testCase.type) {
+            case TWOWAY:
+                inputs.add(new FileArtifact(LEFT, file(leftDir, testCase.path)));
+                inputs.add(new FileArtifact(RIGHT, file(rightDir, testCase.path)));
+                break;
+            case THREEWAY:
+                inputs.add(new FileArtifact(LEFT, file(leftDir, testCase.path)));
+                inputs.add(new FileArtifact(BASE, file(baseDir, testCase.path)));
+                inputs.add(new FileArtifact(RIGHT, file(rightDir, testCase.path)));
+                break;
+            case NWAY:
+            default:
+                fail(MergeStrategy.NWAY + " test cases are not supported yet.");
+                break;
         }
-    }
 
-    @Test
-    public void testMovedMethod() {
-        runMerge("SimpleTests/MovedMethod.java");
-    }
+        for (String strategy : testCase.strategies) {
+            Optional<MergeStrategy<FileArtifact>> oStrategy = MergeStrategy.parse(strategy);
+            assertTrue("Strategy " + strategy + " is invalid.", oStrategy.isPresent());
 
-    @Test
-    public void testBag() {
-        runMerge("SimpleTests/Bag/Bag.java");
-    }
+            context.setMergeStrategy(oStrategy.get());
 
-    @Test
-    public void testBag2() {
-        runMerge("SimpleTests/Bag/Bag2.java");
-    }
+            context.setInputFiles(inputs);
+            context.setOutputFile(new FileArtifact(MERGE, VFILE));
 
-    @Test
-    public void testBag3() {
-        runMerge("SimpleTests/Bag/Bag3.java");
-    }
-    
-    @Test
-    public void testImportConflict () {
-        runMerge("SimpleTests/ImportMess.java");
-    }
+            String dirName = strategy.replaceAll(",", "_");
+            File expectedFile = file("threeway", dirName, testCase.path);
 
-    @Test
-    public void testExprTest () {
-        runMerge("SimpleTests/ExprTest.java");
-    }
+            Main.merge(context);
 
-    @Test
-    public void testDeletionInsertion() throws Exception {
-        runMerge("SimpleTests/DeletionInsertion.java");
-    }
+            String expected;
+            String output;
 
-    @Test
-    public void testVariableDeclaration() throws Exception {
-        runMerge("SimpleTests/VariableDeclaration.java");
-    }
+            try {
+                expected = normalize(FileUtils.readFileToString(expectedFile, UTF_8));
+                output = normalize(context.getOutputFile().getContent());
+            } catch (IOException e) {
+                fail(e.getMessage());
+                return;
+            }
 
-    @Test
-    public void testChangedMethod() throws Exception {
-        runMerge("SimpleTests/ChangedMethod.java");
-    }
+            try {
+                assertEquals("Strategy " + strategy + " resulted in unexpected output.", expected, output);
+            } catch (AssertionError e) {
+                System.out.println("----------Expected:-----------");
+                System.out.println(expected);
+                System.out.println("----------Received:-----------");
+                System.out.println(output);
+                System.out.println("------------------------------");
+                System.out.println();
 
-    @Test
-    public void testChangedMethod2() throws Exception {
-        runMerge("SimpleTests/ChangedMethod2.java");
+                throw e;
+            }
+        }
     }
 }

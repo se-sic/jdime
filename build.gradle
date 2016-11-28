@@ -53,6 +53,9 @@ sourceSets {
         java {
             srcDir 'test'
         }
+        resources {
+            srcDir 'testres'
+        }
     }
 }
 
@@ -66,6 +69,7 @@ dependencies {
     compile 'org.apache.commons:commons-math3:3.6.1'
     compile 'commons-codec:commons-codec:1.10'
     compile 'com.thoughtworks.xstream:xstream:1.4.9'
+    compile 'com.google.code.gson:gson:2.8.0'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile project(':GitWrapper')
     compile files('lib/JJ7.jar')

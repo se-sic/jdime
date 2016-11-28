@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -103,14 +104,20 @@ public class JDimeTest {
      * @param path
      *         the file path
      * @return the resulting <code>File</code>
-     * @throws Exception
+     * @throws AssertionError
      *         if the file does not exist or there is an exception constructing it
      */
-    protected static File file(String path) throws Exception {
+    protected static File file(String path) {
         URL res = JDimeTest.class.getResource(path);
 
         assertNotNull("The file " + path + " was not found.", res);
-        return new File(res.toURI());
+
+        try {
+            return new File(res.toURI());
+        } catch (URISyntaxException e) {
+            fail(e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -121,10 +128,10 @@ public class JDimeTest {
      * @param names
      *         the other elements of the path
      * @return the resulting <code>File</code>
-     * @throws Exception
+     * @throws AssertionError
      *         if the file does not exist or there is an exception constructing it
      */
-    protected static File file(String name, String... names) throws Exception {
+    protected static File file(String name, String... names) {
 
         if (names != null) {
             String path = String.format("/%s/%s", name, String.join("/", names));
