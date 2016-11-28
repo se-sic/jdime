@@ -91,7 +91,6 @@ public class MergeTest extends JDimeTest {
     public void setUp() throws Exception {
         context = new MergeContext();
         context.setGit(new GitWrapper(MergeContext.DEFAULT_GIT_CMD));
-        context.setPretend(false);
     }
 
     @Test
