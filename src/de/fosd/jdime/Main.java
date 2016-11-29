@@ -140,19 +140,24 @@ public final class Main {
             outputStatistics(context.getStatistics());
         }
 
-        if (LOG.isLoggable(Level.CONFIG)) {
+        if (LOG.isLoggable(Level.FINE)) {
             Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
-            String ls = System.lineSeparator();
-            StringBuilder sb = new StringBuilder();
 
-            sb.append(String.format("%d crashes occurred while merging:%n", crashes.size()));
+            if (crashes.isEmpty()) {
+                LOG.fine("No crashes occurred while merging.");
+            } else {
+                String ls = System.lineSeparator();
+                StringBuilder sb = new StringBuilder();
 
-            for (Map.Entry<MergeScenario<?>, Throwable> entry : crashes.entrySet()) {
-                sb.append("* ").append(entry.getValue().toString()).append(ls);
-                sb.append("    ").append(entry.getKey().toString().replace(" ", ls + "    ")).append(ls);
+                sb.append(String.format("%d crashes occurred while merging:%n", crashes.size()));
+
+                for (Map.Entry<MergeScenario<?>, Throwable> entry : crashes.entrySet()) {
+                    sb.append("* ").append(entry.getValue().toString()).append(ls);
+                    sb.append("    ").append(entry.getKey().toString().replace(" ", ls + "    ")).append(ls);
+                }
+
+                LOG.fine(sb.toString());
             }
-
-            LOG.config(sb.toString());
         }
     }
 
