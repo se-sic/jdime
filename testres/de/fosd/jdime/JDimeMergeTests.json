@@ -1,8 +1,8 @@
 [
   {
     "name" : "Moved Method",
-    "strategies" : ["linebased", "structured", "linebased,structured"],
-    "type" : "THREEWAY",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "TWOWAY",
     "path" : "SimpleTests/MovedMethod.java"
   },
   {
