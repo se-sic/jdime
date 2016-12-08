@@ -621,26 +621,32 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision.
+     * Returns whether the subtree rooted in this {@link Artifact} has changes compared to the given {@link Revision}.
+     * Returns {@code false} if {@code revision} is the {@link Revision} of this {@link Artifact}.
      *
-     * @param revision <Code>Revision</Code> to compare to
-     * @return whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision
+     * @param revision the opposite {@link Revision}
+     * @return true iff any {@link Artifact} in the tree under this {@link Artifact} represents a changed compared to
+     *         the given {@link Revision}
      */
     public boolean hasChanges(Revision revision) {
 
-        boolean hasChanges = !hasMatching(revision);
-
-        if (!hasChanges) {
-            T baseArtifact = getMatching(revision).getMatchingArtifact(this);
-            hasChanges = baseArtifact.hasChanges();
+        if (this.revision.equals(revision)) {
+            return false;
         }
 
-        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-            hasChanges = getChild(i).hasChanges(revision);
+        if (!hasMatching(revision)) {
+            return true;
         }
 
-        return hasChanges;
+        T match = getMatching(revision).getMatchingArtifact(this);
+
+        return getTreeSize() != match.getTreeSize() || Artifacts.bfsStream(self()).anyMatch(a -> {
+            // We use Artifact#hashId here since it is implemented for SemiStructuredArtifacts using the pretty printed content.
+            // This ensures that matched SemiStructuredArtifacts are detected as changes if their contents do not match.
+            return !a.hasMatching(revision) || !a.getMatching(revision).getMatchingArtifact(a).hashId().equals(a.hashId());
+        });
     }
+
     /**
      * Returns true if the <code>Artifact</code> is a change.
      *
