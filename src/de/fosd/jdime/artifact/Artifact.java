@@ -631,15 +631,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns true if the <code>Artifact</code> is a change.
-     *
-     * @return true if the <code>Artifact</code> is a change
-     */
-    public boolean isChange() {
-        return !hasMatches();
-    }
-
-    /**
      * Returns whether this <code>Artifact</code> has any matches.
      *
      * @return true if the <code>Artifact</code> has matches

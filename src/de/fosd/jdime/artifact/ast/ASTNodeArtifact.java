@@ -432,15 +432,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
             // this language element has a fixed number of children, we need to be careful with this one
             // as it might cause lots of issues while being pretty-printed
-            boolean leftChanges = left.isChange();
-            boolean rightChanges = right.isChange();
+            boolean leftChanges = !left.hasMatches();
+            boolean rightChanges = !right.hasMatches();
 
             for (int i = 0; !leftChanges && i < left.getNumChildren(); i++) {
-                leftChanges = left.getChild(i).isChange();
+                leftChanges = !left.getChild(i).hasMatches();
             }
 
             for (int i = 0; !rightChanges && i < right.getNumChildren(); i++) {
-                rightChanges = right.getChild(i).isChange();
+                rightChanges = !right.getChild(i).hasMatches();
             }
 
             if (leftChanges && rightChanges) {
