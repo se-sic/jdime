@@ -604,23 +604,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether the <code>Artifact</code> or its subtree has changes.
-     *
-     * @return whether the <code>Artifact</code> or its subtree has changes
-     */
-    public boolean hasChanges() {
-        // FIXME: this method does currently not detect deletions as changes.
-
-        boolean hasChanges = !hasMatches();
-
-        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-            hasChanges = getChild(i).hasChanges();
-        }
-
-        return hasChanges;
-    }
-
-    /**
      * Returns whether the subtree rooted in this {@link Artifact} has changes compared to the given {@link Revision}.
      * Returns {@code false} if {@code revision} is the {@link Revision} of this {@link Artifact}.
      *

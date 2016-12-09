@@ -550,7 +550,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             child.rebuildAST();
         }
 
-        astnode.jdimeChanges = hasChanges();
         astnode.jdimeId = getId();
         astnode.setChildren(newChildren);
 
