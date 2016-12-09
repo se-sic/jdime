@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -640,73 +641,61 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether this <code>Artifact</code> has a <code>Matching</code> for a specific <code>Revision</code>.
+     * Returns whether this {@link Artifact} has been matched with an {@link Artifact} from the given {@link Revision}.
      *
      * @param rev
-     *            <code>Revision</code>
-     * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
+     *         the opposite {@link Revision}
+     * @return true iff there is a match from the given {@code revision}
      */
-    public final boolean hasMatching(Revision rev) {
-        boolean hasMatching = matches.containsKey(rev);
+    public boolean hasMatching(Revision rev) {
+        logMatchings(rev);
 
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(getId() + ".hasMatching(" + rev + ")");
-            if (!matches.isEmpty()) {
-                for (Revision r : matches.keySet()) {
-                    LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
-                    LOG.finest("hasMatching(" + r + ") = " + hasMatching);
-                }
-            } else {
-                LOG.finest("no matches for " + getId() + " and " + rev);
-            }
+        if (isChoice()) {
+            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(rev));
+        } else {
+            return matches.containsKey(rev);
         }
-
-        if (!hasMatching && isChoice()) {
-            // choice nodes have to be treated specially ...
-            for (T variant: variants.values()) {
-                if (variant.hasMatching(rev)) {
-                    hasMatching = true;
-                    break;
-                }
-            }
-        }
-
-        return hasMatching;
     }
 
     /**
-     * Returns whether a <code>Matching</code> exists for a specific <code>Artifact</code>.
+     * Returns whether this {@link Artifact} has been matched with the given {@link Artifact} {@code other}.
      *
      * @param other
-     *            other <code>Artifact</code> to search <code>Matching</code>s for
-     * @return whether a <code>Matching</code> exists
+     *         the opposite {@link Artifact}
+     * @return true iff this {@link Artifact} has been matched with the given {@link Artifact} {@code other}
      */
-    public final boolean hasMatching(T other) {
+    public boolean hasMatching(T other) {
         Revision otherRev = other.getRevision();
-        boolean hasMatching = matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        logMatchings(otherRev);
 
+        if (isChoice()) {
+            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(other));
+        } else {
+            return matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        }
+    }
+
+    /**
+     * Logs (if FINEST is enabled) what matchings exist for this {@link Artifact} in the given {@link Revision}.
+     *
+     * @param rev
+     *         the opposite {@link Revision}
+     */
+    private void logMatchings(Revision rev) {
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
-            if (!matches.isEmpty()) {
-                for (Revision r : matches.keySet()) {
-                    LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
-                    LOG.finest("hasMatching(" + r + ") = " + hasMatching);
-                }
-            } else {
-                LOG.finest("no matches for " + getId() + " and " + other.getId());
-            }
-        }
+            LOG.finest("Checking for matchings for " + getId() + " in revision " + rev + ".");
 
-        if (!hasMatching && isChoice()) {
-            // choice nodes have to be treated specially ...
-            for (T variant: variants.values()) {
-                if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact(variant) == other) {
-                    hasMatching = true;
-                    break;
+            if (matches.isEmpty()) {
+                LOG.finest("No matchings for " + getId() + " in revision " + rev + ".");
+            } else {
+
+                for (Entry<Revision, Matching<T>> entry : matches.entrySet()) {
+                    Revision otherRev = entry.getKey();
+                    T matchedArtifact = entry.getValue().getMatchingArtifact(this);
+                    LOG.finest("Matching found for revision " + otherRev + " is " + matchedArtifact.getId());
                 }
             }
         }
-        return hasMatching;
     }
 
     /**
