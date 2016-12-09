@@ -6,6 +6,12 @@
     "path" : "SimpleTests/MovedMethod.java"
   },
   {
+    "name" : "Moved Method Inside Anonymous Class",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured", "linebased,semistructured,structured"],
+    "type" : "TWOWAY",
+    "path" : "SimpleTests/AnonClassMovedMethod.java"
+  },
+  {
     "name" : "Bag No. 1",
     "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
     "type" : "THREEWAY",
