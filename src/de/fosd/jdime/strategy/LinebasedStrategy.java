@@ -216,9 +216,9 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
                 throw failed.get();
             }
 
-            leftL = l.getPath();
-            baseL = b.getPath();
-            rightL = r.getPath();
+            leftL = l.getFile().getPath();
+            baseL = b.getFile().getPath();
+            rightL = r.getFile().getPath();
         }
 
         GitWrapper git = context.getGit();

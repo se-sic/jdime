@@ -87,7 +87,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             Program p = initProgram();
 
             try {
-                p.addSourceFile(artifact.getPath());
+                p.addSourceFile(artifact.getFile().getPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
