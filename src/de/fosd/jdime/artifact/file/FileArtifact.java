@@ -326,7 +326,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         super.addChild(child);
 
         child.file = new File(file, child.file.getName());
-        modifyChildren(ch -> Collections.sort(ch, comp));
+        modifyChildren(ch -> ch.sort(comp));
     }
 
     @Override
@@ -346,7 +346,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final FileArtifact createEmptyArtifact(Revision revision) {
+    public FileArtifact createEmptyArtifact(Revision revision) {
         return new FileArtifact(revision, FileType.VFILE);
     }
 
@@ -356,8 +356,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
-    public final boolean exists() {
-        return file.exists();
+    public boolean exists() {
+        return getFile().exists();
     }
 
     /**
@@ -390,9 +390,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return the MIME content type
      */
     private String getContentType() {
-        assert (exists());
-
         String mimeType = null;
+        File file = getFile();
 
         try {
             mimeType = Files.probeContentType(file.toPath());
@@ -403,7 +402,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (mimeType == null) {
             
             // returns application/octet-stream if the type can not be determined
-            mimeType = mimeMap.getContentType(file); 
+            mimeType = mimeMap.getContentType(file);
             
             if ("application/octet-stream".equals(mimeType)) { 
                 mimeType = null;
@@ -423,7 +422,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return <code>FileArtifacts</code> representing the children of this directory
      */
     private List<FileArtifact> getDirContent(Supplier<Integer> number) {
-        File[] files = file.listFiles();
+        File[] files = getFile().listFiles();
 
         if (files == null) {
             LOG.warning(() -> String.format("Tried to get the directory contents of %s which is not a directory.", this));
@@ -445,12 +444,19 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
-     * Returns the encapsulated file.
+     * Returns the encapsulated file. The original file will be returned for non-virtual
+     * {@link FileArtifact FileArtifacts}. If the {@link FileArtifact} is virtual, the returned {@link File} may not
+     * exist.
      *
-     * @return file
+     * @return the encapsulated {@link File}
      */
-    public final File getFile() {
-        return file;
+    public File getFile() {
+
+        if (type.isVirtual()) {
+            return file;
+        } else {
+            return original;
+        }
     }
 
     private List<FileArtifact> getJavaFiles() {
@@ -468,18 +474,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
         return list;
     }
 
-    /**
-     * Returns the absolute path of this artifact.
-     *
-     * @return absolute part of the artifact
-     */
-    public final String getFullPath() {
-        return file.getAbsolutePath();
-    }
-
     @Override
     public final String getId() {
-        return getRevision() + ":" + getPath();
+        return getRevision() + ":" + getFile().getPath();
     }
 
     @Override
@@ -494,15 +491,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public String getContentHash() {
         return DigestUtils.sha256Hex(getContent());
-    }
-
-    /**
-     * Returns the path of this artifact.
-     *
-     * @return path of the artifact
-     */
-    public final String getPath() {
-        return file.getPath();
     }
 
     @Override
@@ -595,7 +583,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public Optional<Supplier<String>> getUniqueLabel() {
-        return Optional.of(() -> file.getName());
+        return Optional.of(() -> getFile().getName());
     }
 
     /**
@@ -603,7 +591,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *
      * @return true if artifact is a directory
      */
-    public final boolean isDirectory() {
+    public boolean isDirectory() {
         return type.isDirectory();
     }
 
@@ -613,7 +601,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return true if the artifact is empty
      */
     @Override
-    public final boolean isEmpty() {
+    public boolean isEmpty() {
         if (isDirectory()) {
             return !hasChildren();
         } else {
@@ -626,17 +614,17 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *
      * @return true if artifact is a normal file
      */
-    public final boolean isFile() {
+    public boolean isFile() {
         return type.isFile();
     }
 
     @Override
-    public final boolean isOrdered() {
+    public boolean isOrdered() {
         return false;
     }
 
     @Override
-    public final boolean matches(final FileArtifact other) {
+    public boolean matches(final FileArtifact other) {
 
         if (isDirectory() && isRoot() && other.isDirectory() && other.isRoot()) {
             LOG.fine(() -> String.format("%s and %s are toplevel directories.", this, other));
@@ -714,7 +702,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public final String toString() {
-        return file.getName();
+        return getFile().getName();
     }
 
     @Override

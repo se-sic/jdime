@@ -103,9 +103,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         FileArtifact rightFile = triple.getRight();
         FileArtifact baseFile = triple.getBase();
 
-        String lPath = leftFile.getPath();
-        String bPath = baseFile.getPath();
-        String rPath = rightFile.getPath();
+        String lPath = leftFile.getFile().getPath();
+        String bPath = baseFile.getFile().getPath();
+        String rPath = rightFile.getFile().getPath();
 
         System.setSecurityManager(noExitManager);
 

@@ -78,7 +78,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Merging:");
             for (Revision rev : variants.keySet()) {
-                LOG.fine(String.format("%s: %s", rev, variants.get(rev).getPath()));
+                LOG.fine(String.format("%s: %s", rev, variants.get(rev).getFile().getPath()));
             }
         }
 
@@ -141,7 +141,7 @@ public class NWayStrategy extends MergeStrategy<FileArtifact> {
                 context.addCrash(scenario, t);
 
                 for (Revision rev : variants.keySet()) {
-                    LOG.severe(String.format("%s: %s", rev, variants.get(rev).getPath()));
+                    LOG.severe(String.format("%s: %s", rev, variants.get(rev).getFile().getPath()));
                 }
                 LOG.severe(t.toString());
 

@@ -65,9 +65,9 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         LOG.fine(() -> {
             MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-            String leftPath = triple.getLeft().getPath();
-            String basePath = triple.getBase().getPath();
-            String rightPath = triple.getRight().getPath();
+            String leftPath = triple.getLeft().getFile().getPath();
+            String basePath = triple.getBase().getFile().getPath();
+            String rightPath = triple.getRight().getFile().getPath();
 
             return String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", leftPath, basePath, rightPath);
         });
