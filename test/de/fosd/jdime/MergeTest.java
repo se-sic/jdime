@@ -125,7 +125,7 @@ public class MergeTest extends JDimeTest {
             context.setOutputFile(new FileArtifact(MERGE, VFILE));
 
             String dirName = strategy.replaceAll(",", "_");
-            File expectedFile = file("threeway", dirName, testCase.path);
+            File expectedFile = file(resultsDir, dirName, testCase.path);
 
             Main.merge(context);
 

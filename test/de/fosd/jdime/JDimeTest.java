@@ -46,15 +46,17 @@ public class JDimeTest {
     protected static File leftDir;
     protected static File baseDir;
     protected static File rightDir;
+    protected static File resultsDir;
 
     @BeforeClass
     public static void initDirectories() throws Exception {
 
-        leftDir = file("threeway", "left");
-        baseDir = file("threeway", "base");
-        rightDir = file("threeway", "right");
+        leftDir = file("/left");
+        baseDir = file("/base");
+        rightDir = file("/right");
+        resultsDir = file("/results");
 
-        Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
+        Arrays.asList(leftDir, baseDir, rightDir, resultsDir).forEach(f -> {
             assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
         });
     }

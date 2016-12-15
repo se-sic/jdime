@@ -46,7 +46,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
     @BeforeClass
     public static void init() throws Exception {
         JDimeConfig.setLogLevel("WARNING");
-        testFile = file("threeway", "left", "SimpleTests", "Bag", "Bag2.java");
+        testFile = file(leftDir, "SimpleTests", "Bag", "Bag2.java");
     }
 
     @Test
