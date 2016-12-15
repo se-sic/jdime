@@ -30,6 +30,18 @@
     "path" : "SimpleTests/Bag/Bag3.java"
   },
   {
+    "name" : "Formatting of Class Attributes",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/TopLevelFormatting.java"
+  },
+  {
+    "name" : "Formatting of a Method Body",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/MethodLevelFormatting.java"
+  },
+  {
     "name" : "Import Conflict",
     "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
     "type" : "THREEWAY",
