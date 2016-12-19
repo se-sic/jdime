@@ -56,10 +56,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Executes merge tests defined in the file JDimeMergeTests.json.
+ * Executes merge tests defined in the file {@value TEST_CASES_FILE}.
  */
 @RunWith(Parameterized.class)
 public class MergeTest extends JDimeTest {
+
+    private static final String TEST_CASES_FILE = "JDimeMergeTests.json";
 
     private MergeTestCase testCase;
     private MergeContext context;
@@ -69,7 +71,7 @@ public class MergeTest extends JDimeTest {
         Gson gson = new Gson();
 
         List<MergeTestCase> testCases;
-        File testCasesFile = file("JDimeMergeTests.json");
+        File testCasesFile = file(TEST_CASES_FILE);
 
         try (FileReader reader = new FileReader(testCasesFile)) {
             testCases = Arrays.asList(gson.fromJson(reader, MergeTestCase[].class));
