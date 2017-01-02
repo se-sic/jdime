@@ -459,10 +459,23 @@ public class FileArtifact extends Artifact<FileArtifact> {
         }
     }
 
+    /**
+     * Returns all {@link FileArtifact FileArtifacts} representing Java sourcecode files that are part of the
+     * {@link FileArtifact} tree rooted in this {@link Artifact}.
+     *
+     * @return the Java sourcecode files as determined by {@link #isJavaFile()}
+     */
     private List<FileArtifact> getJavaFiles() {
         return getJavaFiles(new ArtifactList<>());
     }
 
+    /**
+     * Returns all {@link FileArtifact FileArtifacts} representing Java sourcecode files that are part of the
+     * {@link FileArtifact} tree rooted in this {@link Artifact}.
+     *
+     * @param list the {@link List} to append the Java sourcecode files to
+     * @return the given {@code list} containing the Java sourcecode files as determined by {@link #isJavaFile()}
+     */
     private List<FileArtifact> getJavaFiles(List<FileArtifact> list) {
 
         if (isJavaFile()) {
