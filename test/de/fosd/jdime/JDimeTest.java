@@ -56,9 +56,9 @@ public class JDimeTest {
         rightDir = file("/right");
         resultsDir = file("/results");
 
-        Arrays.asList(leftDir, baseDir, rightDir, resultsDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
-        });
+        Arrays.asList(leftDir, baseDir, rightDir, resultsDir).forEach(f ->
+            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory())
+        );
     }
 
     /**
