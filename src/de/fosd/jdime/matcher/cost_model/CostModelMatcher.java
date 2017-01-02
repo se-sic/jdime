@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -57,7 +58,6 @@ import static java.lang.System.identityHashCode;
 import static java.util.Comparator.comparing;
 import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
-import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
@@ -198,12 +198,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             matchings.forEach(m -> cost(m, matchings, parameters));
         }
 
-        float sumCost = matchings.stream().collect(summingDouble(CMMatching::getExactCost)).floatValue();
+        double sumCost = matchings.stream().mapToDouble(CMMatching::getExactCost).sum();
         sumCost *= (1.0f / (matchings.left.getTreeSize() + matchings.right.getTreeSize()));
 
         parameters.clearExactCaches();
 
-        return sumCost;
+        return (float) sumCost;
     }
 
     /**
@@ -386,7 +386,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      */
     private Set<T> distinctSiblingFamilies(T m, CMMatchings<T> matchings, CMParameters<T> parameters) {
         Function<T, T> image = mChild -> image(mChild, matchings, parameters);
-        Predicate<T> notNull = t -> t != null;
+        Predicate<T> notNull = Objects::nonNull;
         Function<T, T> getParent = T::getParent;
 
         return siblings(m, matchings, parameters).stream().map(image).filter(notNull).map(getParent).collect(toSet());
@@ -1072,7 +1072,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             j = intFromRange(lower, upper, parameters);
         } else {
             //TODO sort by exact cost?
-            Collections.sort(mVariable, Comparator.comparing(CMMatching::getExactCost));
+            mVariable.sort(Comparator.comparing(CMMatching::getExactCost));
             j = parameters.rng.nextInt(mVariable.size());
         }
 
@@ -1143,7 +1143,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         while (fixed.size() != current.size()) {
 
             boundCost(current, parameters);
-            Collections.sort(current, comparing(CMMatching::getCostBounds, BY_LOWER_UPPER));
+            current.sort(comparing(CMMatching::getCostBounds, BY_LOWER_UPPER));
 
             CMMatchings<T> available = new CMMatchings<>(current, current.left, current.right);
             available.removeAll(fixed);

@@ -27,6 +27,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.IntSummaryStatistics;
 import java.util.List;
@@ -172,7 +173,7 @@ public interface StatisticsInterface {
 
         MergeStatistics mergeStatistics = statistics.getMergeStatistics(artifact.getRevision());
 
-        Optional<Artifact<?>> max = preOrder.stream().max((o1, o2) -> Integer.compare(o1.getNumChildren(), o2.getNumChildren()));
+        Optional<Artifact<?>> max = preOrder.stream().max(Comparator.comparingInt(Artifact::getNumChildren));
 
         max.ifPresent(a -> mergeStatistics.setMaxNumChildren(a.getNumChildren()));
         mergeStatistics.setMaxASTDepth(artifact.getMaxDepth());

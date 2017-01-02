@@ -417,9 +417,9 @@ public class MergeScenarioStatistics {
         os.printf("%sRuntime: %dms%n", indent, runtime);
 
         if (!matchings.isEmpty()) os.println("Matchings");
-        matchings.stream().sorted().forEachOrdered(matching -> {
-            os.printf("%s%s%n", indent, matching);
-        });
+        matchings.stream().sorted().forEachOrdered(matching ->
+            os.printf("%s%s%n", indent, matching)
+        );
 
         if (!levelStatistics.isEmpty()) os.println("Level Statistics");
         levelStatistics.forEach((rev, map) -> map.forEach((level, stats) -> {

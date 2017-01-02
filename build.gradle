@@ -191,7 +191,7 @@ task getTestFiles {
     outputs.dir(testFilesDir)
     outputs.upToDateWhen {
         if (!testFilesDir.exists()) {
-            return false;
+            return false
         }
 
         def grgit = Grgit.open(dir: testFilesDir)

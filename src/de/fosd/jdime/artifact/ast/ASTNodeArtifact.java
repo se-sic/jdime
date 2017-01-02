@@ -401,9 +401,9 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         LOG.finest(() -> "match(" + getId() + ", " + other.getId() + ")");
 
         LOG.finest(() -> {
-            return String.format("Try Matching: {%s} and {%s}",
-                    astnode.getMatchingRepresentation(),
-                    other.astnode.getMatchingRepresentation());
+            String matchingRep = astnode.getMatchingRepresentation();
+            String otherMatchingRep = other.astnode.getMatchingRepresentation();
+            return String.format("Try Matching: {%s} and {%s}", matchingRep, otherMatchingRep);
         });
 
         return astnode.matches(other.astnode);
@@ -532,7 +532,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         if (isChoice()) {
             astnode.isChoice = true;
             astnode.jdimeId = getId();
-            astnode.variants = new LinkedHashMap<String, ASTNode<?>>();
+            astnode.variants = new LinkedHashMap<>();
 
             for (String condition : variants.keySet()) {
                 ASTNodeArtifact variant = variants.get(condition);

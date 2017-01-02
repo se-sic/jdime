@@ -36,8 +36,6 @@ import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
 
-import static java.util.stream.Collectors.summingInt;
-
 /**
  * A {@link MatcherInterface matcher} that constructs {@link Matchings} between subtrees that match according to their
  * {@link Artifact#getTreeHash()} method.
@@ -168,7 +166,7 @@ public class IdenticalSubtreeMatcher<T extends Artifact<T>> implements MatcherIn
         int score = 1;
 
         if (left.hasChildren()) {
-            score += left.getChildren().stream().collect(summingInt(c -> constructMatchings(matchings, c)));
+            score += left.getChildren().stream().mapToInt(c -> constructMatchings(matchings, c)).sum();
         }
 
         Matching<T> matching = new Matching<>(left, matches.get(left), score);

@@ -312,6 +312,8 @@ public class Statistics {
 
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
             printXML(os);
+        } catch (FileNotFoundException fnf) {
+            throw fnf;
         } catch (IOException e) {
             LOG.log(Level.WARNING, e, () -> "Exception while closing an OutputStream.");
         }

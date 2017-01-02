@@ -151,9 +151,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         if (toCopy.variants != null) {
             this.variants = new HashMap<>();
-            toCopy.variants.entrySet().forEach(en -> {
-                variants.put(en.getKey(), Artifacts.copyTree(en.getValue()));
-            });
+            toCopy.variants.entrySet().forEach(en -> variants.put(en.getKey(), Artifacts.copyTree(en.getValue())));
         }
 
         copyMatches(toCopy);

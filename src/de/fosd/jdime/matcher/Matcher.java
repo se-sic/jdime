@@ -183,13 +183,13 @@ public class Matcher<T extends Artifact<T>> {
             }
         }
 
-        matchings.get(leftRoot, rightRoot).ifPresent(m -> {
+        matchings.get(leftRoot, rightRoot).ifPresent(m ->
             LOG.fine(() -> {
                 Revision lRev = leftRoot.getRevision();
                 Revision rRev = rightRoot.getRevision();
                 return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
-            });
-        });
+            })
+        );
 
         storeMatchings(context, matchings, color);
 

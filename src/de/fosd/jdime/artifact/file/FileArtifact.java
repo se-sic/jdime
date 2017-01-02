@@ -224,7 +224,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (isDirectory()) {
             modifyChildren(children -> {
                 children.addAll(getDirContent(number));
-                Collections.sort(children, comp);
+                children.sort(comp);
             });
         }
     }
@@ -521,9 +521,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
         mScenarioStatistics.getTypeStatistics(null, getType()).incrementNumAdded();
 
         if (!(mergeContext.getMergeStrategy() instanceof LinebasedStrategy)) {
-            forAllJavaFiles(astNodeArtifact -> {
-                mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null));
-            });
+            forAllJavaFiles(astNodeArtifact ->
+                    mScenarioStatistics.add(StatisticsInterface.getASTStatistics(astNodeArtifact, null))
+            );
         }
     }
 

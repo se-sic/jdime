@@ -230,10 +230,7 @@ public final class Artifacts {
      */
     public static <T extends Artifact<T>> T copyTree(T treeRoot) {
         T copy = treeRoot.copy();
-
-        treeRoot.getChildren().forEach(c -> {
-            copy.addChild(copyTree(c));
-        });
+        treeRoot.getChildren().forEach(c -> copy.addChild(copyTree(c)));
 
         return copy;
     }
