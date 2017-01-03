@@ -223,28 +223,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return astnode;
     }
 
-    /**
-     * Sets the encapsulated AST node. This method adjusts the parent pointers and children lists of all AST nodes
-     * encapsulated in the parent and children of this {@link ASTNodeArtifact}.
-     *
-     * @param astnode
-     *         the new AST node
-     */
-    protected final void setASTNode(ASTNode<?> astnode) {
-        ASTNodeArtifact parent = getParent();
-
-        if (parent != null) {
-            parent.astnode.setChild(astnode, parent.astnode.getIndexOfChild(this.astnode));
-        }
-
-        astnode.removeChildren();
-        for (ASTNodeArtifact child : getChildren()) {
-            astnode.setChild(child.astnode, astnode.getNumChildNoTransform());
-        }
-
-        this.astnode = astnode;
-    }
-
     @Override
     public ASTNodeArtifact copy() {
         return new ASTNodeArtifact(this);

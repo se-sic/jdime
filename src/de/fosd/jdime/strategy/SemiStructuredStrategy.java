@@ -23,11 +23,25 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
+import de.fosd.jdime.artifact.ast.SemiStructuredArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.operations.MergeOperation;
+import de.fosd.jdime.stats.KeyEnums;
+
+import static de.fosd.jdime.stats.KeyEnums.Type.BLOCK;
 
 public class SemiStructuredStrategy extends StructuredStrategy {
+
+    /**
+     * Regex used to split a String into lines while retaining the original line separators.
+     */
+    private static Pattern LINES = Pattern.compile("(?<=\\R)");
 
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
@@ -36,5 +50,33 @@ public class SemiStructuredStrategy extends StructuredStrategy {
         context.setSemiStructured(true);
         super.merge(operation, context);
         context.setSemiStructured(oldSemiStructured);
+    }
+
+    static ASTNodeArtifact makeSemiStructured(ASTNodeArtifact root, KeyEnums.Level level, FileArtifact original) {
+        List<ASTNodeArtifact> toReplace = collectBlocks(root, level, new ArrayList<>());
+        String[] lines = LINES.split(original.getContent());
+
+        for (ASTNodeArtifact artifact : toReplace) {
+
+            // The SemiStructuredArtifact constructor inserts the new SemiStructuredArtifact into the tree.
+            SemiStructuredArtifact replacement = new SemiStructuredArtifact(artifact, lines);
+
+            if (artifact == root) {
+                root = replacement;
+            }
+        }
+
+        return root;
+    }
+
+    private static List<ASTNodeArtifact> collectBlocks(ASTNodeArtifact artifact, KeyEnums.Level level, List<ASTNodeArtifact> blocks) {
+
+        if (artifact.getType() == BLOCK && artifact.getLevel() == level) {
+            blocks.add(artifact);
+        } else {
+            artifact.getChildren().forEach(c -> collectBlocks(c, level, blocks));
+        }
+
+        return blocks;
     }
 }

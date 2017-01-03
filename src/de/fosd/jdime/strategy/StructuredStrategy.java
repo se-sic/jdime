@@ -26,24 +26,19 @@ package de.fosd.jdime.strategy;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.Permission;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
-import de.fosd.jdime.artifact.ast.SemiStructuredArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
-import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
 
-import static de.fosd.jdime.stats.KeyEnums.Type.BLOCK;
 import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -119,9 +114,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
 
             if (context.isSemiStructured()) {
-                left = makeSemiStructured(left, context.getSemiStructuredLevel());
-                base = makeSemiStructured(base, context.getSemiStructuredLevel());
-                right = makeSemiStructured(right, context.getSemiStructuredLevel());
+                left = SemiStructuredStrategy.makeSemiStructured(left, context.getSemiStructuredLevel(), leftFile);
+                base = SemiStructuredStrategy.makeSemiStructured(base, context.getSemiStructuredLevel(), baseFile);
+                right = SemiStructuredStrategy.makeSemiStructured(right, context.getSemiStructuredLevel(), rightFile);
             }
 
             ASTNodeArtifact targetNode = left.copy();
@@ -191,20 +186,5 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         } finally {
             System.setSecurityManager(systemSecurityManager);
         }
-    }
-
-    private ASTNodeArtifact makeSemiStructured(ASTNodeArtifact artifact, KeyEnums.Level level) {
-        ASTNodeArtifact transformed;
-
-        if (artifact.getType() == BLOCK && artifact.getLevel() == level) {
-            transformed = new SemiStructuredArtifact(artifact);
-        } else {
-            List<ASTNodeArtifact> children = new ArrayList<>(artifact.getChildren());
-            children.forEach(c -> makeSemiStructured(c, level));
-
-            transformed = artifact;
-        }
-
-        return transformed;
     }
 }

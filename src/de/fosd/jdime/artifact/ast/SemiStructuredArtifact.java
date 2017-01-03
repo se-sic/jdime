@@ -25,6 +25,7 @@ package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
 
+import beaver.Symbol;
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
@@ -60,11 +61,14 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
      *
      * @param toEncapsulate
      *         the {@link ASTNodeArtifact} to encapsulate
+     * @param originalLines
+     *         the lines (including line separators) of the original source code file of which the {@code toEncapsulate}
+     *         {@link Artifact} represents a part of
      * @throws IllegalArgumentException
      *         if the {@link ASTNode} contained in {@code toEncapsulate} is not assignable to
      *         a {@link Block}
      */
-    public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate) {
+    public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate, String[] originalLines) {
         super(toEncapsulate);
 
         if (!Block.class.isAssignableFrom(toEncapsulate.astnode.getClass())) {
@@ -72,7 +76,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         }
 
         this.content = new FileArtifact(getRevision(), VFILE);
-        this.content.setContent(toEncapsulate.prettyPrint());
+        this.content.setContent(extractOriginalContent(originalLines));
 
         this.astnode = new SemiStructuredASTNode(this);
 
@@ -108,6 +112,56 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
 
         this.content = toCopy.content.copy();
         ((SemiStructuredASTNode) this.astnode).setArtifact(this);
+    }
+
+    private String extractOriginalContent(String[] lines) {
+        final int startLine;
+        final int startCol;
+
+        final int endLine;
+        final int endCol;
+
+        {
+            int start = getASTNode().getStart();
+            int end = getASTNode().getEnd();
+
+            startLine = Symbol.getLine(start);
+            startCol = Symbol.getColumn(start);
+            endLine = Symbol.getLine(end);
+            endCol = Symbol.getColumn(end);
+        }
+
+        String content;
+
+        if (startLine == endLine) {
+            content = singleLineContent(lines[startLine - 1], startCol, endCol);
+        } else {
+            content = multiLineContent(lines, startLine, startCol, endLine, endCol);
+        }
+
+        return content;
+    }
+
+    private String singleLineContent(String line, int startCol, int endCol) {
+        return line.substring(startCol - 1, endCol);
+    }
+
+    private String multiLineContent(String[] lines, int startLine, int startCol, int endLine, int endCol) {
+        StringBuilder builder = new StringBuilder();
+
+        for (int line = startLine; line <= endLine; line++) {
+            // OF COURSE lines and columns are 1 indexed in ExtendJ
+
+            if (line == startLine) {
+                builder.append(lines[line - 1].substring(startCol - 1));
+            } else if (line == endLine) {
+                builder.append(lines[line - 1].substring(0, endCol));
+            } else {
+                builder.append(lines[line - 1]);
+            }
+        }
+
+        return builder.toString();
     }
 
     /**
