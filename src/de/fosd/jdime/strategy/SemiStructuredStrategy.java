@@ -25,6 +25,9 @@ package de.fosd.jdime.strategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
@@ -37,6 +40,8 @@ import de.fosd.jdime.stats.KeyEnums;
 import static de.fosd.jdime.stats.KeyEnums.Type.BLOCK;
 
 public class SemiStructuredStrategy extends StructuredStrategy {
+
+    private static final Logger LOG = Logger.getLogger(SemiStructuredStrategy.class.getCanonicalName());
 
     /**
      * Regex used to split a String into lines while retaining the original line separators.
@@ -58,8 +63,24 @@ public class SemiStructuredStrategy extends StructuredStrategy {
 
         for (ASTNodeArtifact artifact : toReplace) {
 
-            // The SemiStructuredArtifact constructor inserts the new SemiStructuredArtifact into the tree.
-            SemiStructuredArtifact replacement = new SemiStructuredArtifact(artifact, lines);
+            SemiStructuredArtifact replacement;
+
+            try {
+                // The SemiStructuredArtifact constructor inserts the new SemiStructuredArtifact into the tree.
+                replacement = new SemiStructuredArtifact(artifact, lines);
+            } catch (SemiStructuredArtifact.NotReplaceableException e) {
+                LOG.log(Level.FINE, e, () -> {
+                    Optional<ASTNodeArtifact> enclosing = artifact.enclosingClassOrMethod();
+                    String msg = "Skipping replacement of " + artifact.getId() + " (" + artifact + ")";
+
+                    if (enclosing.isPresent()) {
+                        msg += " under " + enclosing.get().getId() + " (" + enclosing.get() + ")";
+                    }
+
+                    return msg;
+                });
+                continue;
+            }
 
             if (artifact == root) {
                 root = replacement;

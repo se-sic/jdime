@@ -340,6 +340,28 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return astnode instanceof ClassDecl || astnode instanceof InterfaceDecl;
     }
 
+    /**
+     * Optionally returns the enclosing class or method (or constructor) declaration artifact (whichever is closest)
+     * of this {@link ASTNodeArtifact}.
+     *
+     * @return the enclosing class or method declaration an empty {@link Optional} if there is neither
+     */
+    public Optional<ASTNodeArtifact> enclosingClassOrMethod() {
+        ASTNodeArtifact current = this;
+
+        while (current != null) {
+            KeyEnums.Type type = current.getType();
+
+            if (type == KeyEnums.Type.METHOD || type == KeyEnums.Type.CLASS) {
+                return Optional.of(current);
+            }
+
+            current = current.getParent();
+        }
+
+        return Optional.empty();
+    }
+
     @Override
     public Optional<Supplier<String>> getUniqueLabel() {
         boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())

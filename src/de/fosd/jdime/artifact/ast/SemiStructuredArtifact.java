@@ -47,6 +47,19 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
 
     private static final LinebasedStrategy linebased = new LinebasedStrategy();
 
+    /**
+     * Thrown if an {@link ASTNodeArtifact} can not be replaced by a {@link SemiStructuredArtifact}.
+     */
+    public static class NotReplaceableException extends Exception {
+
+        /**
+         * @see Exception#Exception(String)
+         */
+        public NotReplaceableException(String message) {
+            super(message);
+        }
+    }
+
     private FileArtifact content;
 
     /**
@@ -64,15 +77,16 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
      * @param originalLines
      *         the lines (including line separators) of the original source code file of which the {@code toEncapsulate}
      *         {@link Artifact} represents a part of
-     * @throws IllegalArgumentException
+     * @throws NotReplaceableException
      *         if the {@link ASTNode} contained in {@code toEncapsulate} is not assignable to
-     *         a {@link Block}
+     *         a {@link Block} or its original source code can not be determined; the tree containing
+     *         {@code toEncapsulate} is not changed if this {@link Exception} is thrown
      */
-    public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate, String[] originalLines) {
+    public SemiStructuredArtifact(ASTNodeArtifact toEncapsulate, String[] originalLines) throws NotReplaceableException {
         super(toEncapsulate);
 
         if (!Block.class.isAssignableFrom(toEncapsulate.astnode.getClass())) {
-            throw new IllegalArgumentException("Can only replace ASTNodeArtifacts containing 'Block' AST nodes.");
+            throw new NotReplaceableException("Can only replace ASTNodeArtifacts containing 'Block' AST nodes.");
         }
 
         this.content = new FileArtifact(getRevision(), VFILE);
@@ -114,7 +128,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         ((SemiStructuredASTNode) this.astnode).setArtifact(this);
     }
 
-    private String extractOriginalContent(String[] lines) {
+    private String extractOriginalContent(String[] lines) throws NotReplaceableException {
         final int startLine;
         final int startCol;
 
@@ -129,6 +143,12 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             startCol = Symbol.getColumn(start);
             endLine = Symbol.getLine(end);
             endCol = Symbol.getColumn(end);
+        }
+
+        if (endLine < startLine || (endLine == startLine && endCol <= startCol)) {
+            String msg = String.format("Invalid source file region. (Line, Column) Start: (%d,%d) End: (%d,%d)",
+                                        startLine, startCol, endLine, endCol);
+            throw new NotReplaceableException(msg);
         }
 
         String content;
