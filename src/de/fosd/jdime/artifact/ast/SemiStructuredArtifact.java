@@ -24,6 +24,7 @@
 package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
+import java.nio.CharBuffer;
 
 import beaver.Symbol;
 import de.fosd.jdime.artifact.Artifact;
@@ -128,6 +129,16 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         ((SemiStructuredASTNode) this.astnode).setArtifact(this);
     }
 
+    /**
+     * Extracts the original code that produced the sub-AST under the node stored in this {@link SemiStructuredArtifact}
+     *
+     * @param lines
+     *         the lines (including line separators) of the original source code file
+     * @return the original code
+     * @throws NotReplaceableException
+     *         if the original source file region (as determined by {@link ASTNode#getStart()}
+     *         and {@link ASTNode#getEnd()}) is invalid (e.g. empty)
+     */
     private String extractOriginalContent(String[] lines) throws NotReplaceableException {
         final int startLine;
         final int startCol;
@@ -155,7 +166,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         String content;
 
         if (startLine == endLine) {
-            content = singleLineContent(lines[startLine], startCol, endCol);
+            content = lines[startLine].substring(startCol, endCol + 1);
         } else {
             content = multiLineContent(lines, startLine, startCol, endLine, endCol);
         }
@@ -163,17 +174,34 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         return content;
     }
 
-    private String singleLineContent(String line, int startCol, int endCol) {
-        return line.substring(startCol, endCol + 1);
-    }
-
+    /**
+     * Returns the region of the original source code specified by {@code startLine, startCol, endLine, endCol}.
+     *
+     * @param lines
+     *         the lines (including line separators) of the original source code file
+     * @param startLine
+     *         the first line of the region
+     * @param startCol
+     *         the first column in the first line of the region
+     * @param endLine
+     *         the last line of the region
+     * @param endCol
+     *         the last column of the last line of the region
+     * @return the original source code region
+     */
     private String multiLineContent(String[] lines, int startLine, int startCol, int endLine, int endCol) {
         StringBuilder builder = new StringBuilder();
 
         for (int line = startLine; line <= endLine; line++) {
+            String theLine = lines[line];
 
             if (line == startLine) {
-                builder.append(lines[line].substring(startCol));
+                if (startCol > 0) {
+                    builder.append(CharBuffer.allocate(startCol).toString().replace('\0', ' '));
+                    builder.append(theLine.substring(startCol));
+                } else {
+                    builder.append(theLine);
+                }
             } else if (line == endLine) {
                 builder.append(lines[line].substring(0, endCol + 1));
             } else {
