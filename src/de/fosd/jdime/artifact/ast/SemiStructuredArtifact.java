@@ -139,10 +139,11 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             int start = getASTNode().getStart();
             int end = getASTNode().getEnd();
 
-            startLine = Symbol.getLine(start);
-            startCol = Symbol.getColumn(start);
-            endLine = Symbol.getLine(end);
-            endCol = Symbol.getColumn(end);
+            // OF COURSE lines and columns are 1 indexed in ExtendJ
+            startLine = Symbol.getLine(start) - 1;
+            startCol = Symbol.getColumn(start) - 1;
+            endLine = Symbol.getLine(end) - 1;
+            endCol = Symbol.getColumn(end) - 1;
         }
 
         if (endLine < startLine || (endLine == startLine && endCol <= startCol)) {
@@ -154,7 +155,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         String content;
 
         if (startLine == endLine) {
-            content = singleLineContent(lines[startLine - 1], startCol, endCol);
+            content = singleLineContent(lines[startLine], startCol, endCol);
         } else {
             content = multiLineContent(lines, startLine, startCol, endLine, endCol);
         }
@@ -163,21 +164,20 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
     }
 
     private String singleLineContent(String line, int startCol, int endCol) {
-        return line.substring(startCol - 1, endCol);
+        return line.substring(startCol, endCol + 1);
     }
 
     private String multiLineContent(String[] lines, int startLine, int startCol, int endLine, int endCol) {
         StringBuilder builder = new StringBuilder();
 
         for (int line = startLine; line <= endLine; line++) {
-            // OF COURSE lines and columns are 1 indexed in ExtendJ
 
             if (line == startLine) {
-                builder.append(lines[line - 1].substring(startCol - 1));
+                builder.append(lines[line].substring(startCol));
             } else if (line == endLine) {
-                builder.append(lines[line - 1].substring(0, endCol));
+                builder.append(lines[line].substring(0, endCol + 1));
             } else {
-                builder.append(lines[line - 1]);
+                builder.append(lines[line]);
             }
         }
 
