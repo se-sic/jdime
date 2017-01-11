@@ -25,6 +25,7 @@ package de.fosd.jdime.config.merge;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +60,7 @@ import org.apache.commons.io.FileUtils;
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
 import static de.fosd.jdime.config.JDimeConfig.GIT_COMMAND;
+import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
@@ -553,13 +555,23 @@ public class MergeContext implements Cloneable {
 
         if (args.isPresent()) {
             List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
-                                          .map(String::trim).map(File::new).collect(Collectors.toList());
+                                          .map(String::trim).map(File::new).collect(Collectors.toCollection(ArrayList::new));
+            List<File> nonExistent = inputFiles.stream().filter(f -> !f.exists()).collect(Collectors.toList());
 
-            boolean anyNonExistent = inputFiles.stream().filter(f -> !f.exists()).peek(f ->
-                    LOG.severe(() -> "Input file " + f + " does not exist.")).findFirst().isPresent();
+            Boolean twFallback = config.getBoolean(TWOWAY_FALLBACK).orElse(false);
 
-            if (anyNonExistent) {
-                throw new AbortException("All input files must exist.");
+            if (!nonExistent.isEmpty()) {
+                if (twFallback && inputFiles.size() == MergeType.THREEWAY_FILES && nonExistent.size() == 1
+                        && inputFiles.get(1) == nonExistent.get(0)) {
+
+                    File nonExistentBase = inputFiles.get(1);
+                    LOG.warning(() -> "Base input file " + nonExistentBase + " does not exist. Falling back to two way merge.");
+
+                    inputFiles.remove(nonExistentBase);
+                } else {
+                    nonExistent.forEach(f -> LOG.severe(() -> "Input file " + f + " does not exist."));
+                    throw new AbortException("All input files must exist.");
+                }
             }
 
             boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||

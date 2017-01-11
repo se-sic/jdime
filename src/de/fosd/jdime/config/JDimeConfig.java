@@ -34,6 +34,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.stats.KeyEnums;
@@ -69,6 +70,12 @@ public final class JDimeConfig extends Config {
      * (possibly indirectly) containing such files before merging. Defaults to true.
      */
     public static final String FILTER_INPUT_DIRECTORIES = "FILTER_INPUT_DIRECTORIES";
+
+    /**
+     * Whether to fall back to a two way merge if three inputs are given but the base {@link FileArtifact} does not
+     * exist. Defaults to false.
+     */
+    public static final String TWOWAY_FALLBACK = "TWOWAY_FALLBACK";
 
     /**
      * The default value for the 'Args' text field in the GUI.
