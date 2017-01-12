@@ -574,10 +574,10 @@ public class MergeContext implements Cloneable {
                 }
             }
 
-            boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||
-                                      inputFiles.stream().allMatch(File::isFile);
+            boolean allDirs = inputFiles.stream().allMatch(File::isDirectory);
+            boolean allFiles = inputFiles.stream().allMatch(File::isFile);
 
-            if (!consistentTypes) {
+            if (!(allDirs || allFiles)) {
                 throw new AbortException("Input files must be all directories or all files.");
             }
 
@@ -601,6 +601,10 @@ public class MergeContext implements Cloneable {
             for (File file : inputFiles) {
                 FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
                 inputArtifacts.add(artifact);
+            }
+
+            if (allFiles && !inputArtifacts.stream().allMatch(FileArtifact::isJavaFile)) {
+                throw new AbortException("All input files must be Java source code files.");
             }
 
             setInputFiles(inputArtifacts);
