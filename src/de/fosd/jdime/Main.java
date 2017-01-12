@@ -95,9 +95,6 @@ public final class Main {
                 LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
             } else {
                 System.err.println(e.getMessage());
-                System.err.println();
-                printCLIHelp();
-
                 LOG.log(Level.FINE, e, () -> "Aborting the merge.");
             }
 
@@ -314,7 +311,7 @@ public final class Main {
 
         Main.config = config;
 
-        if (config.getBoolean(CLI_HELP).orElse(false)) {
+        if (args.length == 0 || config.getBoolean(CLI_HELP).orElse(false)) {
             printCLIHelp();
             return false;
         }
