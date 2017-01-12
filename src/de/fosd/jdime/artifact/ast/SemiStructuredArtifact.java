@@ -53,6 +53,8 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
      */
     public static class NotReplaceableException extends Exception {
 
+        private static final long serialVersionUID = 0;
+
         /**
          * @see Exception#Exception(String)
          */
