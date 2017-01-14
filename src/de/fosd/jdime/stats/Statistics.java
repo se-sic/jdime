@@ -68,6 +68,8 @@ public class Statistics {
         serializer = new XStream();
         serializer.setMode(XStream.NO_REFERENCES);
 
+        serializer.processAnnotations(MergeScenarioStatistics.class);
+
         serializer.aliasType(Artifact.class.getSimpleName().toLowerCase(), Artifact.class);
 
         serializer.alias(Revision.class.getSimpleName().toLowerCase(), Revision.class);

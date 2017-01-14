@@ -168,7 +168,8 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             operation.getTarget().setContent(execRes.stdOut);
         }
 
-        if (context.hasStatistics()) {
+        // TODO this filters out method specific statistics in semistructured mode, they should instead be marked somehow but kept in the XML
+        if (context.hasStatistics() && !context.isSemiStructured()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(operation.getMergeScenario());
             ParseResult res = scenarioStatistics.setLineStatistics(execRes.stdOut);
