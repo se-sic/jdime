@@ -578,6 +578,8 @@ public class MergeContext implements Cloneable {
             boolean allFiles = inputFiles.stream().allMatch(File::isFile);
 
             if (!(allDirs || allFiles)) {
+                LOG.severe(() -> "Inconsistent input files. (Must all be all directories or all files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
                 throw new AbortException("Input files must be all directories or all files.");
             }
 
@@ -604,6 +606,8 @@ public class MergeContext implements Cloneable {
             }
 
             if (allFiles && !inputArtifacts.stream().allMatch(FileArtifact::isJavaFile)) {
+                LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
                 throw new AbortException("All input files must be Java source code files.");
             }
 
