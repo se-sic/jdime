@@ -130,11 +130,13 @@ public final class Main {
             return;
         }
 
-        merge(context);
-        output(context);
-
-        if (context.hasStatistics()) {
-            outputStatistics(context.getStatistics());
+        try {
+            merge(context);
+            output(context);
+        } finally {
+            if (context.hasStatistics()) {
+                outputStatistics(context.getStatistics());
+            }
         }
 
         if (LOG.isLoggable(Level.FINE)) {

@@ -697,6 +697,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
                 });
 
                 if (context.isExitOnError()) {
+
+                    if (context.hasStatistics()) {
+                        MergeScenarioStatistics stats = context.getStatistics().getScenarioStatistics(scenario);
+                        stats.setFlag("FAILED");
+                    }
+
                     throw new AbortException(e);
                 } else {
 

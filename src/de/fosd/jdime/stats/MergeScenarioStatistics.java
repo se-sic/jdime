@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
@@ -41,6 +42,8 @@ import de.fosd.jdime.stats.parser.Parser;
  * A collection of statistics values about a <code>MergeScenario</code>.
  */
 public class MergeScenarioStatistics {
+
+    @XStreamAsAttribute private String flag;
 
     private MergeScenario<?> mergeScenario;
 
@@ -63,6 +66,7 @@ public class MergeScenarioStatistics {
      *         the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for
      */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
+        this.flag = "OK";
         this.mergeScenario = mergeScenario;
         this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
@@ -82,6 +86,8 @@ public class MergeScenarioStatistics {
      *         the <code>MergeScenarioStatistics</code> to copy
      */
     public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
+        this.flag = toCopy.flag;
+
         this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
 
         this.matchings = new HashSet<>();
@@ -125,6 +131,10 @@ public class MergeScenarioStatistics {
         this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
         this.conflicts = toCopy.conflicts;
         this.runtime = toCopy.runtime;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
     }
 
     /**
