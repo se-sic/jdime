@@ -686,6 +686,12 @@ public class FileArtifact extends Artifact<FileArtifact> {
             try {
                 strategy.merge(operation, context);
             } catch (AbortException e) {
+
+                if (context.hasStatistics()) {
+                    MergeScenarioStatistics stats = context.getStatistics().getScenarioStatistics(scenario);
+                    stats.setFlag("FAILED");
+                }
+
                 throw e; // AbortExceptions must always cause the merge to be aborted
             } catch (RuntimeException e) {
                 context.addCrash(scenario, e);
