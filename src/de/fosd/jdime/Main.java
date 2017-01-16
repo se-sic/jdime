@@ -46,6 +46,7 @@ import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
@@ -369,7 +370,20 @@ public final class Main {
         boolean conditional = context.isConditionalMerge();
         MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, conditional);
 
-        merge.apply(context);
+        try {
+            merge.apply(context);
+        } catch (Throwable e) {
+
+            if (context.hasStatistics()) {
+
+                if (context.hasStatistics()) {
+                    MergeScenarioStatistics stats = context.getStatistics().getScenarioStatistics(merge.getMergeScenario());
+                    stats.setFlag("FAILED");
+                }
+            }
+
+            throw e;
+        }
     }
 
     /**
