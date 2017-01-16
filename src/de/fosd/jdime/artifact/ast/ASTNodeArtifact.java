@@ -40,6 +40,7 @@ import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
+import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.merge.Merge;
 import de.fosd.jdime.operations.ConflictOperation;
 import de.fosd.jdime.operations.MergeOperation;
@@ -241,6 +242,8 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             rebuildAST();
             astnode.flushCaches();
             astnode.flushTreeCache();
+        } catch (AbortException e) {
+            throw e;
         } catch (Exception e) {
             LOG.severe("Exception caught during prettyPrint(): " + e);
             LOG.log(Level.SEVERE, e.getMessage(), e);
@@ -573,7 +576,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                 elements.append(getMatching(r).getMatchingArtifact(this).getId());
             }
 
-            LOG.severe("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
+            throw new AbortException("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
                     "This is either a bug in ExtendJ or in JDime! Inspect AST element " +
                     getId() + " (" + elements.toString() + ") to look into this issue.");
         }
