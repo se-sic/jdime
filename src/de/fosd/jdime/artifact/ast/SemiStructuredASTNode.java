@@ -37,7 +37,8 @@ import static java.util.regex.Pattern.MULTILINE;
  */
 public class SemiStructuredASTNode extends Block {
 
-    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\s*$|\\R^\\s*\\}\\s*\\z", MULTILINE);
+    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\s*\\R*|(\\R*^)?\\s*\\}\\s*\\z", MULTILINE);
+    private static final String CONFLICT_START = "<<<<<<<";
 
     private SemiStructuredArtifact artifact;
 
@@ -74,6 +75,11 @@ public class SemiStructuredASTNode extends Block {
 
     @Override
     public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
+
+        if (artifact.getContent().getContent().startsWith(CONFLICT_START)) {
+            sb.append("\n");
+        }
+
         sb.append(artifact.getContent().getContent().trim());
     }
 
@@ -98,7 +104,15 @@ public class SemiStructuredASTNode extends Block {
 
             @Override
             public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
-                sb.append(BRACES.matcher(artifact.getContent().getContent()).replaceAll(""));
+                String content = artifact.getContent().getContent();
+
+                if (!content.startsWith(CONFLICT_START)) {
+                    sb.append(SemiStructuredASTNode.this.indent());
+                    sb.append(BRACES.matcher(content).replaceAll(""));
+                } else {
+                    sb.append("\n");
+                    sb.append(content);
+                }
             }
         };
     }
