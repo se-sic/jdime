@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -117,15 +118,15 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         GitMergeFileResult res = new GitMergeFileResult();
 
         GitMergeFileInput left = new GitMergeFileInput();
-        left.setContent(leftFile.getContent());
+        left.setContent(leftFile.getContent(), StandardCharsets.UTF_8);
         opts.our_label = leftL;
 
         GitMergeFileInput base = new GitMergeFileInput();
-        base.setContent(baseFile.getContent());
+        base.setContent(baseFile.getContent(), StandardCharsets.UTF_8);
         opts.ancestor_label = baseL;
 
         GitMergeFileInput right = new GitMergeFileInput();
-        right.setContent(rightFile.getContent());
+        right.setContent(rightFile.getContent(), StandardCharsets.UTF_8);
         opts.their_label = rightL;
 
         LibGit2.git_merge_file(res, base, left, right, opts);
