@@ -23,15 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -45,7 +36,6 @@ import de.uni_passau.fim.seibt.GitMergeFileInput;
 import de.uni_passau.fim.seibt.GitMergeFileOptions;
 import de.uni_passau.fim.seibt.GitMergeFileResult;
 import de.uni_passau.fim.seibt.LibGit2;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Performs an unstructured, line based merge.
@@ -57,83 +47,6 @@ import org.apache.commons.io.FileUtils;
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
-
-    private static final File WORKING_DIR = new File(".");
-    private static final String MERGE_FILE = "merge-file";
-    private static final String QUIET = "-q";
-    private static final String PRINT = "-p";
-    private static final String LABEL = "-L";
-
-    private static final FileRepo repo = new FileRepo();
-
-    /**
-     * A repository of temporary files containing content snapshots for {@link FileArtifact FileArtifacts}.
-     */
-    private static class FileRepo {
-
-        private static final Logger LOG = Logger.getLogger(FileRepo.class.getCanonicalName());
-
-        private final Path parentDir;
-        private final Map<String, File> cachedFiles;
-
-        /**
-         * Constructs a new {@link FileRepo} that stores its files in the temporary directory of the system.
-         */
-        public FileRepo() {
-            this(FileUtils.getTempDirectory());
-        }
-
-        /**
-         * Constructs a new {@link FileRepo} that stores its files under the given {@code parentDir}.
-         *
-         * @param parentDir
-         *         the directory to store the temporary files in
-         * @throws IllegalArgumentException
-         *         if {@code parentDir} exists and is not a directory
-         */
-        public FileRepo(File parentDir) {
-
-            if (parentDir.exists() && !parentDir.isDirectory()) {
-                throw new IllegalArgumentException(parentDir + " must not exist or be a directory.");
-            }
-
-            this.parentDir = parentDir.toPath();
-            this.cachedFiles = new ConcurrentHashMap<>();
-        }
-
-        /**
-         * Returns an existing file containing the current contents of {@code #artifact}. Returns an empty optional
-         * if {@code artifact} is a directory or if there is an exception writing the contents of {@code artifact}
-         * to disk.
-         *
-         * @param artifact
-         *         the {@link FileArtifact} to return an existing file for
-         * @return optionally an existing file containing the current contents of {@code artifact}
-         */
-        public Optional<File> fileFor(FileArtifact artifact) {
-            if (artifact.isDirectory()) {
-                return Optional.empty();
-            }
-
-            return Optional.ofNullable(cachedFiles.computeIfAbsent(artifact.getContentHash(), hash -> {
-                File file;
-
-                try {
-                    file = Files.createTempFile(parentDir, String.valueOf(hash), null).toFile();
-                    FileUtils.forceDeleteOnExit(file);
-
-                    try (PrintStream to = new PrintStream(FileUtils.openOutputStream(file))) {
-                        artifact.outputContent(to);
-                    }
-                } catch (IOException e) {
-                    LOG.log(Level.WARNING, e, () -> "Failed to write a temporary file for " + artifact);
-                    return null;
-                }
-
-                return file;
-            }));
-        }
-    }
 
     /**
      * This line-based <code>merge</code> method uses the merging routine of
