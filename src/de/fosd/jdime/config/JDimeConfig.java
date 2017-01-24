@@ -34,7 +34,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
-import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.stats.KeyEnums;
 import de.uni_passau.fim.seibt.kvconfig.Config;
@@ -57,12 +56,6 @@ public final class JDimeConfig extends Config {
      * The file name of the JDime configuration file.
      */
     private static final String CONFIG_FILE_NAME = "JDime.properties";
-
-    /**
-     * The command to use for calling git (e.g. 'git', '/usr/bin/git'). Defaults to
-     * '{@value MergeContext#DEFAULT_GIT_CMD}'
-     */
-    public static final String GIT_COMMAND = "GIT_COMMAND";
 
     /**
      * Whether to filter out any <code>FileArtifact</code>s not representing java source code files or directories

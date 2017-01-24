@@ -36,7 +36,6 @@ import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.uni_passau.fim.seibt.gitwrapper.repo.GitWrapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -92,7 +91,6 @@ public class MergeTest extends JDimeTest {
     @Before
     public void setUp() throws Exception {
         context = new MergeContext();
-        context.setGit(new GitWrapper(MergeContext.DEFAULT_GIT_CMD));
     }
 
     @Test
