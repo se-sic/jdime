@@ -23,14 +23,10 @@
  */
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import org.junit.BeforeClass;
 
@@ -153,29 +149,23 @@ public class JDimeTest {
     protected static String normalize(String content) {
         String conflictStart = "<<<<<<<";
         String conflictEnd = ">>>>>>>";
-        String lineSeparator = System.lineSeparator();
-        StringBuilder b = new StringBuilder(content.length());
 
-        try (BufferedReader r = new BufferedReader(new StringReader(content))) {
-            for (Iterator<String> it = r.lines().iterator(); it.hasNext(); ) {
-                String l = it.next();
+        String[] lines = content.split("\\R");
 
-                if (l.startsWith(conflictStart)) {
-                    l = conflictStart;
-                } else if (l.startsWith(conflictEnd)) {
-                    l = conflictEnd;
-                }
-
-                b.append(l);
-
-                if (it.hasNext()) {
-                    b.append(lineSeparator);
-                }
-            }
-        } catch (IOException e) {
-            fail(e.getMessage());
+        if (lines.length == 0) {
+            return "";
         }
 
-        return b.toString();
+        for (int i = 0; i < lines.length; i++) {
+            String l = lines[i];
+
+            if (l.startsWith(conflictStart)) {
+                lines[i] = conflictStart;
+            } else if (l.startsWith(conflictEnd)) {
+                lines[i] = conflictEnd;
+            }
+        }
+
+        return String.join(System.lineSeparator(), lines);
     }
 }
