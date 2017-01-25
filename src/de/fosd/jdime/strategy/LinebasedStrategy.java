@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -37,6 +36,8 @@ import de.uni_passau.fim.seibt.GitMergeFileInput;
 import de.uni_passau.fim.seibt.GitMergeFileOptions;
 import de.uni_passau.fim.seibt.GitMergeFileResult;
 import de.uni_passau.fim.seibt.LibGit2;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Performs an unstructured, line based merge.
@@ -118,19 +119,19 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         GitMergeFileResult res = new GitMergeFileResult();
 
         GitMergeFileInput left = new GitMergeFileInput();
-        left.setContent(leftFile.getContent(), StandardCharsets.UTF_8);
+        left.setContent(leftFile.getContent(), UTF_8);
         opts.our_label = leftL;
 
         GitMergeFileInput base = new GitMergeFileInput();
-        base.setContent(baseFile.getContent(), StandardCharsets.UTF_8);
+        base.setContent(baseFile.getContent(), UTF_8);
         opts.ancestor_label = baseL;
 
         GitMergeFileInput right = new GitMergeFileInput();
-        right.setContent(rightFile.getContent(), StandardCharsets.UTF_8);
+        right.setContent(rightFile.getContent(), UTF_8);
         opts.their_label = rightL;
 
         LibGit2.git_merge_file(res, base, left, right, opts);
 
-        return res.getResult();
+        return res.getResult(UTF_8);
     }
 }
