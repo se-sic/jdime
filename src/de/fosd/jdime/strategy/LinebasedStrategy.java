@@ -51,6 +51,13 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
 
     /**
+     * Constructs a new {@link LinebasedStrategy}.
+     */
+    public LinebasedStrategy() {
+        LOG.fine("Constructing a " + getClass().getSimpleName() + " using libgit2 " + LibGit2.git_libgit2_version());
+    }
+
+    /**
      * This line-based <code>merge</code> method uses the merging routine of
      * the external tool <code>git</code>.
      * <p>
