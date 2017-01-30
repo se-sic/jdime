@@ -23,16 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -42,9 +32,12 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
-import de.uni_passau.fim.seibt.gitwrapper.process.ProcessExecutor.ExecRes;
-import de.uni_passau.fim.seibt.gitwrapper.repo.GitWrapper;
-import org.apache.commons.io.FileUtils;
+import de.uni_passau.fim.seibt.GitMergeFileInput;
+import de.uni_passau.fim.seibt.GitMergeFileOptions;
+import de.uni_passau.fim.seibt.GitMergeFileResult;
+import de.uni_passau.fim.seibt.LibGit2;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Performs an unstructured, line based merge.
@@ -57,81 +50,11 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
 
-    private static final File WORKING_DIR = new File(".");
-    private static final String MERGE_FILE = "merge-file";
-    private static final String QUIET = "-q";
-    private static final String PRINT = "-p";
-    private static final String LABEL = "-L";
-
-    private static final FileRepo repo = new FileRepo();
-
     /**
-     * A repository of temporary files containing content snapshots for {@link FileArtifact FileArtifacts}.
+     * Constructs a new {@link LinebasedStrategy}.
      */
-    private static class FileRepo {
-
-        private static final Logger LOG = Logger.getLogger(FileRepo.class.getCanonicalName());
-
-        private final Path parentDir;
-        private final Map<String, File> cachedFiles;
-
-        /**
-         * Constructs a new {@link FileRepo} that stores its files in the temporary directory of the system.
-         */
-        public FileRepo() {
-            this(FileUtils.getTempDirectory());
-        }
-
-        /**
-         * Constructs a new {@link FileRepo} that stores its files under the given {@code parentDir}.
-         *
-         * @param parentDir
-         *         the directory to store the temporary files in
-         * @throws IllegalArgumentException
-         *         if {@code parentDir} exists and is not a directory
-         */
-        public FileRepo(File parentDir) {
-
-            if (parentDir.exists() && !parentDir.isDirectory()) {
-                throw new IllegalArgumentException(parentDir + " must not exist or be a directory.");
-            }
-
-            this.parentDir = parentDir.toPath();
-            this.cachedFiles = new ConcurrentHashMap<>();
-        }
-
-        /**
-         * Returns an existing file containing the current contents of {@code #artifact}. Returns an empty optional
-         * if {@code artifact} is a directory or if there is an exception writing the contents of {@code artifact}
-         * to disk.
-         *
-         * @param artifact
-         *         the {@link FileArtifact} to return an existing file for
-         * @return optionally an existing file containing the current contents of {@code artifact}
-         */
-        public Optional<File> fileFor(FileArtifact artifact) {
-            if (artifact.isDirectory()) {
-                return Optional.empty();
-            }
-
-            return Optional.ofNullable(cachedFiles.computeIfAbsent(artifact.getContentHash(), hash -> {
-                File file;
-
-                try {
-                    file = Files.createTempFile(parentDir, String.valueOf(hash), null).toFile();
-                    FileUtils.forceDeleteOnExit(file);
-
-                    try (PrintStream to = new PrintStream(FileUtils.openOutputStream(file))) {
-                        artifact.outputContent(to);
-                    }
-                } catch (IOException e) {
-                    LOG.log(Level.WARNING, e, () -> "Failed to write a temporary file for " + artifact);
-                    return null;
-                }
-
-                return file;
-            }));
-        }
+    public LinebasedStrategy() {
+        LOG.fine("Constructing a " + getClass().getSimpleName() + " using libgit2 " + LibGit2.git_libgit2_version());
     }
 
     /**
@@ -159,20 +82,20 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
         long runtime, startTime = System.currentTimeMillis();
 
-        ExecRes execRes = mergeFiles(operation, context);
+        String mergeResult = mergeFiles(operation);
 
         runtime = System.currentTimeMillis() - startTime;
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
 
         if (!context.isDiffOnly()) {
-            operation.getTarget().setContent(execRes.stdOut);
+            operation.getTarget().setContent(mergeResult);
         }
 
         // TODO this filters out method specific statistics in semistructured mode, they should instead be marked somehow but kept in the XML
         if (context.hasStatistics() && !context.isSemiStructured()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(operation.getMergeScenario());
-            ParseResult res = scenarioStatistics.setLineStatistics(execRes.stdOut);
+            ParseResult res = scenarioStatistics.setLineStatistics(mergeResult);
 
             if (res.getConflicts() > 0) {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
@@ -184,47 +107,39 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
     }
 
     /**
-     * Passes {@link MergeScenario#getLeft()}, {@link MergeScenario#getBase()} and {@link MergeScenario#getRight()}
-     * to a call to {@code git merge-file} and returns the result of the command execution.
+     * Merges the contents of the {@link FileArtifact FileArtifacts} contained in the {@link MergeScenario} that is
+     * being merged in the {@link MergeOperation} {@code op}.
      *
      * @param op
-     *         the {@link MergeOperation} containing the {@link FileArtifact FileAritfacts} to be merged
-     * @param context
-     *         the {@link MergeContext} containing the {@link GitWrapper} to be used
-     * @return the result of the execution of {@code git merge-file}
-     * @throws RuntimeException
-     *         if the native git execution fails
+     *         the current {@link MergeOperation}
+     * @return the merged file contents
      */
-    private ExecRes mergeFiles(MergeOperation<FileArtifact> op, MergeContext context) {
-        Supplier<RuntimeException> failed = () -> new RuntimeException("Failed to merge using 'git merge-file'.");
-        String leftP, baseP, rightP; // The paths to merge.
-        String leftL, baseL, rightL; // The labels to use.
+    private String mergeFiles(MergeOperation<FileArtifact> op) {
+        FileArtifact leftFile = op.getMergeScenario().getLeft();
+        FileArtifact baseFile = op.getMergeScenario().getBase();
+        FileArtifact rightFile = op.getMergeScenario().getRight();
 
-        {
-            FileArtifact l = op.getMergeScenario().getLeft();
-            FileArtifact b = op.getMergeScenario().getBase();
-            FileArtifact r = op.getMergeScenario().getRight();
+        String leftL = leftFile.getFile().getPath();
+        String baseL = baseFile.getFile().getPath();
+        String rightL = rightFile.getFile().getPath();
 
-            Optional<File> oLeft = repo.fileFor(l);
-            Optional<File> oBase = repo.fileFor(b);
-            Optional<File> oRight = repo.fileFor(r);
+        GitMergeFileOptions opts = new GitMergeFileOptions();
+        GitMergeFileResult res = new GitMergeFileResult();
 
-            if (oLeft.isPresent() && oBase.isPresent() && oRight.isPresent()) {
-                leftP = oLeft.get().getPath();
-                baseP = oBase.get().getPath();
-                rightP = oRight.get().getPath();
-            } else {
-                throw failed.get();
-            }
+        GitMergeFileInput left = new GitMergeFileInput();
+        left.setContent(leftFile.getContent(), UTF_8);
+        opts.our_label = leftL;
 
-            leftL = l.getFile().getPath();
-            baseL = b.getFile().getPath();
-            rightL = r.getFile().getPath();
-        }
+        GitMergeFileInput base = new GitMergeFileInput();
+        base.setContent(baseFile.getContent(), UTF_8);
+        opts.ancestor_label = baseL;
 
-        GitWrapper git = context.getGit();
+        GitMergeFileInput right = new GitMergeFileInput();
+        right.setContent(rightFile.getContent(), UTF_8);
+        opts.their_label = rightL;
 
-        Optional<ExecRes> oRes = git.exec(WORKING_DIR, MERGE_FILE, QUIET, PRINT, LABEL, leftL, LABEL, baseL, LABEL, rightL, leftP, baseP, rightP);
-        return oRes.map(r -> git.failedPrefix(r) ? null : r).orElseThrow(failed);
+        LibGit2.git_merge_file(res, base, left, right, opts);
+
+        return res.getResult(UTF_8);
     }
 }
