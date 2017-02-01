@@ -37,9 +37,11 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import org.jastadd.extendj.ast.ASTNode;
 import org.jastadd.extendj.ast.Block;
+import org.jastadd.extendj.ast.ConstructorDecl;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
+import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static java.util.regex.Pattern.MULTILINE;
 
 /**
@@ -107,6 +109,20 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             parent.setChild(this, parent.indexOf(toEncapsulate));
             parent.astnode.setChild(this.astnode, parent.astnode.getIndexOfChild(toEncapsulate.astnode));
         }
+
+        toEncapsulate.enclosingClassOrMethod().ifPresent(enc -> {
+
+            if (enc.getType() != METHOD || !(enc.astnode instanceof ConstructorDecl)) {
+                return;
+            }
+
+            ConstructorDecl astnode = (ConstructorDecl) enc.astnode;
+
+            if (astnode.hasParsedConstructorInvocation()) {
+                // TODO remove the corresponding children from the ASTNodeArtifact tree
+                astnode.getParsedConstructorInvocationOptNoTransform().removeChildren();
+            }
+        });
     }
 
     /**
