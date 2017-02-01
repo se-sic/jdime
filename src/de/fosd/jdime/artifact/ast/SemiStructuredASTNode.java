@@ -37,8 +37,7 @@ import static java.util.regex.Pattern.MULTILINE;
  */
 public class SemiStructuredASTNode extends Block {
 
-    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\s*\\R*|(\\R*^)?\\s*\\}\\s*\\z", MULTILINE);
-    private static final String CONFLICT_START = "<<<<<<<";
+    private static final Pattern LAST_NEWLINE = Pattern.compile("\\R\\z", MULTILINE);
 
     private SemiStructuredArtifact artifact;
 
@@ -75,12 +74,14 @@ public class SemiStructuredASTNode extends Block {
 
     @Override
     public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
+        String content = artifact.getContent().getContent();
 
-        if (artifact.getContent().getContent().startsWith(CONFLICT_START)) {
-            sb.append("\n");
-        }
+        sb.append("{").append("\n");
+        sb.append(LAST_NEWLINE.matcher(content).replaceAll(""));
 
-        sb.append(artifact.getContent().getContent().trim());
+        String indent = indent();
+        sb.append(shouldHaveIndent() ? indent : indent.substring(0, indent.length() - 2));
+        sb.append("}");
     }
 
     @Override
@@ -106,13 +107,8 @@ public class SemiStructuredASTNode extends Block {
             public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
                 String content = artifact.getContent().getContent();
 
-                if (!content.startsWith(CONFLICT_START)) {
-                    sb.append(SemiStructuredASTNode.this.indent());
-                    sb.append(BRACES.matcher(content).replaceAll(""));
-                } else {
-                    sb.append("\n");
-                    sb.append(content);
-                }
+                sb.append("\n");
+                sb.append(LAST_NEWLINE.matcher(content).replaceAll(""));
             }
         };
     }

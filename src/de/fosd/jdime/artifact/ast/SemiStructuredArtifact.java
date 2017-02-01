@@ -25,6 +25,7 @@ package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.regex.Pattern;
 
 import beaver.Symbol;
 import de.fosd.jdime.artifact.Artifact;
@@ -39,12 +40,15 @@ import org.jastadd.extendj.ast.Block;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
+import static java.util.regex.Pattern.MULTILINE;
 
 /**
  * An {@link Artifact} that is part of an {@link ASTNodeArtifact} tree. It replaces a subtree of {@link ASTNodeArtifact}
  * by storing their {@link Artifact#prettyPrint()} and merging it line based.
  */
 public class SemiStructuredArtifact extends ASTNodeArtifact {
+
+    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\R?|(?:\\R^\\h*)?\\}\\s*\\z", MULTILINE);
 
     private static final LinebasedStrategy linebased = new LinebasedStrategy();
 
@@ -172,6 +176,8 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         } else {
             content = multiLineContent(lines, startLine, startCol, endLine, endCol);
         }
+
+        content = BRACES.matcher(content).replaceAll("");
 
         return content;
     }
