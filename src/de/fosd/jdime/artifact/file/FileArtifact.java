@@ -269,7 +269,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         }
 
         this.file = IntStream.range(0, Integer.MAX_VALUE).mapToObj(toFile).filter(f -> !f.exists()).findFirst()
-                .orElseThrow(() -> new AbortException("Could not find an available file name for the pretend file or directory."));
+                .orElseThrow(() -> new AbortException("Could not find an available file name for the virtual file or directory."));
     }
 
     /**

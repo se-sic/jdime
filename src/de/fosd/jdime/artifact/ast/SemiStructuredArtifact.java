@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.artifact.ast;
 
-import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.regex.Pattern;
 
@@ -292,14 +291,6 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             } else {
                 throw new RuntimeException("All Artifacts involved in a semistructured merge must be SemiStructuredArtifacts.");
             }
-        }
-
-        try { // TODO only write once (caching?)
-            left.content.writeContent();
-            base.content.writeContent();
-            right.content.writeContent();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not write the SemiStructuredArtifacts to disk.", e);
         }
 
         MergeScenario<FileArtifact> fileMergeScenario = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);
