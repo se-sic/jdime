@@ -124,7 +124,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
                 Opt<Stmt> optNode = astnode.getParsedConstructorInvocationOptNoTransform();
 
                 optNode.removeChildren();
-                enc.findWrappingASTNodeArtifact(optNode).ifPresent(Artifact::clearChildren);
+                enc.findWrappingASTNodeArtifact(optNode).ifPresent(ASTNodeArtifact::clearChildren);
             }
         });
     }
