@@ -365,6 +365,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         return Optional.empty();
     }
 
+    /**
+     * Optionally returns the {@link ASTNodeArtifact} wrapping the given {@link ASTNode} from the
+     * {@link ASTNodeArtifact} tree rooted in this {@link ASTNodeArtifact}.
+     *
+     * @param node
+     *         the {@link ASTNode} whose corresponding {@link ASTNodeArtifact} is to be found
+     * @return optionally the {@link ASTNodeArtifact} containing the given {@link ASTNode}
+     */
+    public Optional<ASTNodeArtifact> findWrappingASTNodeArtifact(ASTNode<?> node) {
+        return Artifacts.dfsStream(this).filter(artifact -> artifact.astnode == node).findFirst();
+    }
+
     @Override
     public Optional<Supplier<String>> getUniqueLabel() {
         boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())
