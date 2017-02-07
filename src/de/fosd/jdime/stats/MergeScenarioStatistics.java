@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -47,14 +46,14 @@ public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
 
-    @XStreamOmitField private Set<Matching<?>> matchings;
-    @XStreamOmitField private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
-    @XStreamOmitField private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
-    @XStreamOmitField private Map<Revision, MergeStatistics> mergeStatistics;
+    private Set<Matching<?>> matchings;
+    private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
+    private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
+    private Map<Revision, MergeStatistics> mergeStatistics;
 
     private ElementStatistics lineStatistics;
-    @XStreamOmitField private ElementStatistics fileStatistics;
-    @XStreamOmitField private ElementStatistics directoryStatistics;
+    private ElementStatistics fileStatistics;
+    private ElementStatistics directoryStatistics;
     private int conflicts;
 
     private long runtime;

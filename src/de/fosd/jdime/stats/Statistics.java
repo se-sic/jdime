@@ -50,6 +50,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.ImplicitCollectionMapper;
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.LookAheadMatching;
@@ -62,100 +63,6 @@ import de.fosd.jdime.matcher.matching.Matching;
 public class Statistics {
 
     private static final Logger LOG = Logger.getLogger(Statistics.class.getCanonicalName());
-    private static final XStream serializer;
-
-    static {
-        serializer = new XStream();
-        serializer.setMode(XStream.NO_REFERENCES);
-
-        serializer.processAnnotations(MergeScenarioStatistics.class);
-
-        serializer.aliasType(Artifact.class.getSimpleName().toLowerCase(), Artifact.class);
-
-        serializer.alias(Revision.class.getSimpleName().toLowerCase(), Revision.class);
-        serializer.useAttributeFor(Revision.class, "name");
-
-        serializer.alias(Statistics.class.getSimpleName().toLowerCase(), Statistics.class);
-        serializer.omitField(Statistics.class, "currentFileMergeScenario");
-        serializer.addImplicitMap(Statistics.class, "scenarioStatistics", MergeScenarioStatistics.class, "mergeScenario");
-
-        serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
-        serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
-
-        serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
-        serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
-        serializer.omitField(Matching.class, "highlightColor");
-
-        serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
-
-        for (Field field : ElementStatistics.class.getDeclaredFields()) {
-            serializer.useAttributeFor(ElementStatistics.class, field.getName());
-        }
-        serializer.alias(ElementStatistics.class.getSimpleName().toLowerCase(), ElementStatistics.class);
-
-        for (Field field : MergeStatistics.class.getDeclaredFields()) {
-            serializer.useAttributeFor(MergeStatistics.class, field.getName());
-        }
-        serializer.alias(MergeStatistics.class.getSimpleName().toLowerCase(), MergeStatistics.class);
-
-        serializer.registerConverter(new Converter() {
-
-            private static final String TYPE_ATTR = "type";
-
-            private ImplicitCollectionMapper mapper = new ImplicitCollectionMapper(serializer.getMapper());
-            private CollectionConverter c = new CollectionConverter(mapper);
-
-            @Override
-            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-                MergeScenario<?> mScenario = (MergeScenario<?>) source;
-
-                writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
-                c.marshal(mScenario.asList(), writer, context);
-            }
-
-            @Override
-            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-                String name = XStream.class.getSimpleName();
-                String name2 = Statistics.class.getSimpleName();
-                String msg = String.format("The %s in the %s class can not be used for deserialization.", name, name2);
-                throw new RuntimeException(msg);
-            }
-
-            @Override
-            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
-                return type.equals(MergeScenario.class);
-            }
-        });
-
-        serializer.registerConverter(new Converter() {
-
-            private static final String SUBCLASS_ATTR = "subclass";
-            private static final String TYPE_ATTR = "type";
-            private static final String ID_ATTR = "id";
-
-            @Override
-            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-                Artifact<?> artifact = (Artifact<?>) source;
-
-                writer.addAttribute(SUBCLASS_ATTR, artifact.getClass().getSimpleName());
-                writer.addAttribute(TYPE_ATTR, artifact.getType().name());
-                writer.addAttribute(ID_ATTR, artifact.getId());
-            }
-
-            @Override
-            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
-                String name = XStream.class.getSimpleName();
-                String name2 = Statistics.class.getSimpleName();
-                String msg = String.format("The %s in the %s class can not be used for deserialization.", name, name2);
-                throw new RuntimeException(msg);
-            }
-
-            @Override
-            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
-                return Artifact.class.isAssignableFrom(type);
-            }
-        });
-    }
 
     private MergeScenario<FileArtifact> currentFileMergeScenario;
     private Map<MergeScenario<?>, MergeScenarioStatistics> scenarioStatistics;
@@ -306,14 +213,14 @@ public class Statistics {
      * @throws FileNotFoundException
      *         if an exception occurs accessing the <code>File</code>
      */
-    public void printXML(File file) throws FileNotFoundException {
+    public void printXML(File file, MergeContext context) throws FileNotFoundException {
 
         if (!check(file)) {
             return;
         }
 
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
-            printXML(os);
+            printXML(os, context);
         } catch (FileNotFoundException fnf) {
             throw fnf;
         } catch (IOException e) {
@@ -327,8 +234,8 @@ public class Statistics {
      * @param os
      *         the <code>OutputStream</code> to write to
      */
-    public void printXML(OutputStream os) {
-        serializer.toXML(this, os);
+    public void printXML(OutputStream os, MergeContext context) {
+        buildSerializer(context).toXML(this, os);
     }
 
     /**
@@ -395,5 +302,113 @@ public class Statistics {
         }
 
         return true;
+    }
+
+    /**
+     * Constructs an {@link XStream} for serializing {@link Statistics}.
+     *
+     * @param context
+     *         the {@link MergeContext} containing the configuration options to be used
+     * @return the {@link XStream} for serializing {@link Statistics}
+     */
+    private XStream buildSerializer(MergeContext context) {
+        XStream serializer;
+
+        serializer = new XStream();
+        serializer.setMode(XStream.NO_REFERENCES);
+
+        serializer.processAnnotations(MergeScenarioStatistics.class);
+
+        for (Field field : context.getExcludeStatisticsMSSFields()) {
+            serializer.omitField(MergeScenarioStatistics.class, field.getName());
+        }
+
+        serializer.aliasType(Artifact.class.getSimpleName().toLowerCase(), Artifact.class);
+
+        serializer.alias(Revision.class.getSimpleName().toLowerCase(), Revision.class);
+        serializer.useAttributeFor(Revision.class, "name");
+
+        serializer.alias(Statistics.class.getSimpleName().toLowerCase(), Statistics.class);
+        serializer.omitField(Statistics.class, "currentFileMergeScenario");
+        serializer.addImplicitMap(Statistics.class, "scenarioStatistics", MergeScenarioStatistics.class, "mergeScenario");
+
+        serializer.alias(KeyEnums.Type.class.getSimpleName().toLowerCase(), KeyEnums.Type.class);
+        serializer.alias(KeyEnums.Level.class.getSimpleName().toLowerCase(), KeyEnums.Level.class);
+
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), Matching.class);
+        serializer.alias(Matching.class.getSimpleName().toLowerCase(), LookAheadMatching.class);
+        serializer.omitField(Matching.class, "highlightColor");
+
+        serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
+
+        for (Field field : ElementStatistics.class.getDeclaredFields()) {
+            serializer.useAttributeFor(ElementStatistics.class, field.getName());
+        }
+        serializer.alias(ElementStatistics.class.getSimpleName().toLowerCase(), ElementStatistics.class);
+
+        for (Field field : MergeStatistics.class.getDeclaredFields()) {
+            serializer.useAttributeFor(MergeStatistics.class, field.getName());
+        }
+        serializer.alias(MergeStatistics.class.getSimpleName().toLowerCase(), MergeStatistics.class);
+
+        serializer.registerConverter(new Converter() {
+
+            private static final String TYPE_ATTR = "type";
+
+            private ImplicitCollectionMapper mapper = new ImplicitCollectionMapper(serializer.getMapper());
+            private CollectionConverter c = new CollectionConverter(mapper);
+
+            @Override
+            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+                MergeScenario<?> mScenario = (MergeScenario<?>) source;
+
+                writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
+                c.marshal(mScenario.asList(), writer, context);
+            }
+
+            @Override
+            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+                String name = XStream.class.getSimpleName();
+                String name2 = Statistics.class.getSimpleName();
+                String msg = String.format("The %s in the %s class can not be used for deserialization.", name, name2);
+                throw new RuntimeException(msg);
+            }
+
+            @Override
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
+                return type.equals(MergeScenario.class);
+            }
+        });
+
+        serializer.registerConverter(new Converter() {
+
+            private static final String SUBCLASS_ATTR = "subclass";
+            private static final String TYPE_ATTR = "type";
+            private static final String ID_ATTR = "id";
+
+            @Override
+            public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
+                Artifact<?> artifact = (Artifact<?>) source;
+
+                writer.addAttribute(SUBCLASS_ATTR, artifact.getClass().getSimpleName());
+                writer.addAttribute(TYPE_ATTR, artifact.getType().name());
+                writer.addAttribute(ID_ATTR, artifact.getId());
+            }
+
+            @Override
+            public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+                String name = XStream.class.getSimpleName();
+                String name2 = Statistics.class.getSimpleName();
+                String msg = String.format("The %s in the %s class can not be used for deserialization.", name, name2);
+                throw new RuntimeException(msg);
+            }
+
+            @Override
+            public boolean canConvert(@SuppressWarnings("rawtypes") Class type) {
+                return Artifact.class.isAssignableFrom(type);
+            }
+        });
+
+        return serializer;
     }
 }

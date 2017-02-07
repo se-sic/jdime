@@ -25,6 +25,7 @@ package de.fosd.jdime.config.merge;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +49,7 @@ import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -57,6 +60,7 @@ import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
 import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
@@ -176,6 +180,8 @@ public class MergeContext implements Cloneable {
     private boolean collectStatistics;
     private Statistics statistics;
 
+    private List<Field> excludeStatisticsMSSFields;
+
     /**
      * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
@@ -232,7 +238,8 @@ public class MergeContext implements Cloneable {
         this.pretend = true;
         this.recursive = false;
         this.collectStatistics = false;
-        this.statistics = null;
+        this.statistics = new Statistics();
+        this.excludeStatisticsMSSFields = new ArrayList<>();
         this.useMCESubtreeMatcher = false;
         this.semiStructured = false;
         this.semiStructuredLevel = KeyEnums.Level.METHOD;
@@ -283,7 +290,8 @@ public class MergeContext implements Cloneable {
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;
         this.collectStatistics = toCopy.collectStatistics;
-        this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
+        this.statistics = new Statistics(toCopy.statistics);
+        this.excludeStatisticsMSSFields = new ArrayList<>(toCopy.excludeStatisticsMSSFields);
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
         this.semiStructured = toCopy.semiStructured;
         this.semiStructuredLevel = toCopy.semiStructuredLevel;
@@ -374,6 +382,25 @@ public class MergeContext implements Cloneable {
         }
 
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+        config.get(STATISTICS_XML_EXCLUDE_MSS_FIELDS, list -> {
+            List<String> toExclude = Arrays.asList(list.split("\\s*,\\s*"));
+
+            if (!toExclude.isEmpty()) {
+                List<Field> fields = new ArrayList<>(toExclude.size());
+                List<Field> mssFields = Arrays.asList(MergeScenarioStatistics.class.getDeclaredFields());
+
+                for (String excludeName : toExclude) {
+                    Predicate<Field> nameMatches = f -> excludeName.equals(f.getName()) ||
+                                                        excludeName.equals(f.getName().replaceAll("Statistics$", ""));
+
+                    mssFields.stream().filter(nameMatches).findFirst().ifPresent(fields::add);
+                }
+
+                return Optional.of(fields);
+            } else {
+                return Optional.empty();
+            }
+        }).ifPresent(list -> this.excludeStatisticsMSSFields = list);
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
             setDiffOnly(diffOnly);
@@ -726,6 +753,16 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns the list of {@link Field Fields} of the {@link MergeScenarioStatistics} class that are to be excluded
+     * when serializing the {@link Statistics}.
+     *
+     * @return the list of {@link Field Fields} to be omitted
+     */
+    public List<Field> getExcludeStatisticsMSSFields() {
+        return excludeStatisticsMSSFields;
+    }
+
+    /**
      * Returns whether to only perform the diff stage of the merge.
      *
      * @return true iff only the diff stage shall be performed
@@ -906,10 +943,6 @@ public class MergeContext implements Cloneable {
      */
     public void collectStatistics(boolean collectStatistics) {
         this.collectStatistics = collectStatistics;
-
-        if (collectStatistics && statistics == null) {
-            statistics = new Statistics();
-        }
     }
 
     /**
