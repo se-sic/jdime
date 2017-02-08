@@ -30,21 +30,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 
+import static de.fosd.jdime.stats.MergeScenarioStatus.OK;
+
 /**
  * A collection of statistics values about a <code>MergeScenario</code>.
  */
 public class MergeScenarioStatistics {
 
-    @XStreamAsAttribute private String flag;
-
     private MergeScenario<?> mergeScenario;
+    private MergeScenarioStatus status;
 
     private Set<Matching<?>> matchings;
     private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
@@ -65,8 +65,8 @@ public class MergeScenarioStatistics {
      *         the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for
      */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
-        this.flag = "OK";
         this.mergeScenario = mergeScenario;
+        this.status = OK;
         this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
@@ -85,9 +85,8 @@ public class MergeScenarioStatistics {
      *         the <code>MergeScenarioStatistics</code> to copy
      */
     public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
-        this.flag = toCopy.flag;
-
         this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
+        this.status = toCopy.status;
 
         this.matchings = new HashSet<>();
 
@@ -132,10 +131,6 @@ public class MergeScenarioStatistics {
         this.runtime = toCopy.runtime;
     }
 
-    public void setFlag(String flag) {
-        this.flag = flag;
-    }
-
     /**
      * Returns the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for.
      *
@@ -143,6 +138,24 @@ public class MergeScenarioStatistics {
      */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
+    }
+
+    /**
+     * Returns the current {@link MergeScenarioStatus}.
+     *
+     * @return the current {@link MergeScenarioStatus}
+     */
+    public MergeScenarioStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets current {@link MergeScenarioStatus} to the given {@code status}.
+     *
+     * @param status the new {@link MergeScenarioStatus}
+     */
+    public void setStatus(MergeScenarioStatus status) {
+        this.status = status;
     }
 
     /**

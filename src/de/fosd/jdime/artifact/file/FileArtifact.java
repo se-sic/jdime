@@ -65,6 +65,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.CompositeFileComparator;
 
+import static de.fosd.jdime.stats.MergeScenarioStatus.FAILED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.SEVERE;
 import static org.apache.commons.io.comparator.DirectoryFileComparator.DIRECTORY_COMPARATOR;
@@ -684,7 +685,16 @@ public class FileArtifact extends Artifact<FileArtifact> {
             }
 
             try {
-                strategy.merge(operation, context);
+                try {
+                    strategy.merge(operation, context);
+                } catch (Throwable e) {
+
+                    if (context.hasStatistics()) {
+                        context.getStatistics().getScenarioStatistics(scenario).setStatus(FAILED);
+                    }
+
+                    throw e;
+                }
             } catch (AbortException e) {
                 throw e; // AbortExceptions must always cause the merge to be aborted
             } catch (RuntimeException e) {
