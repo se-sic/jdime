@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -32,7 +33,10 @@ import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
+
+import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 
 /**
  * Performs a structured merge with auto-tuning.
@@ -73,7 +77,14 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         });
 
         MergeContext subContext = null;
-        long startTime = System.currentTimeMillis();
+
+        Runtime runtime;
+        List<Runtime> runtimes = new ArrayList<>();
+
+        runtime = new Runtime(MERGE_LABEL);
+        runtimes.add(runtime);
+
+        Runtime.Measurement mergeMeasurement = runtime.time();
 
         for (MergeStrategy<FileArtifact> strategy : strategies) {
             subContext = new MergeContext(context);
@@ -83,7 +94,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             subContext.collectStatistics(true);
             subContext.getStatistics().removeScenarioStatistics(operation.getMergeScenario());
 
-            strategy.merge(operation, subContext);
+            runtime = new Runtime(strategy.toString());
+            runtimes.add(runtime);
+
+            try (Runtime.Measurement m = runtime.time()) {
+                strategy.merge(operation, subContext);
+            }
 
             Statistics stats = subContext.getStatistics();
 
@@ -100,15 +116,16 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
             }
         }
 
-        long runtime = System.currentTimeMillis() - startTime;
-        LOG.fine(() -> String.format("Combined merge time was %d ms.", runtime));
+        long mergeTime = mergeMeasurement.stop();
+        LOG.fine(() -> String.format("Combined merge time was %d ms.", mergeTime));
 
         if (subContext != null && context.hasStatistics()) {
             Statistics statistics = context.getStatistics();
             Statistics subStatistics = subContext.getStatistics();
             MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
 
-            scenarioStats.setRuntime(runtime);
+            runtimes.forEach(scenarioStats::putRuntime);
+
             statistics.addScenarioStatistics(scenarioStats);
         }
     }
