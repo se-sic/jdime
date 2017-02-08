@@ -93,21 +93,23 @@ public final class Runtime {
      * Adds the given {@link Runtime} to this {@link Runtime}. The 'no measurement' value {@value #NO_MEASUREMENT} will
      * be treated as 0.
      *
-     * @param runtime
+     * @param toAdd
      *         the {@link Runtime} to add
      * @throws IllegalArgumentException
-     *         if the given {@code runtime} does not have the same label as this {@link Runtime}
+     *         if the given {@code toAdd} does not have the same label as this {@link Runtime}
      */
-    public void add(Runtime runtime) {
+    public void add(Runtime toAdd) {
 
-        if (!label.equals(runtime.label)) {
-            throw new IllegalArgumentException("The label of the Runtime to add (" + runtime.label + ") does not " +
+        if (!label.equals(toAdd.label)) {
+            throw new IllegalArgumentException("The label of the Runtime to add (" + toAdd.label + ") does not " +
                     "match the label of this Runtime (" + label + ").");
         }
 
-        long l = timeMS == NO_MEASUREMENT ? 0 : timeMS;
-        long r = runtime.timeMS == NO_MEASUREMENT ? 0 : runtime.timeMS;
-        timeMS = l + r;
+        if (timeMS != NO_MEASUREMENT || toAdd.timeMS != NO_MEASUREMENT) {
+            long l = timeMS == NO_MEASUREMENT ? 0 : timeMS;
+            long r = toAdd.timeMS == NO_MEASUREMENT ? 0 : toAdd.timeMS;
+            timeMS = l + r;
+        }
     }
 
     /**
