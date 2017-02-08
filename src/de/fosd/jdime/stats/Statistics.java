@@ -320,9 +320,15 @@ public class Statistics {
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
         serializer.useAttributeFor(MergeScenarioStatistics.class, "status");
 
+        serializer.addImplicitMap(MergeScenarioStatistics.class, "runtimes", Runtime.class, "label");
+
         for (Field field : context.getExcludeStatisticsMSSFields()) {
             serializer.omitField(MergeScenarioStatistics.class, field.getName());
         }
+
+        serializer.alias(Runtime.class.getSimpleName().toLowerCase(), Runtime.class);
+        serializer.useAttributeFor(Runtime.class, "label");
+        serializer.useAttributeFor(Runtime.class, "timeMS");
 
         serializer.aliasType(Artifact.class.getSimpleName().toLowerCase(), Artifact.class);
 
