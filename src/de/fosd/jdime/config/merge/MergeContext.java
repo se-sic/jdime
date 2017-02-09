@@ -326,6 +326,7 @@ public class MergeContext implements Cloneable {
     public void configureFrom(JDimeConfig config) {
         configDump(config);
         configInspect(config);
+        configStatistics(config);
         configMerge(config);
         configErrorHandling(config);
         configInputOutput(config);
@@ -370,17 +371,12 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Reads configuration options determining how the merge is to be executed.
+     * Reads configuration options related to the {@link Statistics}.
      *
      * @param config
      *         the JDime configuration options
      */
-    private void configMerge(JDimeConfig config) {
-        {
-            String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
-            setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
-        }
-
+    private void configStatistics(JDimeConfig config) {
         config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
         config.get(STATISTICS_XML_EXCLUDE_MSS_FIELDS, list -> {
             List<String> toExclude = Arrays.asList(list.split("\\s*,\\s*"));
@@ -391,7 +387,7 @@ public class MergeContext implements Cloneable {
 
                 for (String excludeName : toExclude) {
                     Predicate<Field> nameMatches = f -> excludeName.equals(f.getName()) ||
-                                                        excludeName.equals(f.getName().replaceAll("Statistics$", ""));
+                            excludeName.equals(f.getName().replaceAll("Statistics$", ""));
 
                     mssFields.stream().filter(nameMatches).findFirst().ifPresent(fields::add);
                 }
@@ -401,6 +397,19 @@ public class MergeContext implements Cloneable {
                 return Optional.empty();
             }
         }).ifPresent(list -> this.excludeStatisticsMSSFields = list);
+    }
+
+    /**
+     * Reads configuration options determining how the merge is to be executed.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configMerge(JDimeConfig config) {
+        {
+            String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
+            setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
+        }
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
             setDiffOnly(diffOnly);
