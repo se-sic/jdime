@@ -73,7 +73,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile project(':JNativeMerge')
-    compile files('lib/JJ7.jar')
+    compile files('lib/extendj.jar')
     testCompile 'junit:junit:4.12'
 }
 
