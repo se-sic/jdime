@@ -70,6 +70,11 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+task wrapper(type: Wrapper) {
+    distributionType "all"
+    gradleVersion "3.4"
+}
+
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
 
 license {
