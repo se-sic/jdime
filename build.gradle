@@ -79,7 +79,7 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     distributionType "all"
-    gradleVersion "3.4"
+    gradleVersion "3.3"
 }
 
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
