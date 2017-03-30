@@ -58,11 +58,14 @@ public class ASTNodeArtifactTest extends JDimeTest {
         }
     }
 
-    private static final String prettyPrintExpected = "class Bag {\n" +
+    private static final String prettyPrintExpected = "\n" +
+                                                      "class Bag {\n" +
                                                       "  int[] values;\n" +
+                                                      "\n" +
                                                       "  Bag(int[] v) {\n" +
                                                       "    values = v;\n" +
                                                       "  }\n" +
+                                                      "\n" +
                                                       "  int[] get() {\n" +
                                                       "    return values;\n" +
                                                       "  }\n" +
