@@ -1,10 +1,10 @@
 diff --git a/LICENSE b/LICENSE
-index 3e801c1..a0ed362 100644
+index 5b74149..9d4ac03 100644
 --- a/LICENSE
 +++ b/LICENSE
 @@ -1,6 +1,8 @@
--Copyright (c) 2005-2015, ExtendJ Committers
-+Original work Copyright (c) 2005-2015, ExtendJ Committers
+-Copyright (c) 2005-2016, ExtendJ Committers
++Original work Copyright (c) 2005-2016, ExtendJ Committers
  All rights reserved.
  
 +Modified work Copyright 2013-2015 Olaf Lessenich
@@ -13,7 +13,7 @@ index 3e801c1..a0ed362 100644
  modification, are permitted provided that the following conditions are
  met:
 diff --git a/README.md b/README.md
-index 263757c..b2ea50e 100644
+index 7ff9c46..231fe5e 100644
 --- a/README.md
 +++ b/README.md
 @@ -1,16 +1,28 @@
@@ -37,8 +37,7 @@ index 263757c..b2ea50e 100644
  
 +The copyright for most portions of the software are held by the original authors:
  * Copyright (c) 2005-2008, Torbj&ouml;rn Ekman
--* Copyright (c) 2005-2013, ExtendJ Committers
-+* Copyright (c) 2005-2015, ExtendJ Committers
+ * Copyright (c) 2005-2016, ExtendJ Committers
  
  All rights reserved.
  
@@ -49,10 +48,10 @@ index 263757c..b2ea50e 100644
  distributed with this software. See the `LICENSE` file.
  
 diff --git a/build.xml b/build.xml
-index 83488da..20a5ef4 100644
+index 09f77ec..10515f1 100644
 --- a/build.xml
 +++ b/build.xml
-@@ -188,6 +188,9 @@ Build a standard release:
+@@ -174,6 +174,9 @@ Build a standard release:
  			<fileset dir="${bin.dir}">
  				<include name="**/*"/>
  			</fileset>
@@ -64,10 +63,10 @@ index 83488da..20a5ef4 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..db4beb4
+index 0000000..e7ca187
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,166 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
@@ -102,8 +101,8 @@ index 0000000..db4beb4
 + * Contributors:
 + *     Olaf Lessenich <lessenic@fim.uni-passau.de>
 + */
-+
 +aspect JDime {
++
 +	/**
 +	 * Replaces the children of the <code>ASTNode</code>.
 +	 * 
@@ -128,99 +127,85 @@ index 0000000..db4beb4
 +	public String ASTNode.jdimeId = "";
 +
 +	public boolean ASTNode.jdimeChanges = false;
-+
 +	public boolean ASTNode.isConflict = false;
 +	public boolean ASTNode.isChoice = false;
 +
 +	public ASTNode<?> ASTNode.left;
 +	public ASTNode<?> ASTNode.right;
-+	public LinkedHashMap<String, ASTNode<?>> ASTNode.variants;
++	public Map<String, ASTNode<?>> ASTNode.variants;
 +
 +	/**
-+	 * If the <code>ASTNode</code> represents a merge conflict, both conflicting alternatives
-+	 * are appended to the <code>StringBuffer</code> in a patch-compatible format.
-+	 * If the <code>ASTNode</code> does not represent a merge conflict, nothing is appended.
++	 * Returns whether this {@link ASTNode} represents a virtual node that should be pretty printed using
++	 * {@link #printVirtualNode(PrettyPrinter)}.
 +	 *
-+	 * @param s <code>StringBuffer</code> that is appended by potential alternatives
-+	 * @return true if this node represents a conflict
++	 * @return whether this {@link ASTNode} should be printed using {@link #printVirtualNode(PrettyPrinter)}
 +	 */
-+	public boolean ASTNode.printVirtualNode(StringBuffer s) {
++	public boolean ASTNode.isVirtualNode() {
++        return isConflict || isChoice;
++    }
++
++	/**
++	 * Prints this {@link ASTNode} if it represents a virtual node (i.e. a conflict or choice node). The output
++	 * will include appropriate conflict markers of ifdef comments.
++	 *
++	 * @param out the {@link PrettyPrinter} to append to
++	 */
++	public void ASTNode.printVirtualNode(PrettyPrinter out) {
++
 +		if (isConflict) {
-+			s.append("\n<<<<<<< " + (left != null ? left.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
++			out.printNoIndent("\n<<<<<<< " + (left != null ? left.sourceFile() : "Unknown file: This is a bug in JDime."));
++			out.println();
++
 +			if (left != null) {
-+				s.append(left.prettyPrint());
-+				s.append("\n");
++				out.print(left);
++				out.println();
 +			}
-+			s.append("=======\n");
++
++			out.printNoIndent("=======");
++			out.println();
++
 +			if (right != null) {
-+				s.append(right.prettyPrint());
-+				s.append("\n");
++				out.print(right);
++				out.println();
 +			}
-+			s.append(">>>>>>> " + (right != null ? right.sourceFile() : "Unknown file: This is a bug in JDime.") + "\n");
-+			return true;
++
++			out.printNoIndent(">>>>>>> " + (right != null ? right.sourceFile() : "Unknown file: This is a bug in JDime."));
++			out.println();
 +		} else if (isChoice) {
 +			java.util.List<String> sortedConditions = new ArrayList<String>(variants.keySet());
 +			Collections.sort(sortedConditions);
 +			Iterator<String> it = sortedConditions.iterator();
 +			String condition = it.next();
-+			s.append("\n");
-+			s.append("// #ifdef " + condition);
-+			s.append("\n");
-+			s.append(variants.get(condition).prettyPrint());
++
++			out.printNoIndent("\n");
++			out.printNoIndent("// #ifdef " + condition);
++			out.printNoIndent("\n");
++			out.printNoIndent(variants.get(condition).prettyPrint());
 +
 +			while (it.hasNext()) {
 +				condition = it.next();
-+				s.append("\n");
-+				s.append("// #elif " + condition);
-+				s.append("\n");
-+				s.append(variants.get(condition).prettyPrint());
++				out.printNoIndent("\n");
++				out.printNoIndent("// #elif " + condition);
++				out.printNoIndent("\n");
++				out.printNoIndent(variants.get(condition).prettyPrint());
 +			}
 +
-+			s.append("\n");
-+			s.append("// #endif");
-+			s.append("\n");
-+			return true;
++			out.printNoIndent("\n");
++			out.printNoIndent("// #endif");
++			out.printNoIndent("\n");
 +		}
-+		return false;
-+	}
-+
-+	refine FlushCaches public void ASTNode.flushCaches() {
-+		refined();
-+		if (left != null) { left.flushCaches(); }
-+		if (right != null) { right.flushCaches(); }
 +	}
 +
 +	public String ASTNode.getMatchingRepresentation() {
-+		return dumpString();
++		return getClass().getSimpleName() + getTokens();
 +	}
 +
 +	public String ImportDecl.getMatchingRepresentation() {
-+		return prettyPrint();
-+	}
-+
-+	public String Literal.getMatchingRepresentation() {
-+		return prettyPrint();
-+	}
-+
-+	public String VariableDeclaration.getMatchingRepresentation() {
-+		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
-+	}
-+
-+	public String VarDeclStmt.getMatchingRepresentation() {
-+		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
-+	}
-+
-+	public String MethodDecl.getMatchingRepresentation() {
-+		return dumpString() + " [" + getTypeAccess().prettyPrint() + "]";
-+	}
-+
-+	public String VariableDecl.getMatchingRepresentation() {
-+		return dumpString() + " [" + getID() + "]";
++		return super.getMatchingRepresentation() + " [" + getAccess().prettyPrint() + "]";
 +	}
 +
 +	public boolean ASTNode.matches(ASTNode other) {
-+		return getClass().equals(other.getClass())
-+		       && getMatchingRepresentation().equals(other.getMatchingRepresentation());
++		return getClass().equals(other.getClass()) && getMatchingRepresentation().equals(other.getMatchingRepresentation());
 +	}
 +
 +	public boolean ASTNode.isOrdered() {
@@ -248,1133 +233,806 @@ index 0000000..db4beb4
 +		return !(getParent() instanceof List);
 +	}
 +}
-diff --git a/java4/frontend/PrettyPrintJDime.jadd b/java4/frontend/PrettyPrintJDime.jadd
-new file mode 100644
-index 0000000..d9c6cba
---- /dev/null
-+++ b/java4/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,486 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect PrettyPrintJDime {
-+	refine PrettyPrint public void Program.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void CompilationUnit.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void SingleTypeImportDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void TypeImportOnDemandDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint protected void TypeDecl.ppBodyDecls(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ClassDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void InterfaceDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void InstanceInitializer.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void StaticInitializer.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ConstructorDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void FieldDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void VariableDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void VariableDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void VarDeclStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void MethodDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void MemberClassDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void MemberInterfaceDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void EmptyType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayInit.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ParameterDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void AssignExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Literal.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void StringLiteral.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void CharacterLiteral.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine Java7Literals public void LongLiteral.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine Java7Literals public void FloatingPointLiteral.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine Java7Literals public void DoubleLiteral.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ParExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ClassInstanceExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayCreationExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Unary.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void CastExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Binary.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void InstanceOfExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ConditionalExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Modifiers.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Modifier.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void AbstractDot.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void VarAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void MethodAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ConstructorAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void TypeAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayTypeAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayTypeWithSizeAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ThisAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void SuperAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void PackageAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ClassAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void Block.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void EmptyStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void LabeledStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ExprStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void SwitchStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ConstCase.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void DefaultCase.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void IfStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void WhileStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void DoStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ForStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void BreakStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ContinueStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ReturnStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ThrowStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void SynchronizedStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void TryStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void BasicCatch.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void AssertStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void LocalClassDeclStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void BooleanType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ByteType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ShortType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void IntType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void LongType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void CharType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void FloatType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void DoubleType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void NullType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void VoidType.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ArrayReference.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void BlockLambdaBody.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ClassReference.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void DeclaredLambdaParameters.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ExprLambdaBody.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void ExprMethodReference.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void InferredLambdaParameters.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void InferredParameterDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void IntersectionCastExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void LambdaExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine PrettyPrint public void TypeMethodReference.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java5/frontend/AnnotationsJDime.jadd b/java5/frontend/AnnotationsJDime.jadd
-new file mode 100644
-index 0000000..03348ab
---- /dev/null
-+++ b/java5/frontend/AnnotationsJDime.jadd
-@@ -0,0 +1,76 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect AnnotationsJDime {
-+	refine AnnotationPrettyPrinting public void AnnotatedCompilationUnit.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void AnnotationDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void AnnotationMethodDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void Annotation.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void ElementValuePair.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void ElementConstantValue.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void ElementAnnotationValue.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine AnnotationPrettyPrinting public void ElementArrayValue.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java5/frontend/EnhancedForJDime.jadd b/java5/frontend/EnhancedForJDime.jadd
-new file mode 100644
-index 0000000..7ab9503
---- /dev/null
-+++ b/java5/frontend/EnhancedForJDime.jadd
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect EnhancedForJDime {
-+	refine EnhancedFor public void EnhancedForStmt.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java5/frontend/EnumsJDime.jadd b/java5/frontend/EnumsJDime.jadd
-new file mode 100644
-index 0000000..b529f51
---- /dev/null
-+++ b/java5/frontend/EnumsJDime.jadd
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect EnumsJDime {
-+	refine Enums public void EnumDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine Enums public void EnumConstant.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+} 
-diff --git a/java5/frontend/GenericMethodsJDime.jadd b/java5/frontend/GenericMethodsJDime.jadd
-new file mode 100644
-index 0000000..b97a1f4
---- /dev/null
-+++ b/java5/frontend/GenericMethodsJDime.jadd
-@@ -0,0 +1,71 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect GenericMethodsJDime {
-+	refine GenericMethodsPrettyPrint public void ParMethodAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint public void ParConstructorAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint public void ParSuperConstructorAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint public void ParClassInstanceExpr.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint private void GenericMethodDecl.ppTypeParameters(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint public void GenericMethodDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericMethodsPrettyPrint public void GenericConstructorDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java5/frontend/GenericsJDime.jadd b/java5/frontend/GenericsJDime.jadd
-new file mode 100644
-index 0000000..260d3b0
---- /dev/null
-+++ b/java5/frontend/GenericsJDime.jadd
-@@ -0,0 +1,82 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect GenericsJDime {
-+	refine GenericsPrettyPrint public void TypeVariable.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void ParTypeAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void ParClassDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint private void GenericClassDecl.ppTypeParameters(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void GenericClassDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void GenericInterfaceDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void Wildcard.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void WildcardExtends.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine GenericsPrettyPrint public void WildcardSuper.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+}
-diff --git a/java5/frontend/StaticImportsJDime.jadd b/java5/frontend/StaticImportsJDime.jadd
-new file mode 100644
-index 0000000..c2e0f8d
---- /dev/null
-+++ b/java5/frontend/StaticImportsJDime.jadd
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect StaticImportsJDime {
-+	refine StaticImports public void SingleStaticImportDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine StaticImports public void StaticImportOnDemandDecl.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java5/frontend/VariableArityParametersJDime.jadd b/java5/frontend/VariableArityParametersJDime.jadd
-new file mode 100644
-index 0000000..5ed6e31
---- /dev/null
-+++ b/java5/frontend/VariableArityParametersJDime.jadd
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect VariableArityParametersJDime {
-+	refine VariableArityParameters public void VariableArityParameterDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java7/frontend/DiamondJDime.jadd b/java7/frontend/DiamondJDime.jadd
-new file mode 100644
-index 0000000..84c8ec7
---- /dev/null
-+++ b/java7/frontend/DiamondJDime.jadd
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect DiamondJDime {
-+	refine Diamond public void DiamondAccess.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java7/frontend/MultiCatchJDime.jadd b/java7/frontend/MultiCatchJDime.jadd
-new file mode 100644
-index 0000000..89abdad
---- /dev/null
-+++ b/java7/frontend/MultiCatchJDime.jadd
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect MultiCatchJDime {
-+	refine MultiCatch public void MultiCatch.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+
-+	refine MultiCatch public void CatchParameterDeclaration.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java7/frontend/PrettyPrintJDime.jadd b/java7/frontend/PrettyPrintJDime.jadd
-new file mode 100644
-index 0000000..23c12d3
---- /dev/null
-+++ b/java7/frontend/PrettyPrintJDime.jadd
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect PrettyPrintJDime {
-+	refine PrettyPrint public void ParseName.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
-diff --git a/java7/frontend/TryWithResourcesJDime.jadd b/java7/frontend/TryWithResourcesJDime.jadd
-new file mode 100644
-index 0000000..d194e1c
---- /dev/null
-+++ b/java7/frontend/TryWithResourcesJDime.jadd
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright (C) 2013-2015 Olaf Lessenich
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are
-+ * met:
-+ *
-+ *   1. Redistributions of source code must retain the above copyright
-+ *      notice, this list of conditions and the following disclaimer.
-+ *
-+ *   2. Redistributions in binary form must reproduce the above
-+ *      copyright notice, this list of conditions and the following
-+ *      disclaimer in the documentation and/or other materials provided
-+ *      with the distribution.
-+ *
-+ *   3. The name of the author may not be used to endorse or promote
-+ *      products derived from this software without specific prior
-+ *      written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Contributors:
-+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
-+ */
-+
-+aspect TryWithResourcesJDime {
-+	refine PrettyPrint public void TryWithResources.prettyPrint(StringBuffer sb) {
-+		if (printVirtualNode(sb)) { return; }
-+		refined(sb);
-+	}
-+}
+diff --git a/java4/frontend/PrettyPrint.jadd b/java4/frontend/PrettyPrint.jadd
+index 746c3aa..be0afb7 100644
+--- a/java4/frontend/PrettyPrint.jadd
++++ b/java4/frontend/PrettyPrint.jadd
+@@ -33,6 +33,7 @@
+  */
+ aspect Java4PrettyPrint {
+   public void AbstractDot.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (needsDot()) {
+       out.print(getLeft());
+       out.print(".");
+@@ -43,11 +44,13 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void ArrayAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("[");
+     out.print(getExpr());
+     out.print("]");
+   }
+   public void ArrayCreationExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("new ");
+     out.print(getTypeAccess());
+     if (hasArrayInit()) {
+@@ -56,6 +59,7 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void ArrayInit.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("{ ");
+     out.join(getInitList(), new PrettyPrinter.Joiner() {
+       @Override
+@@ -66,16 +70,19 @@ aspect Java4PrettyPrint {
+     out.print(" }");
+   }
+   public void ArrayTypeAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getAccess());
+     out.print("[]");
+   }
+   public void ArrayTypeWithSizeAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getAccess());
+     out.print("[");
+     out.print(getExpr());
+     out.print("]");
+   }
+   public void AssertStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasMessage()) {
+       out.print("assert ");
+       out.print(getCondition());
+@@ -89,6 +96,7 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void AssignExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getDest());
+     out.print(" ");
+     out.print(printOp());
+@@ -96,12 +104,14 @@ aspect Java4PrettyPrint {
+     out.print(getSource());
+   }
+   public void BasicCatch.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("catch (");
+     out.print(getParameter());
+     out.print(") ");
+     out.print(getBlock());
+   }
+   public void Binary.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLeftOperand());
+     out.print(" ");
+     out.print(printOp());
+@@ -109,6 +119,7 @@ aspect Java4PrettyPrint {
+     out.print(getRightOperand());
+   }
+   public void Block.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("{");
+     out.println();
+     out.indent(1);
+@@ -124,9 +135,11 @@ aspect Java4PrettyPrint {
+     out.print("}");
+   }
+   public void BooleanType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("boolean");
+   }
+   public void BreakStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("break");
+     if (hasLabel()) {
+       out.print(" ");
+@@ -135,26 +148,32 @@ aspect Java4PrettyPrint {
+     out.print(";");
+   }
+   public void ByteType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("byte");
+   }
+   public void CastExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("(");
+     out.print(getTypeAccess());
+     out.print(") ");
+     out.print(getExpr());
+   }
+   public void CharType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("char");
+   }
+   public void CharacterLiteral.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("'");
+     out.print(escapedLiteral());
+     out.print("'");
+   }
+   public void ClassAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("class");
+   }
+   public void ClassDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -193,6 +212,7 @@ aspect Java4PrettyPrint {
+     out.print("}");
+   }
+   public void ClassInstanceExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("new ");
+     out.print(getAccess());
+     out.print("(");
+@@ -212,8 +232,13 @@ aspect Java4PrettyPrint {
+           @Override
+           public void printSeparator(PrettyPrinter out) {
+             out.println();
++            out.println();
+           }
+         });
++        if (!out.isNewLine()) {
++          out.println();
++        }
++        out.indent(1);
+         out.print("}");
+       } else {
+         out.print(" { }");
+@@ -221,6 +246,7 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void CompilationUnit.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasPackageDecl()) {
+       out.print("package ");
+       out.print(getPackageDecl());
+@@ -244,6 +270,7 @@ aspect Java4PrettyPrint {
+     });
+   }
+   public void ConditionalExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getCondition());
+     out.print(" ? ");
+     out.print(getTrueExpr());
+@@ -251,11 +278,13 @@ aspect Java4PrettyPrint {
+     out.print(getFalseExpr());
+   }
+   public void ConstCase.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("case ");
+     out.print(getValue());
+     out.print(":");
+   }
+   public void ConstructorAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+     out.print("(");
+     out.join(getArgList(), new PrettyPrinter.Joiner() {
+@@ -267,6 +296,7 @@ aspect Java4PrettyPrint {
+     out.print(")");
+   }
+   public void ConstructorDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!isImplicitConstructor()) {
+       if (hasDocComment()) {
+         out.print(docComment());
+@@ -314,6 +344,7 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void ContinueStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("continue");
+     if (hasLabel()) {
+       out.print(" ");
+@@ -322,6 +353,7 @@ aspect Java4PrettyPrint {
+     out.print(";");
+   }
+   public void Declarator.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+     out.print(getDimsList());
+     if (hasInit()) {
+@@ -330,14 +362,17 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void DefaultCase.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("default:");
+   }
+   public void Dims.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("[");
+     out.print(getExprOpt());
+     out.print("]");
+   }
+   public void DoStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("do ");
+     out.print(getStmt());
+     out.print(" while(");
+@@ -345,22 +380,28 @@ aspect Java4PrettyPrint {
+     out.print(");");
+   }
+   public void DoubleLiteral.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLITERAL());
+   }
+   public void DoubleType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("double");
+   }
+   public void EmptyStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(";");
+   }
+   public void EmptyType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(";");
+   }
+   public void ExprStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getExpr());
+     out.print(";");
+   }
+   public void FieldDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!isSynthetic()) {
+       if (hasDocComment()) {
+         out.print(docComment());
+@@ -381,25 +422,31 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void FloatType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("float");
+   }
+   public void FloatingPointLiteral.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLITERAL());
+   }
+   public void InstanceInitializer.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!blockIsEmpty()) {
+       out.print(getBlock());
+     }
+   }
+   public void InstanceOfExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getExpr());
+     out.print(" instanceof ");
+     out.print(getTypeAccess());
+   }
+   public void IntType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("int");
+   }
+   public void InterfaceDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -434,30 +481,38 @@ aspect Java4PrettyPrint {
+     out.print("}");
+   }
+   public void LabeledStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLabel());
+     out.print(":");
+     out.println();
+     out.print(getStmt());
+   }
+   public void Literal.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLITERAL());
+   }
+   public void LocalClassDeclStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getClassDecl());
+   }
+   public void LongLiteral.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLITERAL());
+   }
+   public void LongType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("long");
+   }
+   public void MemberClassDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getClassDecl());
+   }
+   public void MemberInterfaceDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getInterfaceDecl());
+   }
+   public void MethodAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+     out.print("(");
+     out.join(getArgList(), new PrettyPrinter.Joiner() {
+@@ -469,6 +524,7 @@ aspect Java4PrettyPrint {
+     out.print(")");
+   }
+   public void MethodDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!isSynthetic()) {
+       if (hasDocComment()) {
+         out.print(docComment());
+@@ -506,9 +562,11 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void Modifier.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+   }
+   public void Modifiers.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasModifier()) {
+       out.join(getModifierList(), new PrettyPrinter.Joiner() {
+         @Override
+@@ -520,26 +578,32 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void NullType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("null");
+   }
+   public void PackageAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getPackage());
+   }
+   public void ParExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("(");
+     out.print(getExpr());
+     out.print(")");
+   }
+   public void ParameterDeclaration.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.print(getTypeAccess());
+     out.print(" ");
+     out.print(getID());
+   }
+   public void ParseName.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(name());
+   }
+   public void ReturnStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("return");
+     if (hasResult()) {
+       out.print(" ");
+@@ -548,49 +612,59 @@ aspect Java4PrettyPrint {
+     out.print(";");
+   }
+   public void ShortType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("short");
+   }
+   public void SingleTypeImportDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("import ");
+     out.print(getAccess());
+     out.print(";");
+     out.println();
+   }
+   public void StaticInitializer.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!blockIsEmpty()) {
+       out.print("static ");
+       out.print(getBlock());
+     }
+   }
+   public void StringLiteral.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("\"");
+     out.print(escapedLiteral());
+     out.print("\"");
+   }
+   public void SuperAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("super");
+   }
+   public void SwitchStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("switch (");
+     out.print(getExpr());
+     out.print(") ");
+     out.print(getBlock());
+   }
+   public void SynchronizedStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("synchronized (");
+     out.print(getExpr());
+     out.print(") ");
+     out.print(getBlock());
+   }
+   public void ThisAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("this");
+   }
+   public void ThrowStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("throw ");
+     out.print(getExpr());
+     out.print(";");
+   }
+   public void TryStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("try ");
+     out.print(getBlock());
+     out.print(" ");
+@@ -606,6 +680,7 @@ aspect Java4PrettyPrint {
+     }
+   }
+   public void TypeAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasPackage()) {
+       out.print(getPackage());
+       out.print(".");
+@@ -613,20 +688,24 @@ aspect Java4PrettyPrint {
+     out.print(getID());
+   }
+   public void TypeImportOnDemandDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("import ");
+     out.print(getAccess());
+     out.print(".*;");
+     out.println();
+   }
+   public void Unary.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(printPreOp());
+     out.print(getOperand());
+     out.print(printPostOp());
+   }
+   public void VarAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+   }
+   public void VarDeclStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.print(getTypeAccess());
+     out.print(" ");
+@@ -639,6 +718,7 @@ aspect Java4PrettyPrint {
+     out.print(";");
+   }
+   public void VoidType.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("void");
+   }
+ }
+diff --git a/java5/frontend/PrettyPrint.jadd b/java5/frontend/PrettyPrint.jadd
+index 3aa6614..2723282 100644
+--- a/java5/frontend/PrettyPrint.jadd
++++ b/java5/frontend/PrettyPrint.jadd
+@@ -33,6 +33,7 @@
+  */
+ aspect Java5PrettyPrint {
+   public void Annotation.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("@");
+     out.print(getAccess());
+     if (hasElementValuePair()) {
+@@ -47,6 +48,7 @@ aspect Java5PrettyPrint {
+     }
+   }
+   public void AnnotationDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.print("@interface ");
+     out.print(getID());
+@@ -66,6 +68,7 @@ aspect Java5PrettyPrint {
+     out.print("}");
+   }
+   public void AnnotationMethodDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -84,9 +87,11 @@ aspect Java5PrettyPrint {
+     out.print(";");
+   }
+   public void ElementAnnotationValue.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getAnnotation());
+   }
+   public void ElementArrayValue.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("{ ");
+     out.join(getElementValueList(), new PrettyPrinter.Joiner() {
+       @Override
+@@ -97,14 +102,17 @@ aspect Java5PrettyPrint {
+     out.print(" }");
+   }
+   public void ElementConstantValue.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getExpr());
+   }
+   public void ElementValuePair.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getName());
+     out.print(" = ");
+     out.print(getElementValue());
+   }
+   public void EnumConstant.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.print(getID());
+     if (hasBodyDecl()) {
+@@ -143,6 +151,7 @@ aspect Java5PrettyPrint {
+     }
+   }
+   public void GenericClassDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -189,6 +198,7 @@ aspect Java5PrettyPrint {
+     out.print("}");
+   }
+   public void GenericConstructorDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (!isImplicitConstructor()) {
+       if (hasDocComment()) {
+         out.print(docComment());
+@@ -245,6 +255,7 @@ aspect Java5PrettyPrint {
+     }
+   }
+   public void GenericInterfaceDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -287,6 +298,7 @@ aspect Java5PrettyPrint {
+     out.print("}");
+   }
+   public void GenericMethodDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (hasDocComment()) {
+       out.print(docComment());
+     }
+@@ -330,6 +342,7 @@ aspect Java5PrettyPrint {
+     }
+   }
+   public void ParTypeAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print("<");
+     out.join(getTypeArgumentList(), new PrettyPrinter.Joiner() {
+@@ -341,6 +354,7 @@ aspect Java5PrettyPrint {
+     out.print(">");
+   }
+   public void SingleStaticImportDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("import static ");
+     out.print(getAccess());
+     out.print(".");
+@@ -348,11 +362,13 @@ aspect Java5PrettyPrint {
+     out.print(";");
+   }
+   public void StaticImportOnDemandDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("import static ");
+     out.print(getAccess());
+     out.print(".*;");
+   }
+   public void TypeVariable.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getID());
+     if (hasTypeBound()) {
+       out.print(" extends ");
+@@ -365,19 +381,23 @@ aspect Java5PrettyPrint {
+     }
+   }
+   public void VariableArityParameterDeclaration.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.print(getTypeAccess());
+     out.print("... ");
+     out.print(getID());
+   }
+   public void Wildcard.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("?");
+   }
+   public void WildcardExtends.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("? extends ");
+     out.print(getAccess());
+   }
+   public void WildcardSuper.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("? super ");
+     out.print(getAccess());
+   }
+diff --git a/java7/frontend/PrettyPrint.jadd b/java7/frontend/PrettyPrint.jadd
+index c8bac86..a48f7f9 100644
+--- a/java7/frontend/PrettyPrint.jadd
++++ b/java7/frontend/PrettyPrint.jadd
+@@ -33,6 +33,7 @@
+  */
+ aspect Java7PrettyPrint {
+   public void CatchParameterDeclaration.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getModifiers());
+     out.join(getTypeAccessList(), new PrettyPrinter.Joiner() {
+       @Override
+@@ -44,16 +45,19 @@ aspect Java7PrettyPrint {
+     out.print(getID());
+   }
+   public void DiamondAccess.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print("<>");
+   }
+   public void MultiCatch.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("catch (");
+     out.print(getParameter());
+     out.print(") ");
+     out.print(getBlock());
+   }
+   public void ResourceDeclaration.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print(" ");
+     out.print(getID());
+@@ -64,8 +68,10 @@ aspect Java7PrettyPrint {
+     }
+   }
+   public void StandInMethodDecl.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+   }
+   public void TryWithResources.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("try (");
+     out.join(getResourceList(), new PrettyPrinter.Joiner() {
+       @Override
+diff --git a/java8/frontend/PrettyPrint.jadd b/java8/frontend/PrettyPrint.jadd
+index 84c5e34..b4dded9 100644
+--- a/java8/frontend/PrettyPrint.jadd
++++ b/java8/frontend/PrettyPrint.jadd
+@@ -33,13 +33,16 @@
+  */
+ aspect Java8PrettyPrint {
+   public void ArrayReference.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print("::new");
+   }
+   public void BlockLambdaBody.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getBlock());
+   }
+   public void ClassReference.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print("::");
+     if (hasTypeArgument()) {
+@@ -55,6 +58,7 @@ aspect Java8PrettyPrint {
+     out.print("new");
+   }
+   public void DeclaredLambdaParameters.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("(");
+     out.join(getParameters(), new PrettyPrinter.Joiner() {
+       @Override
+@@ -65,9 +69,11 @@ aspect Java8PrettyPrint {
+     out.print(")");
+   }
+   public void ExprLambdaBody.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getExpr());
+   }
+   public void ExprMethodReference.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getExpr());
+     out.print("::");
+     if (hasTypeArgument()) {
+@@ -83,6 +89,7 @@ aspect Java8PrettyPrint {
+     out.print(name());
+   }
+   public void InferredLambdaParameters.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("(");
+     out.join(getParameters(), new PrettyPrinter.Joiner() {
+       @Override
+@@ -93,9 +100,11 @@ aspect Java8PrettyPrint {
+     out.print(")");
+   }
+   public void InferredParameterDeclaration.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(name());
+   }
+   public void IntersectionCastExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("(");
+     out.print(getTypeAccess());
+     if (hasTypeList()) {
+@@ -111,11 +120,13 @@ aspect Java8PrettyPrint {
+     out.print(getExpr());
+   }
+   public void LambdaExpr.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getLambdaParameters());
+     out.print(" -> ");
+     out.print(getLambdaBody());
+   }
+   public void TypeMethodReference.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print(getTypeAccess());
+     out.print("::");
+     if (hasTypeArgument()) {
+diff --git a/pretty-print/Java4PrettyPrint.tt b/pretty-print/Java4PrettyPrint.tt
+index 90f2428..6d823ae 100644
+--- a/pretty-print/Java4PrettyPrint.tt
++++ b/pretty-print/Java4PrettyPrint.tt
+@@ -193,7 +193,8 @@ ArrayInit [[{ $join(InitList,", ") }]]
+ ArrayCreationExpr [[new $TypeAccess$if(hasArrayInit) $ArrayInit$endif]]
+ 
+ ClassInstanceExpr [[new $Access($join(ArgList,", "))$if(hasTypeDecl)$if(hasPrintableBodyDecl) {
+-  $join(#bodyDecls,"\n")}$else { }$endif$endif]]
++  $join(#bodyDecls,"\n\n")
++  }$else { }$endif$endif]]
+ 
+ InstanceOfExpr [[$Expr instanceof $TypeAccess]]
+ 
+diff --git a/pretty-print/gen.sh b/pretty-print/gen.sh
+index cdc5ed8..1e563ee 100755
+--- a/pretty-print/gen.sh
++++ b/pretty-print/gen.sh
+@@ -1,25 +1,13 @@
+ #!/bin/bash
+ # Re-generates the pretty printing aspect code.
+-# This script clones the aspectgen tool, builds it, and then runs it on the template files (.tt).
+ 
+ set -eu
+ 
+-if [ ! -d "aspectgen" ]; then
+-	echo "Cloning Aspect Generator..."
+-	git clone --recursive https://bitbucket.org/joqvist/aspectgen
+-fi
+-
+-ASPECTGEN="aspectgen/aspectgen.jar"
+-if [ ! -e "aspectgen/aspectgen.jar" ]; then
+-	echo "Building Aspect Generator..."
+-	(cd aspectgen; gradle jar)
+-fi
+-
++ASPECTGEN="../../aspectgen/aspectgen.jar"
+ if [ ! -e "$ASPECTGEN" ]; then
+     echo "Error: $ASPECTGEN is missing!"
+     exit 1
+ fi
+-
+ for JAVA_VERSION in {4,5,7,8}; do
+ 	java -jar "$ASPECTGEN" -aspect "Java${JAVA_VERSION}PrettyPrint" Header.tt \
+ 		"Java${JAVA_VERSION}PrettyPrint.tt" > \
+diff --git a/src/frontend/org/jastadd/util/PrettyPrinter.java b/src/frontend/org/jastadd/util/PrettyPrinter.java
+index 7793c1b..4b36f81 100644
+--- a/src/frontend/org/jastadd/util/PrettyPrinter.java
++++ b/src/frontend/org/jastadd/util/PrettyPrinter.java
+@@ -96,6 +96,13 @@ public class PrettyPrinter {
+   }
+ 
+   /**
++   * Prints the given {@link String} {@code str} without adding any indentation.
++   */
++  public void printNoIndent(String str) {
++    out.print(str);
++  }
++
++  /**
+    *
+    */
+   public void println() {
