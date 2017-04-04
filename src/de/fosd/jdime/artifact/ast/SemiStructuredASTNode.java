@@ -77,9 +77,9 @@ public class SemiStructuredASTNode extends Block {
     public void prettyPrint(PrettyPrinter out) {
         String content = artifact.getContent().getContent();
 
-        out.print("{");
-        out.println();
+        out.print("{\n");
         out.print(LAST_NEWLINE.matcher(content).replaceAll(""));
+        out.println();
         out.print("}");
     }
 
@@ -103,11 +103,9 @@ public class SemiStructuredASTNode extends Block {
         return new Block() {
 
             @Override
-            public void prettyPrint(PrettyPrinter sb) {
+            public void prettyPrint(PrettyPrinter out) {
                 String content = artifact.getContent().getContent();
-
-                sb.println();
-                sb.print(LAST_NEWLINE.matcher(content).replaceAll(""));
+                out.print(LAST_NEWLINE.matcher(content).replaceAll(""));
             }
         };
     }
