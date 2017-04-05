@@ -49,8 +49,6 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.extendj.ast.ASTNode;
 import org.extendj.ast.Block;
-import org.extendj.ast.BytecodeParser;
-import org.extendj.ast.BytecodeReader;
 import org.extendj.ast.ClassDecl;
 import org.extendj.ast.ConstructorDecl;
 import org.extendj.ast.ImportDecl;
@@ -59,7 +57,6 @@ import org.extendj.ast.Literal;
 import org.extendj.ast.MethodDecl;
 import org.extendj.ast.Program;
 import org.extendj.ast.TryStmt;
-import org.extendj.parser.JavaParser;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -85,7 +82,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         if (artifact.isEmpty()) {
             astNode = new ASTNode<>();
         } else {
-            Program p = initProgram();
+            Program p = new Program();
 
             try {
                 p.addSourceFile(artifact.getFile().getPath());
@@ -97,23 +94,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         return astNode;
-    }
-
-    /**
-     * Initializes a program.
-     *
-     * @return program
-     */
-    private static Program initProgram() {
-        Program program = new Program();
-
-        JavaParser javaParser = new JavaParser();
-        BytecodeReader byteCodeParser = (is, fullName, p) -> new BytecodeParser(is, fullName).parse(null, null, p);
-
-        program.initJavaParser(javaParser::parse);
-        program.initBytecodeReader(byteCodeParser);
-
-        return program;
     }
 
     /**
