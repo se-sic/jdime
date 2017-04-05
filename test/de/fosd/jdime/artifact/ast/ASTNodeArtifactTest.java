@@ -76,8 +76,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
         try {
             ASTNodeArtifact artifact = new ASTNodeArtifact(new FileArtifact(testRevision, testFile));
             String prettyPrinted = artifact.prettyPrint();
-
-            assertEquals(prettyPrintExpected, prettyPrinted);
+            assertEquals(normalize(prettyPrintExpected), normalize(prettyPrinted));
         } catch (Exception e) {
             fail(e.toString());
         }
