@@ -22,6 +22,8 @@
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 import org.ajoberstar.grgit.Grgit
+import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.api.tasks.wrapper.Wrapper.DistributionType;
 
 plugins {
     id 'application'
@@ -71,8 +73,8 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    distributionType 'all'
-    gradleVersion '3.4.1'
+    distributionType DistributionType.ALL
+    gradleVersion '3.5'
 }
 
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
