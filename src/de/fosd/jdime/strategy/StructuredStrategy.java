@@ -23,11 +23,8 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.security.Permission;
 import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
@@ -42,7 +39,6 @@ import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
 
 import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
-import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
@@ -171,17 +167,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
 
             if (context.hasStatistics()) {
-                if (LOG.isLoggable(Level.FINE)) {
-                    String fileName = leftFile + ".dot";
-                    LOG.fine("Dumping the target node tree to " + fileName);
-
-                    try (FileWriter fw = new FileWriter(fileName)) {
-                        fw.write(targetNode.dump(GRAPHVIZ_TREE));
-                    } catch (IOException e) {
-                        LOG.log(Level.WARNING, e, () -> "Can not write the graphviz representation of " + leftFile);
-                    }
-                }
-
                 Statistics statistics = context.getStatistics();
                 MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 

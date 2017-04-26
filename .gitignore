@@ -1,6 +1,3 @@
-### JDime Specific
-!JJ7.jar
-
 ### Gradle template
 .gradle
 build/
@@ -174,3 +171,6 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
+
+### JDime Specific
+!lib/*

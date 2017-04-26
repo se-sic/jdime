@@ -407,8 +407,16 @@ public class MergeContext implements Cloneable {
      */
     private void configMerge(JDimeConfig config) {
         {
-            String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
-            setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
+            Optional<String> oMode = config.get(CLI_MODE);
+
+            if (oMode.isPresent()) {
+                String mode = oMode.get();
+                setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(
+                        () -> new AbortException("Invalid mode '" + mode + "'."))
+                );
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("No mode given.");
+            }
         }
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
@@ -650,33 +658,38 @@ public class MergeContext implements Cloneable {
         if (isPretend()) {
             setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
         } else {
-            File outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new).orElseThrow(() ->
-                    new AbortException("Not output file or directory given."));
+            Optional<File> oFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new);
 
-            if (outFile.exists()) {
+            if (oFile.isPresent()) {
+                File outFile = oFile.get();
 
-                if (!isForceOverwriting()) {
-                    String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                    throw new AbortException(msg);
+                if (outFile.exists()) {
+
+                    if (!isForceOverwriting()) {
+                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                        throw new AbortException(msg);
+                    }
+
+                    if (inputDirs && !outFile.isDirectory()) {
+                        throw new AbortException("The output must be a directory when merging directories.");
+                    }
+
+                    if (inputFiles && !outFile.isFile()) {
+                        throw new AbortException("The output must be a file when merging files.");
+                    }
+
+                    try {
+                        LOG.warning(() -> "Deleting " + outFile);
+                        FileUtils.forceDelete(outFile);
+                    } catch (IOException e) {
+                        throw new AbortException("Can not overwrite the output file or directory.", e);
+                    }
                 }
 
-                if (inputDirs && !outFile.isDirectory()) {
-                    throw new AbortException("The output must be a directory when merging directories.");
-                }
-
-                if (inputFiles && !outFile.isFile()) {
-                    throw new AbortException("The output must be a file when merging files.");
-                }
-
-                try {
-                    LOG.warning(() -> "Deleting " + outFile);
-                    FileUtils.forceDelete(outFile);
-                } catch (IOException e) {
-                    throw new AbortException("Can not overwrite the output file or directory.", e);
-                }
+                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("Not output file or directory given.");
             }
-
-            setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
         }
     }
 

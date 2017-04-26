@@ -47,19 +47,16 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.operations.Operation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
-import org.jastadd.extendj.ast.ASTNode;
-import org.jastadd.extendj.ast.Block;
-import org.jastadd.extendj.ast.BytecodeParser;
-import org.jastadd.extendj.ast.BytecodeReader;
-import org.jastadd.extendj.ast.ClassDecl;
-import org.jastadd.extendj.ast.ConstructorDecl;
-import org.jastadd.extendj.ast.ImportDecl;
-import org.jastadd.extendj.ast.InterfaceDecl;
-import org.jastadd.extendj.ast.Literal;
-import org.jastadd.extendj.ast.MethodDecl;
-import org.jastadd.extendj.ast.Program;
-import org.jastadd.extendj.ast.TryStmt;
-import org.jastadd.extendj.parser.JavaParser;
+import org.extendj.ast.ASTNode;
+import org.extendj.ast.Block;
+import org.extendj.ast.ClassDecl;
+import org.extendj.ast.ConstructorDecl;
+import org.extendj.ast.ImportDecl;
+import org.extendj.ast.InterfaceDecl;
+import org.extendj.ast.Literal;
+import org.extendj.ast.MethodDecl;
+import org.extendj.ast.Program;
+import org.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
@@ -85,7 +82,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         if (artifact.isEmpty()) {
             astNode = new ASTNode<>();
         } else {
-            Program p = initProgram();
+            Program p = new Program();
 
             try {
                 p.addSourceFile(artifact.getFile().getPath());
@@ -97,23 +94,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         }
 
         return astNode;
-    }
-
-    /**
-     * Initializes a program.
-     *
-     * @return program
-     */
-    private static Program initProgram() {
-        Program program = new Program();
-
-        JavaParser javaParser = new JavaParser();
-        BytecodeReader byteCodeParser = (is, fullName, p) -> new BytecodeParser(is, fullName).parse(null, null, p);
-
-        program.initJavaParser(javaParser::parse);
-        program.initBytecodeReader(byteCodeParser);
-
-        return program;
     }
 
     /**
@@ -240,7 +220,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         try {
             rebuildAST();
-            astnode.flushCaches();
             astnode.flushTreeCache();
         } catch (AbortException e) {
             throw e;
@@ -251,14 +230,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         LOG.finest(() -> Artifacts.root(this).dump(PLAINTEXT_TREE));
 
-        String indent = isRoot() ? "" : astnode.extractIndent();
-        String prettyprint = indent + astnode.prettyPrint();
-
-        if (prettyprint.trim().length() == 0) {
-            throw new RuntimeException("Error: Could not pretty-print file!");
-        }
-
-        return prettyprint;
+        return astnode.prettyPrint();
     }
 
     @Override
@@ -382,7 +354,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         boolean hasLabel = ImportDecl.class.isAssignableFrom(astnode.getClass())
                             || Literal.class.isAssignableFrom(astnode.getClass());
 
-        return hasLabel ? Optional.of(() -> astnode.dumpString()) : Optional.empty();
+        return hasLabel ? Optional.of(() -> astnode.getMatchingRepresentation()) : Optional.empty();
     }
 
     @Override
@@ -572,7 +544,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             LOG.finest(() -> String.format("jdime: %d, astnode.before: %d, astnode.after: %d children", getNumChildren(), oldNumChildren,
                     astnode.getNumChildNoTransform()));
             if (getNumChildren() != astnode.getNumChildNoTransform()) {
-                LOG.finest("mismatch between jdime and astnode for " + getId() + "(" + astnode.dumpString() + ")");
+                LOG.finest("mismatch between jdime and astnode for " + getId() + "(" + astnode.getMatchingRepresentation() + ")");
             }
             if (oldNumChildren != astnode.getNumChildNoTransform()) {
                 LOG.finest("Number of children has changed");
@@ -596,7 +568,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     @Override
     public final String toString() {
-        return astnode.dumpString();
+        return astnode.getMatchingRepresentation();
     }
 
     @Override

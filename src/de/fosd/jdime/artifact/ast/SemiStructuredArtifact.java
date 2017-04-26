@@ -34,11 +34,11 @@ import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strategy.LinebasedStrategy;
-import org.jastadd.extendj.ast.ASTNode;
-import org.jastadd.extendj.ast.Block;
-import org.jastadd.extendj.ast.ConstructorDecl;
-import org.jastadd.extendj.ast.Opt;
-import org.jastadd.extendj.ast.Stmt;
+import org.extendj.ast.ASTNode;
+import org.extendj.ast.Block;
+import org.extendj.ast.ConstructorDecl;
+import org.extendj.ast.Opt;
+import org.extendj.ast.Stmt;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
