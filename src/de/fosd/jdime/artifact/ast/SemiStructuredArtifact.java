@@ -23,8 +23,8 @@
  */
 package de.fosd.jdime.artifact.ast;
 
-import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.regex.Pattern;
 
 import beaver.Symbol;
 import de.fosd.jdime.artifact.Artifact;
@@ -34,11 +34,16 @@ import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strategy.LinebasedStrategy;
-import org.jastadd.extendj.ast.ASTNode;
-import org.jastadd.extendj.ast.Block;
+import org.extendj.ast.ASTNode;
+import org.extendj.ast.Block;
+import org.extendj.ast.ConstructorDecl;
+import org.extendj.ast.Opt;
+import org.extendj.ast.Stmt;
 
 import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
+import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
+import static java.util.regex.Pattern.MULTILINE;
 
 /**
  * An {@link Artifact} that is part of an {@link ASTNodeArtifact} tree. It replaces a subtree of {@link ASTNodeArtifact}
@@ -46,12 +51,16 @@ import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
  */
 public class SemiStructuredArtifact extends ASTNodeArtifact {
 
+    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\R?|(?:\\R^\\h*)?\\}\\s*\\z", MULTILINE);
+
     private static final LinebasedStrategy linebased = new LinebasedStrategy();
 
     /**
      * Thrown if an {@link ASTNodeArtifact} can not be replaced by a {@link SemiStructuredArtifact}.
      */
     public static class NotReplaceableException extends Exception {
+
+        private static final long serialVersionUID = 0;
 
         /**
          * @see Exception#Exception(String)
@@ -101,6 +110,22 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             parent.setChild(this, parent.indexOf(toEncapsulate));
             parent.astnode.setChild(this.astnode, parent.astnode.getIndexOfChild(toEncapsulate.astnode));
         }
+
+        toEncapsulate.enclosingClassOrMethod().ifPresent(enc -> {
+
+            if (enc.getType() != METHOD || !(enc.astnode instanceof ConstructorDecl)) {
+                return;
+            }
+
+            ConstructorDecl astnode = (ConstructorDecl) enc.astnode;
+
+            if (astnode.hasParsedConstructorInvocation()) {
+                Opt<Stmt> optNode = astnode.getParsedConstructorInvocationOptNoTransform();
+
+                optNode.removeChildren();
+                enc.findWrappingASTNodeArtifact(optNode).ifPresent(ASTNodeArtifact::clearChildren);
+            }
+        });
     }
 
     /**
@@ -170,6 +195,8 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
         } else {
             content = multiLineContent(lines, startLine, startCol, endLine, endCol);
         }
+
+        content = BRACES.matcher(content).replaceAll("");
 
         return content;
     }
@@ -264,14 +291,6 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             } else {
                 throw new RuntimeException("All Artifacts involved in a semistructured merge must be SemiStructuredArtifacts.");
             }
-        }
-
-        try { // TODO only write once (caching?)
-            left.content.writeContent();
-            base.content.writeContent();
-            right.content.writeContent();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not write the SemiStructuredArtifacts to disk.", e);
         }
 
         MergeScenario<FileArtifact> fileMergeScenario = new MergeScenario<>(THREEWAY, left.content, base.content, right.content);

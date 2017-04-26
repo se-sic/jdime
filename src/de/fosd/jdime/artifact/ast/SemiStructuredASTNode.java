@@ -25,9 +25,10 @@ package de.fosd.jdime.artifact.ast;
 
 import java.util.regex.Pattern;
 
-import org.jastadd.extendj.ast.Block;
-import org.jastadd.extendj.ast.List;
-import org.jastadd.extendj.ast.Stmt;
+import org.extendj.ast.Block;
+import org.extendj.ast.List;
+import org.extendj.ast.Stmt;
+import org.jastadd.util.PrettyPrinter;
 
 import static java.util.regex.Pattern.MULTILINE;
 
@@ -37,7 +38,7 @@ import static java.util.regex.Pattern.MULTILINE;
  */
 public class SemiStructuredASTNode extends Block {
 
-    private static final Pattern BRACES = Pattern.compile("\\A\\s*\\{\\s*$|\\R^\\s*\\}\\s*\\z", MULTILINE);
+    private static final Pattern LAST_NEWLINE = Pattern.compile("\\R\\z", MULTILINE);
 
     private SemiStructuredArtifact artifact;
 
@@ -73,8 +74,13 @@ public class SemiStructuredASTNode extends Block {
     }
 
     @Override
-    public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
-        sb.append(artifact.getContent().getContent().trim());
+    public void prettyPrint(PrettyPrinter out) {
+        String content = artifact.getContent().getContent();
+
+        out.print("{\n");
+        out.print(LAST_NEWLINE.matcher(content).replaceAll(""));
+        out.println();
+        out.print("}");
     }
 
     @Override
@@ -97,8 +103,9 @@ public class SemiStructuredASTNode extends Block {
         return new Block() {
 
             @Override
-            public void refined_PrettyPrint_Block_prettyPrint(StringBuffer sb) {
-                sb.append(BRACES.matcher(artifact.getContent().getContent()).replaceAll(""));
+            public void prettyPrint(PrettyPrinter out) {
+                String content = artifact.getContent().getContent();
+                out.print(LAST_NEWLINE.matcher(content).replaceAll(""));
             }
         };
     }

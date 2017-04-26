@@ -95,9 +95,6 @@ public final class Main {
                 LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
             } else {
                 System.err.println(e.getMessage());
-                System.err.println();
-                printCLIHelp();
-
                 LOG.log(Level.FINE, e, () -> "Aborting the merge.");
             }
 
@@ -133,11 +130,11 @@ public final class Main {
             return;
         }
 
-        merge(context);
-        output(context);
-
-        if (context.hasStatistics()) {
-            outputStatistics(context.getStatistics());
+        try {
+            merge(context);
+            output(context);
+        } finally {
+            outputStatistics(context);
         }
 
         if (LOG.isLoggable(Level.FINE)) {
@@ -184,12 +181,20 @@ public final class Main {
     }
 
     /**
-     * Outputs the given <code>Statistics</code> according to the set configuration options.
+     * Outputs the {@link Statistics} in the given {@link MergeContext}. Does nothing if the {@link MergeContext} does
+     * not contain {@link Statistics}.
      *
-     * @param statistics
-     *         the <code>Statistics</code> to output
+     * @param context
+     *         the {@link MergeContext} containing the {@link Statistics} to output
      */
-    private static void outputStatistics(Statistics statistics) {
+    private static void outputStatistics(MergeContext context) {
+
+        if (!context.hasStatistics()) {
+            return;
+        }
+
+        Statistics statistics = context.getStatistics();
+
         String hrOut = config.get(STATISTICS_HR_OUTPUT).orElse(STATISTICS_OUTPUT_STDOUT);
         String xmlOut = config.get(STATISTICS_XML_OUTPUT).orElse(STATISTICS_OUTPUT_OFF);
 
@@ -225,7 +230,7 @@ public final class Main {
                 LOG.fine("XML statistics output is disabled.");
                 break;
             case STATISTICS_OUTPUT_STDOUT:
-                statistics.printXML(System.out);
+                statistics.printXML(System.out, context);
                 System.out.println();
                 break;
             default: {
@@ -241,7 +246,7 @@ public final class Main {
                 }
 
                 try {
-                    statistics.printXML(f);
+                    statistics.printXML(f, context);
                 } catch (FileNotFoundException e) {
                     LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
                 }
@@ -314,7 +319,7 @@ public final class Main {
 
         Main.config = config;
 
-        if (config.getBoolean(CLI_HELP).orElse(false)) {
+        if (args.length == 0 || config.getBoolean(CLI_HELP).orElse(false)) {
             printCLIHelp();
             return false;
         }

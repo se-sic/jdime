@@ -25,12 +25,15 @@ package de.fosd.jdime.config.merge;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +49,7 @@ import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
@@ -56,6 +60,8 @@ import org.apache.commons.io.FileUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
+import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
@@ -174,6 +180,8 @@ public class MergeContext implements Cloneable {
     private boolean collectStatistics;
     private Statistics statistics;
 
+    private List<Field> excludeStatisticsMSSFields;
+
     /**
      * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
@@ -230,7 +238,8 @@ public class MergeContext implements Cloneable {
         this.pretend = true;
         this.recursive = false;
         this.collectStatistics = false;
-        this.statistics = null;
+        this.statistics = new Statistics();
+        this.excludeStatisticsMSSFields = new ArrayList<>();
         this.useMCESubtreeMatcher = false;
         this.semiStructured = false;
         this.semiStructuredLevel = KeyEnums.Level.METHOD;
@@ -281,7 +290,8 @@ public class MergeContext implements Cloneable {
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;
         this.collectStatistics = toCopy.collectStatistics;
-        this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
+        this.statistics = new Statistics(toCopy.statistics);
+        this.excludeStatisticsMSSFields = new ArrayList<>(toCopy.excludeStatisticsMSSFields);
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
         this.semiStructured = toCopy.semiStructured;
         this.semiStructuredLevel = toCopy.semiStructuredLevel;
@@ -316,6 +326,7 @@ public class MergeContext implements Cloneable {
     public void configureFrom(JDimeConfig config) {
         configDump(config);
         configInspect(config);
+        configStatistics(config);
         configMerge(config);
         configErrorHandling(config);
         configInputOutput(config);
@@ -360,6 +371,35 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Reads configuration options related to the {@link Statistics}.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configStatistics(JDimeConfig config) {
+        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+        config.get(STATISTICS_XML_EXCLUDE_MSS_FIELDS, list -> {
+            List<String> toExclude = Arrays.asList(list.split("\\s*,\\s*"));
+
+            if (!toExclude.isEmpty()) {
+                List<Field> fields = new ArrayList<>(toExclude.size());
+                List<Field> mssFields = Arrays.asList(MergeScenarioStatistics.class.getDeclaredFields());
+
+                for (String excludeName : toExclude) {
+                    Predicate<Field> nameMatches = f -> excludeName.equals(f.getName()) ||
+                            excludeName.equals(f.getName().replaceAll("Statistics$", ""));
+
+                    mssFields.stream().filter(nameMatches).findFirst().ifPresent(fields::add);
+                }
+
+                return Optional.of(fields);
+            } else {
+                return Optional.empty();
+            }
+        }).ifPresent(list -> this.excludeStatisticsMSSFields = list);
+    }
+
+    /**
      * Reads configuration options determining how the merge is to be executed.
      *
      * @param config
@@ -367,11 +407,17 @@ public class MergeContext implements Cloneable {
      */
     private void configMerge(JDimeConfig config) {
         {
-            String mode = config.get(CLI_MODE).orElseThrow(() -> new AbortException("No mode given."));
-            setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(() -> new AbortException("Invalid mode '" + mode + "'.")));
-        }
+            Optional<String> oMode = config.get(CLI_MODE);
 
-        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+            if (oMode.isPresent()) {
+                String mode = oMode.get();
+                setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(
+                        () -> new AbortException("Invalid mode '" + mode + "'."))
+                );
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("No mode given.");
+            }
+        }
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
             setDiffOnly(diffOnly);
@@ -535,19 +581,31 @@ public class MergeContext implements Cloneable {
 
         if (args.isPresent()) {
             List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
-                                          .map(String::trim).map(File::new).collect(Collectors.toList());
+                                          .map(String::trim).map(File::new).collect(Collectors.toCollection(ArrayList::new));
+            List<File> nonExistent = inputFiles.stream().filter(f -> !f.exists()).collect(Collectors.toList());
 
-            boolean anyNonExistent = inputFiles.stream().filter(f -> !f.exists()).peek(f ->
-                    LOG.severe(() -> "Input file " + f + " does not exist.")).findFirst().isPresent();
+            Boolean twFallback = config.getBoolean(TWOWAY_FALLBACK).orElse(false);
 
-            if (anyNonExistent) {
-                throw new AbortException("All input files must exist.");
+            if (!nonExistent.isEmpty()) {
+                if (twFallback && inputFiles.size() == MergeType.THREEWAY_FILES && nonExistent.size() == 1
+                        && inputFiles.get(1) == nonExistent.get(0)) {
+
+                    File nonExistentBase = inputFiles.get(1);
+                    LOG.warning(() -> "Base input file " + nonExistentBase + " does not exist. Falling back to two way merge.");
+
+                    inputFiles.remove(nonExistentBase);
+                } else {
+                    nonExistent.forEach(f -> LOG.severe(() -> "Input file " + f + " does not exist."));
+                    throw new AbortException("All input files must exist.");
+                }
             }
 
-            boolean consistentTypes = inputFiles.stream().allMatch(File::isDirectory) ||
-                                      inputFiles.stream().allMatch(File::isFile);
+            boolean allDirs = inputFiles.stream().allMatch(File::isDirectory);
+            boolean allFiles = inputFiles.stream().allMatch(File::isFile);
 
-            if (!consistentTypes) {
+            if (!(allDirs || allFiles)) {
+                LOG.severe(() -> "Inconsistent input files. (Must all be all directories or all files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
                 throw new AbortException("Input files must be all directories or all files.");
             }
 
@@ -573,6 +631,12 @@ public class MergeContext implements Cloneable {
                 inputArtifacts.add(artifact);
             }
 
+            if (allFiles && !inputArtifacts.stream().allMatch(FileArtifact::isJavaFile)) {
+                LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
+                throw new AbortException("All input files must be Java source code files.");
+            }
+
             setInputFiles(inputArtifacts);
         } else {
             throw new AbortException("No input files given.");
@@ -594,33 +658,38 @@ public class MergeContext implements Cloneable {
         if (isPretend()) {
             setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
         } else {
-            File outFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new).orElseThrow(() ->
-                    new AbortException("Not output file or directory given."));
+            Optional<File> oFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new);
 
-            if (outFile.exists()) {
+            if (oFile.isPresent()) {
+                File outFile = oFile.get();
 
-                if (!isForceOverwriting()) {
-                    String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                    throw new AbortException(msg);
+                if (outFile.exists()) {
+
+                    if (!isForceOverwriting()) {
+                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                        throw new AbortException(msg);
+                    }
+
+                    if (inputDirs && !outFile.isDirectory()) {
+                        throw new AbortException("The output must be a directory when merging directories.");
+                    }
+
+                    if (inputFiles && !outFile.isFile()) {
+                        throw new AbortException("The output must be a file when merging files.");
+                    }
+
+                    try {
+                        LOG.warning(() -> "Deleting " + outFile);
+                        FileUtils.forceDelete(outFile);
+                    } catch (IOException e) {
+                        throw new AbortException("Can not overwrite the output file or directory.", e);
+                    }
                 }
 
-                if (inputDirs && !outFile.isDirectory()) {
-                    throw new AbortException("The output must be a directory when merging directories.");
-                }
-
-                if (inputFiles && !outFile.isFile()) {
-                    throw new AbortException("The output must be a file when merging files.");
-                }
-
-                try {
-                    LOG.warning(() -> "Deleting " + outFile);
-                    FileUtils.forceDelete(outFile);
-                } catch (IOException e) {
-                    throw new AbortException("Can not overwrite the output file or directory.", e);
-                }
+                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("Not output file or directory given.");
             }
-
-            setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
         }
     }
 
@@ -703,6 +772,16 @@ public class MergeContext implements Cloneable {
      */
     public boolean hasStatistics() {
         return collectStatistics;
+    }
+
+    /**
+     * Returns the list of {@link Field Fields} of the {@link MergeScenarioStatistics} class that are to be excluded
+     * when serializing the {@link Statistics}.
+     *
+     * @return the list of {@link Field Fields} to be omitted
+     */
+    public List<Field> getExcludeStatisticsMSSFields() {
+        return excludeStatisticsMSSFields;
     }
 
     /**
@@ -886,10 +965,6 @@ public class MergeContext implements Cloneable {
      */
     public void collectStatistics(boolean collectStatistics) {
         this.collectStatistics = collectStatistics;
-
-        if (collectStatistics && statistics == null) {
-            statistics = new Statistics();
-        }
     }
 
     /**

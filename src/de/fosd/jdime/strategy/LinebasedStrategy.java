@@ -30,6 +30,7 @@ import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.uni_passau.fim.seibt.GitMergeFileInput;
@@ -37,6 +38,7 @@ import de.uni_passau.fim.seibt.GitMergeFileOptions;
 import de.uni_passau.fim.seibt.GitMergeFileResult;
 import de.uni_passau.fim.seibt.LibGit2;
 
+import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -79,19 +81,21 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      */
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
+        Runtime merge = new Runtime(MERGE_LABEL);
+        String mergeResult;
 
-        long runtime, startTime = System.currentTimeMillis();
+        try (Runtime.Measurement m = merge.time()) {
+            mergeResult = mergeFiles(operation);
+        }
 
-        String mergeResult = mergeFiles(operation);
-
-        runtime = System.currentTimeMillis() - startTime;
-        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
+        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
         if (!context.isDiffOnly()) {
             operation.getTarget().setContent(mergeResult);
         }
 
-        if (context.hasStatistics()) {
+        // TODO this filters out method specific statistics in semistructured mode, they should instead be marked somehow but kept in the XML
+        if (context.hasStatistics() && !context.isSemiStructured()) {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(operation.getMergeScenario());
             ParseResult res = scenarioStatistics.setLineStatistics(mergeResult);
@@ -100,7 +104,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
             }
 
-            scenarioStatistics.setRuntime(runtime);
+            scenarioStatistics.putRuntime(merge);
             statistics.addScenarioStatistics(scenarioStatistics);
         }
     }

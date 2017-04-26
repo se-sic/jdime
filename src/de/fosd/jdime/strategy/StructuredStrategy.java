@@ -23,10 +23,8 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.security.Permission;
-import java.util.logging.Level;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
@@ -35,11 +33,12 @@ import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
 
-import static de.fosd.jdime.strdump.DumpMode.GRAPHVIZ_TREE;
+import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
@@ -50,6 +49,9 @@ import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(StructuredStrategy.class.getCanonicalName());
+
+    private static final String PARSE_LABEL = "parse";
+    private static final String SEMISTRUCTURE_LABEL = "semistructure";
 
     private SecurityManager systemSecurityManager = System.getSecurityManager();
     private SecurityManager noExitManager = new SecurityManager() {
@@ -107,16 +109,26 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         LOG.fine(() -> String.format("Merging:%nLeft: %s%nBase: %s%nRight: %s", lPath, bPath, rPath));
 
         try {
-            long startTime = System.currentTimeMillis();
+            Runtime parse = new Runtime(PARSE_LABEL);
+            Runtime semistructure = new Runtime(SEMISTRUCTURE_LABEL);
+            Runtime merge = new Runtime(MERGE_LABEL);
 
-            ASTNodeArtifact left = new ASTNodeArtifact(leftFile);
-            ASTNodeArtifact base = new ASTNodeArtifact(baseFile);
-            ASTNodeArtifact right = new ASTNodeArtifact(rightFile);
+            ASTNodeArtifact left;
+            ASTNodeArtifact base;
+            ASTNodeArtifact right;
+
+            try (Runtime.Measurement m = parse.time())  {
+                left = new ASTNodeArtifact(leftFile);
+                base = new ASTNodeArtifact(baseFile);
+                right = new ASTNodeArtifact(rightFile);
+            }
 
             if (context.isSemiStructured()) {
-                left = SemiStructuredStrategy.makeSemiStructured(left, context.getSemiStructuredLevel(), leftFile);
-                base = SemiStructuredStrategy.makeSemiStructured(base, context.getSemiStructuredLevel(), baseFile);
-                right = SemiStructuredStrategy.makeSemiStructured(right, context.getSemiStructuredLevel(), rightFile);
+                try (Runtime.Measurement m = semistructure.time()) {
+                    left = SemiStructuredStrategy.makeSemiStructured(left, context.getSemiStructuredLevel(), leftFile);
+                    base = SemiStructuredStrategy.makeSemiStructured(base, context.getSemiStructuredLevel(), baseFile);
+                    right = SemiStructuredStrategy.makeSemiStructured(right, context.getSemiStructuredLevel(), rightFile);
+                }
             }
 
             ASTNodeArtifact targetNode = left.copy();
@@ -128,17 +140,18 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
-            astMergeOp.apply(context);
+            try (Runtime.Measurement m = merge.time()) {
+                astMergeOp.apply(context);
+            }
+
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {
                 target.setContent(targetNode.prettyPrint());
             }
 
-            long runtime = System.currentTimeMillis() - startTime;
-
             LOG.fine("Structured merge finished.");
-            LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
+            LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
             if (!context.isDiffOnly()) {
                 LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
@@ -154,17 +167,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             }
 
             if (context.hasStatistics()) {
-                if (LOG.isLoggable(Level.FINE)) {
-                    String fileName = leftFile + ".dot";
-                    LOG.fine("Dumping the target node tree to " + fileName);
-
-                    try (FileWriter fw = new FileWriter(fileName)) {
-                        fw.write(targetNode.dump(GRAPHVIZ_TREE));
-                    } catch (IOException e) {
-                        LOG.log(Level.WARNING, e, () -> "Can not write the graphviz representation of " + leftFile);
-                    }
-                }
-
                 Statistics statistics = context.getStatistics();
                 MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
 
@@ -179,7 +181,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(left, right.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(targetNode, null));
-                scenarioStatistics.setRuntime(runtime);
+                Arrays.asList(parse, semistructure, merge).forEach(scenarioStatistics::putRuntime);
 
                 statistics.addScenarioStatistics(scenarioStatistics);
             }

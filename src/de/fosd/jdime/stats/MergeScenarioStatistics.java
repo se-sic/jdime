@@ -36,12 +36,15 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
 
+import static de.fosd.jdime.stats.MergeScenarioStatus.OK;
+
 /**
  * A collection of statistics values about a <code>MergeScenario</code>.
  */
 public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
+    private MergeScenarioStatus status;
 
     private Set<Matching<?>> matchings;
     private Map<Revision, Map<KeyEnums.Level, ElementStatistics>> levelStatistics;
@@ -53,7 +56,7 @@ public class MergeScenarioStatistics {
     private ElementStatistics directoryStatistics;
     private int conflicts;
 
-    private long runtime;
+    private Map<String, Runtime> runtimes;
 
     /**
      * Constructs a new <code>MergeScenarioStatistics</code> object for the given <code>MergeScenario</code>.
@@ -63,6 +66,7 @@ public class MergeScenarioStatistics {
      */
     public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
+        this.status = OK;
         this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
@@ -71,7 +75,7 @@ public class MergeScenarioStatistics {
         this.fileStatistics = new ElementStatistics();
         this.directoryStatistics = new ElementStatistics();
         this.conflicts = 0;
-        this.runtime = 0;
+        this.runtimes = new HashMap<>();
     }
 
     /**
@@ -82,14 +86,15 @@ public class MergeScenarioStatistics {
      */
     public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
         this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
+        this.status = toCopy.status;
 
-        this.matchings = new HashSet<>();
+        this.matchings = new HashSet<>(toCopy.matchings.size());
 
         for (Matching<?> matching : toCopy.matchings) {
             this.matchings.add(new Matching<>(matching));
         }
 
-        this.levelStatistics = new HashMap<>();
+        this.levelStatistics = new HashMap<>(toCopy.levelStatistics.size());
 
         for (Map.Entry<Revision, Map<KeyEnums.Level, ElementStatistics>> entry : toCopy.levelStatistics.entrySet()) {
             Map<KeyEnums.Level, ElementStatistics> map = new HashMap<>();
@@ -101,7 +106,7 @@ public class MergeScenarioStatistics {
             this.levelStatistics.put(entry.getKey(), map);
         }
 
-        this.typeStatistics = new HashMap<>();
+        this.typeStatistics = new HashMap<>(toCopy.typeStatistics.size());
 
         for (Map.Entry<Revision, Map<KeyEnums.Type, ElementStatistics>> entry : toCopy.typeStatistics.entrySet()) {
             Map<KeyEnums.Type, ElementStatistics> map = new HashMap<>();
@@ -113,7 +118,7 @@ public class MergeScenarioStatistics {
             this.typeStatistics.put(entry.getKey(), map);
         }
 
-        this.mergeStatistics = new HashMap<>();
+        this.mergeStatistics = new HashMap<>(toCopy.mergeStatistics.size());
 
         for (Map.Entry<Revision, MergeStatistics> entry : toCopy.mergeStatistics.entrySet()) {
             this.mergeStatistics.put(entry.getKey(), new MergeStatistics(entry.getValue()));
@@ -123,7 +128,12 @@ public class MergeScenarioStatistics {
         this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
         this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
         this.conflicts = toCopy.conflicts;
-        this.runtime = toCopy.runtime;
+
+        this.runtimes = new HashMap<>(toCopy.runtimes.size());
+
+        for (Map.Entry<String, Runtime> entry : toCopy.runtimes.entrySet()) {
+            this.runtimes.put(entry.getKey(), new Runtime(entry.getValue()));
+        }
     }
 
     /**
@@ -133,6 +143,24 @@ public class MergeScenarioStatistics {
      */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
+    }
+
+    /**
+     * Returns the current {@link MergeScenarioStatus}.
+     *
+     * @return the current {@link MergeScenarioStatus}
+     */
+    public MergeScenarioStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets current {@link MergeScenarioStatus} to the given {@code status}.
+     *
+     * @param status the new {@link MergeScenarioStatus}
+     */
+    public void setStatus(MergeScenarioStatus status) {
+        this.status = status;
     }
 
     /**
@@ -340,22 +368,37 @@ public class MergeScenarioStatistics {
     }
 
     /**
-     * Returns the runtime.
+     * Returns the {@link Runtime} for the given {@code label}. A new {@link Runtime} will be created an stored in this
+     * {@link MergeScenarioStatistics} is necessary.
      *
-     * @return the runtime
+     * @param label
+     *         the label of the {@link Runtime}
+     * @return the {@link Runtime}
      */
-    public long getRuntime() {
-        return runtime;
+    public Runtime getRuntime(String label) {
+        return runtimes.computeIfAbsent(label, Runtime::new);
     }
 
     /**
-     * Sets the runtime to the new value.
+     * Returns whether a {@link Runtime} with the given label was stored in this {@link MergeScenarioStatistics}.
+     *
+     * @param label
+     *         the label to look for
+     * @return true iff a {@link Runtime} with the given label was stored in this {@link MergeScenarioStatistics}
+     */
+    public boolean hasRuntime(String label) {
+        return runtimes.containsKey(label);
+    }
+
+    /**
+     * Stores the given {@link Runtime} in this {@link MergeScenarioStatistics}. If a {@link Runtime} with the given
+     * label is already present, it will be overwritten.
      *
      * @param runtime
-     *         the new runtime
+     *         the {@link Runtime} to store in this {@link MergeScenarioStatistics}
      */
-    public void setRuntime(long runtime) {
-        this.runtime = runtime;
+    public void putRuntime(Runtime runtime) {
+        runtimes.put(runtime.getLabel(), runtime);
     }
 
     /**
@@ -397,7 +440,10 @@ public class MergeScenarioStatistics {
         fileStatistics.add(other.fileStatistics);
         directoryStatistics.add(other.directoryStatistics);
         conflicts += other.conflicts;
-        runtime += other.runtime;
+
+        for (Map.Entry<String, Runtime> entry : other.runtimes.entrySet()) {
+            getRuntime(entry.getKey()).add(entry.getValue());
+        }
     }
 
     /**
@@ -414,7 +460,10 @@ public class MergeScenarioStatistics {
         mergeScenario.asList().forEach(artifact -> os.printf("%s%s%n", indent, artifact.getId()));
         os.println("General:");
         os.printf("%sConflicts: %s%n", indent, conflicts);
-        os.printf("%sRuntime: %dms%n", indent, runtime);
+
+        runtimes.forEach((label, runtime) ->
+                os.printf("%sRuntime (%s): %dms%n", indent, label, runtime.getTimeMS())
+        );
 
         if (!matchings.isEmpty()) os.println("Matchings");
         matchings.stream().sorted().forEachOrdered(matching ->

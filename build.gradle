@@ -28,7 +28,7 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "1.6.0"
+    id "org.ajoberstar.grgit" version "1.7.0"
     id "com.github.hierynomus.license" version "0.13.1"
     id "com.scuilion.syntastic" version "0.3.8"
 }
@@ -73,7 +73,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile project(':JNativeMerge')
-    compile files('lib/JJ7.jar')
+    compile files('lib/extendj.jar')
     testCompile 'junit:junit:4.12'
 }
 
@@ -177,7 +177,7 @@ test {
     enableAssertions = true
 }
 
-def testFilesBranchName = "feature/external_testcases"
+def testFilesBranchName = "feature/extendj_update"
 
 task getTestFiles {
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
@@ -193,8 +193,7 @@ task getTestFiles {
         }
     }
 
-    outputs.dir(testFilesDir)
-    outputs.upToDateWhen {
+    onlyIf {
         if (!testFilesDir.exists()) {
             return false
         }
@@ -202,16 +201,17 @@ task getTestFiles {
         def grgit = Grgit.open(dir: testFilesDir)
         grgit.fetch()
 
-        def tfBranch = grgit.resolve.toBranch(testFilesBranchName)
-
-        if (tfBranch == null) {
-            grgit.branch.add(name: testFilesBranchName, startPoint: "origin/$testFilesBranchName", mode: BranchAddOp.Mode.TRACK)
+        if (grgit.resolve.toBranch(testFilesBranchName) == null) {
+            grgit.branch.add(name: testFilesBranchName, startPoint: "origin/$testFilesBranchName",
+                             mode: BranchAddOp.Mode.TRACK)
         }
 
         def status = grgit.branch.status(name: testFilesBranchName)
+
+        grgit.checkout(branch: testFilesBranchName)
         grgit.close()
 
-        return status.behindCount == 0
+        return status.behindCount != 0
     }
 
     doLast {
