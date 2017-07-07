@@ -360,7 +360,8 @@ public class Statistics {
 
             private static final String TYPE_ATTR = "type";
 
-            private ImplicitCollectionMapper mapper = new ImplicitCollectionMapper(serializer.getMapper());
+            private ImplicitCollectionMapper mapper = new ImplicitCollectionMapper(serializer.getMapper(),
+                                                                                   serializer.getReflectionProvider());
             private CollectionConverter c = new CollectionConverter(mapper);
 
             @Override
