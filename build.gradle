@@ -197,7 +197,7 @@ task getTestFiles {
 
     onlyIf {
         if (!testFilesDir.exists()) {
-            return false
+            return true
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
