@@ -47,7 +47,7 @@ public final class Runtime {
     public final static class Measurement implements AutoCloseable {
 
         private final Runtime rt;
-        private long startTime;
+        private long startNS;
 
         /**
          * Constructs a new {@link Measurement}.
@@ -57,7 +57,7 @@ public final class Runtime {
          */
         private Measurement(Runtime rt) {
             this.rt = rt;
-            this.startTime = System.nanoTime();
+            this.startNS = System.nanoTime();
         }
 
         /**
@@ -66,7 +66,7 @@ public final class Runtime {
          * @return the measured runtime in milliseconds
          */
         public long stop() {
-            rt.setTimeMS(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+            rt.setTimeMS(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNS));
             return rt.getTimeMS();
         }
 
@@ -114,7 +114,8 @@ public final class Runtime {
 
     /**
      * Adds the given {@link Runtime} to this {@link Runtime}. The 'no measurement' value {@value #NO_MEASUREMENT} will
-     * be treated as 0.
+     * be treated as 0 unless both {@code this} and {@code toAdd} have not been measured yet in which case the result
+     * will be {@value #NO_MEASUREMENT}.
      *
      * @param toAdd
      *         the {@link Runtime} to add
@@ -145,6 +146,22 @@ public final class Runtime {
     }
 
     /**
+     * Resets this {@link Runtime} to {@value NO_MEASUREMENT}.
+     */
+    public void reset() {
+        timeMS = NO_MEASUREMENT;
+    }
+
+    /**
+     * Returns whether this {@link Runtime} has been measured.
+     *
+     * @return whether the contained runtime is not {@value NO_MEASUREMENT}
+     */
+    public boolean isMeasured() {
+        return timeMS != NO_MEASUREMENT;
+    }
+
+    /**
      * Returns the last runtime measurement that was stored in this {@link Runtime}. Returns {@value #NO_MEASUREMENT}
      * if no measurement has been stored yet.
      *
@@ -162,7 +179,7 @@ public final class Runtime {
      * @throws IllegalArgumentException
      *         if the {@code timeMS} is smaller than 0
      */
-    public void setTimeMS(long timeMS) {
+    private void setTimeMS(long timeMS) {
 
         if (timeMS < 0) {
             throw new IllegalArgumentException("New runtime (" + timeMS + ") must not be smaller than zero.");

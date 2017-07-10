@@ -24,8 +24,8 @@
 package de.fosd.jdime.strategy;
 
 import java.security.Permission;
-import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -181,7 +181,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(left, right.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(targetNode, null));
-                Arrays.asList(parse, semistructure, merge).forEach(scenarioStatistics::putRuntime);
+                Stream.of(parse, semistructure, merge).filter(Runtime::isMeasured).forEach(scenarioStatistics::putRuntime);
 
                 statistics.addScenarioStatistics(scenarioStatistics);
             }
