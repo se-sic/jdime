@@ -423,20 +423,10 @@ public class Matcher<T extends Artifact<T>> {
             return Optional.of(UnorderedTuple.of(left, right));
         } else if (lType == TRY) {
             Optional<T> resume = findMatchingNode(left, right, leftLAH);
-
-            if (resume.isPresent()) {
-                return Optional.of(UnorderedTuple.of(resume.get(), right));
-            } else {
-                return Optional.empty();
-            }
+            return resume.map(t -> UnorderedTuple.of(t, right));
         } else if (rType == TRY) {
             Optional<T> resume = findMatchingNode(right, left, rightLAH);
-
-            if (resume.isPresent()) {
-                return Optional.of(UnorderedTuple.of(left, resume.get()));
-            } else {
-                return Optional.empty();
-            }
+            return resume.map(t -> UnorderedTuple.of(left, t));
         } else {
             return Optional.empty();
         }

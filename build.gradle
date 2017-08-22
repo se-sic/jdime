@@ -179,9 +179,8 @@ test {
     enableAssertions = true
 }
 
-def testFilesBranchName = "feature/extendj_update"
-
 task getTestFiles {
+    def testFilesBranchName = "feature/extendj_update"
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
@@ -196,7 +195,7 @@ task getTestFiles {
     }
 
     onlyIf {
-        if (!testFilesDir.exists()) {
+        if (!testFilesDir.exists()) { // Execute the task if the test files directory does not exist.
             return true
         }
 
@@ -213,7 +212,7 @@ task getTestFiles {
         grgit.checkout(branch: testFilesBranchName)
         grgit.close()
 
-        return status.behindCount != 0
+        return status.behindCount != 0 // Execute the task if the existing test files are not up to date.
     }
 
     doLast {
