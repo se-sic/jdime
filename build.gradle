@@ -29,7 +29,7 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "1.7.2"
+    id "org.ajoberstar.grgit" version "2.0.0"
     id "com.github.hierynomus.license" version "0.14.0"
     id "com.scuilion.syntastic" version "0.3.8"
 }
@@ -74,7 +74,7 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     distributionType DistributionType.ALL
-    gradleVersion '4.0'
+    gradleVersion '4.1'
 }
 
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
