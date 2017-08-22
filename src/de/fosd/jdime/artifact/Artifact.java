@@ -23,16 +23,19 @@
  */
 package de.fosd.jdime.artifact;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -44,6 +47,8 @@ import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strdump.DumpMode;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * A generic <code>Artifact</code> that has a tree structure.
@@ -60,27 +65,27 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     /**
      * Children of the artifact.
      */
-    protected ArtifactList<T> children = null;
+    private List<T> children;
 
     /**
      * Left side of a conflict.
      */
-    protected T left = null;
+    protected T left;
 
     /**
      * Right side of a conflict.
      */
-    protected T right = null;
+    protected T right;
 
     /**
      * Whether this artifact represents a conflict.
      */
-    private boolean conflict = false;
+    private boolean conflict;
 
     /**
      * Whether this artifact represents a choice node.
      */
-    private boolean choice = false;
+    private boolean choice;
 
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
@@ -112,6 +117,9 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      */
     private int number;
 
+    private boolean hashValid;
+    private String hash;
+
     /**
      * Constructs a new <code>Artifact</code>.
      *
@@ -121,19 +129,54 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *         the DFS index of the <code>Artifact</code> in the <code>Artifact</code> tree it is a part of
      */
     protected Artifact(Revision rev, int number) {
-        this.matches = new LinkedHashMap<>();
+        this.children = new ArtifactList<>();
+        this.matches = new HashMap<>();
         this.revision = rev;
         this.number = number;
+        this.hashValid = false;
+        this.hash = null;
     }
 
     /**
-     * Adds a child.
+     * Copies the given {@link Artifact} detached from its tree.
      *
-     * @param child
-     *            child to add
-     * @return added child
+     * @param toCopy
+     *         the {@link Artifact} to copy
+     * @see #copy()
      */
-    public abstract T addChild(T child);
+    protected Artifact(Artifact<T> toCopy) {
+        this.children = new ArtifactList<>();
+        this.left = toCopy.left != null ? Artifacts.copyTree(toCopy.left) : null;
+        this.right = toCopy.right != null ? Artifacts.copyTree(toCopy.right) : null;
+
+        if (toCopy.variants != null) {
+            this.variants = new HashMap<>();
+            toCopy.variants.entrySet().forEach(en -> variants.put(en.getKey(), Artifacts.copyTree(en.getValue())));
+        }
+
+        copyMatches(toCopy);
+
+        this.conflict = toCopy.conflict;
+        this.choice = toCopy.choice;
+        this.merged = toCopy.merged;
+        this.revision = toCopy.revision;
+        this.number = toCopy.number;
+    }
+
+    /**
+     * Must be implemented as:
+     * <p>
+     * {@code
+     * protected T self() {
+     *     return this;
+     * }
+     * }
+     * <p>
+     * This method solves some issues caused by the recursive generic type signature of the {@link Artifact} class.
+     *
+     * @return {@code this}
+     */
+    protected abstract T self();
 
     /**
      * Adds a matching.
@@ -146,24 +189,37 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Clones matches from another artifact.
+     * Copies this {@link Artifact} detached from its tree (meaning {@link #parent} will be {@code null} and
+     * {@link Artifact#children} will be empty. Subclasses must implement this method by using their own private
+     * copy constructor that calls the protected copy constructor of the {@link Artifact} base class.
      *
-     * @param other
-     *            artifact to clone matches from
+     * @return a copy of this {@link Artifact}
+     * @see Artifacts#copyTree(Artifact)
      */
-    @SuppressWarnings("unchecked")
-    public void cloneMatches(T other) {
-        matches = new LinkedHashMap<>();
+    public abstract T copy();
 
-        for (Map.Entry<Revision, Matching<T>> entry : other.matches.entrySet()) {
-            Matching<T> m = entry.getValue().clone();
-            m.updateMatching((T) this);
+    /**
+     * Copies the {@link Artifact#matches} of {@code toCopy}, replaces {@code toCopy} with {@code this} in them and
+     * adds them to {@code this} {@link Artifact}.
+     *
+     * @param toCopy
+     *         the {@link Artifact} to copy the {@link Artifact#matches} from
+     */
+    public void copyMatches(Artifact<T> toCopy) {
 
-            matches.put(entry.getKey(), m);
+        if (toCopy.matches == null) {
+            return;
         }
-    }
 
-    public abstract T clone();
+        this.matches = new HashMap<>();
+
+        toCopy.matches.entrySet().forEach(en -> {
+            Matching<T> clone = en.getValue().clone();
+            clone.updateMatching(self(), toCopy.self());
+
+            matches.put(en.getKey(), clone);
+        });
+    }
 
     /**
      * Returns an <code>Artifact</code> that represents a merge conflict.
@@ -237,6 +293,78 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean exists();
 
     /**
+     * Adds the given {@link Artifact} to the children of this {@link Artifact} and sets the {@link #parent}
+     * accordingly.
+     *
+     * @param child
+     *         the {@link Artifact} to add as a child
+     */
+    public void addChild(T child) {
+
+        if (canAddChild(child)) {
+            children.add(child);
+            child.setParent(self());
+            invalidateHash();
+        }
+    }
+
+    /**
+     * Replaces the child at the specified position in the list of children of this {@link Artifact} with the specified
+     * child.
+     *
+     * @param child
+     *         the child to be added at the specified position
+     * @param index
+     *         the index of the child to replace
+     * @see List#set(int, Object)
+     */
+    public void setChild(T child, int index) {
+
+        if (canAddChild(child)) {
+            children.set(index, child);
+            child.setParent(self());
+            invalidateHash();
+        }
+    }
+
+    /**
+     * Determines whether the given {@link Artifact} {@code toAdd} may be added to the children of this
+     * {@link Artifact}. Any child passed to {@link #addChild(Artifact)} will not be added if this method returns
+     * {@code false} for it. Subclasses overriding this method should log the reason for returning {@code false} if they
+     * do so. The default implementation returns {@code true}.
+     *
+     * @param toAdd
+     *         the {@link Artifact} to add
+     * @return whether the {@code child} may be added
+     */
+    protected boolean canAddChild(T toAdd) {
+        return true;
+    }
+
+    /**
+     * Removes all children of this {@link Artifact}.
+     */
+    public void clearChildren() {
+        if (hasChildren()) {
+            children.clear();
+            invalidateHash();
+        }
+    }
+
+    /**
+     * Returns the index of the first occurrence of the specified child in the list of children, or -1 if the given
+     * {@link Artifact} is not a child of this {@link Artifact}.
+     *
+     * @param child
+     *         the child whose index is to be returned
+     * @return the index of the child or -1
+     * @see List#indexOf(Object)
+     */
+    public int indexOf(T child) {
+        return children.indexOf(child);
+    }
+
+    /**
      * Return child <code>Artifact</code> at position i.
      *
      * @param i
@@ -244,24 +372,67 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return child <code>Artifact</code> at position i
      */
     public T getChild(int i) {
-        assert (children != null);
         return children.get(i);
     }
 
     /**
-     * Returns all children of the <code>Artifact</code>.
+     * Returns an unmodifiable view of the children of this {@code Artifact}.
      *
-     * @return the children of the <code>Artifact</code>
+     * @return an unmodifiable view of the children of this {@code Artifact}
+     * @see Collections#unmodifiableList(List)
      */
-    public ArtifactList<T> getChildren() {
-        if (isLeaf()) {
-            return new ArtifactList<>();
-        }
-
-        return children;
+    public List<T> getChildren() {
+        return Collections.unmodifiableList(children);
     }
 
-    public abstract void deleteChildren();
+    /**
+     * Sets the children of the <code>Artifact</code>.
+     *
+     * @param children
+     *         the new children to set
+     * @throws NullPointerException
+     *         if {@code children} is {@code null}
+     */
+    public void setChildren(List<T> children) {
+        Objects.requireNonNull(children, "The list of children must not be null.");
+
+        this.children = children;
+        invalidateHash();
+    }
+
+    /**
+     * Applies the given {@code action} to the children of this {@link Artifact} and invalidates the tree hash as
+     * necessary.
+     *
+     * @param action
+     *         the action to apply to the list of {@link #children}
+     */
+    protected void modifyChildren(Consumer<List<T>> action) {
+        int hashBefore = children.hashCode();
+        action.accept(children);
+
+        if (children.hashCode() != hashBefore) {
+            invalidateHash();
+        }
+    }
+
+    /**
+     * Returns the number of children the <code>Artifact</code> has.
+     *
+     * @return number of children
+     */
+    public int getNumChildren() {
+        return children.size();
+    }
+
+    /**
+     * Returns true if the <code>Artifact</code> has children.
+     *
+     * @return true if the <code>Artifact</code> has children
+     */
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
 
     /**
      * Returns the identifier of the <code>Artifact</code>,
@@ -272,6 +443,51 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return identifier of the <code>Artifact</code>
      */
     public abstract String getId();
+
+    /**
+     * Returns a hash of the tree rooted in this {@code Artifact}.
+     *
+     * @return the tree hash
+     */
+    public String getTreeHash() {
+
+        if (hashValid) {
+            return hash;
+        }
+
+        MessageDigest digest = DigestUtils.getSha256Digest();
+        DigestUtils.updateDigest(digest, hashId());
+
+        if (hasChildren()) {
+            children.forEach(c -> DigestUtils.updateDigest(digest, c.getTreeHash()));
+            hash = "1" + Hex.encodeHexString(digest.digest());
+        } else {
+            hash = "0" + Hex.encodeHexString(digest.digest());
+        }
+
+        hashValid = true;
+        return hash;
+    }
+
+    /**
+     * Returns the {@code String} identifying this {@code Artifact} for the purposes of calculating the tree hash in
+     * {@link #getTreeHash()};
+     *
+     * @return the identifying {@code String} to be hashed
+     */
+    protected abstract String hashId();
+
+    /**
+     * Invalidates the hashes of this {@code Artifact} and all its parents.
+     */
+    protected void invalidateHash() {
+        hashValid = false;
+        hash = null;
+
+        if (parent != null) {
+            parent.invalidateHash();
+        }
+    }
 
     /**
      * Returns the <code>Matching</code> for a specific <code>Revision</code> or <code>null</code> if there is no such
@@ -336,19 +552,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns the number of children the <code>Artifact</code> has.
-     *
-     * @return number of children
-     */
-    public int getNumChildren() {
-        if (isLeaf()) {
-            return 0;
-        }
-
-        return children == null ? 0 : children.size();
-    }
-
-    /**
      * Returns the parent <code>Artifact</code>.
      *
      * @return the parent <code>Artifact</code>
@@ -400,59 +603,30 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether the <code>Artifact</code> or its subtree has changes.
+     * Returns whether the subtree rooted in this {@link Artifact} has changes compared to the given {@link Revision}.
+     * Returns {@code false} if {@code revision} is the {@link Revision} of this {@link Artifact}.
      *
-     * @return whether the <code>Artifact</code> or its subtree has changes
-     */
-    public boolean hasChanges() {
-        // FIXME: this method does currently not detect deletions as changes.
-
-        boolean hasChanges = !hasMatches();
-
-        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-            hasChanges = getChild(i).hasChanges();
-        }
-
-        return hasChanges;
-    }
-
-    /**
-     * Returns whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision.
-     *
-     * @param revision <Code>Revision</Code> to compare to
-     * @return whether the <code>Artifact</code> or its subtree has changes compared to <code>Revision</code> revision
+     * @param revision the opposite {@link Revision}
+     * @return true iff any {@link Artifact} in the tree under this {@link Artifact} represents a changed compared to
+     *         the given {@link Revision}
      */
     public boolean hasChanges(Revision revision) {
 
-        boolean hasChanges = !hasMatching(revision);
-
-        if (!hasChanges) {
-            T baseArtifact = getMatching(revision).getMatchingArtifact(this);
-            hasChanges = baseArtifact.hasChanges();
+        if (this.revision.equals(revision)) {
+            return false;
         }
 
-        for (int i = 0; !hasChanges && i < getNumChildren(); i++) {
-            hasChanges = getChild(i).hasChanges(revision);
+        if (!hasMatching(revision)) {
+            return true;
         }
 
-        return hasChanges;
-    }
-    /**
-     * Returns true if the <code>Artifact</code> is a change.
-     *
-     * @return true if the <code>Artifact</code> is a change
-     */
-    public boolean isChange() {
-        return !hasMatches();
-    }
+        T match = getMatching(revision).getMatchingArtifact(this);
 
-    /**
-     * Returns true if the <code>Artifact</code> has children.
-     *
-     * @return true if the <code>Artifact</code> has children
-     */
-    public boolean hasChildren() {
-        return getNumChildren() > 0;
+        return getTreeSize() != match.getTreeSize() || Artifacts.bfsStream(self()).anyMatch(a -> {
+            // We use Artifact#hashId here since it is implemented for SemiStructuredArtifacts using the pretty printed content.
+            // This ensures that matched SemiStructuredArtifacts are detected as changes if their contents do not match.
+            return !a.hasMatching(revision) || !a.getMatching(revision).getMatchingArtifact(a).hashId().equals(a.hashId());
+        });
     }
 
     /**
@@ -465,73 +639,61 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
-     * Returns whether this <code>Artifact</code> has a <code>Matching</code> for a specific <code>Revision</code>.
+     * Returns whether this {@link Artifact} has been matched with an {@link Artifact} from the given {@link Revision}.
      *
      * @param rev
-     *            <code>Revision</code>
-     * @return true if <code>Artifact</code> has a <code>Matching</code> with <code>Revision</code>
+     *         the opposite {@link Revision}
+     * @return true iff there is a match from the given {@code revision}
      */
-    public final boolean hasMatching(Revision rev) {
-        boolean hasMatching = matches.containsKey(rev);
+    public boolean hasMatching(Revision rev) {
+        logMatchings(rev);
 
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(getId() + ".hasMatching(" + rev + ")");
-            if (!matches.isEmpty()) {
-                for (Revision r : matches.keySet()) {
-                    LOG.finest("Matching found with: " + r + " (" + matches.get(r).getMatchingArtifact(this).getId() + ")");
-                    LOG.finest("hasMatching(" + r + ") = " + hasMatching);
-                }
-            } else {
-                LOG.finest("no matches for " + getId() + " and " + rev);
-            }
+        if (isChoice()) {
+            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(rev));
+        } else {
+            return matches.containsKey(rev);
         }
-
-        if (!hasMatching && isChoice()) {
-            // choice nodes have to be treated specially ...
-            for (T variant: variants.values()) {
-                if (variant.hasMatching(rev)) {
-                    hasMatching = true;
-                    break;
-                }
-            }
-        }
-
-        return hasMatching;
     }
 
     /**
-     * Returns whether a <code>Matching</code> exists for a specific <code>Artifact</code>.
+     * Returns whether this {@link Artifact} has been matched with the given {@link Artifact} {@code other}.
      *
      * @param other
-     *            other <code>Artifact</code> to search <code>Matching</code>s for
-     * @return whether a <code>Matching</code> exists
+     *         the opposite {@link Artifact}
+     * @return true iff this {@link Artifact} has been matched with the given {@link Artifact} {@code other}
      */
-    public final boolean hasMatching(T other) {
+    public boolean hasMatching(T other) {
         Revision otherRev = other.getRevision();
-        boolean hasMatching = matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        logMatchings(otherRev);
 
+        if (isChoice()) {
+            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(other));
+        } else {
+            return matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
+        }
+    }
+
+    /**
+     * Logs (if FINEST is enabled) what matchings exist for this {@link Artifact} in the given {@link Revision}.
+     *
+     * @param rev
+     *         the opposite {@link Revision}
+     */
+    private void logMatchings(Revision rev) {
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(getId() + ".hasMatching(" + other.getId() + ")");
-            if (!matches.isEmpty()) {
-                for (Revision r : matches.keySet()) {
-                    LOG.finest("Matching found with: " + r + " (" + other.getId() + ")");
-                    LOG.finest("hasMatching(" + r + ") = " + hasMatching);
-                }
-            } else {
-                LOG.finest("no matches for " + getId() + " and " + other.getId());
-            }
-        }
+            LOG.finest("Checking for matchings for " + getId() + " in revision " + rev + ".");
 
-        if (!hasMatching && isChoice()) {
-            // choice nodes have to be treated specially ...
-            for (T variant: variants.values()) {
-                if (variant.hasMatching(otherRev) && matches.get(otherRev).getMatchingArtifact(variant) == other) {
-                    hasMatching = true;
-                    break;
+            if (matches.isEmpty()) {
+                LOG.finest("No matchings for " + getId() + " in revision " + rev + ".");
+            } else {
+
+                for (Entry<Revision, Matching<T>> entry : matches.entrySet()) {
+                    Revision otherRev = entry.getKey();
+                    T matchedArtifact = entry.getValue().getMatchingArtifact(this);
+                    LOG.finest("Matching found for revision " + otherRev + " is " + matchedArtifact.getId());
                 }
             }
         }
-        return hasMatching;
     }
 
     /**
@@ -566,13 +728,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      * @return true if the <code>Artifact</code> is empty
      */
     public abstract boolean isEmpty();
-
-    /**
-     * Returns true if the <code>Artifact</code> is a leaf.
-     *
-     * @return true if the <code>Artifact</code> is a leaf
-     */
-    public abstract boolean isLeaf();
 
     /**
      * Returns true if the <code>Artifact</code> has already been merged.
@@ -617,16 +772,6 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            merge context
      */
     public abstract void merge(MergeOperation<T> operation, MergeContext context);
-
-    /**
-     * Sets the children of the <code>Artifact</code>.
-     *
-     * @param children
-     *            the new children to set
-     */
-    public void setChildren(ArtifactList<T> children) {
-        this.children = children;
-    }
 
     /**
      * Marks this <code>Artifact</code> as a conflict.
@@ -742,7 +887,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public void setRevision(Revision revision, boolean recursive) {
         this.revision = revision;
 
-        if (recursive && children != null) {
+        if (recursive) {
             for (T child : children) {
                 child.setRevision(revision, true);
             }
@@ -759,8 +904,10 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
     /**
      * If the artifact is a choice node, it has variants (values of map) that are present under conditions (keys of map)
+     *
+     * @return the variants represented by this choice {@link Artifact}
      */
-    public HashMap<String, T> getVariants() {
+    public Map<String, T> getVariants() {
         return variants;
     }
 

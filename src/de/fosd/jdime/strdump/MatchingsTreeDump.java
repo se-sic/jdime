@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.matcher.matching.Matchings;
@@ -160,7 +159,7 @@ public class MatchingsTreeDump {
 
         // now we force dot to respect the order of the children
         for (T artifact : bfs) {
-            ArtifactList<T> ch = artifact.getChildren();
+            List<T> ch = artifact.getChildren();
 
             if (ch.size() > 1) {
                 GraphvizSubGraph oSubGraph = subGraph.subGraph();

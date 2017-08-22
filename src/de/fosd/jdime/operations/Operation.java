@@ -23,78 +23,73 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 
 /**
- * This class represents an operation that is applied to <code>Artifact</code>s.
+ * Abstract superclass for all operations being performed on {@link Artifact Artifacts}.
  *
  * @param <T>
- *         type of artifact
- * @author Olaf Lessenich
+ *         the type of the {@link Artifact Artifacts}
  */
 public abstract class Operation<T extends Artifact<T>> {
 
     /**
      * Operation counter.
      */
-    private static long count = 1;
+    private static AtomicLong count = new AtomicLong();
 
     /**
-     * Returns counter value.
+     * Returns the number of {@link Operation Operations} that have been created.
      *
-     * @return counter value
+     * @return the number of {@link Operation Operations} that have been created
      */
     public static long getCount() {
-        return count;
+        return count.get();
     }
 
     /**
-     * Number of the current operation.
+     * The number of this {@link Operation}.
      */
     private long number;
 
     /**
-     * Returns a new instance of operation.
+     * Constructs a new {@link Operation}.
      */
     public Operation() {
-        this.number = count;
-        count++;
+        this.number = count.getAndIncrement();
     }
 
     /**
-     * Applies the operation.
+     * Applies this {@link Operation}.
      *
      * @param context
-     *         merge context
+     *         the current {@link MergeContext}
      */
     public abstract void apply(MergeContext context);
 
     /**
-     * Returns the name of the operation.
+     * Returns the number of this {@link Operation}.
      *
-     * @return name of the operation
-     */
-    public abstract String getName();
-
-    @Override
-    public abstract String toString();
-
-    /**
-     * Returns the number of the operation.
-     *
-     * @return number
+     * @return the number of this {@link Operation}
      */
     public long getNumber() {
         return number;
     }
 
     /**
-     * Returns an ID.
+     * Returns a {@link String} identifying this {@link Operation}.
      *
-     * @return id
+     * @return the identifying {@link String} for this {@link Operation}
      */
     public String getId() {
-        return "OP" + number;
+        return String.format("%s %d", getClass().getSimpleName(), number);
+    }
+
+    @Override
+    public String toString() {
+        return getId();
     }
 }

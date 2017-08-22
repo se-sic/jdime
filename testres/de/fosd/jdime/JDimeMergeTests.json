@@ -1,0 +1,80 @@
+[
+  {
+    "name" : "Moved Method",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "TWOWAY",
+    "path" : "SimpleTests/MovedMethod.java"
+  },
+  {
+    "name" : "Moved Method Inside Anonymous Class",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured", "linebased,semistructured,structured"],
+    "type" : "TWOWAY",
+    "path" : "SimpleTests/AnonClassMovedMethod.java"
+  },
+  {
+    "name" : "Bag No. 1",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag.java"
+  },
+  {
+    "name" : "Bag No. 2",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag2.java"
+  },
+  {
+    "name" : "Bag No. 3",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag3.java"
+  },
+  {
+    "name" : "Formatting of Class Attributes",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/TopLevelFormatting.java"
+  },
+  {
+    "name" : "Formatting of a Method Body",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/MethodLevelFormatting.java"
+  },
+  {
+    "name" : "Import Conflict",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ImportMess.java"
+  },
+  {
+    "name" : "Expression Test",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ExprTest.java"
+  },
+  {
+    "name" : "Deletion/Insertion",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/DeletionInsertion.java"
+  },
+  {
+    "name" : "Variable Declaration",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/VariableDeclaration.java"
+  },
+  {
+    "name" : "Changed Method",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod.java"
+  },
+  {
+    "name" : "Changed Method No. 2",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod2.java"
+  }
+]

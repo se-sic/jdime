@@ -22,6 +22,7 @@
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.operation.BranchAddOp
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType;
 
@@ -55,6 +56,9 @@ sourceSets {
         java {
             srcDir 'test'
         }
+        resources {
+            srcDir 'testres'
+        }
     }
 }
 
@@ -66,9 +70,12 @@ dependencies {
     compile 'commons-io:commons-io:2.5'
     compile 'commons-cli:commons-cli:1.4'
     compile 'org.apache.commons:commons-math3:3.6.1'
+    compile 'commons-codec:commons-codec:1.10'
     compile 'com.thoughtworks.xstream:xstream:1.4.10'
+    compile 'com.google.code.gson:gson:2.8.0'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
-    compile files('lib/JJ7.jar')
+    compile project(':JNativeMerge')
+    compile files('lib/extendj.jar')
     testCompile 'junit:junit:4.12'
 }
 
@@ -136,7 +143,7 @@ distributions.with {
 
                     def getHeadCommit = {
                         def grgit = Grgit.open(dir: project.projectDir)
-                        def head = grgit.head();
+                        def head = grgit.head()
 
                         grgit.close()
                         head.id
@@ -172,6 +179,8 @@ test {
     enableAssertions = true
 }
 
+def testFilesBranchName = "feature/extendj_update"
+
 task getTestFiles {
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
@@ -186,29 +195,36 @@ task getTestFiles {
         }
     }
 
-    outputs.dir(testFilesDir)
-    outputs.upToDateWhen {
+    onlyIf {
         if (!testFilesDir.exists()) {
-            return false;
+            return false
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
-
         grgit.fetch()
-        def status = grgit.branch.status(name: 'master')
+
+        if (grgit.resolve.toBranch(testFilesBranchName) == null) {
+            grgit.branch.add(name: testFilesBranchName, startPoint: "origin/$testFilesBranchName",
+                             mode: BranchAddOp.Mode.TRACK)
+        }
+
+        def status = grgit.branch.status(name: testFilesBranchName)
+
+        grgit.checkout(branch: testFilesBranchName)
         grgit.close()
 
-        return status.behindCount == 0
+        return status.behindCount != 0
     }
 
     doLast {
         if (testFilesDir.exists()) {
             def grgit = Grgit.open(dir: testFilesDir)
 
-            grgit.merge(head: 'origin/master')
+            grgit.checkout(branch: testFilesBranchName)
+            grgit.merge(head: "origin/$testFilesBranchName")
             grgit.close()
         } else {
-            Grgit.clone(dir: testFilesDir, uri: gitURI).close()
+            Grgit.clone(dir: testFilesDir, refToCheckout: testFilesBranchName, uri: gitURI).close()
         }
     }
 }

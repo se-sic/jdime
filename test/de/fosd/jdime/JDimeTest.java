@@ -23,13 +23,10 @@
  */
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import org.junit.BeforeClass;
 
@@ -45,17 +42,19 @@ public class JDimeTest {
     protected static File leftDir;
     protected static File baseDir;
     protected static File rightDir;
+    protected static File resultsDir;
 
     @BeforeClass
     public static void initDirectories() throws Exception {
 
-        leftDir = file("threeway", "left");
-        baseDir = file("threeway", "base");
-        rightDir = file("threeway", "right");
+        leftDir = file("/left");
+        baseDir = file("/base");
+        rightDir = file("/right");
+        resultsDir = file("/results");
 
-        Arrays.asList(leftDir, baseDir, rightDir).forEach(f -> {
-            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory());
-        });
+        Arrays.asList(leftDir, baseDir, rightDir, resultsDir).forEach(f ->
+            assertTrue(f.getAbsolutePath() + " is not a directory.", f.isDirectory())
+        );
     }
 
     /**
@@ -103,14 +102,20 @@ public class JDimeTest {
      * @param path
      *         the file path
      * @return the resulting <code>File</code>
-     * @throws Exception
+     * @throws AssertionError
      *         if the file does not exist or there is an exception constructing it
      */
-    protected static File file(String path) throws Exception {
+    protected static File file(String path) {
         URL res = JDimeTest.class.getResource(path);
 
         assertNotNull("The file " + path + " was not found.", res);
-        return new File(res.toURI());
+
+        try {
+            return new File(res.toURI());
+        } catch (URISyntaxException e) {
+            fail(e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -121,10 +126,10 @@ public class JDimeTest {
      * @param names
      *         the other elements of the path
      * @return the resulting <code>File</code>
-     * @throws Exception
+     * @throws AssertionError
      *         if the file does not exist or there is an exception constructing it
      */
-    protected static File file(String name, String... names) throws Exception {
+    protected static File file(String name, String... names) {
 
         if (names != null) {
             String path = String.format("/%s/%s", name, String.join("/", names));
@@ -144,29 +149,23 @@ public class JDimeTest {
     protected static String normalize(String content) {
         String conflictStart = "<<<<<<<";
         String conflictEnd = ">>>>>>>";
-        String lineSeparator = System.lineSeparator();
-        StringBuilder b = new StringBuilder(content.length());
 
-        try (BufferedReader r = new BufferedReader(new StringReader(content))) {
-            for (Iterator<String> it = r.lines().iterator(); it.hasNext(); ) {
-                String l = it.next();
+        String[] lines = content.split("\\R");
 
-                if (l.startsWith(conflictStart)) {
-                    l = conflictStart;
-                } else if (l.startsWith(conflictEnd)) {
-                    l = conflictEnd;
-                }
-
-                b.append(l);
-
-                if (it.hasNext()) {
-                    b.append(lineSeparator);
-                }
-            }
-        } catch (IOException e) {
-            fail(e.getMessage());
+        if (lines.length == 0) {
+            return "";
         }
 
-        return b.toString();
+        for (int i = 0; i < lines.length; i++) {
+            String l = lines[i];
+
+            if (l.startsWith(conflictStart)) {
+                lines[i] = conflictStart;
+            } else if (l.startsWith(conflictEnd)) {
+                lines[i] = conflictEnd;
+            }
+        }
+
+        return String.join(System.lineSeparator(), lines);
     }
 }

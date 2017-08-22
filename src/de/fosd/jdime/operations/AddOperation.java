@@ -23,38 +23,34 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
-import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
 /**
- * The operation adds <code>Artifact</code>s.
- *
- * @author Olaf Lessenich
+ * An {@link Operation} that adds a given {@link Artifact} to the children of another {@link Artifact}.
  *
  * @param <T>
- *            type of artifact
- *
+ *         the type of the {@link Artifact Artifacts}
  */
 public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(AddOperation.class.getCanonicalName());
 
     /**
-     * The <code>Artifact</code> that is added by the operation.
+     * The {@link Artifact} that is being added to the children of {@link #target}.
      */
     private T artifact;
 
     /**
-     * The output <code>Artifact</code>.
+     * The {@link Artifact} to whose children {@link #artifact} is added.
      */
     private T target;
 
-    private MergeScenario<T> mergeScenario;
     private String condition;
 
     /**
@@ -64,15 +60,15 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
      *         the <code>Artifact</code> to be added
      * @param target
      *         the <code>Artifact</code> to add to
-     * @param mergeScenario
-     *         the current <code>MergeScenario</code>
      * @param condition
      *         the presence condition for <code>artifact</code> or <code>null</code>
      */
-    public AddOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+    public AddOperation(T artifact, T target, String condition) {
+        Objects.requireNonNull(artifact, "The artifact to be added must not be null.");
+        Objects.requireNonNull(target, "The target to be added to must not be null.");
+
         this.artifact = artifact;
         this.target = target;
-        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
@@ -81,27 +77,13 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public void apply(MergeContext context) {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-
         LOG.fine(() -> "Applying: " + this);
 
-        if (artifact.isChoice()) {
+        if (context.isConditionalMerge(artifact) && condition != null) {
+            LOG.fine("Creating a choice node.");
+            target.addChild(target.createChoiceArtifact(condition, artifact));
+        } else {
             target.addChild(artifact);
-            return;
-        }
-
-        if (target != null) {
-            assert (target.exists());
-
-            if (context.isConditionalMerge(artifact) && condition != null) {
-                T choice = target.createChoiceArtifact(condition, artifact);
-                assert (choice.isChoice());
-                target.addChild(choice);
-            } else {
-                LOG.fine("no conditions");
-                target.addChild(artifact.clone());
-            }
         }
 
         if (context.hasStatistics()) {
@@ -113,20 +95,11 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public String getName() {
-        return "ADD";
-    }
-
-    /**
-     * Returns the target <code>Artifact</code>
-     * @return the target
-     */
-    public T getTarget() {
-        return target;
-    }
-
-    @Override
     public String toString() {
-        return getId() + ": " + getName() + " " + artifact + " (" + condition + ")";
+        if (condition == null) {
+            return String.format("%s: %s TO %s", getId(), artifact.getId(), target.getId());
+        } else {
+            return String.format("%s: %s TO %s CONDITION %s", getId(), artifact.getId(), target.getId(), condition);
+        }
     }
 }

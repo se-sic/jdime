@@ -25,7 +25,6 @@ package de.fosd.jdime.matcher.matching;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -267,7 +266,7 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
         Comparator<Matching<T>> comp = (o1, o2) -> Float.compare(o1.getPercentage(), o2.getPercentage());
 
         for (Map.Entry<Artifact<T>, List<Matching<T>>> entry : matchings.entrySet()) {
-            Collections.sort(entry.getValue(), comp.reversed());
+            (entry.getValue()).sort(comp.reversed());
 
             for (Matching<T> max : entry.getValue()) {
 

@@ -23,11 +23,12 @@
  */
 package de.fosd.jdime.strategy;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -45,70 +46,98 @@ import de.fosd.jdime.merge.MergeInterface;
  */
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
-    private static final Map<String, MergeStrategy<FileArtifact>> strategyMap;
-
     public static final String LINEBASED = "linebased";
-    public static final String UNSTRUCTURED = "unstructured";
+    public static final String SEMISTRUCTURED = "semistructured";
     public static final String STRUCTURED = "structured";
-    public static final String COMBINED = "combined";
-    public static final String AUTOTUNING = "autotuning";
     public static final String NWAY = "nway";
-    public static final String VARIANTS = "variants";
-
-    static {
-        Map<String, MergeStrategy<FileArtifact>> entries = new HashMap<>();
-        LinebasedStrategy lineBased = new LinebasedStrategy();
-        StructuredStrategy structured = new StructuredStrategy();
-        CombinedStrategy combined = new CombinedStrategy();
-        NWayStrategy nway = new NWayStrategy();
-
-        entries.put(LINEBASED, lineBased);
-        entries.put(UNSTRUCTURED, lineBased);
-        entries.put(STRUCTURED, structured);
-        entries.put(COMBINED, combined);
-        entries.put(AUTOTUNING, combined);
-        entries.put(NWAY, nway);
-        entries.put(VARIANTS, nway);
-
-        strategyMap = Collections.unmodifiableMap(entries);
-    }
 
     /**
-     * Returns an unmodifiable <code>Set</code> containing the names of available strategies.
+     * Returns an unmodifiable <code>List</code> containing the names of available strategies.
      *
      * @return names of available strategies
      */
-    public static Set<String> listStrategies() {
-        return strategyMap.keySet();
+    public static List<String> listStrategies() {
+        return Arrays.asList(LINEBASED, SEMISTRUCTURED, STRUCTURED, NWAY);
+    }
+
+    /**
+     * Returns a {@link CombinedStrategy} for the given {@link MergeStrategy MergeStrategies}.
+     *
+     * @param firstName the first strategy name
+     * @param secondName the second strategy name
+     * @param otherNames the other strategy names
+     * @return a {@link CombinedStrategy} for the given names
+     */
+    public static Optional<MergeStrategy<FileArtifact>> parse(String firstName, String secondName, String... otherNames) {
+        List<String> names = new ArrayList<>(2 + (otherNames != null ? otherNames.length : 0));
+
+        names.add(firstName);
+        names.add(secondName);
+
+        if (otherNames != null) {
+            Collections.addAll(names, otherNames);
+        }
+
+        return parse(String.join(",", names));
     }
 
     /**
      * Returns a <code>MergeStrategy</code> for the given <code>name</code>. <code>name</code> (ignoring case and
-     * leading/trailing whitespaces) may be one of the strings returned by {@link #listStrategies()}. If no
-     * <code>MergeStrategy</code> for the given <code>name</code> is found a <code>StrategyNotFoundException</code> will
-     * be thrown.
+     * leading/trailing whitespaces) must be one of the strings returned by {@link #listStrategies()}. If no
+     * <code>MergeStrategy</code> for the given <code>name</code> is found, an empty {@link Optional} is returned.
      *
      * @param name
      *         the name to return a <code>MergeStrategy</code> for; <code>name</code> may not be <code>null</code>
-     * @return the <code>MergeStrategy</code>
-     * @throws StrategyNotFoundException
-     *         if no <code>MergeStrategy</code> for <code>name</code> is found
+     * @return optionally the <code>MergeStrategy</code>
      * @throws NullPointerException
      *         if <code>name</code> is <code>null</code>
      */
-    public static MergeStrategy<FileArtifact> parse(String name) {
+    public static Optional<MergeStrategy<FileArtifact>> parse(String name) {
         Objects.requireNonNull(name, "name may not be null!");
-        name = name.trim().toLowerCase();
 
-        if (!strategyMap.containsKey(name)) {
-            throw new StrategyNotFoundException("Strategy not found: " + name);
+        name = name.trim().toLowerCase();
+        MergeStrategy<FileArtifact> strategy = null;
+
+        switch (name) {
+            case LINEBASED:
+                strategy = new LinebasedStrategy();
+                break;
+            case SEMISTRUCTURED:
+                strategy = new SemiStructuredStrategy();
+                break;
+            case STRUCTURED:
+                strategy = new StructuredStrategy();
+                break;
+            case NWAY:
+                strategy = new NWayStrategy();
+                break;
+            default:
+                if (name.indexOf(',') != -1) {
+                    String[] names = name.split(",");
+
+                    if (names.length > 0) {
+                        List<MergeStrategy<FileArtifact>> strategies = new ArrayList<>(names.length);
+
+                        for (String subName : names) {
+                            Optional<MergeStrategy<FileArtifact>> optStrategy = parse(subName);
+
+                            if (optStrategy.isPresent()) {
+                                strategies.add(optStrategy.get());
+                            } else {
+                                return Optional.empty();
+                            }
+                        }
+
+                        strategy = new CombinedStrategy(strategies);
+                    }
+                }
         }
 
-        return strategyMap.get(name);
+        return Optional.ofNullable(strategy);
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return getClass().getSimpleName();
     }
 }

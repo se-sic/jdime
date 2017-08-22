@@ -25,17 +25,12 @@ package de.fosd.jdime.matcher;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.cost_model.CMMode;
@@ -48,6 +43,7 @@ import de.fosd.jdime.matcher.ordered.EqualityMatcher;
 import de.fosd.jdime.matcher.ordered.OrderedMatcher;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.matcher.ordered.simpleTree.SimpleTreeMatcher;
+import de.fosd.jdime.matcher.unordered.IdenticalSubtreeMatcher;
 import de.fosd.jdime.matcher.unordered.UniqueLabelMatcher;
 import de.fosd.jdime.matcher.unordered.UnorderedMatcher;
 import de.fosd.jdime.matcher.unordered.assignmentProblem.HungarianMatcher;
@@ -86,164 +82,130 @@ public class Matcher<T extends Artifact<T>> {
     private static final Logger LOG = Logger.getLogger(Matcher.class.getCanonicalName());
     private static final String ID = Matcher.class.getSimpleName();
 
-    private int calls = 0;
-    private int equalityCalls = 0;
-    private int orderedCalls = 0;
-    private int unorderedCalls = 0;
-
     private UnorderedMatcher<T> unorderedMatcher;
     private UnorderedMatcher<T> unorderedLabelMatcher;
     private OrderedMatcher<T> orderedMatcher;
     private OrderedMatcher<T> mceSubtreeMatcher;
 
-    private UnorderedTuple<T, T> lookupTuple;
-    private Map<UnorderedTuple<T, T>, Matching<T>> trivialMatches;
-    private EqualityMatcher<T> equalityMatcher;
+    private IdenticalSubtreeMatcher<T> idSubtreeMatcher;
 
     private CostModelMatcher<T> cmMatcher;
 
-    private Set<Artifact<T>> orderedChildren;
-    private Set<Artifact<T>> uniquelyLabeledChildren;
-    private Set<Artifact<T>> fullyOrdered;
+    private T leftRoot;
+    private T rightRoot;
 
-    private Set<Artifact<T>> cachedRoots;
+    private Map<T, MatcherCache<T>> caches;
+    private MatcherCache<T> leftCache;
+    private MatcherCache<T> rightCache;
 
     /**
-     * Constructs a new <code>Matcher</code>.
+     * Constructs a new {@link Matcher} matching the given trees.
+     *
+     * @param leftRoot
+     *         the root of the left tree
+     * @param rightRoot
+     *         the root of the right tree
      */
-    public Matcher() {
+    public Matcher(T leftRoot, T rightRoot) {
 
         // no method reference because this syntax makes setting a breakpoint for debugging easier
         MatcherInterface<T> rootMatcher = (context, left, right) -> {
             return match(context, left, right);
         };
 
-        unorderedMatcher = new HungarianMatcher<>(rootMatcher);
-        unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
-        orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
-        mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
+        this.unorderedMatcher = new HungarianMatcher<>(rootMatcher);
+        this.unorderedLabelMatcher = new UniqueLabelMatcher<>(rootMatcher);
+        this.orderedMatcher = new SimpleTreeMatcher<>(rootMatcher);
+        this.mceSubtreeMatcher = new MCESubtreeMatcher<>(rootMatcher);
 
-        lookupTuple = UnorderedTuple.of(null, null);
-        trivialMatches = new HashMap<>();
-        equalityMatcher = new EqualityMatcher<>(null);
+        this.idSubtreeMatcher = new IdenticalSubtreeMatcher<>();
+        this.cmMatcher = new CostModelMatcher<>();
 
-        cmMatcher = new CostModelMatcher<>();
+        this.leftRoot = leftRoot;
+        this.rightRoot = rightRoot;
 
-        orderedChildren = new HashSet<>();
-        uniquelyLabeledChildren = new HashSet<>();
-        fullyOrdered = new HashSet<>();
-        cachedRoots = new HashSet<>();
+        this.caches = new HashMap<>();
     }
 
     /**
-     * Compares two nodes and returns matchings between them and possibly their sub-nodes.
+     * Constructs a new {@link Matcher} matching the given trees. All caches from {@code oldMatcher} will be reused.
+     *
+     * @param oldMatcher
+     *         the {@link Matcher} whose caches are to be reused, for convenience it may be {@code null} in which case
+     *         it is ignored
+     * @param leftRoot
+     *         the root of the left tree
+     * @param rightRoot
+     *         the root of the right tree
+     */
+    public Matcher(Matcher<T> oldMatcher, T leftRoot, T rightRoot) {
+        this(leftRoot, rightRoot);
+
+        if (oldMatcher != null) {
+            this.caches.putAll(oldMatcher.caches);
+        }
+    }
+
+    /**
+     * Removes all cached data concerning the given tree.
+     *
+     * @param root
+     *         the root of the tree whose cached information is the be removed
+     */
+    public void removeCache(T root) {
+        caches.remove(root);
+    }
+
+    /**
+     * Calculates the matchings between the trees this {@link Matcher} was constructed for and stores the resulting
+     * {@link Matching matchings} in the matched {@link Artifact artifacts}.
      *
      * @param context
-     *         <code>MergeContext</code>
-     * @param left
-     *         left node
-     * @param right
-     *         right node
+     *         the {@link MergeContext} containing the configuration values to be used for matching
      * @param color
      *         color of the matching (for debug output only)
      * @return <code>Matchings</code> of the two nodes
      */
-    public Matchings<T> match(MergeContext context, T left, T right, Color color) {
+    public Matchings<T> match(MergeContext context, Color color) {
         Matchings<T> matchings;
 
         if (context.getCMMatcherMode() == CMMode.REPLACEMENT) {
-            matchings = cmMatcher.match(context, left, right);
+            matchings = cmMatcher.match(context, leftRoot, rightRoot);
         } else {
-            cache(context, left, right);
-            matchings = match(context, left, right);
+            leftCache = caches.computeIfAbsent(leftRoot, i -> new MatcherCache<>());
+            rightCache = caches.computeIfAbsent(rightRoot, i -> new MatcherCache<>());
+            idSubtreeMatcher.matchTrees(leftRoot, rightRoot);
 
-            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(left, right).map(m -> !m.hasFullyMatched()).orElse(true)) {
-                matchings = cmMatcher.match(context, left, right, matchings);
+            matchings = match(context, leftRoot, rightRoot);
+
+            if (context.getCMMatcherMode() == CMMode.POST_PROCESSOR && matchings.get(leftRoot, rightRoot).map(m -> !m.hasFullyMatched()).orElse(true)) {
+                matchings = cmMatcher.match(context, leftRoot, rightRoot, matchings);
             }
         }
 
-        matchings.get(left, right).ifPresent(m -> {
+        matchings.get(leftRoot, rightRoot).ifPresent(m ->
             LOG.fine(() -> {
-                Revision lRev = left.getRevision();
-                Revision rRev = right.getRevision();
+                Revision lRev = leftRoot.getRevision();
+                Revision rRev = rightRoot.getRevision();
                 return String.format("Matched revision %s and %s with score %d", lRev, rRev, m.getScore());
-            });
-        });
-
-        LOG.fine(this::getLog);
+            })
+        );
 
         storeMatchings(context, matchings, color);
 
         if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(String.format("Dumping matching of %s and %s", left.getRevision(), right.getRevision()));
-            System.out.println(matchings);
+            Revision lRev = leftRoot.getRevision();
+            Revision rRev = rightRoot.getRevision();
+            String msg = String.format("Dumping matching of %s and %s%n%s", lRev, rRev, matchings);
+            LOG.finest(msg);
         }
 
         if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine(left.getRevision() + ".dumpTree():");
-            System.out.println(left.dump(DumpMode.PLAINTEXT_TREE));
-
-            LOG.fine(right.getRevision() + ".dumpTree():");
-            System.out.println(right.dump(DumpMode.PLAINTEXT_TREE));
+            LOG.fine(String.format("%s.dumpTree():%n%s", leftRoot.getRevision(), leftRoot.dump(DumpMode.PLAINTEXT_TREE)));
+            LOG.fine(String.format("%s.dumpTree():%n%s", rightRoot.getRevision(), rightRoot.dump(DumpMode.PLAINTEXT_TREE)));
         }
 
         return matchings;
-    }
-
-    /**
-     * Computes some results used during the matching of <code>left</code> and <code>right</code> and caches them.
-     *
-     * @param context
-     *         the current <code>MergeContext</code>
-     * @param left
-     *         the left node to be matched
-     * @param right
-     *         the right node to be matched
-     */
-    private void cache(MergeContext context, T left, T right) {
-        trivialMatches.clear();
-
-        if (!cachedRoots.contains(left) || !cachedRoots.contains(right)) {
-            Matchings<T> trivialMatches = new EqualityMatcher<T>(null).match(context, left, right);
-            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
-        }
-
-        if (!cachedRoots.contains(left)) {
-            cacheOrderingAndLabeling(left);
-        }
-
-        if (!cachedRoots.contains(right)) {
-            cacheOrderingAndLabeling(right);
-        }
-
-        cachedRoots.add(left);
-        cachedRoots.add(right);
-    }
-
-    /**
-     * Caches (recursively for every artifact in the tree under <code>artifact</code>) the ordering
-     * (whether the artifact itself is ordered, its children are ordered or the whole tree with <code>artifact</code>
-     * at its root is ordered) and whether the the artifact has uniquely labeled children.
-     *
-     * @param artifact
-     *         the <code>artifact</code> for which results are to be cached
-     */
-    private void cacheOrderingAndLabeling(T artifact) {
-        ArtifactList<T> children = artifact.getChildren();
-
-        children.forEach(this::cacheOrderingAndLabeling);
-
-        if (children.stream().map(T::getUniqueLabel).allMatch(Optional::isPresent)) {
-            uniquelyLabeledChildren.add(artifact);
-        }
-
-        if (children.stream().anyMatch(T::isOrdered)) {
-            orderedChildren.add(artifact);
-        }
-
-        if (children.stream().allMatch(fullyOrdered::contains) && artifact.isOrdered()) {
-            fullyOrdered.add(artifact);
-        }
     }
 
     /**
@@ -298,10 +260,7 @@ public class Matcher<T extends Artifact<T>> {
         Optional<Matchings<T>> trivialMatches = getTrivialMatchings(context, left, right);
 
         if (trivialMatches.isPresent()) {
-            calls++;
-            equalityCalls++;
             logMatcherUse(EqualityMatcher.class, left, right);
-
             return trivialMatches.get();
         }
 
@@ -343,7 +302,7 @@ public class Matcher<T extends Artifact<T>> {
 
     /**
      * Returns the trivial Matchings if <code>left</code> and <code>right</code> are exactly equal as determined by
-     * the <code>EqualityMatcher</code>.
+     * the <code>IdenticalSubtreeMatcher</code>.
      *
      * @param context
      *         the <code>MergeContext</code>
@@ -354,30 +313,8 @@ public class Matcher<T extends Artifact<T>> {
      * @return the <code>Matchings</code>
      */
     private Optional<Matchings<T>> getTrivialMatchings(MergeContext context, T left, T right) {
-        lookupTuple.setX(left);
-        lookupTuple.setY(right);
-
-        if (!equalityMatcher.didNotMatch(lookupTuple) && !trivialMatches.containsKey(lookupTuple)) {
-            Matchings<T> trivialMatches = equalityMatcher.match(context, left, right);
-            trivialMatches.forEach(m -> this.trivialMatches.put(m.getMatchedArtifacts(), m));
-        }
-
-        if (trivialMatches.containsKey(lookupTuple)) {
-            Matchings<T> matchings = new Matchings<>();
-
-            matchings.add(trivialMatches.get(lookupTuple));
-
-            Iterator<T> lIt = left.getChildren().iterator();
-            Iterator<T> rIt = right.getChildren().iterator();
-
-            while (lIt.hasNext() && rIt.hasNext()) {
-                matchings.addAll(getTrivialMatchings(context, lIt.next(), rIt.next()).get());
-            }
-
-            lookupTuple.setX(null);
-            lookupTuple.setY(null);
-
-            return Optional.of(matchings);
+        if (idSubtreeMatcher.hasMatched(left, right)) {
+            return Optional.of(idSubtreeMatcher.match(context, left, right));
         } else {
             return Optional.empty();
         }
@@ -399,31 +336,23 @@ public class Matcher<T extends Artifact<T>> {
         boolean fullyOrderedChildren = false;
 
         if (context.isUseMCESubtreeMatcher()) {
-            Stream<T> lCStr = left.getChildren().stream();
-            Stream<T> rCStr = right.getChildren().stream();
-            fullyOrderedChildren = lCStr.allMatch(fullyOrdered::contains) && rCStr.allMatch(fullyOrdered::contains);
+            boolean leftOrdered = left.getChildren().stream().allMatch(c -> leftCache.fullyOrdered(c));
+            boolean rightOrdered = right.getChildren().stream().allMatch(c -> rightCache.fullyOrdered(c));
+            fullyOrderedChildren = leftOrdered && rightOrdered;
         }
 
-        boolean onlyOrderedChildren = orderedChildren.contains(left) && orderedChildren.contains(right);
-        boolean onlyLabeledChildren = uniquelyLabeledChildren.contains(left) && uniquelyLabeledChildren.contains(right);
-
-        calls++;
+        boolean onlyOrderedChildren = leftCache.orderedChildren(left) && rightCache.orderedChildren(right);
+        boolean onlyLabeledChildren = leftCache.uniquelyLabeledChildren(left) && rightCache.uniquelyLabeledChildren(right);
 
         Matchings<T> matchings;
 
         if (fullyOrderedChildren && context.isUseMCESubtreeMatcher()) {
-            orderedCalls++;
-
             logMatcherUse(mceSubtreeMatcher.getClass(), left, right);
             matchings = mceSubtreeMatcher.match(context, left, right);
         } else if (onlyOrderedChildren) {
-            orderedCalls++;
-
             logMatcherUse(orderedMatcher.getClass(), left, right);
             matchings = orderedMatcher.match(context, left, right);
         } else {
-            unorderedCalls++;
-
             if (onlyLabeledChildren) {
                 logMatcherUse(unorderedLabelMatcher.getClass(), left, right);
                 matchings = unorderedLabelMatcher.match(context, left, right);
@@ -601,17 +530,5 @@ public class Matcher<T extends Artifact<T>> {
                 LOG.finest(String.format("Store matching for %s and %s (%s).", left.getId(), right.getId(), matching.getAlgorithm()));
             }
         }
-    }
-
-    /**
-     * Returns a formatted string describing the logged call counts.
-     *
-     * @return a log of the call counts
-     */
-    private String getLog() {
-        assert (calls == unorderedCalls + orderedCalls + equalityCalls)
-                : String.format("Wrong sum for matcher calls: %d + %d + %d != %d",
-                unorderedCalls, orderedCalls, equalityCalls, calls);
-        return "Matcher calls (all/ordered/unordered/equality): " + calls + "/" + orderedCalls + "/" + unorderedCalls + "/" + equalityCalls;
     }
 }

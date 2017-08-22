@@ -85,7 +85,7 @@ public class Revision {
         public Revision get() {
             return new Revision(nameSupplier.get());
         }
-    };
+    }
 
     /**
      * Name of the revision.
