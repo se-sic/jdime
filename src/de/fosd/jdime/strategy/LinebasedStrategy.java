@@ -79,7 +79,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      * @param operation <code>MergeOperation</code> that is executed by this strategy
      * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
      */
-    @Override
+    @Override @SuppressWarnings("try")
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         Runtime merge = new Runtime(MERGE_LABEL);
         String mergeResult;

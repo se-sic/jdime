@@ -65,7 +65,7 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
      */
-    @Override
+    @Override @SuppressWarnings("try")
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         LOG.fine(() -> {
             MergeScenario<FileArtifact> triple = operation.getMergeScenario();

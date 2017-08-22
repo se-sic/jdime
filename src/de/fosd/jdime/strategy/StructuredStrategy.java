@@ -86,9 +86,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
      * @param operation the <code>MergeOperation</code> to perform
      * @param context the <code>MergeContext</code>
      */
-    @Override
+    @Override @SuppressWarnings("try")
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        /**
+        /*
          * The method creates ASTNodeArtifacts from the input files. An ASTNodeStrategy is then applied.
          * The result is pretty printed and possibly written to the output file.
          */
