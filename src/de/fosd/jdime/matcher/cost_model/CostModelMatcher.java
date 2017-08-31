@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.Artifacts;
+import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -1208,7 +1209,17 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             for (T rNode : rightNodes) {
 
                 if (lNode != null || rNode != null) {
-                    bipartiteGraph.add(new CMMatching<>(lNode, rNode));
+
+                    if (lNode instanceof ASTNodeArtifact && rNode instanceof ASTNodeArtifact) {
+                        ASTNodeArtifact lASTNode = (ASTNodeArtifact) lNode;
+                        ASTNodeArtifact rASTNode = (ASTNodeArtifact) rNode;
+
+                        if (lASTNode.getASTNode().getClass().equals(rASTNode.getASTNode().getClass())) {
+                            bipartiteGraph.add(new CMMatching<>(lNode, rNode));
+                        }
+                    } else {
+                        bipartiteGraph.add(new CMMatching<>(lNode, rNode));
+                    }
                 }
             }
         }

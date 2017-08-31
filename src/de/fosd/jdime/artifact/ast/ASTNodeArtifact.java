@@ -200,7 +200,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *
      * @return the encapsulated AST node
      */
-    protected final ASTNode<?> getASTNode() {
+    public final ASTNode<?> getASTNode() {
         return astnode;
     }
 
