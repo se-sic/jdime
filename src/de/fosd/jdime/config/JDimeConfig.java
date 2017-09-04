@@ -34,6 +34,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
@@ -201,6 +202,7 @@ public final class JDimeConfig extends Config {
      * fails.
      */
     private static final String LOGGING_CONFIG_FILE_PROPERTY = "java.util.logging.config.file";
+    private static final String LOGGING_CONFIG_FILE = "JDimeLogging.properties";
     private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
 
     private CommandLineConfigSource cmdLine;
@@ -292,16 +294,33 @@ public final class JDimeConfig extends Config {
      */
     private static void checkLoggingConfig() {
         String logConfigProperty = System.getProperty(LOGGING_CONFIG_FILE_PROPERTY);
+        File configFile;
 
-        if (logConfigProperty == null || !(new File(logConfigProperty).exists())) {
-            InputStream config = JDimeConfig.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE);
+        if (System.getProperty(LOGGING_CONFIG_FILE_PROPERTY) == null) {
+            configFile = new File(LOGGING_CONFIG_FILE);
+        } else {
+            configFile = new File(logConfigProperty);
+        }
 
-            try {
-                LogManager.getLogManager().readConfiguration(config);
-            } catch (IOException e) {
-                System.err.println("Could not configure the LogManager.");
-                e.printStackTrace();
+        try {
+            if (configFile.exists() && logConfigProperty == null) {
+                System.setProperty(LOGGING_CONFIG_FILE_PROPERTY, configFile.getAbsolutePath());
+                LogManager.getLogManager().readConfiguration();
+            } else {
+                System.err.println("Logging configuration file " + configFile + " does not exist. " +
+                                   "Falling back to defaults.");
+
+                try (InputStream is = JDimeConfig.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE)) {
+                    if (is != null) {
+                        LogManager.getLogManager().readConfiguration(is);
+                    } else {
+                        System.err.println("Could not find the default logging configuration.");
+                    }
+                }
             }
+        } catch (IOException e) {
+            System.err.println("Failed to configure logging.");
+            e.printStackTrace();
         }
     }
 
