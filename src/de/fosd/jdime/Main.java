@@ -76,6 +76,13 @@ public final class Main {
     private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
 
     static {
+        /*
+         * Logging has to be configured FIRST before any classes are loaded whose initialization of static
+         * fields includes calls to Logger#getLogger. Loggers constructed before the correct configuration was
+         * read will not be fixed by a later call to LogManager#readConfiguration. There is no easy way to
+         * manually fix all constructed Logger instances.
+         */
+
         readLoggingConfig();
         LOG = Logger.getLogger(Main.class.getCanonicalName());
     }
