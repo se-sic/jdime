@@ -25,12 +25,10 @@ package de.fosd.jdime.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
@@ -197,22 +195,12 @@ public final class JDimeConfig extends Config {
      */
     public static final String JDIME_COMMIT = "JDIME_COMMIT";
 
-    /**
-     * Values used for configuring the <code>LogManager</code> in case configuration via the external .properties file
-     * fails.
-     */
-    private static final String LOGGING_CONFIG_FILE_PROPERTY = "java.util.logging.config.file";
-    private static final String LOGGING_CONFIG_FILE = "JDimeLogging.properties";
-    private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
-
     private CommandLineConfigSource cmdLine;
 
     /**
      * Constructs a new <code>JDimeConfig</code> that assumes no command line arguments were given.
      */
     public JDimeConfig() {
-        checkLoggingConfig();
-
         try {
             addConfigSources(new String[] {});
         } catch (ParseException ignored) {
@@ -233,7 +221,6 @@ public final class JDimeConfig extends Config {
      *         if there is an exception parsing the command line arguments
      */
     public JDimeConfig(String[] args) throws ParseException {
-        checkLoggingConfig();
         addConfigSources(args);
     }
 
@@ -282,46 +269,6 @@ public final class JDimeConfig extends Config {
      */
     public CommandLineConfigSource getCmdLine() {
         return cmdLine;
-    }
-
-    /**
-     * The system property <code>java.util.logging.config.file</code> is set by the script starting JDime to the
-     * relative path <code>JDimeLogging.properties</code>. If the working directory is not the directory in which the
-     * <code>JDimeLogging.properties</code> file is located then the <code>LogManager</code> will not be correctly
-     * configured. In this case this method configures the <code>LogManager</code> using the default logging
-     * configuration. This will ensure that there is a suitably configured <code>ConsoleHandler</code> and that
-     * {@link #setLogLevel(String)} works as intended regardless of the working directory.
-     */
-    private static void checkLoggingConfig() {
-        String logConfigProperty = System.getProperty(LOGGING_CONFIG_FILE_PROPERTY);
-        File configFile;
-
-        if (System.getProperty(LOGGING_CONFIG_FILE_PROPERTY) == null) {
-            configFile = new File(LOGGING_CONFIG_FILE);
-        } else {
-            configFile = new File(logConfigProperty);
-        }
-
-        try {
-            if (configFile.exists() && logConfigProperty == null) {
-                System.setProperty(LOGGING_CONFIG_FILE_PROPERTY, configFile.getAbsolutePath());
-                LogManager.getLogManager().readConfiguration();
-            } else {
-                System.err.println("Logging configuration file " + configFile + " does not exist. " +
-                                   "Falling back to defaults.");
-
-                try (InputStream is = JDimeConfig.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE)) {
-                    if (is != null) {
-                        LogManager.getLogManager().readConfiguration(is);
-                    } else {
-                        System.err.println("Could not find the default logging configuration.");
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Failed to configure logging.");
-            e.printStackTrace();
-        }
     }
 
     /**

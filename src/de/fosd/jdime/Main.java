@@ -26,6 +26,7 @@ package de.fosd.jdime;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -51,6 +53,8 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
@@ -62,7 +66,19 @@ import static de.fosd.jdime.config.JDimeConfig.*;
  */
 public final class Main {
 
-    private static final Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
+    private static final Logger LOG;
+
+    /**
+     * Values used for configuring the <code>LogManager</code> in {@link #readLoggingConfig()}.
+     */
+    private static final String LOGGING_CONFIG_FILE_PROPERTY = "java.util.logging.config.file";
+    private static final String LOGGING_CONFIG_FILE = "JDimeLogging.properties";
+    private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
+
+    static {
+        readLoggingConfig();
+        LOG = Logger.getLogger(Main.class.getCanonicalName());
+    }
 
     public static final String TOOLNAME = "jdime";
     public static final String VERSION = "0.4-develop";
@@ -345,6 +361,52 @@ public final class Main {
 
         context.configureFrom(config);
         return true;
+    }
+
+    /**
+     * Ensures that logging is configured. If the system property is set to an existing file then nothing is done as
+     * that config was already read at JVM startup. If not, a file named {@value LOGGING_CONFIG_FILE} in
+     * the working directory is used if it exists. If it does not, the default configuration file is read from the
+     * classpath.
+     */
+    private static void readLoggingConfig() {
+
+        {
+            String logConfigProperty = System.getProperty(LOGGING_CONFIG_FILE_PROPERTY);
+
+            if (logConfigProperty != null && new File(logConfigProperty).exists()) {
+                // The config file was already read at JVM startup.
+                return;
+            }
+        }
+
+        try {
+            File configFile = new File(LOGGING_CONFIG_FILE);
+            InputStream is;
+
+            if (configFile.exists()) {
+                is = FileUtils.openInputStream(configFile);
+            } else {
+                System.err.println("Logging configuration file " + configFile + " does not exist. " +
+                                   "Falling back to defaults.");
+
+                is = Main.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE);
+
+                if (is == null) {
+                    System.err.println("Could not find the default logging configuration.");
+                    return;
+                }
+            }
+
+            try {
+                LogManager.getLogManager().readConfiguration(is);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to configure logging.");
+            e.printStackTrace();
+        }
     }
 
     /**
