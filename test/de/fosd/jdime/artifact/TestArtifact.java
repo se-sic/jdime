@@ -122,6 +122,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
+    public boolean categoryMatches(TestArtifact other) {
+        return this.type == other.type;
+    }
+
+    @Override
     public void merge(MergeOperation<TestArtifact> operation, MergeContext context) {
 
     }

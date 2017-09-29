@@ -763,6 +763,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     public abstract boolean matches(T other);
 
     /**
+     * Returns true, if this <code>Artifact</code> is assigned the same
+     * category as the other <code>Artifact</code>.
+     *
+     * @param other
+     *            other <code>Artifact</code>
+     * @return true, if the <code>Artifact</code>s' categories match
+     */
+    public abstract boolean categoryMatches(T other);
+
+    /**
      * Performs a merge on the provided merge triple.
      * This method selects the <code>MergeStrategy</code> and triggers the merge.
      *

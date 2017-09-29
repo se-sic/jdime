@@ -200,7 +200,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      *
      * @return the encapsulated AST node
      */
-    public final ASTNode<?> getASTNode() {
+    protected final ASTNode<?> getASTNode() {
         return astnode;
     }
 
@@ -394,6 +394,11 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         });
 
         return astnode.matches(other.astnode);
+    }
+
+    @Override
+    public final boolean categoryMatches(ASTNodeArtifact other) {
+        return astnode.getClass().equals(other.astnode.getClass());
     }
 
     @Override

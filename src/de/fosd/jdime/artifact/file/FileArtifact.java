@@ -650,6 +650,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     @Override
+    public boolean categoryMatches(FileArtifact other) {
+        return isDirectory() && other.isDirectory() || isFile() && other.isFile();
+    }
+
+    @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         Objects.requireNonNull(operation, "operation must not be null!");
         Objects.requireNonNull(context, "context must not be null!");
