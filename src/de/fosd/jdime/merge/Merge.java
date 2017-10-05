@@ -36,8 +36,8 @@ import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.Matcher;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.operations.AddOperation;
 import de.fosd.jdime.operations.ConflictOperation;
-import de.fosd.jdime.operations.DeleteOperation;
 import de.fosd.jdime.operations.MergeOperation;
 
 import static de.fosd.jdime.artifact.Artifacts.root;
@@ -141,50 +141,49 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
         LOG.finest(() -> String.format("%s -> (%s)", prefix(left), leftChildren));
         LOG.finest(() -> String.format("%s -> (%s)", prefix(right), rightChildren));
 
-        if ((base.isEmpty() || base.hasChildren()) && (leftChildren.isEmpty() || rightChildren.isEmpty())) {
-            if (leftChildren.isEmpty() && rightChildren.isEmpty()) {
+        if (!left.hasChildren() || !right.hasChildren()) {
+
+            if (!left.hasChildren() && !right.hasChildren()) {
                 LOG.finest(() -> String.format("%s and [%s] have no children", prefix(left), right.getId()));
                 return;
-            } else if (leftChildren.isEmpty()) {
+            } else if (!left.hasChildren()) {
                 LOG.finest(() -> String.format("%s has no children", prefix(left)));
-                LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
 
-                if (right.hasChanges(b)) {
+                if (!base.hasChildren() || !right.hasChanges(b)) {
+
+                    for (T rightChild : right.getChildren()) {
+                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, triple, r.getName());
+                        addOp.apply(context);
+                    }
+                    return;
+                } else {
+                    LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
                     LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
                     for (T rightChild : right.getChildren()) {
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                null, rightChild, target, l.getName(), r.getName());
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, l.getName(), r.getName());
                         conflictOp.apply(context);
-                    }
-                    return;
-                } else {
-
-                    for (T rightChild : rightChildren) {
-
-                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, triple, l.getName());
-                        delOp.apply(context);
                     }
                     return;
                 }
-            } else if (rightChildren.isEmpty()) {
+            } else if (!right.hasChildren()) {
                 LOG.finest(() -> String.format("%s has no children", prefix(right)));
-                LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
 
-                if (left.hasChanges(b)) {
-                    LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
+
+                if (!base.hasChildren() || !left.hasChanges(b)) {
 
                     for (T leftChild : left.getChildren()) {
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                leftChild, null, target, l.getName(), r.getName());
-                        conflictOp.apply(context);
+                        AddOperation<T> addOp = new AddOperation<>(leftChild, target, triple, l.getName());
+                        addOp.apply(context);
                     }
                     return;
                 } else {
+                    LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
+                    LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
-                    for (T leftChild : leftChildren) {
-                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, triple, r.getName());
-                        delOp.apply(context);
+                    for (T leftChild : left.getChildren()) {
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, l.getName(), r.getName());
+                        conflictOp.apply(context);
                     }
                     return;
                 }
