@@ -23,23 +23,23 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.parser.ParseResult;
+import de.uni_passau.fim.seibt.GitMergeFileInput;
+import de.uni_passau.fim.seibt.GitMergeFileOptions;
+import de.uni_passau.fim.seibt.GitMergeFileResult;
+import de.uni_passau.fim.seibt.LibGit2;
+
+import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Performs an unstructured, line based merge.
@@ -51,16 +51,13 @@ import de.fosd.jdime.stats.parser.ParseResult;
 public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
 
     private static final Logger LOG = Logger.getLogger(LinebasedStrategy.class.getCanonicalName());
-    
+
     /**
-     * The command to use for merging.
+     * Constructs a new {@link LinebasedStrategy}.
      */
-    private static final String BASECMD = "git";
-    
-    /**
-     * The arguments for <code>BASECMD</code>.
-     */
-    private static final List<String> BASEARGS = Arrays.asList("merge-file", "-q", "-p");
+    public LinebasedStrategy() {
+        LOG.fine("Constructing a " + getClass().getSimpleName() + " using libgit2 " + LibGit2.git_libgit2_version());
+    }
 
     /**
      * This line-based <code>merge</code> method uses the merging routine of
@@ -82,95 +79,70 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
      * @param operation <code>MergeOperation</code> that is executed by this strategy
      * @param context <code>MergeContext</code> that is used to retrieve environmental parameters
      */
-    @Override
+    @Override @SuppressWarnings("try")
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
-        MergeScenario<FileArtifact> triple = operation.getMergeScenario();
-        FileArtifact target = null;
+        Runtime merge = new Runtime(MERGE_LABEL);
+        String mergeResult;
 
-        if (!context.isDiffOnly() && operation.getTarget() != null) {
-            target = operation.getTarget();
-
-            if (target.exists() && !target.isEmpty()) {
-                throw new AssertionError(String.format("Would be overwritten: %s", target));
-            }
+        try (Runtime.Measurement m = merge.time()) {
+            mergeResult = mergeFiles(operation);
         }
 
-        context.resetStreams();
+        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
-        List<String> cmd = new ArrayList<>();
-        cmd.add(BASECMD);
-        cmd.addAll(BASEARGS);
-        cmd.addAll(triple.asList().stream().limit(3).map(FileArtifact::getPath).collect(Collectors.toList()));
-
-        ProcessBuilder pb = new ProcessBuilder(cmd);
-
-        LOG.fine(() -> "Running external command: " + String.join(" ", cmd));
-        long runtime, startTime = System.currentTimeMillis();
-        Process pr;
-
-        try {
-            pr = pb.start();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not run '" + String.join(" ", cmd) + "'.", e);
+        if (!context.isDiffOnly()) {
+            operation.getTarget().setContent(mergeResult);
         }
 
-        StringBuilder processOutput = new StringBuilder();
-        StringBuilder processErrorOutput = new StringBuilder();
-        String ls = System.lineSeparator();
-
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
-            String line;
-
-            while ((line = r.readLine()) != null) {
-                processOutput.append(line).append(ls);
-            }
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process output.");
-        }
-
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(pr.getErrorStream()))) {
-            String line;
-
-            while ((line = r.readLine()) != null) {
-                processErrorOutput.append(line).append(ls);
-            }
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, e, () -> "Could not fully read the process error output.");
-        }
-
-        context.append(processOutput.toString());
-        context.appendError(processErrorOutput.toString());
-
-        try {
-            pr.waitFor();
-        } catch (InterruptedException e) {
-            LOG.log(Level.WARNING, e, () -> "Interrupted while waiting for the external command to finish.");
-        }
-
-        runtime = System.currentTimeMillis() - startTime;
-
-        LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), runtime));
-
-        if (context.hasErrors()) {
-            LOG.severe(() -> String.format("Errors occurred while calling '%s'%n%s", String.join(" ", cmd), context.getStdErr()));
-        }
-
-        if (!context.isPretend() && target != null) {
-            LOG.fine("Writing output to: " + target.getFullPath());
-            target.write(context.getStdIn());
-        }
-
-        if (context.hasStatistics()) {
+        // TODO this filters out method specific statistics in semistructured mode, they should instead be marked somehow but kept in the XML
+        if (context.hasStatistics() && !context.isSemiStructured()) {
             Statistics statistics = context.getStatistics();
-            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
-            ParseResult res = scenarioStatistics.setLineStatistics(processOutput.toString());
+            MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(operation.getMergeScenario());
+            ParseResult res = scenarioStatistics.setLineStatistics(mergeResult);
 
             if (res.getConflicts() > 0) {
                 scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
             }
 
-            scenarioStatistics.setRuntime(runtime);
+            scenarioStatistics.putRuntime(merge);
             statistics.addScenarioStatistics(scenarioStatistics);
         }
+    }
+
+    /**
+     * Merges the contents of the {@link FileArtifact FileArtifacts} contained in the {@link MergeScenario} that is
+     * being merged in the {@link MergeOperation} {@code op}.
+     *
+     * @param op
+     *         the current {@link MergeOperation}
+     * @return the merged file contents
+     */
+    private String mergeFiles(MergeOperation<FileArtifact> op) {
+        FileArtifact leftFile = op.getMergeScenario().getLeft();
+        FileArtifact baseFile = op.getMergeScenario().getBase();
+        FileArtifact rightFile = op.getMergeScenario().getRight();
+
+        String leftL = leftFile.getFile().getPath();
+        String baseL = baseFile.getFile().getPath();
+        String rightL = rightFile.getFile().getPath();
+
+        GitMergeFileOptions opts = new GitMergeFileOptions();
+        GitMergeFileResult res = new GitMergeFileResult();
+
+        GitMergeFileInput left = new GitMergeFileInput();
+        left.setContent(leftFile.getContent(), UTF_8);
+        opts.our_label = leftL;
+
+        GitMergeFileInput base = new GitMergeFileInput();
+        base.setContent(baseFile.getContent(), UTF_8);
+        opts.ancestor_label = baseL;
+
+        GitMergeFileInput right = new GitMergeFileInput();
+        right.setContent(rightFile.getContent(), UTF_8);
+        opts.their_label = rightL;
+
+        LibGit2.git_merge_file(res, base, left, right, opts);
+
+        return res.getResult(UTF_8);
     }
 }

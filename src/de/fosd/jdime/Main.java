@@ -23,45 +23,36 @@
  */
 package de.fosd.jdime;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
-import de.fosd.jdime.config.merge.MergeType;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.strategy.StrategyNotFoundException;
 import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
 import static de.fosd.jdime.config.JDimeConfig.*;
@@ -99,7 +90,14 @@ public final class Main {
         try {
             run(args);
         } catch (AbortException e) {
-            LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
+
+            if (e.getCause() != null) {
+                LOG.log(Level.SEVERE, e.getCause(), () -> "Aborting the merge.");
+            } else {
+                System.err.println(e.getMessage());
+                LOG.log(Level.FINE, e, () -> "Aborting the merge.");
+            }
+
             System.exit(EXIT_ABORTED);
         } catch (Throwable e) {
             LOG.log(Level.SEVERE, e, () -> "Uncaught exception.");
@@ -113,102 +111,90 @@ public final class Main {
      * @param args
      *         command line arguments
      */
-    public static void run(String[] args) throws IOException, ParseException, InterruptedException {
+    public static void run(String[] args) {
         MergeContext context = new MergeContext();
 
         if (!parseCommandLineArgs(context, args)) {
             return;
         }
 
-        ArtifactList<FileArtifact> inputFiles = context.getInputFiles();
-        FileArtifact output = context.getOutputFile();
-
-        for (FileArtifact inputFile : inputFiles) {
-
-            if (inputFile.isDirectory() && !context.isRecursive()) {
-                String msg = "To merge directories, the argument '-r' has to be supplied. See '-help' for more information!";
-
-                LOG.severe(msg);
-                System.err.println(msg);
-
-                return;
-            }
-        }
-
-        if (output != null && output.exists() && !output.isEmpty()) {
-            boolean overwrite;
-
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(System.in))) {
-                System.err.println("Output directory is not empty!");
-                System.err.println("Delete '" + output.getFullPath() + "'? [y/N]");
-
-                String response = r.readLine().trim().toLowerCase();
-                overwrite = response.length() != 0 && response.charAt(0) == 'y';
-            }
-
-            if (overwrite) {
-                LOG.warning("File exists and will be overwritten.");
-
-                output.remove();
-
-                if (output.isDirectory()) {
-                    FileUtils.forceMkdir(output.getFile());
-                }
-            } else {
-                String msg = "File exists and will not be overwritten.";
-
-                LOG.severe(msg);
-                System.err.println(msg);
-
-                return;
-            }
-
-        }
+        List<FileArtifact> inputFiles = context.getInputFiles();
 
         if (context.isInspect()) {
-            inspectElement(context.getInputFiles().get(0), context.getInspectArtifact(),
-                    context.getInspectionScope());
-        } else if (context.getDumpMode() != DumpMode.NONE) {
-
-            for (FileArtifact artifact : context.getInputFiles()) {
-                dump(artifact, context.getDumpMode());
-            }
-        } else {
-            if (context.getInputFiles().size() < MergeType.MINFILES) {
-                printCLIHelp();
-                return;
-            }
-
-            merge(context);
-
-            if (context.hasStatistics()) {
-                outputStatistics(context.getStatistics());
-            }
+            inspectElement(inputFiles.get(0), context.getInspectArtifact(), context.getInspectionScope());
+            return;
         }
 
-        if (LOG.isLoggable(Level.CONFIG)) {
+        if (context.getDumpMode() != DumpMode.NONE) {
+            inputFiles.forEach(artifact -> dump(artifact, context.getDumpMode()));
+            return;
+        }
+
+        try {
+            merge(context);
+            output(context);
+        } finally {
+            outputStatistics(context);
+        }
+
+        if (LOG.isLoggable(Level.FINE)) {
             Map<MergeScenario<?>, Throwable> crashes = context.getCrashes();
-            String ls = System.lineSeparator();
-            StringBuilder sb = new StringBuilder();
 
-            sb.append(String.format("%d crashes occurred while merging:%n", crashes.size()));
+            if (crashes.isEmpty()) {
+                LOG.fine("No crashes occurred while merging.");
+            } else {
+                String ls = System.lineSeparator();
+                StringBuilder sb = new StringBuilder();
 
-            for (Map.Entry<MergeScenario<?>, Throwable> entry : crashes.entrySet()) {
-                sb.append("* ").append(entry.getValue().toString()).append(ls);
-                sb.append("    ").append(entry.getKey().toString().replace(" ", ls + "    ")).append(ls);
+                sb.append(String.format("%d crashes occurred while merging:%n", crashes.size()));
+
+                for (Map.Entry<MergeScenario<?>, Throwable> entry : crashes.entrySet()) {
+                    sb.append("* ").append(entry.getValue().toString()).append(ls);
+                    sb.append("    ").append(entry.getKey().toString().replace(" ", ls + "    ")).append(ls);
+                }
+
+                LOG.fine(sb.toString());
             }
-
-            LOG.config(sb.toString());
         }
     }
 
     /**
-     * Outputs the given <code>Statistics</code> according to the set configuration options.
+     * Outputs the merge result to the filesystem or stdout depending on the {@link MergeContext} configuration.
      *
-     * @param statistics
-     *         the <code>Statistics</code> to output
+     * @param context
+     *         the {@link MergeContext} whose {@link MergeContext#getOutputFile()} to use
      */
-    private static void outputStatistics(Statistics statistics) {
+    private static void output(MergeContext context) {
+        FileArtifact outFile = context.getOutputFile();
+
+        if (context.isPretend()) {
+            if (!context.isQuiet()) {
+                outFile.outputContent(System.out);
+            }
+        } else {
+            try {
+                outFile.writeContent();
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not write the merge result to the filesystem.");
+            }
+        }
+    }
+
+    /**
+     * Outputs the {@link Statistics} in the given {@link MergeContext}. Does nothing if the {@link MergeContext} does
+     * not contain {@link Statistics}.
+     *
+     * @param context
+     *         the {@link MergeContext} containing the {@link Statistics} to output
+     */
+    private static void outputStatistics(MergeContext context) {
+
+        if (!context.hasStatistics()) {
+            return;
+        }
+
+        Statistics statistics = context.getStatistics();
+
         String hrOut = config.get(STATISTICS_HR_OUTPUT).orElse(STATISTICS_OUTPUT_STDOUT);
         String xmlOut = config.get(STATISTICS_XML_OUTPUT).orElse(STATISTICS_OUTPUT_OFF);
 
@@ -244,7 +230,7 @@ public final class Main {
                 LOG.fine("XML statistics output is disabled.");
                 break;
             case STATISTICS_OUTPUT_STDOUT:
-                statistics.printXML(System.out);
+                statistics.printXML(System.out, context);
                 System.out.println();
                 break;
             default: {
@@ -260,7 +246,7 @@ public final class Main {
                 }
 
                 try {
-                    statistics.printXML(f);
+                    statistics.printXML(f, context);
                 } catch (FileNotFoundException e) {
                     LOG.log(Level.WARNING, e, () -> "Statistics output failed.");
                 }
@@ -333,7 +319,7 @@ public final class Main {
 
         Main.config = config;
 
-        if (config.getBoolean(CLI_HELP).orElse(false)) {
+        if (args.length == 0 || config.getBoolean(CLI_HELP).orElse(false)) {
             printCLIHelp();
             return false;
         }
@@ -350,50 +336,14 @@ public final class Main {
             return false;
         }
 
-        Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
-
-            try {
-                return Optional.of(DumpMode.valueOf(mode.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                LOG.log(Level.WARNING, e, () -> "Invalid dump format " + mode);
-                return Optional.of(DumpMode.NONE);
-            }
-        };
-
-        Optional<Integer> inspectElement = config.getInteger(CLI_INSPECT_ELEMENT);
-        KeyEnums.Type scope = null;
-
-        if (inspectElement.isPresent()) {
-            scope = KeyEnums.Type.NODE;
-        } else if ((inspectElement = config.getInteger(CLI_INSPECT_METHOD)).isPresent()) {
-            scope = KeyEnums.Type.METHOD;
-        }
-
-        context.setInspectArtifact(inspectElement.orElse(0));
-        context.setInspectionScope(scope);
-
-        context.setDumpMode(config.get(CLI_DUMP, dmpModeParser).orElse(DumpMode.NONE));
-
         Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
 
-        if (mode.isPresent()) {
-
-            if (MODE_LIST.equals(mode.get())) {
-                printStrategies();
-                return false;
-            } else {
-
-                try {
-                    context.setMergeStrategy(MergeStrategy.parse(mode.get()));
-                } catch (StrategyNotFoundException e) {
-                    LOG.log(Level.SEVERE, e, () -> "Strategy not found.");
-                    return false;
-                }
-            }
+        if (mode.isPresent() && MODE_LIST.equals(mode.get())) {
+            printStrategies();
+            return false;
         }
 
         context.configureFrom(config);
-
         return true;
     }
 
@@ -413,13 +363,9 @@ public final class Main {
      *
      * @param context
      *         merge context
-     * @throws InterruptedException
-     *         If a thread is interrupted
-     * @throws IOException
-     *         If an input output exception occurs
      */
-    public static void merge(MergeContext context) throws IOException, InterruptedException {
-        ArtifactList<FileArtifact> inFiles = context.getInputFiles();
+    public static void merge(MergeContext context) {
+        List<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
 
         if (context.isFilterInputDirectories()) {
@@ -427,7 +373,7 @@ public final class Main {
         }
 
         boolean conditional = context.isConditionalMerge();
-        MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, null, null, conditional);
+        MergeOperation<FileArtifact> merge = new MergeOperation<>(inFiles, outFile, conditional);
 
         merge.apply(context);
     }

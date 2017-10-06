@@ -113,7 +113,7 @@ public class EqualityMatcher<T extends Artifact<T>> extends OrderedMatcher<T> {
             });
         }
 
-        matchings.stream().forEach(m -> m.setAlgorithm(ID));
+        matchings.forEach(m -> m.setAlgorithm(ID));
 
         return matchings;
     }

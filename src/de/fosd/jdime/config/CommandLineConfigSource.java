@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.fosd.jdime.matcher.cost_model.CMMode;
+import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.kvconfig.sources.ConfigSource;
 import org.apache.commons.cli.CommandLine;
@@ -63,7 +64,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_OUTPUT = "o";
     public static final String CLI_RECURSIVE = "r";
     public static final String CLI_STATS = "s";
-    public static final String CLI_PRINT = "p";
+    public static final String CLI_PRETEND = "p";
     public static final String CLI_QUIET = "q";
     public static final String CLI_VERSION = "v";
     public static final String CLI_PROP_FILE = "pf";
@@ -170,7 +171,7 @@ public class CommandLineConfigSource extends ConfigSource {
 
         o = Option.builder(CLI_LOOKAHEAD)
                 .longOpt("lookahead")
-                .desc("Use heuristics for matching. Supply off, full, or a number as argument.")
+                .desc("Use heuristics for matching. Supply 'off', 'full', or a non-negative integer as the argument.")
                 .hasArg()
                 .argName("level")
                 .build();
@@ -195,15 +196,20 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_MODE)
-                .longOpt("mode")
-                .desc("Set the mode to one of (unstructured, structured, autotuning, dumptree, dumpgraph, dumpfile, " +
-                        "prettyprint, nway)")
-                .hasArg()
-                .argName("mode")
-                .build();
+        {
+            String strategies = String.join(", ", MergeStrategy.listStrategies());
 
-        options.addOption(o);
+            o = Option.builder(CLI_MODE)
+                            .longOpt("mode")
+                            .desc("Set the mode to one of (" + strategies + ") or a comma separated combination " +
+                                    "thereof. In the latter case the strategies will be executed in order until one " +
+                                    "does not produce conflicts.")
+                            .hasArg()
+                            .argName("mode")
+                            .build();
+
+            options.addOption(o);
+        }
 
         {
             String formats = Arrays.stream(DumpMode.values()).map(DumpMode::name).reduce("", (s, s2) -> s + " " + s2);
@@ -243,9 +249,9 @@ public class CommandLineConfigSource extends ConfigSource {
 
         options.addOption(o);
 
-        o = Option.builder(CLI_PRINT)
-                .longOpt("print")
-                .desc("(print/pretend) Prints the merge result to stdout instead of an output file.")
+        o = Option.builder(CLI_PRETEND)
+                .longOpt("pretend")
+                .desc("Prints the merge result to stdout instead of an output file.")
                 .hasArg(false)
                 .build();
 
@@ -329,7 +335,7 @@ public class CommandLineConfigSource extends ConfigSource {
                 .desc("Accepts a comma separated list of two percentages. <float fixLower>,<float fixUpper> both " +
                         "from the range [0, 1]. If these percentages are given, a random number (from the given range) " +
                         "of matchings from the previous iteration will be fixed for the next.")
-                .hasArg(false)
+                .hasArg(true)
                 .build();
 
         options.addOption(o);
@@ -376,14 +382,10 @@ public class CommandLineConfigSource extends ConfigSource {
         Option opt = options.getOption(key);
         String optName = opt.getOpt();
 
-        if (!cmdLine.hasOption(optName)) {
-            return Optional.empty();
-        }
-
         if (opt.hasArg()) {
-            return Optional.of(cmdLine.getOptionValue(optName));
+            return Optional.ofNullable(cmdLine.getOptionValue(optName));
         } else {
-            return Optional.of("true");
+            return Optional.of(cmdLine.hasOption(optName) ? "true" : "false");
         }
     }
 }

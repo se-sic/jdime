@@ -218,4 +218,20 @@ public final class Artifacts {
     public static <T extends Artifact<T>> Iterable<T> dfsIterable(T treeRoot) {
         return () -> new DFSIterator<>(treeRoot);
     }
+
+    /**
+     * Copies the given tree of {@link Artifact Artifacts}.
+     *
+     * @param treeRoot
+     *         the root of the tree to copy
+     * @param <T>
+     *         the {@code Artifact} type
+     * @return the root of the copied tree
+     */
+    public static <T extends Artifact<T>> T copyTree(T treeRoot) {
+        T copy = treeRoot.copy();
+        treeRoot.getChildren().forEach(c -> copy.addChild(copyTree(c)));
+
+        return copy;
+    }
 }

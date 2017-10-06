@@ -36,6 +36,8 @@ import java.util.logging.Logger;
 import de.fosd.jdime.Main;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
@@ -62,6 +64,12 @@ public final class JDimeConfig extends Config {
      * (possibly indirectly) containing such files before merging. Defaults to true.
      */
     public static final String FILTER_INPUT_DIRECTORIES = "FILTER_INPUT_DIRECTORIES";
+
+    /**
+     * Whether to fall back to a two way merge if three inputs are given but the base {@link FileArtifact} does not
+     * exist. Defaults to false.
+     */
+    public static final String TWOWAY_FALLBACK = "TWOWAY_FALLBACK";
 
     /**
      * The default value for the 'Args' text field in the GUI.
@@ -157,6 +165,12 @@ public final class JDimeConfig extends Config {
      * @see #STATISTICS_OUTPUT_USE_UNIQUE_FILES
      */
     public static final String STATISTICS_XML_OUTPUT = "STATISTICS_XML_OUTPUT";
+
+    /**
+     * A comma separated list of field names from the {@link MergeScenarioStatistics} class that should be excluded
+     * when serializing the {@link Statistics}. The 'Statistics' word at the end of field names may be omitted.
+     */
+    public static final String STATISTICS_XML_EXCLUDE_MSS_FIELDS = "STATISTICS_XML_EXCLUDE_MSS_FIELDS";
 
     /**
      * A {@link String#format(Locale, String, Object...)} pattern to be used when creating a new file to write

@@ -46,7 +46,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
     @BeforeClass
     public static void init() throws Exception {
         JDimeConfig.setLogLevel("WARNING");
-        testFile = file("threeway", "left", "SimpleTests", "Bag", "Bag2.java");
+        testFile = file(leftDir, "SimpleTests", "Bag", "Bag2.java");
     }
 
     @Test
@@ -58,11 +58,14 @@ public class ASTNodeArtifactTest extends JDimeTest {
         }
     }
 
-    private static final String prettyPrintExpected = "class Bag {\n" +
+    private static final String prettyPrintExpected = "\n" +
+                                                      "class Bag {\n" +
                                                       "  int[] values;\n" +
+                                                      "\n" +
                                                       "  Bag(int[] v) {\n" +
                                                       "    values = v;\n" +
                                                       "  }\n" +
+                                                      "\n" +
                                                       "  int[] get() {\n" +
                                                       "    return values;\n" +
                                                       "  }\n" +
@@ -73,8 +76,7 @@ public class ASTNodeArtifactTest extends JDimeTest {
         try {
             ASTNodeArtifact artifact = new ASTNodeArtifact(new FileArtifact(testRevision, testFile));
             String prettyPrinted = artifact.prettyPrint();
-
-            assertEquals(prettyPrintExpected, prettyPrinted);
+            assertEquals(normalize(prettyPrintExpected), normalize(prettyPrinted));
         } catch (Exception e) {
             fail(e.toString());
         }

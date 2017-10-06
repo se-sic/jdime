@@ -26,7 +26,7 @@ package de.fosd.jdime.strdump.graphviz;
 import java.io.PrintWriter;
 
 /**
- * Representation of a DOT language edge of the form "ID (-- | ->) ID".
+ * Representation of a DOT language edge of the form "ID (-- | -&gt;) ID".
  */
 public final class GraphvizEdge extends GraphvizStatement {
 
