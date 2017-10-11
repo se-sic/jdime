@@ -1,17 +1,4 @@
-import org.ajoberstar.grgit.Grgit
-
 import java.nio.file.Paths
-
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "org.ajoberstar:grgit:2.0.1"
-    }
-}
 
 rootProject.name = 'JDime'
 
@@ -22,7 +9,32 @@ def jNativeMergeDir = Paths.get(rootProject.projectDir.absolutePath, '..', jNati
 
 if (!jNativeMergeDir.exists()) {
     logger.lifecycle("Cloning $jNativeMergeName dependency...")
-    Grgit.clone(dir: jNativeMergeDir, refToCheckout: jNativeMergeBranch, uri: jNativeMergeURI).close()
+
+    ProcessBuilder cloneBuilder = new ProcessBuilder('git', 'clone', jNativeMergeURI, jNativeMergeName)
+    cloneBuilder.directory(new File('..'))
+    cloneBuilder.redirectErrorStream(true)
+
+    Process clone = cloneBuilder.start()
+    def output = clone.inputStream.text
+
+    if (clone.waitFor() != 0) {
+        logger.error('Failed to clone ' + jNativeMergeURI)
+        logger.error(output)
+        throw new GradleException('Failed to clone dependencies.')
+    } else {
+        ProcessBuilder checkoutBuilder = new ProcessBuilder('git', 'checkout', jNativeMergeBranch)
+        checkoutBuilder.directory(jNativeMergeDir)
+        checkoutBuilder.redirectErrorStream(true)
+
+        Process checkout = checkoutBuilder.start()
+        output = checkout.inputStream.text
+
+        if (checkout.waitFor() != 0) {
+            logger.error('Failed to checkout ' + jNativeMergeBranch)
+            logger.error(output)
+            throw new GradleException('Failed to checkout dependencies.')
+        }
+    }
 }
 
 includeFlat(jNativeMergeName)
