@@ -1,2 +1,28 @@
+import org.ajoberstar.grgit.Grgit
+
+import java.nio.file.Paths
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "org.ajoberstar:grgit:2.0.1"
+    }
+}
+
 rootProject.name = 'JDime'
-includeFlat('JNativeMerge')
+
+def jNativeMergeName = 'JNativeMerge'
+def jNativeMergeBranch = 'master'
+def jNativeMergeURI = 'git@gitlab.infosun.fim.uni-passau.de:seibt/JNativeMerge.git'
+def jNativeMergeDir = Paths.get(rootProject.projectDir.absolutePath, '..', jNativeMergeName).toFile().canonicalFile
+
+if (!jNativeMergeDir.exists()) {
+    logger.lifecycle("Cloning $jNativeMergeName dependency...")
+    Grgit.clone(dir: jNativeMergeDir, refToCheckout: jNativeMergeBranch, uri: jNativeMergeURI).close()
+}
+
+includeFlat(jNativeMergeName)
