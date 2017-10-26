@@ -12,6 +12,7 @@ addons:
         packages:
         - oracle-java8-installer
         - git
+        - libgit2-dev
 
 notifications:
     irc:
