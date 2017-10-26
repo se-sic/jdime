@@ -4,7 +4,7 @@ rootProject.name = 'JDime'
 
 def jNativeMergeName = 'JNativeMerge'
 def jNativeMergeBranch = 'master'
-def jNativeMergeURI = 'git@gitlab.infosun.fim.uni-passau.de:seibt/JNativeMerge.git'
+def jNativeMergeURI = 'https://gitlab.infosun.fim.uni-passau.de/seibt/JNativeMerge.git'
 def jNativeMergeDir = Paths.get(rootProject.projectDir.absolutePath, '..', jNativeMergeName).toFile().canonicalFile
 
 if (!jNativeMergeDir.exists()) {
