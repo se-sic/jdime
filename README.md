@@ -30,10 +30,11 @@ and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
 * git (http://git-scm.com/)
+* libgit2 (https://libgit2.github.com/)
 * JDK8 + JavaFX
 
 __Debian/Ubuntu:__
-`apt-get install git`
+`apt-get install git libgit2-dev`
 
 __Redhat/Fedora:__
 `yum install git`
