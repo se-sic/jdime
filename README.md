@@ -37,13 +37,13 @@ __Debian/Ubuntu:__
 `apt-get install git libgit2-dev`
 
 __Redhat/Fedora:__
-`yum install git`
+`dnf install git`libgit2
 
 __Suse/OpenSuse:__
-`zypper install git`
+`zypper install git`libgit2
 
 __FreeBSD:__
-`pkg install git openjfx8-devel`
+`pkg install git openjfx8-devel`libgit2
 
 ## Installation:
 Clone the repository using `git clone $URL`.
