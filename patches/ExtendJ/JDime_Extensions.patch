@@ -1,13 +1,14 @@
 diff --git a/LICENSE b/LICENSE
-index 5b74149..9d4ac03 100644
+index 42bc5cc..0946f35 100644
 --- a/LICENSE
 +++ b/LICENSE
-@@ -1,6 +1,8 @@
--Copyright (c) 2005-2016, ExtendJ Committers
-+Original work Copyright (c) 2005-2016, ExtendJ Committers
+@@ -1,6 +1,9 @@
+-Copyright (c) 2005-2017, ExtendJ Committers
++Original work Copyright (c) 2005-2017, ExtendJ Committers
  All rights reserved.
  
-+Modified work Copyright 2013-2015 Olaf Lessenich
++Modified work Copyright 2013-2015 Olaf Lessenich,
++              Copyright 2017 Georg Seibt
 +
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
@@ -48,7 +49,7 @@ index 7ff9c46..231fe5e 100644
  distributed with this software. See the `LICENSE` file.
  
 diff --git a/build.xml b/build.xml
-index 09f77ec..10515f1 100644
+index 234ce21..dee0fea 100644
 --- a/build.xml
 +++ b/build.xml
 @@ -174,6 +174,9 @@ Build a standard release:
@@ -234,20 +235,12 @@ index 0000000..e7ca187
 +	}
 +}
 diff --git a/java4/frontend/PrettyPrint.jadd b/java4/frontend/PrettyPrint.jadd
-index 746c3aa..be0afb7 100644
+index 2544ac0..6aa3cab 100644
 --- a/java4/frontend/PrettyPrint.jadd
 +++ b/java4/frontend/PrettyPrint.jadd
-@@ -33,6 +33,7 @@
+@@ -33,11 +33,13 @@
   */
  aspect Java4PrettyPrint {
-   public void AbstractDot.prettyPrint(PrettyPrinter out) {
-+    if (isVirtualNode()) { printVirtualNode(out); return; }
-     if (needsDot()) {
-       out.print(getLeft());
-       out.print(".");
-@@ -43,11 +44,13 @@ aspect Java4PrettyPrint {
-     }
-   }
    public void ArrayAccess.prettyPrint(PrettyPrinter out) {
 +    if (isVirtualNode()) { printVirtualNode(out); return; }
      out.print("[");
@@ -259,7 +252,7 @@ index 746c3aa..be0afb7 100644
      out.print("new ");
      out.print(getTypeAccess());
      if (hasArrayInit()) {
-@@ -56,6 +59,7 @@ aspect Java4PrettyPrint {
+@@ -46,6 +48,7 @@ aspect Java4PrettyPrint {
      }
    }
    public void ArrayInit.prettyPrint(PrettyPrinter out) {
@@ -267,7 +260,7 @@ index 746c3aa..be0afb7 100644
      out.print("{ ");
      out.join(getInitList(), new PrettyPrinter.Joiner() {
        @Override
-@@ -66,16 +70,19 @@ aspect Java4PrettyPrint {
+@@ -56,16 +59,19 @@ aspect Java4PrettyPrint {
      out.print(" }");
    }
    public void ArrayTypeAccess.prettyPrint(PrettyPrinter out) {
@@ -287,7 +280,7 @@ index 746c3aa..be0afb7 100644
      if (hasMessage()) {
        out.print("assert ");
        out.print(getCondition());
-@@ -89,6 +96,7 @@ aspect Java4PrettyPrint {
+@@ -79,6 +85,7 @@ aspect Java4PrettyPrint {
      }
    }
    public void AssignExpr.prettyPrint(PrettyPrinter out) {
@@ -295,7 +288,7 @@ index 746c3aa..be0afb7 100644
      out.print(getDest());
      out.print(" ");
      out.print(printOp());
-@@ -96,12 +104,14 @@ aspect Java4PrettyPrint {
+@@ -86,12 +93,14 @@ aspect Java4PrettyPrint {
      out.print(getSource());
    }
    public void BasicCatch.prettyPrint(PrettyPrinter out) {
@@ -310,7 +303,7 @@ index 746c3aa..be0afb7 100644
      out.print(getLeftOperand());
      out.print(" ");
      out.print(printOp());
-@@ -109,6 +119,7 @@ aspect Java4PrettyPrint {
+@@ -99,6 +108,7 @@ aspect Java4PrettyPrint {
      out.print(getRightOperand());
    }
    public void Block.prettyPrint(PrettyPrinter out) {
@@ -318,7 +311,7 @@ index 746c3aa..be0afb7 100644
      out.print("{");
      out.println();
      out.indent(1);
-@@ -124,9 +135,11 @@ aspect Java4PrettyPrint {
+@@ -114,9 +124,11 @@ aspect Java4PrettyPrint {
      out.print("}");
    }
    public void BooleanType.prettyPrint(PrettyPrinter out) {
@@ -330,7 +323,7 @@ index 746c3aa..be0afb7 100644
      out.print("break");
      if (hasLabel()) {
        out.print(" ");
-@@ -135,26 +148,32 @@ aspect Java4PrettyPrint {
+@@ -125,26 +137,32 @@ aspect Java4PrettyPrint {
      out.print(";");
    }
    public void ByteType.prettyPrint(PrettyPrinter out) {
@@ -363,7 +356,7 @@ index 746c3aa..be0afb7 100644
      if (hasDocComment()) {
        out.print(docComment());
      }
-@@ -193,6 +212,7 @@ aspect Java4PrettyPrint {
+@@ -183,6 +201,7 @@ aspect Java4PrettyPrint {
      out.print("}");
    }
    public void ClassInstanceExpr.prettyPrint(PrettyPrinter out) {
@@ -371,7 +364,7 @@ index 746c3aa..be0afb7 100644
      out.print("new ");
      out.print(getAccess());
      out.print("(");
-@@ -212,8 +232,13 @@ aspect Java4PrettyPrint {
+@@ -202,8 +221,13 @@ aspect Java4PrettyPrint {
            @Override
            public void printSeparator(PrettyPrinter out) {
              out.println();
@@ -385,7 +378,7 @@ index 746c3aa..be0afb7 100644
          out.print("}");
        } else {
          out.print(" { }");
-@@ -221,6 +246,7 @@ aspect Java4PrettyPrint {
+@@ -211,6 +235,7 @@ aspect Java4PrettyPrint {
      }
    }
    public void CompilationUnit.prettyPrint(PrettyPrinter out) {
@@ -393,7 +386,7 @@ index 746c3aa..be0afb7 100644
      if (hasPackageDecl()) {
        out.print("package ");
        out.print(getPackageDecl());
-@@ -244,6 +270,7 @@ aspect Java4PrettyPrint {
+@@ -234,6 +259,7 @@ aspect Java4PrettyPrint {
      });
    }
    public void ConditionalExpr.prettyPrint(PrettyPrinter out) {
@@ -401,7 +394,7 @@ index 746c3aa..be0afb7 100644
      out.print(getCondition());
      out.print(" ? ");
      out.print(getTrueExpr());
-@@ -251,11 +278,13 @@ aspect Java4PrettyPrint {
+@@ -241,11 +267,13 @@ aspect Java4PrettyPrint {
      out.print(getFalseExpr());
    }
    public void ConstCase.prettyPrint(PrettyPrinter out) {
@@ -415,7 +408,7 @@ index 746c3aa..be0afb7 100644
      out.print(getID());
      out.print("(");
      out.join(getArgList(), new PrettyPrinter.Joiner() {
-@@ -267,6 +296,7 @@ aspect Java4PrettyPrint {
+@@ -257,6 +285,7 @@ aspect Java4PrettyPrint {
      out.print(")");
    }
    public void ConstructorDecl.prettyPrint(PrettyPrinter out) {
@@ -423,7 +416,7 @@ index 746c3aa..be0afb7 100644
      if (!isImplicitConstructor()) {
        if (hasDocComment()) {
          out.print(docComment());
-@@ -314,6 +344,7 @@ aspect Java4PrettyPrint {
+@@ -304,6 +333,7 @@ aspect Java4PrettyPrint {
      }
    }
    public void ContinueStmt.prettyPrint(PrettyPrinter out) {
@@ -431,7 +424,7 @@ index 746c3aa..be0afb7 100644
      out.print("continue");
      if (hasLabel()) {
        out.print(" ");
-@@ -322,6 +353,7 @@ aspect Java4PrettyPrint {
+@@ -312,6 +342,7 @@ aspect Java4PrettyPrint {
      out.print(";");
    }
    public void Declarator.prettyPrint(PrettyPrinter out) {
@@ -439,7 +432,7 @@ index 746c3aa..be0afb7 100644
      out.print(getID());
      out.print(getDimsList());
      if (hasInit()) {
-@@ -330,14 +362,17 @@ aspect Java4PrettyPrint {
+@@ -320,14 +351,17 @@ aspect Java4PrettyPrint {
      }
    }
    public void DefaultCase.prettyPrint(PrettyPrinter out) {
@@ -457,8 +450,16 @@ index 746c3aa..be0afb7 100644
      out.print("do ");
      out.print(getStmt());
      out.print(" while(");
-@@ -345,22 +380,28 @@ aspect Java4PrettyPrint {
+@@ -335,6 +369,7 @@ aspect Java4PrettyPrint {
      out.print(");");
+   }
+   public void Dot.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (needsDot()) {
+       out.print(getLeft());
+       out.print(".");
+@@ -345,22 +380,28 @@ aspect Java4PrettyPrint {
+     }
    }
    public void DoubleLiteral.prettyPrint(PrettyPrinter out) {
 +    if (isVirtualNode()) { printVirtualNode(out); return; }
@@ -974,10 +975,10 @@ index 84c5e34..b4dded9 100644
      out.print("::");
      if (hasTypeArgument()) {
 diff --git a/pretty-print/Java4PrettyPrint.tt b/pretty-print/Java4PrettyPrint.tt
-index 90f2428..6d823ae 100644
+index be49b88..3050f2c 100644
 --- a/pretty-print/Java4PrettyPrint.tt
 +++ b/pretty-print/Java4PrettyPrint.tt
-@@ -193,7 +193,8 @@ ArrayInit [[{ $join(InitList,", ") }]]
+@@ -194,7 +194,8 @@ ArrayInit [[{ $join(InitList,", ") }]]
  ArrayCreationExpr [[new $TypeAccess$if(hasArrayInit) $ArrayInit$endif]]
  
  ClassInstanceExpr [[new $Access($join(ArgList,", "))$if(hasTypeDecl)$if(hasPrintableBodyDecl) {
@@ -988,7 +989,7 @@ index 90f2428..6d823ae 100644
  InstanceOfExpr [[$Expr instanceof $TypeAccess]]
  
 diff --git a/pretty-print/gen.sh b/pretty-print/gen.sh
-index cdc5ed8..1e563ee 100755
+index 5514fd6..1696eaf 100755
 --- a/pretty-print/gen.sh
 +++ b/pretty-print/gen.sh
 @@ -1,25 +1,13 @@
@@ -1016,23 +1017,23 @@ index cdc5ed8..1e563ee 100755
  fi
 -
  for JAVA_VERSION in {4,5,7,8}; do
+ 	echo "Generating Java ${JAVA_VERSION} pretty printing aspect..."
  	java -jar "$ASPECTGEN" -aspect "Java${JAVA_VERSION}PrettyPrint" Header.tt \
- 		"Java${JAVA_VERSION}PrettyPrint.tt" > \
 diff --git a/src/frontend/org/jastadd/util/PrettyPrinter.java b/src/frontend/org/jastadd/util/PrettyPrinter.java
 index 7793c1b..4b36f81 100644
 --- a/src/frontend/org/jastadd/util/PrettyPrinter.java
 +++ b/src/frontend/org/jastadd/util/PrettyPrinter.java
-@@ -96,6 +96,13 @@ public class PrettyPrinter {
+@@ -95,6 +95,13 @@ public class PrettyPrinter {
+     out.print(str);
    }
  
-   /**
++  /**
 +   * Prints the given {@link String} {@code str} without adding any indentation.
 +   */
 +  public void printNoIndent(String str) {
 +    out.print(str);
 +  }
 +
-+  /**
+   /**
     *
     */
-   public void println() {
