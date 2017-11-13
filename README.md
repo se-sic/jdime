@@ -16,9 +16,9 @@ The full license text is distributed with this software. See the `LICENSE` file.
 JDime uses these tools/libraries:
 
 * ExtendJ (https://bitbucket.org/jastadd/jastaddj)
-> Commit [e77ceb1](https://bitbucket.org/extendj/extendj/src/e77ceb1)
+> Commit [077922e](https://bitbucket.org/extendj/extendj/commits/077922ed7dc8277794d23b3464017c4a40568375)
 > Copyright (c) 2005-2008, Torbjörn Ekman
-> Copyright (c) 2005-2015, ExtendJ Committers
+> Copyright (c) 2005-2017, ExtendJ Committers
 > ExtendJ is covered by the Modified BSD License.
 > The full license text is distributed with this software.
 > See the file licenses/ExtendJ-BSD.
