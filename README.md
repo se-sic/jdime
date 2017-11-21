@@ -1,6 +1,7 @@
 # JDime  -  Structured Merge with Auto-Tuning
 
-[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=master)](https://travis-ci.org/se-passau/jdime)
+[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=master)](https://travis-ci.org/se-passau/jdime) (master)  
+[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=develop)](https://travis-ci.org/se-passau/jdime?branch=develop) (develop)
 
 ## License & Copyright
 * Copyright (C) 2013-2014 Olaf Lessenich
