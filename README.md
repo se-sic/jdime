@@ -30,21 +30,21 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
+* JDK8 + JavaFX
 * git (http://git-scm.com/)
 * libgit2 (https://libgit2.github.com/)
-* JDK8 + JavaFX
 
 __Debian/Ubuntu:__
 `apt-get install git libgit2-dev`
 
 __Redhat/Fedora:__
-`dnf install git`libgit2
+`dnf install git libgit2`
 
 __Suse/OpenSuse:__
-`zypper install git`libgit2
+`zypper install git libgit2`
 
 __FreeBSD:__
-`pkg install git openjfx8-devel`libgit2
+`pkg install git openjfx8-devel libgit2`
 
 ## Installation:
 Clone the repository using `git clone $URL`.
