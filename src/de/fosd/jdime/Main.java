@@ -54,7 +54,6 @@ import de.fosd.jdime.strdump.DumpMode;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
@@ -408,7 +407,7 @@ public final class Main {
             try {
                 LogManager.getLogManager().readConfiguration(is);
             } finally {
-                IOUtils.closeQuietly(is);
+                try { is.close(); } catch (IOException ignored) { }
             }
         } catch (IOException e) {
             System.err.println("Failed to configure logging.");

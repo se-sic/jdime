@@ -30,7 +30,7 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "2.0.1"
+    id "org.ajoberstar.grgit" version "2.1.0"
     id "com.github.hierynomus.license" version "0.14.0"
     id "com.scuilion.syntastic" version "0.3.8"
 }
@@ -67,12 +67,12 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-io:commons-io:2.5'
+    compile 'commons-io:commons-io:2.6'
     compile 'commons-cli:commons-cli:1.4'
     compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'commons-codec:commons-codec:1.10'
+    compile 'commons-codec:commons-codec:1.11'
     compile 'com.thoughtworks.xstream:xstream:1.4.10'
-    compile 'com.google.code.gson:gson:2.8.1'
+    compile 'com.google.code.gson:gson:2.8.2'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
     compile project(':JNativeMerge')
     compile files('lib/extendj.jar')
