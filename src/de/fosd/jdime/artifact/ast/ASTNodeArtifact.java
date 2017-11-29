@@ -578,14 +578,28 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
     @Override
     public ASTNodeArtifact createConflictArtifact(ASTNodeArtifact left, ASTNodeArtifact right) {
-        ASTNodeArtifact conflict;
 
-        if (left != null) {
-            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, left.astnode.treeCopyNoTransform());
-        } else {
-            conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, right.astnode.treeCopyNoTransform());
+        /*
+         * The generated ASTNodeArtifact is virtual meaning it does not represent a part of the
+         * original source code. As such the contained ASTNode should really be null. Since the
+         * ASTNode has to be part of the ExtendJ AST, it can not be null and has to be of the correct type.
+         * When pretty printing the AST, the ASTNode will be cast to the expected type and in its specific
+         * prettyPrint() method the fact that it is virtual will be detected and handled by printing
+         * conflict markers or ifdefs in the case of choice nodes.
+         */
+        ASTNode<?> typeNode;
+
+        try {
+            if (left != null) {
+                typeNode = left.astnode.clone();
+            } else {
+                typeNode = right.astnode.clone();
+            }
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Failed to clone an ASTNode for a conflict artifact.", e);
         }
 
+        ASTNodeArtifact conflict = new ASTNodeArtifact(MergeScenario.CONFLICT, typeNode);
         conflict.setConflict(left, right);
 
         return conflict;
@@ -595,7 +609,18 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     public ASTNodeArtifact createChoiceArtifact(String condition, ASTNodeArtifact artifact) {
         LOG.fine("Creating choice node");
 
-        ASTNodeArtifact choice = new ASTNodeArtifact(MergeScenario.CHOICE, artifact.astnode.treeCopyNoTransform());
+        /*
+         * See above in createConflictArtifact().
+         */
+        ASTNode<?> typeNode;
+
+        try {
+            typeNode = artifact.astnode.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Failed to clone an ASTNode for a choice artifact.", e);
+        }
+
+        ASTNodeArtifact choice = new ASTNodeArtifact(MergeScenario.CHOICE, typeNode);
         choice.setChoice(condition, artifact);
 
         return choice;
