@@ -723,6 +723,15 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Returns whether this {@link Artifact} is a virtual one.
+     *
+     * @return true iff the {@link Artifact} is virtual
+     */
+    public final boolean isVirtual() {
+        return isConflict() || isChoice();
+    }
+
+    /**
      * Returns true if the <code>Artifact</code> is empty.
      *
      * @return true if the <code>Artifact</code> is empty

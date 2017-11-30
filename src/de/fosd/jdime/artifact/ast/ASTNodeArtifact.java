@@ -190,6 +190,26 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         setChildren(children);
     }
 
+    /**
+     * Returns whether the {@link ASTNode} contained in this {@link ASTNodeArtifact}
+     * requires a fixed number of children.
+     *
+     * @return true iff the {@link ASTNode} is not a dynamic one (like {@link org.extendj.ast.List})
+     */
+    private boolean hasFixedNumberOfChildren() {
+        /*
+         * In ExtendJ the protected method 'numChildren' of ASTNode is overridden (e.g., 'return 3') if the AST node
+         * expects to have a fixed number of children.
+         */
+
+        try {
+            astnode.getClass().getDeclaredMethod("numChildren");
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
     @Override
     protected ASTNodeArtifact self() {
         return this;
@@ -413,14 +433,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         boolean safeMerge = true;
 
-        int numChildNoTransform;
-        try {
-            numChildNoTransform = target.astnode.getClass().newInstance().getNumChildNoTransform();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (!isRoot() && numChildNoTransform > 0) {
+        if (!isRoot() && hasFixedNumberOfChildren()) {
 
             // this language element has a fixed number of children, we need to be careful with this one
             // as it might cause lots of issues while being pretty-printed
@@ -496,7 +509,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      */
     private void rebuildAST() {
         LOG.finest(() -> String.format("%s.rebuildAST()", getId()));
-        int oldNumChildren = astnode.getNumChildNoTransform();
 
         if (isConflict()) {
             astnode.isConflict = true;
@@ -545,29 +557,12 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         astnode.jdimeId = getId();
         astnode.setChildren(newChildren);
 
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest(() -> String.format("jdime: %d, astnode.before: %d, astnode.after: %d children", getNumChildren(), oldNumChildren,
-                    astnode.getNumChildNoTransform()));
-            if (getNumChildren() != astnode.getNumChildNoTransform()) {
-                LOG.finest("mismatch between jdime and astnode for " + getId() + "(" + astnode.getMatchingRepresentation() + ")");
-            }
-            if (oldNumChildren != astnode.getNumChildNoTransform()) {
-                LOG.finest("Number of children has changed");
-            }
-        }
-
-        if (!isConflict() && getNumChildren() != astnode.getNumChildNoTransform()) {
-            StringBuilder elements = new StringBuilder();
-            for (Revision r : getMatches().keySet()) {
-                if (elements.length() > 0) {
-                    elements.append(", ");
-                }
-                elements.append(getMatching(r).getMatchingArtifact(this).getId());
-            }
-
-            throw new AbortException("Mismatch of getNumChildren() and astnode.getNumChildren()---" +
-                    "This is either a bug in ExtendJ or in JDime! Inspect AST element " +
-                    getId() + " (" + elements.toString() + ") to look into this issue.");
+        if (!isVirtual() && hasFixedNumberOfChildren() && getNumChildren() != astnode.getNumChildNoTransform()) {
+            String msg = String.format("The %s requires a fixed number of children. JDime children: %d ExtendJ " +
+                                       "children: %d after AST rebuild. This is either a bug in ExtendJ or in JDime! " +
+                                       "Inspect AST element %s", astnode.getClass(), getNumChildren(),
+                                                                 astnode.getNumChildNoTransform(), getId());
+            throw new AbortException(msg);
         }
     }
 

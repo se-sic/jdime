@@ -64,10 +64,10 @@ index 234ce21..dee0fea 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..e7ca187
+index 0000000..10cb8e3
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
-@@ -0,0 +1,166 @@
+@@ -0,0 +1,169 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
@@ -106,14 +106,17 @@ index 0000000..e7ca187
 +
 +	/**
 +	 * Replaces the children of the <code>ASTNode</code>.
-+	 * 
++	 *
 +	 * @param newchildren child nodes that should replace the current ones
 +	 */
-+	public void ASTNode.setChildren(ASTNode[] newchildren) {
-+		this.init$Children();
++	public void ASTNode.setChildren(ASTNode[] newChildren) {
++		this.numChildren = newChildren.length;
++		this.children = new ASTNode[newChildren.length];
++		System.arraycopy(newChildren, 0, children, 0, numChildren);
 +
-+		for (int i = 0; i < newchildren.length; i++) {
-+			setChild(newchildren[i], i);
++		for (int i = 0; i < numChildren; i++) {
++			children[i].setParent(this);
++			children[i].childIndex = i;
 +		}
 +	}
 +
