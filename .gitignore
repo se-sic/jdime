@@ -175,3 +175,7 @@ local.properties
 
 ### JDime Specific
 !lib/*
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
