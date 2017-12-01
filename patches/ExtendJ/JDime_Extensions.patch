@@ -742,7 +742,7 @@ index 2544ac0..6aa3cab 100644
    }
  }
 diff --git a/java5/frontend/PrettyPrint.jadd b/java5/frontend/PrettyPrint.jadd
-index 3aa6614..2723282 100644
+index 3aa6614..c8057b0 100644
 --- a/java5/frontend/PrettyPrint.jadd
 +++ b/java5/frontend/PrettyPrint.jadd
 @@ -33,6 +33,7 @@
@@ -839,7 +839,7 @@ index 3aa6614..2723282 100644
      out.print(getTypeAccess());
      out.print("<");
      out.join(getTypeArgumentList(), new PrettyPrinter.Joiner() {
-@@ -341,6 +354,7 @@ aspect Java5PrettyPrint {
+@@ -341,18 +354,23 @@ aspect Java5PrettyPrint {
      out.print(">");
    }
    public void SingleStaticImportDecl.prettyPrint(PrettyPrinter out) {
@@ -847,21 +847,23 @@ index 3aa6614..2723282 100644
      out.print("import static ");
      out.print(getAccess());
      out.print(".");
-@@ -348,11 +362,13 @@ aspect Java5PrettyPrint {
+     out.print(getID());
      out.print(";");
++    out.println();
    }
    public void StaticImportOnDemandDecl.prettyPrint(PrettyPrinter out) {
 +    if (isVirtualNode()) { printVirtualNode(out); return; }
      out.print("import static ");
      out.print(getAccess());
      out.print(".*;");
++    out.println();
    }
    public void TypeVariable.prettyPrint(PrettyPrinter out) {
 +    if (isVirtualNode()) { printVirtualNode(out); return; }
      out.print(getID());
      if (hasTypeBound()) {
        out.print(" extends ");
-@@ -365,19 +381,23 @@ aspect Java5PrettyPrint {
+@@ -365,19 +383,23 @@ aspect Java5PrettyPrint {
      }
    }
    public void VariableArityParameterDeclaration.prettyPrint(PrettyPrinter out) {
@@ -1016,6 +1018,23 @@ index be49b88..3050f2c 100644
 +  }$else { }$endif$endif]]
  
  InstanceOfExpr [[$Expr instanceof $TypeAccess]]
+ 
+diff --git a/pretty-print/Java5PrettyPrint.tt b/pretty-print/Java5PrettyPrint.tt
+index 08b68f5..4891502 100644
+--- a/pretty-print/Java5PrettyPrint.tt
++++ b/pretty-print/Java5PrettyPrint.tt
+@@ -82,8 +82,10 @@ Wildcard [[?]]
+ WildcardExtends [[? extends $Access]]
+ WildcardSuper [[? super $Access]]
+ 
+-SingleStaticImportDecl [[import static $Access.$ID;]]
+-StaticImportOnDemandDecl [[import static $Access.*;]]
++SingleStaticImportDecl [[import static $Access.$ID;
++]]
++StaticImportOnDemandDecl [[import static $Access.*;
++]]
+ 
+ VariableArityParameterDeclaration [[$Modifiers$TypeAccess... $ID]]
  
 diff --git a/pretty-print/gen.sh b/pretty-print/gen.sh
 index 5514fd6..1696eaf 100755
