@@ -197,17 +197,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
      * @return true iff the {@link ASTNode} is not a dynamic one (like {@link org.extendj.ast.List})
      */
     private boolean hasFixedNumberOfChildren() {
-        /*
-         * In ExtendJ the protected method 'numChildren' of ASTNode is overridden (e.g., 'return 3') if the AST node
-         * expects to have a fixed number of children.
-         */
-
-        try {
-            astnode.getClass().getDeclaredMethod("numChildren");
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
+        return astnode.requiresFixedNumChildren();
     }
 
     @Override

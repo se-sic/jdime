@@ -64,10 +64,10 @@ index 234ce21..dee0fea 100644
  
 diff --git a/java4/frontend/JDime.jadd b/java4/frontend/JDime.jadd
 new file mode 100644
-index 0000000..10cb8e3
+index 0000000..4fb5bf4
 --- /dev/null
 +++ b/java4/frontend/JDime.jadd
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,195 @@
 +/*
 + * Copyright (C) 2013-2015 Olaf Lessenich
 + *
@@ -104,21 +104,47 @@ index 0000000..10cb8e3
 + */
 +aspect JDime {
 +
-+	/**
-+	 * Replaces the children of the <code>ASTNode</code>.
-+	 *
-+	 * @param newchildren child nodes that should replace the current ones
-+	 */
-+	public void ASTNode.setChildren(ASTNode[] newChildren) {
-+		this.numChildren = newChildren.length;
-+		this.children = new ASTNode[newChildren.length];
-+		System.arraycopy(newChildren, 0, children, 0, numChildren);
++    /**
++     * Replaces the children of the <code>ASTNode</code>.
++     *
++     * @param newchildren child nodes that should replace the current ones
++     */
++    public void ASTNode.setChildren(ASTNode[] newChildren) {
 +
-+		for (int i = 0; i < numChildren; i++) {
-+			children[i].setParent(this);
-+			children[i].childIndex = i;
-+		}
-+	}
++        if (requiresFixedNumChildren()) {
++            init$Children();
++        } else {
++            numChildren = newChildren.length;
++            children = new ASTNode[newChildren.length];
++        }
++
++        if (children != null) {
++            System.arraycopy(newChildren, 0, children, 0, newChildren.length);
++        }
++
++        for (int i = 0; i < numChildren; i++) {
++            ASTNode child = children[i];
++
++            if (child != null) {
++                child.setParent(this);
++                child.childIndex = i;
++            }
++        }
++    }
++
++    public boolean ASTNode.requiresFixedNumChildren() {
++        /*
++         * In ExtendJ the protected method 'numChildren' of ASTNode is overridden (e.g., 'return 3') if the AST node
++         * expects to have a fixed number of children.
++         */
++
++        try {
++            getClass().getDeclaredMethod("numChildren");
++            return true;
++        } catch (NoSuchMethodException e) {
++            return false;
++        }
++    }
 +
 +	/**
 +	 * Deletes all children of the <code>ASTNode</code>.
