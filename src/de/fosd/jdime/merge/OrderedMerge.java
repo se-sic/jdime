@@ -23,10 +23,6 @@
  */
 package de.fosd.jdime.merge;
 
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
@@ -38,6 +34,10 @@ import de.fosd.jdime.operations.ConflictOperation;
 import de.fosd.jdime.operations.DeleteOperation;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.strdump.DumpMode;
+
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static de.fosd.jdime.artifact.Artifacts.copyTree;
 import static de.fosd.jdime.artifact.Artifacts.root;
@@ -62,6 +62,52 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
      */
     @Override
     public void merge(MergeOperation<T> operation, MergeContext context) {
+        Revision leftRev, baseRev, rightRev;
+        Iterator<T> leftIt, rightIt;
+
+        {
+            MergeScenario<T> mergeScenario = operation.getMergeScenario();
+            T left = mergeScenario.getLeft();
+            T base = mergeScenario.getBase();
+            T right = mergeScenario.getRight();
+            logprefix = operation.getId() + " - ";
+
+            assert (left.matches(right));
+            assert (left.hasMatching(right)) && right.hasMatching(left);
+
+            LOG.finest(() -> {
+                String name = getClass().getSimpleName();
+                return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
+            });
+
+            leftRev = left.getRevision();
+            baseRev = base.getRevision();
+            rightRev = right.getRevision();
+            leftIt = left.getChildren().iterator();
+            rightIt = right.getChildren().iterator();
+        }
+
+        T target = operation.getTarget();
+
+        boolean leftDone = false;
+        boolean rightDone = false;
+        T leftChild = null;
+        T rightChild = null;
+
+        if (leftIt.hasNext()) {
+            leftChild = leftIt.next();
+        } else {
+            leftDone = true;
+        }
+
+        if (rightIt.hasNext()) {
+            rightChild = rightIt.next();
+        } else {
+            rightDone = true;
+        }
+    }
+
+    public void mergeOld(MergeOperation<T> operation, MergeContext context) {
         MergeScenario<T> triple = operation.getMergeScenario();
         T left = triple.getLeft();
         T base = triple.getBase();
