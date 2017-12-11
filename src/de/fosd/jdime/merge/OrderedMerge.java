@@ -148,6 +148,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 } else {
                     // Left and right child are in conflict.
 
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
+                    conflictOp.apply(context);
+
                     moveLeft = true;
                     moveRight = true;
                 }
