@@ -140,6 +140,33 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 }
 
                 if (!leftChild.hasMatching(rightRev)) {
+                    boolean baseMatch = leftChild.hasMatching(baseRev);
+
+                    if (baseMatch) {
+                        if (leftChild.getMatching(baseRev).hasFullyMatched()) {
+                            // LeftChild was deleted.
+
+                            DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                            deleteOp.apply(context);
+                        } else {
+                            // Deletion - Deletion conflict.
+
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
+                            conflictOp.apply(context);
+                        }
+                    } else {
+
+                        if (rightChild.hasMatching(leftRev)) {
+                            // LeftChild was added.
+
+                            AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                            addOp.apply(context);
+                        } else {
+                            // Insertion - Insertion or Insertion - Deletion conflict.
+
+
+                        }
+                    }
 
                     moveLeft = true;
                 } else if (!rightChild.hasMatching(leftRev)) {
