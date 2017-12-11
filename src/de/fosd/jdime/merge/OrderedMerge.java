@@ -112,6 +112,24 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             if (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild)) {
                 // Left and right child simply match. Merge them.
 
+                MergeType mergeType;
+                T baseChild;
+
+                if (leftChild.hasMatching(baseRev)) {
+                    mergeType = MergeType.THREEWAY;
+                    baseChild = leftChild.getMatching(baseRev).getMatchingArtifact(leftChild);
+                } else {
+                    mergeType = MergeType.TWOWAY;
+                    baseChild = leftChild.createEmptyArtifact(BASE);
+                }
+
+                T targetChild = leftChild.copy();
+                target.addChild(targetChild);
+
+                MergeScenario<T> childTriple = new MergeScenario<>(mergeType, leftChild, baseChild, rightChild);
+                MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild);
+                mergeOp.apply(context);
+
                 moveLeft = true;
                 moveRight = true;
             } else {
