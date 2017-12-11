@@ -109,6 +109,32 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
         while (!leftDone && !rightDone) {
             boolean moveLeft = false, moveRight = false;
 
+            if (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild)) {
+                // Left and right child simply match. Merge them.
+
+                moveLeft = true;
+                moveRight = true;
+            } else {
+
+                if (leftChild.hasMatching(rightChild) || rightChild.hasMatching(leftChild)) {
+                    String msg = "Found asymmetric matchings between " + leftChild + " and " + rightChild;
+                    throw new RuntimeException(msg);
+                }
+
+                if (!leftChild.hasMatching(rightRev)) {
+
+                    moveLeft = true;
+                } else if (!rightChild.hasMatching(leftRev)) {
+
+                    moveRight = true;
+                } else {
+                    // Left and right child are in conflict.
+
+                    moveLeft = true;
+                    moveRight = true;
+                }
+            }
+
             if (moveLeft) {
                 if (leftIt.hasNext()) {
                     leftChild = leftIt.next();
@@ -126,6 +152,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     rightDone = true;
                 }
             }
+        }
+
+        if (!leftDone) {
+
+        } else if (!rightDone) {
+
         }
     }
 
