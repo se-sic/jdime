@@ -105,6 +105,28 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
         } else {
             rightDone = true;
         }
+
+        while (!leftDone && !rightDone) {
+            boolean moveLeft = false, moveRight = false;
+
+            if (moveLeft) {
+                if (leftIt.hasNext()) {
+                    leftChild = leftIt.next();
+                } else {
+                    leftChild = null;
+                    leftDone = true;
+                }
+            }
+
+            if (moveRight) {
+                if (rightIt.hasNext()) {
+                    rightChild = rightIt.next();
+                } else {
+                    rightChild = null;
+                    rightDone = true;
+                }
+            }
+        }
     }
 
     public void mergeOld(MergeOperation<T> operation, MergeContext context) {
