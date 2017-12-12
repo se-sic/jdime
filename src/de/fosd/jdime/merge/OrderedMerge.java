@@ -246,10 +246,56 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             }
         }
 
-        if (!leftDone) {
+        while (leftIt.hasNext()) {
+            leftChild = leftIt.next();
 
-        } else if (!rightDone) {
+            boolean lB = leftChild.hasMatching(baseRev);
+            boolean lBf = lB && leftChild.getMatching(baseRev).hasFullyMatched();
 
+            if (lB) {
+                if (lBf) {
+                    // LeftChild was deleted.
+
+                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                    deleteOp.apply(context);
+                } else {
+                    // Deletion - Deletion conflict.
+
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
+                    conflictOp.apply(context);
+                }
+            } else {
+                // LeftChild was added.
+
+                AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                addOp.apply(context);
+            }
+        }
+
+        while (rightIt.hasNext()) {
+            rightChild = rightIt.next();
+
+            boolean rB = rightChild.hasMatching(baseRev);
+            boolean rBf = rB && rightChild.getMatching(baseRev).hasFullyMatched();
+
+            if (rB) {
+                if (rBf) {
+                    // RightChild was deleted.
+
+                    DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                    deleteOp.apply(context);
+                } else {
+                    // Deletion - Deletion conflict.
+
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(rightChild, null, target);
+                    conflictOp.apply(context);
+                }
+            } else {
+                // RightChild was added.
+
+                AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                addOp.apply(context);
+            }
         }
     }
 
