@@ -182,7 +182,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             } else {
                                 // Deletion - Deletion conflict.
 
-                                ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                 conflictOp.apply(context);
                             }
 
@@ -201,7 +201,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         } else {
                             // Deletion - Deletion conflict.
 
-                            ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target);
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                             conflictOp.apply(context);
                         }
 
@@ -261,7 +261,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 } else {
                     // Deletion - Deletion conflict.
 
-                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                     conflictOp.apply(context);
                 }
             } else {
@@ -287,7 +287,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 } else {
                     // Deletion - Deletion conflict.
 
-                    ConflictOperation<T> conflictOp = new ConflictOperation<>(rightChild, null, target);
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                     conflictOp.apply(context);
                 }
             } else {
