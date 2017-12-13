@@ -179,3 +179,5 @@ local.properties
 # Visual Studio Code
 .vscode/
 *.code-workspace
+
+/doc/
