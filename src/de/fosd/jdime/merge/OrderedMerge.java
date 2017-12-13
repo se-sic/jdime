@@ -44,6 +44,58 @@ import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 
 /**
+ *
+ * This class provides an implementation of an ordered three-way merge.
+ *
+ * <p>
+ * The rules for a structured three-way merge are well documented,<br>
+ * e.g., by Bernhard Westfechtel's "Structure-oriented merging of revisions of software documents"<br>
+ * (Proceedings of the 3rd international workshop on Software configuration management, ACM, 1991)
+ * </p>
+ *
+ * <p>
+ * We documented the (JDime specific) results for each input situation in a table that is available as Google Doc.
+ * </p>
+ *
+ * <p>
+ * For self-containment, the logic is also shown in the following figure (legend below):
+ * </p>
+ *
+ * <pre>
+ *              lr &amp;&amp; rl
+ *   +--------------+----------+
+ * M(l,r)                     lR
+ *             +---------------+----------------+
+ *            rL                                lB
+ *     +------+-------+                  +-------+-------+
+ *  C(l,r)           rB                 lBf             rL
+ *              +-----+-----+       +----+----+      +---+---+
+ *             rBf       A(r)      D(l)    C(l,_)   A(L)    rB
+ *          +---+---+                                    +---+---+
+ *         D(r)   C(_,r)                                 rBf   C(l,r)
+ *                                                    +---+---+
+ *                                                   D(r)   C(_,r)
+ * Matching states:
+ *    lr:  left == right
+ *    rl:  right == left
+ *    lR:  left is child of right parent
+ *    rL:  right is child of left parent
+ *    lB:  left is child of base parent
+ *    rB:  right is child of base parent
+ *    lBf: left was fully matched in base
+ *    rBf: right was fully matched in base
+ *
+ * Merge Operations:
+ *    M(i,j): merge i and j
+ *    A(i):   add i
+ *    D(i):   delete i
+ *    C(i,j): conflict between i and j
+ *    C(i,_): conflict between i and nothing
+ *    C(_,i): conflict between nothing and i
+ * </pre>
+ *
+ * @see <a href="https://docs.google.com/spreadsheets/d/1LQgR_cTPhH4vFuy-7HLpfa-HF4PmYxsrGzRTs1EHVmk/edit?usp=sharing">GoogleDoc</a>
+ *
  * @author Olaf Lessenich
  *
  * @param <T>
