@@ -241,26 +241,41 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 leftChild.setMerged();
                             }
                         } else {
-                            if (rBf) {
-                                // RightChild was deleted in Left.
+                            if (rB) {
+                                if (rBf) {
+                                    // RightChild was deleted in Left.
 
-                                DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
-                                deleteOp.apply(context);
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                    deleteOp.apply(context);
+                                } else {
+                                    // Deletion/Deletion conflict.
+
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                    conflictOp.apply(context);
+                                }
+
+                                moveRight = true;
+
+                                if (assertsEnabled) {
+                                    rightChild.setMerged();
+                                }
                             } else {
-                                // Deletion/Deletion conflict.
+                                // RightChild was added.
+                                // As LeftChild was added as well, this is an Insertion/Insertion conflict.
 
-                                ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
                                 conflictOp.apply(context);
-                            }
 
-                            moveRight = true;
+                                moveLeft = true;
+                                moveRight = true;
 
-                            if (assertsEnabled) {
-                                rightChild.setMerged();
+                                if (assertsEnabled) {
+                                    leftChild.setMerged();
+                                    rightChild.setMerged();
+                                }
                             }
                         }
                     }
-
                 }
             }
 
