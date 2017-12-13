@@ -154,9 +154,60 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                 assert !lr && !rl : "Found asymmetric matchings between " + leftChild + " and " + rightChild;
 
-                if (!lR) {
+                if (lR) {
+
+                    if (rL) {
+                        // Left and right child are in conflict.
+
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
+                        conflictOp.apply(context);
+
+                        moveLeft = true;
+                        moveRight = true;
+
+                        if (assertsEnabled) {
+                            leftChild.setMerged();
+                            rightChild.setMerged();
+                        }
+                    } else {
+
+                        if (rB) {
+
+                            if (rBf) {
+                                // RightChild was deleted.
+
+                                DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                deleteOp.apply(context);
+                            } else {
+                                // Deletion - Deletion conflict.
+
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                conflictOp.apply(context);
+                            }
+
+                            moveRight = true;
+
+                            if (assertsEnabled) {
+                                rightChild.setMerged();
+                            }
+                        } else {
+                            // RightChild was added.
+
+                            AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                            addOp.apply(context);
+
+                            moveRight = true;
+
+                            if (assertsEnabled) {
+                                rightChild.setMerged();
+                            }
+                        }
+
+                    }
+                } else {
 
                     if (lB) {
+
                         if (lBf) {
                             // LeftChild was deleted.
 
@@ -208,51 +259,6 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     }
 
-                } else if (!rL) {
-                    if (rB) {
-                        if (rBf) {
-                            // RightChild was deleted.
-
-                            DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
-                            deleteOp.apply(context);
-                        } else {
-                            // Deletion - Deletion conflict.
-
-                            ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
-                            conflictOp.apply(context);
-                        }
-
-                        moveRight = true;
-
-                        if (assertsEnabled) {
-                            rightChild.setMerged();
-                        }
-                    } else {
-                        // RightChild was added.
-
-                        AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
-                        addOp.apply(context);
-
-                        moveRight = true;
-
-                        if (assertsEnabled) {
-                            rightChild.setMerged();
-                        }
-                    }
-
-                } else {
-                    // Left and right child are in conflict.
-
-                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
-                    conflictOp.apply(context);
-
-                    moveLeft = true;
-                    moveRight = true;
-
-                    if (assertsEnabled) {
-                        leftChild.setMerged();
-                        rightChild.setMerged();
-                    }
                 }
             }
 
