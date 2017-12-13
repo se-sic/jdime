@@ -159,6 +159,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     if (rL) {
                         // Left and right child are in conflict.
 
+                        /* TODO: This is a cross merge situation: Can this really happen in ordered merge?
+                         *       Maybe assert false and see whether this is ever triggered. */
+
                         ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
                         conflictOp.apply(context);
 
