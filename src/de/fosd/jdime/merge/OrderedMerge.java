@@ -174,12 +174,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         if (rB) {
 
                             if (rBf) {
-                                // RightChild was deleted.
+                                // RightChild was deleted in Left.
 
                                 DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                 deleteOp.apply(context);
                             } else {
-                                // Deletion - Deletion conflict.
+                                // Deletion/Deletion conflict.
 
                                 ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                 conflictOp.apply(context);
@@ -202,19 +202,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 rightChild.setMerged();
                             }
                         }
-
                     }
                 } else {
 
                     if (lB) {
 
                         if (lBf) {
-                            // LeftChild was deleted.
+                            // LeftChild was deleted in Right.
 
                             DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                             deleteOp.apply(context);
                         } else {
-                            // Deletion - Deletion conflict.
+                            // Deletion/Deletion conflict.
 
                             ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target);
                             conflictOp.apply(context);
@@ -240,12 +239,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             }
                         } else {
                             if (rBf) {
-                                // RightChild was deleted.
+                                // RightChild was deleted in Left.
 
                                 DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                 deleteOp.apply(context);
                             } else {
-                                // Deletion - Deletion conflict.
+                                // Deletion/Deletion conflict.
 
                                 ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                 conflictOp.apply(context);
@@ -291,12 +290,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
             if (lB) {
                 if (lBf) {
-                    // LeftChild was deleted.
+                    // LeftChild was deleted in Right.
 
                     DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                     deleteOp.apply(context);
                 } else {
-                    // Deletion - Deletion conflict.
+                    // Deletion/Deletion conflict.
 
                     ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                     conflictOp.apply(context);
@@ -325,12 +324,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
             if (rB) {
                 if (rBf) {
-                    // RightChild was deleted.
+                    // RightChild was deleted in Left.
 
                     DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                     deleteOp.apply(context);
                 } else {
-                    // Deletion - Deletion conflict.
+                    // Deletion/Deletion conflict.
 
                     ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                     conflictOp.apply(context);
