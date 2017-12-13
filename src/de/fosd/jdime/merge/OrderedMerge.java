@@ -279,9 +279,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             }
         }
 
-        while (leftIt.hasNext()) {
-            leftChild = leftIt.next();
-
+        while (!leftDone) {
             boolean lB = leftChild.hasMatching(baseRev);
             boolean lBf = lB && leftChild.getMatching(baseRev).hasFullyMatched();
 
@@ -304,15 +302,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 addOp.apply(context);
             }
 
-
             if (assertsEnabled) {
                 leftChild.setMerged();
             }
+
+            if (leftIt.hasNext()) {
+                leftChild = leftIt.next();
+            } else {
+                leftDone = true;
+            }
         }
 
-        while (rightIt.hasNext()) {
-            rightChild = rightIt.next();
-
+        while (!rightDone) {
             boolean rB = rightChild.hasMatching(baseRev);
             boolean rBf = rB && rightChild.getMatching(baseRev).hasFullyMatched();
 
@@ -335,9 +336,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 addOp.apply(context);
             }
 
-
             if (assertsEnabled) {
                 rightChild.setMerged();
+            }
+
+            if (rightIt.hasNext()) {
+                rightChild = rightIt.next();
+            } else {
+                rightDone = true;
             }
         }
 
