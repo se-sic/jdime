@@ -62,6 +62,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
      */
     @Override
     public void merge(MergeOperation<T> operation, MergeContext context) {
+        boolean assertsEnabled = false;
+        assert assertsEnabled = true;
+
         Revision leftRev, baseRev, rightRev;
         Iterator<T> leftIt, rightIt;
 
@@ -117,6 +120,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             boolean rB = rightChild.hasMatching(baseRev);
             boolean rBf = rB && rightChild.getMatching(baseRev).hasFullyMatched();
 
+            assert !leftChild.isMerged() && !rightChild.isMerged() : "Trying to merge already merged child!";
+
             if (lr && rl) {
                 // Left and right child simply match. Merge them.
 
@@ -140,13 +145,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                 moveLeft = true;
                 moveRight = true;
+
+                if (assertsEnabled) {
+                    leftChild.setMerged();
+                    rightChild.setMerged();
+                }
             } else {
 
-
-                if (lr || rl) {
-                    String msg = "Found asymmetric matchings between " + leftChild + " and " + rightChild;
-                    throw new RuntimeException(msg);
-                }
+                assert !lr && !rl : "Found asymmetric matchings between " + leftChild + " and " + rightChild;
 
                 if (!lR) {
 
@@ -164,6 +170,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
 
                         moveLeft = true;
+
+                        if (assertsEnabled) {
+                            leftChild.setMerged();
+                        }
                     } else {
 
                         if (rL) {
@@ -173,6 +183,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             addOp.apply(context);
 
                             moveLeft = true;
+
+                            if (assertsEnabled) {
+                                leftChild.setMerged();
+                            }
                         } else {
                             if (rBf) {
                                 // RightChild was deleted.
@@ -188,6 +202,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                             moveRight = true;
 
+                            if (assertsEnabled) {
+                                rightChild.setMerged();
+                            }
                         }
                     }
 
@@ -207,6 +224,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                         moveRight = true;
 
+                        if (assertsEnabled) {
+                            rightChild.setMerged();
+                        }
                     } else {
                         // RightChild was added.
 
@@ -214,6 +234,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         addOp.apply(context);
 
                         moveRight = true;
+
+                        if (assertsEnabled) {
+                            rightChild.setMerged();
+                        }
                     }
 
                 } else {
@@ -224,10 +248,17 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                     moveLeft = true;
                     moveRight = true;
+
+                    if (assertsEnabled) {
+                        leftChild.setMerged();
+                        rightChild.setMerged();
+                    }
                 }
             }
 
             if (moveLeft) {
+                assert leftChild.isMerged() : "Trying to move past unmerged child " + leftChild.getId();
+
                 if (leftIt.hasNext()) {
                     leftChild = leftIt.next();
                 } else {
@@ -237,6 +268,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             }
 
             if (moveRight) {
+                assert rightChild.isMerged() : "Trying to move past unmerged child " + rightChild.getId();
+
                 if (rightIt.hasNext()) {
                     rightChild = rightIt.next();
                 } else {
@@ -270,6 +303,11 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
                 addOp.apply(context);
             }
+
+
+            if (assertsEnabled) {
+                leftChild.setMerged();
+            }
         }
 
         while (rightIt.hasNext()) {
@@ -295,6 +333,24 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
                 AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
                 addOp.apply(context);
+            }
+
+
+            if (assertsEnabled) {
+                rightChild.setMerged();
+            }
+        }
+
+        if (assertsEnabled) {
+            MergeScenario<T> mergeScenario = operation.getMergeScenario();
+            T left = mergeScenario.getLeft();
+            T right = mergeScenario.getRight();
+
+            for (T child : left.getChildren()) {
+                assert (child.isMerged()) : "Child was not merged: " + child.getId();
+            }
+            for (T child : right.getChildren()) {
+                assert (child.isMerged()) : "Child was not merged: " + child.getId();
             }
         }
     }
