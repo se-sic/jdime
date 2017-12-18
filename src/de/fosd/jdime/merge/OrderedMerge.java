@@ -415,7 +415,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // the left revision.
                                     // Right child was added.
                                     // A respective conflict is included in the merged revision.
-                                    // TODO: can we make the conflict between left and right child instead of left and null?
+                                    // TODO: Insertion order of right child is ambiguous.
+                                    //       Make the conflict between left and right child instead of left and null?
 
                                     ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
@@ -448,7 +449,7 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             }
                         } else {
                             // 0 0 0 0 0 X
-                            // Left child was added
+                            // Left child was added.
                             // Right child has no match in the left revision.
                             // It was either deleted by the left revision or is a change introduced by the right revision.
                             if (rB) {
@@ -471,9 +472,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     deleteOp.apply(context);
                                 } else {
                                     // Deletion/Deletion or Deletion/Insertion conflict:
+                                    // Left child was added.
                                     // Right child was deleted in the left revision,
                                     // but its subtree was changed by the right revision
                                     // The merged revision includes a respective conflict.
+                                    // TODO: Insertion order of left child is ambiguous.
+                                    //       Make the conflict between left and right child instead of null and right?
 
                                     ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
