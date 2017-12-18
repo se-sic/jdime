@@ -175,15 +175,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
             assert !leftChild.isMerged() && !rightChild.isMerged() : "Trying to merge already merged child!";
 
             if (lr && rl) {
+                // 1 X X 1 X X
                 // Left and right child simply match. Merge them.
 
                 MergeType mergeType;
                 T baseChild;
 
                 if (lB) {
+                    // 1 X 1 1 X X
                     mergeType = MergeType.THREEWAY;
                     baseChild = leftChild.getMatching(baseRev).getMatchingArtifact(leftChild);
                 } else {
+                    // 1 X 0 1 X X
                     mergeType = MergeType.TWOWAY;
                     baseChild = leftChild.createEmptyArtifact(BASE);
                 }
@@ -203,12 +206,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     rightChild.setMerged();
                 }
             } else {
+                // 0 X X 0 X X
 
                 assert !lr && !rl : "Found asymmetric matchings between " + leftChild + " and " + rightChild;
 
                 if (lR) {
+                    // 0 1 X 0 X X
 
                     if (rL) {
+                        // 0 1 X 0 1 X
+
                         // Left and right child are in conflict.
 
                         /* TODO: This is a cross merge situation: Can this really happen in ordered merge?
@@ -225,8 +232,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             rightChild.setMerged();
                         }
                     } else {
+                        // 0 1 X 0 0 X
 
                         if (rB) {
+                            // 0 1 X 0 0 1
 
                             if (rBf) {
                                 // RightChild was deleted in Left.
@@ -246,6 +255,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 rightChild.setMerged();
                             }
                         } else {
+                            // 0 1 X 0 0 0
+
                             // RightChild was added.
 
                             AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
@@ -259,29 +270,117 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     }
                 } else {
+                    // 0 0 X 0 X X
 
                     if (lB) {
-
-                        if (lBf) {
-                            // LeftChild was deleted in Right.
-
-                            DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
-                            deleteOp.apply(context);
-                        } else {
-                            // Deletion/Deletion conflict.
-
-                            ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
-                            conflictOp.apply(context);
-                        }
-
-                        moveLeft = true;
-
-                        if (assertsEnabled) {
-                            leftChild.setMerged();
-                        }
-                    } else {
+                        // 0 0 1 0 X X
 
                         if (rL) {
+                            // 0 0 1 0 1 X
+
+                            if (lBf) {
+                                // LeftChild was deleted in Right.
+
+                                DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                deleteOp.apply(context);
+                            } else {
+                                // Deletion/Deletion conflict.
+
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                conflictOp.apply(context);
+                            }
+
+                            moveLeft = true;
+
+                            if (assertsEnabled) {
+                                leftChild.setMerged();
+                            }
+                        } else {
+                            // 0 0 1 0 0 X
+
+                            if (rB) {
+                                // 0 0 1 0 0 1
+
+                                if (lBf && rBf) {
+                                    // Both children were deleted.
+
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                    deleteOp.apply(context);
+
+                                    deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                    deleteOp.apply(context);
+
+                                    moveLeft = true;
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                        rightChild.setMerged();
+                                    }
+                                } else {
+                                    // Deletion/Deletion conflict.
+
+                                    if (lBf)  {
+                                        DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                        deleteOp.apply(context);
+
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    } else if (rBf) {
+                                        DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                        deleteOp.apply(context);
+
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    } else {
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    }
+
+                                    moveLeft = true;
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                        rightChild.setMerged();
+                                    }
+                                }
+                            } else {
+                                // 0 0 1 0 0 0
+
+                                if (lBf) {
+                                    // LeftChild was deleted in Right.
+
+                                    AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                                    addOp.apply(context);
+
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        rightChild.setMerged();
+                                    }
+
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                    deleteOp.apply(context);
+                                } else {
+                                    // Deletion/Deletion conflict.
+
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                    conflictOp.apply(context);
+                                }
+
+                                moveLeft = true;
+
+                                if (assertsEnabled) {
+                                    leftChild.setMerged();
+                                }
+                            }
+                        }
+                    } else {
+                        // 0 0 0 0 X X
+
+                        if (rL) {
+                            // 0 0 0 0 1 X
                             // LeftChild was added.
 
                             AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
@@ -293,9 +392,20 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 leftChild.setMerged();
                             }
                         } else {
+                            // 0 0 0 0 0 X
                             if (rB) {
+                                // 0 0 0 0 0 1
                                 if (rBf) {
                                     // RightChild was deleted in Left.
+
+                                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                                    addOp.apply(context);
+
+                                    moveLeft = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                    }
 
                                     DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                     deleteOp.apply(context);
@@ -312,6 +422,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     rightChild.setMerged();
                                 }
                             } else {
+                                // 0 0 0 0 0 0
+
                                 // RightChild was added.
                                 // As LeftChild was added as well, this is an Insertion/Insertion conflict.
 
