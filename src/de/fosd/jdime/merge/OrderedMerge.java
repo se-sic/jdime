@@ -360,14 +360,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // But at least one of their subtrees was changed.
 
                                     if (lBf)  {
-                                        // Left subtree was changed
+                                        // Right subtree was changed
                                         DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                                         deleteOp.apply(context);
 
                                         ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                         conflictOp.apply(context);
                                     } else if (rBf) {
-                                        // Right subtree was changed
+                                        // Left subtree was changed
                                         DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                         deleteOp.apply(context);
 
