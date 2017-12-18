@@ -176,7 +176,8 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
 
             if (lr && rl) {
                 // 1 X X 1 X X
-                // Left and right child simply match. Merge them.
+                // Left and right child match.
+                // We have to merge them two-way or three-way depending on whether they have a common ancestor in base.
 
                 MergeType mergeType;
                 T baseChild;
@@ -207,16 +208,18 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                 }
             } else {
                 // 0 X X 0 X X
+                // Left and right child do not match.
 
                 assert !lr && !rl : "Found asymmetric matchings between " + leftChild + " and " + rightChild;
 
                 if (lR) {
                     // 0 1 X 0 X X
+                    // Left child has a match in right revision, but not with right child.
 
                     if (rL) {
                         // 0 1 X 0 1 X
-
-                        // Left and right child are in conflict.
+                        // Right child has a match in left revision, but not with left child.
+                        // We cannot determine the insertion order, therefore left and right child are in conflict.
 
                         /* TODO: This is a cross merge situation: Can this really happen in ordered merge?
                          *       Maybe assert false and see whether this is ever triggered. */
@@ -233,17 +236,30 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     } else {
                         // 0 1 X 0 0 X
+                        // Left child has a match in right revision and will be dealt with later on in the loop.
+                        // Right child has no match in left revision.
+                        // Therefore, right child was either deleted in the left revision,
+                        // or is a change introduced by the right revision.
 
                         if (rB) {
                             // 0 1 X 0 0 1
+                            // Deletion or Conflict:
+                            // Right child has no match in the left revision, but a match in base revision.
+                            // Right child was deleted in the left revision.
+                            // Now it depends on whether there are changes in right child's subtree.
 
                             if (rBf) {
-                                // RightChild was deleted in Left.
+                                // Deletion:
+                                // Right child was deleted in the left revision.
+                                // It is not included in the merged revision.
 
                                 DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                 deleteOp.apply(context);
                             } else {
-                                // Deletion/Deletion conflict.
+                                // Deletion/Deletion or Deletion/Insertion conflict:
+                                // Right child was deleted in the left revision,
+                                // but its subtree was changed in the right revision.
+                                // A respective conflict is added to the merged revision.
 
                                 ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                 conflictOp.apply(context);
@@ -256,8 +272,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             }
                         } else {
                             // 0 1 X 0 0 0
-
-                            // RightChild was added.
+                            // Left child has a match in right revision, and will be dealt with later on in the loop.
+                            // Right child has no match in the base revision and no match in the left revision.
+                            // Therefore, it was added by the right revision.
+                            // It is included in the merged revision.
 
                             AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
                             addOp.apply(context);
@@ -271,20 +289,31 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                     }
                 } else {
                     // 0 0 X 0 X X
+                    // Left child has no match in the right revision.
+                    // Therefore, left child was either deleted in the right revision,
+                    // or is a change introduced by the left revision.
 
                     if (lB) {
                         // 0 0 1 0 X X
+                        // Left child has a match in base revision, it was therefore deleted by the right revision.
+                        // Now it depends on whether there are changes in left child's subtree
+                        // and on the status of right child.
 
                         if (rL) {
                             // 0 0 1 0 1 X
+                            // Left child was deleted in the right revision.
+                            // Right child has a match in the left revision, but not with left child.
 
                             if (lBf) {
-                                // LeftChild was deleted in Right.
+                                // Left child was deleted by the right revision and is not included in the merged revision.
 
                                 DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                                 deleteOp.apply(context);
                             } else {
-                                // Deletion/Deletion conflict.
+                                // Deletion/Deletion or Deletion/Insertion conflict:
+                                // Left child was deleted in the right revision,
+                                // but its subtree was changed in the left revision.
+                                // A respective conflict is added to the merged revision.
 
                                 ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                                 conflictOp.apply(context);
@@ -297,12 +326,20 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             }
                         } else {
                             // 0 0 1 0 0 X
+                            // Left child was deleted in the right revision.
+                            // Right child has no match in the left revision.
+                            // It was either deleted in the left revision,
+                            // or is a changed introduced by the right revision.
 
                             if (rB) {
                                 // 0 0 1 0 0 1
+                                // Left child was deleted in the right revision.
+                                // Right child was deleted in the left revision.
+                                // Merge result depends on whether the subtrees were changed.
 
                                 if (lBf && rBf) {
-                                    // Both children were deleted.
+                                    // Both children were deleted, their subtrees were not changed..
+                                    // The merged revision includes neither of them.
 
                                     DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                                     deleteOp.apply(context);
@@ -318,21 +355,26 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                         rightChild.setMerged();
                                     }
                                 } else {
-                                    // Deletion/Deletion conflict.
+                                    // Deletion/Deletion or Deletion/Insertion conflict:
+                                    // Both children were deleted.
+                                    // But at least one of their subtrees was changed.
 
                                     if (lBf)  {
+                                        // Left subtree was changed
                                         DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                                         deleteOp.apply(context);
 
                                         ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                         conflictOp.apply(context);
                                     } else if (rBf) {
+                                        // Right subtree was changed
                                         DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                         deleteOp.apply(context);
 
                                         ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                                         conflictOp.apply(context);
                                     } else {
+                                        // Both subtrees were changed.
                                         ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
                                         conflictOp.apply(context);
                                     }
@@ -347,9 +389,14 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 }
                             } else {
                                 // 0 0 1 0 0 0
+                                // Left child was deleted in the right revision.
+                                // Right child has no match in the left revision and no match in the base revision.
+                                // Therefore, right child is a change introduced by the right revision.
 
                                 if (lBf) {
-                                    // LeftChild was deleted in Right.
+                                    // Left child was deleted.
+                                    // Right child was added.
+                                    // The merged revision will include right child.
 
                                     AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
                                     addOp.apply(context);
@@ -363,7 +410,12 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
                                     deleteOp.apply(context);
                                 } else {
-                                    // Deletion/Deletion conflict.
+                                    // Deletion/Deletion or Deletion/Insertion: conflict.
+                                    // Left child was deleted by the right revision, but its subtree was changed by
+                                    // the left revision.
+                                    // Right child was added.
+                                    // A respective conflict is included in the merged revision.
+                                    // TODO: can we make the conflict between left and right child instead of left and null?
 
                                     ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
@@ -378,10 +430,13 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         }
                     } else {
                         // 0 0 0 0 X X
+                        // Left child has no match in the right revision and no match in the base revision.
+                        // Therefore, it was added by the left revision.
 
                         if (rL) {
                             // 0 0 0 0 1 X
-                            // LeftChild was added.
+                            // Left child was added and is included in the merged revision.
+                            // Right child has a match in the left revision and will be dealt with later on in the loop.
 
                             AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
                             addOp.apply(context);
@@ -393,10 +448,15 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                             }
                         } else {
                             // 0 0 0 0 0 X
+                            // Left child was added
+                            // Right child has no match in the left revision.
+                            // It was either deleted by the left revision or is a change introduced by the right revision.
                             if (rB) {
                                 // 0 0 0 0 0 1
+                                // Right child was deleted in the left revision.
                                 if (rBf) {
-                                    // RightChild was deleted in Left.
+                                    // Left child was added and is included in the merged revision.
+                                    // Right child was deleted is not included in the merged revision.
 
                                     AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
                                     addOp.apply(context);
@@ -410,7 +470,10 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
                                     deleteOp.apply(context);
                                 } else {
-                                    // Deletion/Deletion conflict.
+                                    // Deletion/Deletion or Deletion/Insertion conflict:
+                                    // Right child was deleted in the left revision,
+                                    // but its subtree was changed by the right revision
+                                    // The merged revision includes a respective conflict.
 
                                     ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
@@ -423,9 +486,11 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 }
                             } else {
                                 // 0 0 0 0 0 0
-
-                                // RightChild was added.
-                                // As LeftChild was added as well, this is an Insertion/Insertion conflict.
+                                // Insertion/Insertion Conflict:
+                                // Left child was added
+                                // Right child was added.
+                                // As the merge is ordered, the insertion order is important but cannot be determined.
+                                // The merged revision includes a respective conflict.
 
                                 ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
                                 conflictOp.apply(context);
