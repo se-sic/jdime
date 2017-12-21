@@ -415,17 +415,17 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // the left revision.
                                     // Right child was added.
                                     // A respective conflict is included in the merged revision.
-                                    // TODO: Insertion order of right child is ambiguous.
-                                    //       Make the conflict between left and right child instead of left and null?
 
-                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
                                 }
 
                                 moveLeft = true;
+                                moveRight = true;
 
                                 if (assertsEnabled) {
                                     leftChild.setMerged();
+                                    rightChild.setMerged();
                                 }
                             }
                         }
@@ -476,16 +476,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // Right child was deleted in the left revision,
                                     // but its subtree was changed by the right revision
                                     // The merged revision includes a respective conflict.
-                                    // TODO: Insertion order of left child is ambiguous.
-                                    //       Make the conflict between left and right child instead of null and right?
 
-                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
                                 }
 
+                                moveLeft = true;
                                 moveRight = true;
 
                                 if (assertsEnabled) {
+                                    leftChild.setMerged();
                                     rightChild.setMerged();
                                 }
                             } else {
