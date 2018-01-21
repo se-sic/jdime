@@ -142,6 +142,9 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 astMergeOp.apply(context);
             }
 
+            // TODO: find clusters of microconflicts and restructure them to larger conflicts
+            targetNode.collapseConflicts();
+
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {

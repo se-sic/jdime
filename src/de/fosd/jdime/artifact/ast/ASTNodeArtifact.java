@@ -610,4 +610,51 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
 
         return choice;
     }
+
+    public ASTNodeArtifact collapseConflicts() {
+
+        if (!hasChildren()) {
+            return this;
+        }
+
+        boolean subtreeIsConflict = true;
+        for (int i = 0; i < getNumChildren(); i++) {
+            ASTNodeArtifact child = getChild(i);
+            if (!child.isConflict()) {
+                ASTNodeArtifact result = child.collapseConflicts();
+                if (result != child) {
+                    setChild(result, i);
+                    result.setParent(this);
+                } else {
+                    subtreeIsConflict = false;
+                }
+            }
+        }
+
+        if (subtreeIsConflict) {
+            ASTNodeArtifact conflict = null;
+
+            Revision left = getChild(0).getLeft().getRevision();
+            Revision right = getChild(0).getRight().getRevision();
+            
+            for (Revision rev : getMatches().keySet()) {
+                if (rev.equals(right)) {
+                    ASTNodeArtifact rightNode = getMatching(right).getMatchingArtifact(this);
+                    ASTNodeArtifact leftNode = rightNode.getMatching(left).getMatchingArtifact(rightNode);
+                    conflict = getParent().createConflictArtifact(leftNode, rightNode);
+                } else if (rev.equals(left)) {
+                    ASTNodeArtifact leftNode = getMatching(left).getMatchingArtifact(this);
+                    ASTNodeArtifact rightNode = leftNode.getMatching(right).getMatchingArtifact(leftNode);
+                    conflict = getParent().createConflictArtifact(leftNode, rightNode);
+                } else {
+                    assert (false) : "Matching revision (" + rev + ") is neither left nor right";
+                }
+            }
+
+            return conflict;
+
+        } else {
+            return this;
+        }
+    }
 }
