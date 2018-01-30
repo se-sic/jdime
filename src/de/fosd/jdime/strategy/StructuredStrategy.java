@@ -136,8 +136,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
             MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
-            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
-            LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
             try (Runtime.Measurement m = merge.time()) {
@@ -154,7 +152,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
             if (!context.isDiffOnly()) {
-                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
+                LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             }
 
             ASTNodeArtifact finalLeft = left;
