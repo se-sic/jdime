@@ -57,43 +57,6 @@ import static de.fosd.jdime.config.merge.MergeScenario.BASE;
  * We documented the (JDime specific) results for each input situation in a table that is available as Google Doc.
  * </p>
  *
- * <p>
- * For self-containment, the logic is also shown in the following figure (legend below):
- * </p>
- *
- * <pre>
- *              lr &amp;&amp; rl
- *   +--------------+----------+
- * M(l,r)                     lR
- *             +---------------+----------------+
- *            rL                                lB
- *     +------+-------+                  +-------+-------+
- *  C(l,r)           rB                 lBf             rL
- *              +-----+-----+       +----+----+      +---+---+
- *             rBf       A(r)      D(l)    C(l,_)   A(L)    rB
- *          +---+---+                                    +---+---+
- *         D(r)   C(_,r)                                 rBf   C(l,r)
- *                                                    +---+---+
- *                                                   D(r)   C(_,r)
- * Matching states:
- *    lr:  left == right
- *    rl:  right == left
- *    lR:  left is child of right parent
- *    rL:  right is child of left parent
- *    lB:  left is child of base parent
- *    rB:  right is child of base parent
- *    lBf: left was fully matched in base
- *    rBf: right was fully matched in base
- *
- * Merge Operations:
- *    M(i,j): merge i and j
- *    A(i):   add i
- *    D(i):   delete i
- *    C(i,j): conflict between i and j
- *    C(i,_): conflict between i and nothing
- *    C(_,i): conflict between nothing and i
- * </pre>
- *
  * @see <a href="https://docs.google.com/spreadsheets/d/1LQgR_cTPhH4vFuy-7HLpfa-HF4PmYxsrGzRTs1EHVmk/edit?usp=sharing">GoogleDoc</a>
  *
  * @author Olaf Lessenich
@@ -415,17 +378,17 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // the left revision.
                                     // Right child was added.
                                     // A respective conflict is included in the merged revision.
-                                    // TODO: Insertion order of right child is ambiguous.
-                                    //       Make the conflict between left and right child instead of left and null?
 
-                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
                                 }
 
                                 moveLeft = true;
+                                moveRight = true;
 
                                 if (assertsEnabled) {
                                     leftChild.setMerged();
+                                    rightChild.setMerged();
                                 }
                             }
                         }
@@ -476,16 +439,16 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                     // Right child was deleted in the left revision,
                                     // but its subtree was changed by the right revision
                                     // The merged revision includes a respective conflict.
-                                    // TODO: Insertion order of left child is ambiguous.
-                                    //       Make the conflict between left and right child instead of null and right?
 
-                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
                                     conflictOp.apply(context);
                                 }
 
+                                moveLeft = true;
                                 moveRight = true;
 
                                 if (assertsEnabled) {
+                                    leftChild.setMerged();
                                     rightChild.setMerged();
                                 }
                             } else {
