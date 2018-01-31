@@ -642,14 +642,14 @@ public class MergeContext implements Cloneable {
             throw new AbortException("No input files given.");
         }
 
-        boolean inputDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
-        boolean inputFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
+        boolean inputIsDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
+        boolean inputIsFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
 
         FileArtifact.FileType type;
 
-        if (inputDirs) {
+        if (inputIsDirs) {
             type = FileArtifact.FileType.VDIR;
-        } else if (inputFiles) {
+        } else if (inputIsFiles) {
             type = FileArtifact.FileType.VFILE;
         } else { // This is prevented by a check above.
             type = null;
@@ -670,11 +670,11 @@ public class MergeContext implements Cloneable {
                         throw new AbortException(msg);
                     }
 
-                    if (inputDirs && !outFile.isDirectory()) {
+                    if (inputIsDirs && !outFile.isDirectory()) {
                         throw new AbortException("The output must be a directory when merging directories.");
                     }
 
-                    if (inputFiles && !outFile.isFile()) {
+                    if (inputIsFiles && !outFile.isFile()) {
                         throw new AbortException("The output must be a file when merging files.");
                     }
 
