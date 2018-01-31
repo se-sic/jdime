@@ -290,9 +290,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public FileArtifact(Revision revision, File file, FileType type) {
         super(revision, 0);
 
-        if (file.exists()) {
-            throw new IllegalArgumentException("File '" + file + "' exists.");
-        } else if (!type.isVirtual()) {
+        if (!file.exists() && !type.isVirtual()) {
             throw new IllegalArgumentException("Type " + type + " is not virtual.");
         }
 

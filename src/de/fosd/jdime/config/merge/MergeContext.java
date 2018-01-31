@@ -677,13 +677,6 @@ public class MergeContext implements Cloneable {
                     if (inputIsFiles && !outFile.isFile()) {
                         throw new AbortException("The output must be a file when merging files.");
                     }
-
-                    try {
-                        LOG.warning(() -> "Deleting " + outFile);
-                        FileUtils.forceDelete(outFile);
-                    } catch (IOException e) {
-                        throw new AbortException("Can not overwrite the output file or directory.", e);
-                    }
                 }
 
                 setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
