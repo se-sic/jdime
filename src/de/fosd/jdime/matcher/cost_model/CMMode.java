@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,12 +39,12 @@ public enum CMMode {
 
     /**
      * The <code>CostModelMatcher</code> will be the only matcher used to produce matchings in
-     * {@link Matcher#match(MergeContext, Artifact, Artifact, Color)}.
+     * {@link Matcher#match(MergeContext, Color)}.
      */
     REPLACEMENT,
 
     /**
-     * After the matchings were calculated in {@link Matcher#match(MergeContext, Artifact, Artifact, Color)} they are
+     * After the matchings were calculated in {@link Matcher#match(MergeContext, Color)} they are
      * fixed and a matching between the unmatched artifacts is calculated using the <code>CostModelMatcher</code>.
      */
     POST_PROCESSOR,

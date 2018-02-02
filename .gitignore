@@ -1,6 +1,3 @@
-### JDime Specific
-!JJ7.jar
-
 ### Gradle template
 .gradle
 build/
@@ -112,14 +109,13 @@ nb-configuration.xml
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
 
-*.iml
-
 ## Directory-based project format:
 .idea/
 
 ## File-based project format:
 *.ipr
 *.iws
+*.iml
 
 ## Plugin-specific files:
 
@@ -176,3 +172,10 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
+
+### JDime Specific
+!lib/*
+
+# Visual Studio Code
+.vscode/
+*.code-workspace

@@ -1,0 +1,103 @@
+/**
+ * Copyright (C) 2013-2014 Olaf Lessenich
+ * Copyright (C) 2014-2017 University of Passau, Germany
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ *
+ * Contributors:
+ *     Olaf Lessenich <lessenic@fim.uni-passau.de>
+ *     Georg Seibt <seibt@fim.uni-passau.de>
+ */
+[
+  {
+    "name" : "Moved Method",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "TWOWAY",
+    "path" : "SimpleTests/MovedMethod.java"
+  },
+  {
+    "name" : "Moved Method Inside Anonymous Class",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured", "linebased,semistructured,structured"],
+    "type" : "TWOWAY",
+    "path" : "SimpleTests/AnonClassMovedMethod.java"
+  },
+  {
+    "name" : "Bag No. 1",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag.java"
+  },
+  {
+    "name" : "Bag No. 2",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag2.java"
+  },
+  {
+    "name" : "Bag No. 3",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/Bag/Bag3.java"
+  },
+  {
+    "name" : "Formatting of Class Attributes",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/TopLevelFormatting.java"
+  },
+  {
+    "name" : "Formatting of a Method Body",
+    "strategies" : ["linebased", "semistructured", "structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/MethodLevelFormatting.java"
+  },
+  {
+    "name" : "Import Conflict",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ImportMess.java"
+  },
+  {
+    "name" : "Expression Test",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ExprTest.java"
+  },
+  {
+    "name" : "Deletion/Insertion",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/DeletionInsertion.java"
+  },
+  {
+    "name" : "Variable Declaration",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/VariableDeclaration.java"
+  },
+  {
+    "name" : "Changed Method",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod.java"
+  },
+  {
+    "name" : "Changed Method No. 2",
+    "strategies" : ["linebased", "semistructured", "structured", "linebased,structured"],
+    "type" : "THREEWAY",
+    "path" : "SimpleTests/ChangedMethod2.java"
+  }
+]

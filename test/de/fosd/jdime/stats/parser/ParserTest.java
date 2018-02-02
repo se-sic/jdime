@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@ public class ParserTest extends JDimeTest {
 
     @Test
     public void testParse() throws Exception {
-        File file = file("threeway", "linebased", "SimpleTests", "Bag", "Bag2.java");
+        File file = file(resultsDir, "linebased", "SimpleTests", "Bag", "Bag2.java");
         String code = FileUtils.readFileToString(file, UTF_8);
         ParseResult result = Parser.parse(code);
 
@@ -48,7 +48,7 @@ public class ParserTest extends JDimeTest {
         assertEquals(7, result.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
-        file = file("threeway", "linebased", "SimpleTests", "Bag", "Bag3.java");
+        file = file(resultsDir, "linebased", "SimpleTests", "Bag", "Bag3.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
 
@@ -57,7 +57,7 @@ public class ParserTest extends JDimeTest {
         assertEquals(0, result.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
-        file = file("threeway", "linebased", "ParserTest", "Comments.java");
+        file = file(resultsDir, "linebased", "ParserTest", "Comments.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
 
@@ -66,7 +66,7 @@ public class ParserTest extends JDimeTest {
         assertEquals(0, result.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
-        file = file("threeway", "linebased", "ParserTest", "CommentsConflict.java");
+        file = file(resultsDir, "linebased", "ParserTest", "CommentsConflict.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
 

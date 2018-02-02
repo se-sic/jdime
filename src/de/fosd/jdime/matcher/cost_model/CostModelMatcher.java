@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -43,7 +44,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import de.fosd.jdime.artifact.Artifact;
-import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.matcher.MatcherInterface;
@@ -58,7 +58,6 @@ import static java.lang.System.identityHashCode;
 import static java.util.Comparator.comparing;
 import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
-import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
@@ -199,12 +198,12 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             matchings.forEach(m -> cost(m, matchings, parameters));
         }
 
-        float sumCost = matchings.stream().collect(summingDouble(CMMatching::getExactCost)).floatValue();
+        double sumCost = matchings.stream().mapToDouble(CMMatching::getExactCost).sum();
         sumCost *= (1.0f / (matchings.left.getTreeSize() + matchings.right.getTreeSize()));
 
         parameters.clearExactCaches();
 
-        return sumCost;
+        return (float) sumCost;
     }
 
     /**
@@ -283,8 +282,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      * @return the number of children of <code>m</code> violating ancestry
      */
     private int numAncestryViolatingChildren(T m, T n, CMMatchings<T> matchings, CMParameters<T> parameters) {
-        ArtifactList<T> mChildren = m.getChildren();
-        ArtifactList<T> nChildren = n.getChildren();
+        List<T> mChildren = m.getChildren();
+        List<T> nChildren = n.getChildren();
 
         Predicate<T> filter = a -> a != null && !nChildren.contains(a);
 
@@ -387,8 +386,8 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
      */
     private Set<T> distinctSiblingFamilies(T m, CMMatchings<T> matchings, CMParameters<T> parameters) {
         Function<T, T> image = mChild -> image(mChild, matchings, parameters);
-        Predicate<T> notNull = t -> t != null;
-        Function<T, T> getParent = Artifact::getParent;
+        Predicate<T> notNull = Objects::nonNull;
+        Function<T, T> getParent = T::getParent;
 
         return siblings(m, matchings, parameters).stream().map(image).filter(notNull).map(getParent).collect(toSet());
     }
@@ -1073,7 +1072,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
             j = intFromRange(lower, upper, parameters);
         } else {
             //TODO sort by exact cost?
-            Collections.sort(mVariable, Comparator.comparing(CMMatching::getExactCost));
+            mVariable.sort(Comparator.comparing(CMMatching::getExactCost));
             j = parameters.rng.nextInt(mVariable.size());
         }
 
@@ -1144,7 +1143,7 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         while (fixed.size() != current.size()) {
 
             boundCost(current, parameters);
-            Collections.sort(current, comparing(CMMatching::getCostBounds, BY_LOWER_UPPER));
+            current.sort(comparing(CMMatching::getCostBounds, BY_LOWER_UPPER));
 
             CMMatchings<T> available = new CMMatchings<>(current, current.left, current.right);
             available.removeAll(fixed);
@@ -1208,7 +1207,9 @@ public class CostModelMatcher<T extends Artifact<T>> implements MatcherInterface
         for (T lNode : leftNodes) {
             for (T rNode : rightNodes) {
 
-                if (lNode != null || rNode != null) {
+                if (lNode != null && (rNode == null || lNode.categoryMatches(rNode))) {
+                    bipartiteGraph.add(new CMMatching<>(lNode, rNode));
+                } else if (rNode != null && (lNode == null || rNode.categoryMatches(lNode))) {
                     bipartiteGraph.add(new CMMatching<>(lNode, rNode));
                 }
             }

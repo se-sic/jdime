@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,27 +23,28 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 
 /**
- * @author Olaf Lessenich
+ * An {@link Operation} that adds a conflict or choice node to the target artifact depending on the
+ * {@link MergeContext} configuration.
  *
  * @param <T>
- *            type of artifact
+ *         the type of the {@link Artifact Artifacts}
  */
 public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(ConflictOperation.class.getCanonicalName());
     
-    private T type;
     private T left;
     private T right;
 
     /**
-     * Output Artifact.
+     * The target {@link Artifact} to add a conflict or choice node to.
      */
     private T target;
 
@@ -51,15 +52,23 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     private String rightCondition;
 
     /**
-     * Class constructor.
+     * Constructs a new {@link ConflictOperation} adding a conflict representation between the {@code left} and
+     * {@code right} alternative to the {@code target}.
      *
-     * @param left left alternatives
-     * @param right right alternatives
-     * @param target target node
+     * @param left
+     *         the left alternative
+     * @param right
+     *         the right alternative
+     * @param target
+     *         the target {@link Artifact} to add a conflict representation to
+     * @param leftCondition
+     *         the condition for the left alternative, may be {@code null}
+     * @param rightCondition
+     *         the condition for the right alternative, may be {@code null}
      */
-    public ConflictOperation(final T left, final T right, final T target, final String leftCondition,
-                             final String rightCondition) {
-        super();
+    public ConflictOperation(T left, T right, T target, String leftCondition, String rightCondition) {
+        Objects.requireNonNull(target, "The parent for the conflict must not be null.");
+
         this.left = left;
         this.right = right;
         this.target = target;
@@ -77,38 +86,35 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
     public void apply(MergeContext context) {
         LOG.fine(() -> "Applying: " + this);
 
-        if (target != null) {
-            assert (target.exists());
+        if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
+            LOG.fine("Creating a choice node.");
 
-            if (context.isConditionalMerge(left) && leftCondition != null && rightCondition != null) {
-                LOG.fine("Create choice node");
-                T choice;
-                if (left.isChoice()) {
-                    choice = left;
-                } else {
-                    choice = target.createChoiceArtifact(leftCondition, left);
-                }
-
-                assert (choice.isChoice());
-                choice.addVariant(rightCondition, right);
-                target.addChild(choice);
+            T choice;
+            if (left.isChoice()) {
+                choice = left;
             } else {
-                LOG.fine("Create conflict node");
-                T conflict = target.createConflictArtifact(left, right);
-                assert (conflict.isConflict());
-                target.addChild(conflict);
+                choice = target.createChoiceArtifact(leftCondition, left);
             }
+
+            choice.addVariant(rightCondition, right);
+            target.addChild(choice);
+        } else {
+            LOG.fine("Creating a conflict node.");
+            target.addChild(target.createConflictArtifact(left, right));
         }
     }
 
     @Override
-    public final String getName() {
-        return "CONFLICT";
-    }
-
-    @Override
     public final String toString() {
-        return getId() + ": " + getName() + " {" + left + "} <~~> {" + right
-                + "}";
+        String lId = left != null ? left.getId() : "NONE";
+        String rId = right != null ? right.getId() : "NONE";
+        String tId = target.getId();
+
+        if (leftCondition == null && rightCondition == null) {
+            return String.format("%s: BETWEEN %s AND %s UNDER %s", getId(), lId, rId, tId);
+        } else {
+            String format = "%s: BETWEEN %s (CONDITION %s) AND %s (CONDITION %s) UNDER %s";
+            return String.format(format, getId(), lId, leftCondition, rId, rightCondition, tId);
+        }
     }
 }

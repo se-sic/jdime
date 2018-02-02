@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -223,7 +223,7 @@ public class MergeScenario<T extends Artifact<T>> {
      *
      * @return the <code>ArtifactList</code>
      */
-    public ArtifactList<T> asList() {
+    public List<T> asList() {
         return artifacts.entrySet().stream().map(Map.Entry::getValue).collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
     }
 

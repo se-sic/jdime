@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,56 +23,56 @@
  */
 package de.fosd.jdime.operations;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
-import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 
 /**
- * The operation deletes <code>Artifact</code>s.
- *
- * @author Olaf Lessenich
+ * An {@link Operation} that deletes an {@link Artifact} from the children of another {@link Artifact}.
  *
  * @param <T>
- *            type of artifact
- *
+ *         the type of the {@link Artifact Artifacts}
  */
 public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
     private static final Logger LOG = Logger.getLogger(DeleteOperation.class.getCanonicalName());
 
     /**
-     * The <code>Artifact</code> that is deleted by the operation.
+     * The {@link Artifact} that is deleted by this {@link Operation}.
      */
     private T artifact;
 
     /**
-     * The output <code>Artifact</code>.
+     * The {@link Artifact} from whose children to delete {@link #artifact} from.
      */
     private T target;
 
-    private MergeScenario<T> mergeScenario;
+    /**
+     * The condition under which the {@link #artifact} is <b>NOT</b> deleted from {@link #target}.
+     */
     private String condition;
 
     /**
-     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from <code>target</code>.
+     * Constructs a new <code>DeleteOperation</code> deleting the given <code>artifact</code> from the children of
+     * <code>target</code>.
      *
      * @param artifact
      *         the <code>Artifact</code> to be deleted
      * @param target
      *         the <code>Artifact</code> to delete from
-     * @param mergeScenario
-     *         the current <code>MergeScenario</code>
      * @param condition
      *         the condition under which the node is NOT deleted
      */
-    public DeleteOperation(T artifact, T target, MergeScenario<T> mergeScenario, String condition) {
+    public DeleteOperation(T artifact, T target, String condition) {
+        Objects.requireNonNull(artifact, "The artifact to be deleted must not be null.");
+        Objects.requireNonNull(target, "The target to delete from must not be null.");
+
         this.artifact = artifact;
         this.target = target;
-        this.mergeScenario = mergeScenario;
 
         if (condition != null) {
             this.condition = condition;
@@ -81,17 +81,14 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
 
     @Override
     public void apply(MergeContext context) {
-        assert (artifact != null);
-        assert (artifact.exists()) : "Artifact does not exist: " + artifact;
-
         LOG.fine(() -> "Applying: " + this);
 
         if (context.isConditionalMerge(artifact) && condition != null) {
-            // we need to insert a choice node
-            T choice = target.createChoiceArtifact(condition, artifact);
-            assert (choice.isChoice());
-            target.addChild(choice);
+            LOG.fine("Creating a choice node.");
+            target.addChild(target.createChoiceArtifact(condition, artifact));
         } else {
+            // TODO delete anyway.
+
             // Nothing to do :-)
             //
             // Why?
@@ -102,7 +99,7 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
             // For ASTNodeArtifacts, the important method we rely on here is
             // StructuredStrategy.merge(), which calls
             // ASTNodeArtifact.createProgram(ASTNodeArtifact artifact),
-            // which then calls deleteChildren() on the created Program.
+            // which then calls clearChildren() on the created Program.
         }
 
         if (context.hasStatistics()) {
@@ -114,12 +111,11 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     }
 
     @Override
-    public String getName() {
-        return "DELETE";
-    }
-
-    @Override
     public String toString() {
-        return getId() + ": " + getName() + " " + artifact;
+        if (condition == null) {
+            return String.format("%s: %s FROM %s", getId(), artifact.getId(), target.getId());
+        } else {
+            return String.format("%s: %s FROM %s CONDITION %s", getId(), artifact.getId(), target.getId(), condition);
+        }
     }
 }

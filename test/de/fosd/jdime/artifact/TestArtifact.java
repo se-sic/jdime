@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,18 +52,15 @@ public class TestArtifact extends Artifact<TestArtifact> {
         super(rev, 0);
         this.label = label;
         this.type = type;
-        this.children = new ArtifactList<>();
     }
 
     @Override
-    public TestArtifact addChild(TestArtifact child) {
-        children.add(child);
-        child.setParent(this);
-        return child;
+    protected TestArtifact self() {
+        return this;
     }
 
     @Override
-    public TestArtifact clone() {
+    public TestArtifact copy() {
         throw new NotYetImplementedException();
     }
 
@@ -95,13 +92,13 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public void deleteChildren() {
-        this.children = new ArtifactList<>();
+    public String getId() {
+        return String.format("%s : %s : %d", getRevision(), label, getNumber());
     }
 
     @Override
-    public String getId() {
-        return String.format("%s : %s : %d", getRevision(), label, getNumber());
+    protected String hashId() {
+        return label + type.name();
     }
 
     @Override
@@ -115,11 +112,6 @@ public class TestArtifact extends Artifact<TestArtifact> {
     }
 
     @Override
-    public boolean isLeaf() {
-        return children.isEmpty();
-    }
-
-    @Override
     public boolean isOrdered() {
         return type != KeyEnums.Type.METHOD;
     }
@@ -127,6 +119,11 @@ public class TestArtifact extends Artifact<TestArtifact> {
     @Override
     public boolean matches(TestArtifact other) {
         return this.type == other.type && this.label.equals(other.label);
+    }
+
+    @Override
+    public boolean categoryMatches(TestArtifact other) {
+        return this.type == other.type;
     }
 
     @Override

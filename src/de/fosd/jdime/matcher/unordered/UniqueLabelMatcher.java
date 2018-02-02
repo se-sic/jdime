@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,6 @@
 package de.fosd.jdime.matcher.unordered;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -46,11 +45,8 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
 
     private static final String ID = UniqueLabelMatcher.class.getSimpleName();
 
-    private final Comparator<T> comp = (o1, o2) -> {
-
-        // we expect that the Artifacts have a unique label, if they do not an exception is to be expected
-        return o1.getUniqueLabel().get().get().compareTo(o2.getUniqueLabel().get().get());
-    };
+    // We expect that the Artifacts have a unique label, if they do not an exception is to be expected.
+    private final Comparator<T> comp = Comparator.comparing(o -> o.getUniqueLabel().get().get());
 
     /**
      * Constructs a new <code>UniqueLabelMatcher</code> using the given <code>matcher</code> for recursive calls.
@@ -79,11 +75,11 @@ public class UniqueLabelMatcher<T extends Artifact<T>> extends UnorderedMatcher<
         }
 
         List<Matchings<T>> childrenMatchings = new ArrayList<>();
-        List<T> leftChildren = left.getChildren();
-        List<T> rightChildren = right.getChildren();
+        List<T> leftChildren = new ArrayList<>(left.getChildren());
+        List<T> rightChildren = new ArrayList<>(right.getChildren());
 
-        Collections.sort(leftChildren, comp);
-        Collections.sort(rightChildren, comp);
+        leftChildren.sort(comp);
+        rightChildren.sort(comp);
 
         Iterator<T> leftIt = leftChildren.iterator();
         Iterator<T> rightIt = rightChildren.iterator();

@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,17 +25,18 @@ package de.fosd.jdime.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import de.fosd.jdime.Main;
+import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.matcher.ordered.mceSubtree.MCESubtreeMatcher;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
+import de.fosd.jdime.stats.Statistics;
 import de.uni_passau.fim.seibt.kvconfig.Config;
 import de.uni_passau.fim.seibt.kvconfig.sources.PropFileConfigSource;
 import de.uni_passau.fim.seibt.kvconfig.sources.SysEnvConfigSource;
@@ -62,6 +63,12 @@ public final class JDimeConfig extends Config {
      * (possibly indirectly) containing such files before merging. Defaults to true.
      */
     public static final String FILTER_INPUT_DIRECTORIES = "FILTER_INPUT_DIRECTORIES";
+
+    /**
+     * Whether to fall back to a two way merge if three inputs are given but the base {@link FileArtifact} does not
+     * exist. Defaults to false.
+     */
+    public static final String TWOWAY_FALLBACK = "TWOWAY_FALLBACK";
 
     /**
      * The default value for the 'Args' text field in the GUI.
@@ -159,6 +166,12 @@ public final class JDimeConfig extends Config {
     public static final String STATISTICS_XML_OUTPUT = "STATISTICS_XML_OUTPUT";
 
     /**
+     * A comma separated list of field names from the {@link MergeScenarioStatistics} class that should be excluded
+     * when serializing the {@link Statistics}. The 'Statistics' word at the end of field names may be omitted.
+     */
+    public static final String STATISTICS_XML_EXCLUDE_MSS_FIELDS = "STATISTICS_XML_EXCLUDE_MSS_FIELDS";
+
+    /**
      * A {@link String#format(Locale, String, Object...)} pattern to be used when creating a new file to write
      * the XML statistics output to. The current {@link Date} will be passed to the format method as its
      * first parameter after the format <code>String</code>. Defaults to {@link #STATISTICS_XML_DEFAULT_NAME}.
@@ -182,21 +195,12 @@ public final class JDimeConfig extends Config {
      */
     public static final String JDIME_COMMIT = "JDIME_COMMIT";
 
-    /**
-     * Values used for configuring the <code>LogManager</code> in case configuration via the external .properties file
-     * fails.
-     */
-    private static final String LOGGING_CONFIG_FILE_PROPERTY = "java.util.logging.config.file";
-    private static final String DEFAULT_LOGGING_CONFIG_FILE = "DefaultLogging.properties";
-
     private CommandLineConfigSource cmdLine;
 
     /**
      * Constructs a new <code>JDimeConfig</code> that assumes no command line arguments were given.
      */
     public JDimeConfig() {
-        checkLoggingConfig();
-
         try {
             addConfigSources(new String[] {});
         } catch (ParseException ignored) {
@@ -217,7 +221,6 @@ public final class JDimeConfig extends Config {
      *         if there is an exception parsing the command line arguments
      */
     public JDimeConfig(String[] args) throws ParseException {
-        checkLoggingConfig();
         addConfigSources(args);
     }
 
@@ -266,29 +269,6 @@ public final class JDimeConfig extends Config {
      */
     public CommandLineConfigSource getCmdLine() {
         return cmdLine;
-    }
-
-    /**
-     * The system property <code>java.util.logging.config.file</code> is set by the script starting JDime to the
-     * relative path <code>JDimeLogging.properties</code>. If the working directory is not the directory in which the
-     * <code>JDimeLogging.properties</code> file is located then the <code>LogManager</code> will not be correctly
-     * configured. In this case this method configures the <code>LogManager</code> using the default logging
-     * configuration. This will ensure that there is a suitably configured <code>ConsoleHandler</code> and that
-     * {@link #setLogLevel(String)} works as intended regardless of the working directory.
-     */
-    private static void checkLoggingConfig() {
-        String logConfigProperty = System.getProperty(LOGGING_CONFIG_FILE_PROPERTY);
-
-        if (logConfigProperty == null || !(new File(logConfigProperty).exists())) {
-            InputStream config = JDimeConfig.class.getResourceAsStream(DEFAULT_LOGGING_CONFIG_FILE);
-
-            try {
-                LogManager.getLogManager().readConfiguration(config);
-            } catch (IOException e) {
-                System.err.println("Could not configure the LogManager.");
-                e.printStackTrace();
-            }
-        }
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -294,6 +294,8 @@ public final class GUI extends Application {
 
     /**
      * Called when the history 'Save' button is clicked.
+     *
+     * @param event the <code>ActionEvent</code> that occurred
      */
     public void saveClicked(ActionEvent event) {
         Window owner = ((Node) event.getTarget()).getScene().getWindow();
@@ -318,6 +320,8 @@ public final class GUI extends Application {
 
     /**
      * Called when the history 'Load' button is clicked.
+     *
+     * @param event the <code>ActionEvent</code> that occurred
      */
     public void loadClicked(ActionEvent event) {
         Window owner = ((Node) event.getTarget()).getScene().getWindow();
@@ -408,6 +412,9 @@ public final class GUI extends Application {
 
     /**
      * Called when the 'Cancel' button is clicked.
+     *
+     * @throws InterruptedException
+     *         if the method is interrupted while destroying the JDime process
      */
     public void cancelClicked() throws InterruptedException {
         jDimeProcess.destroyForcibly().waitFor();

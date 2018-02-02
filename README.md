@@ -1,10 +1,11 @@
 # JDime  -  Structured Merge with Auto-Tuning
 
-[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=master)](https://travis-ci.org/se-passau/jdime)
+[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=master)](https://travis-ci.org/se-passau/jdime) (master)  
+[![Build Status](https://travis-ci.org/se-passau/jdime.svg?branch=develop)](https://travis-ci.org/se-passau/jdime?branch=develop) (develop)
 
 ## License & Copyright
 * Copyright (C) 2013-2014 Olaf Lessenich
-* Copyright (C) 2014-2015 University of Passau, Germany
+* Copyright (C) 2014-2017 University of Passau, Germany
 > Authors: Olaf Lessenich, Georg Seibt
 
 All rights reserved.
@@ -16,9 +17,9 @@ The full license text is distributed with this software. See the `LICENSE` file.
 JDime uses these tools/libraries:
 
 * ExtendJ (https://bitbucket.org/jastadd/jastaddj)
-> Commit [e77ceb1](https://bitbucket.org/extendj/extendj/src/e77ceb1)
+> Commit [85fe215](https://bitbucket.org/extendj/extendj/commits/85fe215542d5cde4753e10a2b068b394f79d7984)
 > Copyright (c) 2005-2008, Torbjörn Ekman
-> Copyright (c) 2005-2015, ExtendJ Committers
+> Copyright (c) 2005-2017, ExtendJ Committers
 > ExtendJ is covered by the Modified BSD License.
 > The full license text is distributed with this software.
 > See the file licenses/ExtendJ-BSD.
@@ -29,20 +30,21 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
-* git (http://git-scm.com/)
 * JDK8 + JavaFX
+* git (http://git-scm.com/)
+* libgit2 (https://libgit2.github.com/)
 
 __Debian/Ubuntu:__
-`apt-get install git`
+`apt-get install git libgit2-dev`
 
 __Redhat/Fedora:__
-`yum install git`
+`dnf install git libgit2`
 
 __Suse/OpenSuse:__
-`zypper install git`
+`zypper install git libgit2`
 
 __FreeBSD:__
-`pkg install git openjfx8-devel`
+`pkg install git openjfx8-devel libgit2`
 
 ## Installation:
 Clone the repository using `git clone $URL`.

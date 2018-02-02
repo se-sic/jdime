@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013-2014 Olaf Lessenich
- * Copyright (C) 2014-2015 University of Passau, Germany
+ * Copyright (C) 2014-2017 University of Passau, Germany
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,14 +24,15 @@
 package de.fosd.jdime.config.merge;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,15 +46,40 @@ import de.fosd.jdime.config.CommandLineConfigSource;
 import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.matcher.cost_model.CMMode;
+import de.fosd.jdime.matcher.cost_model.CostModelMatcher;
 import de.fosd.jdime.stats.KeyEnums;
+import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
+import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_FIX_PERCENTAGE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_OPTIONS;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_PARALLEL;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_REMATCH_BOUND;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_SEED;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CONSECUTIVE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DIFFONLY;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_EXIT_ON_ERROR;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_FORCE_OVERWRITE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_KEEPGOING;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOOKAHEAD;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_OUTPUT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PRETEND;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_QUIET;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_RECURSIVE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_STATS;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
+import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
 import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
@@ -74,6 +100,11 @@ public class MergeContext implements Cloneable {
      * Stop looking for subtree matches if the two nodes compared are not equal.
      */
     public static final int LOOKAHEAD_OFF = 0;
+
+    /**
+     * The default git command.
+     */
+    public static final String DEFAULT_GIT_CMD = "git";
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
@@ -118,7 +149,7 @@ public class MergeContext implements Cloneable {
     /**
      * Input Files.
      */
-    private ArtifactList<FileArtifact> inputFiles;
+    private List<FileArtifact> inputFiles;
 
     /**
      * If true and the input files are directories, any files not representing java source code files or directories
@@ -167,16 +198,19 @@ public class MergeContext implements Cloneable {
     private boolean collectStatistics;
     private Statistics statistics;
 
+    private List<Field> excludeStatisticsMSSFields;
+
     /**
      * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
     private boolean useMCESubtreeMatcher;
 
     /**
-     * The standard out/error streams used during the merge.
+     * Whether {@link StructuredStrategy} act semi-structured, that is whether it should perform line based merging
+     * on the configured {@link #semiStructuredLevel}.
      */
-    private StringWriter stdErr;
-    private StringWriter stdIn;
+    private boolean semiStructured;
+    private KeyEnums.Level semiStructuredLevel;
 
     /**
      * How many levels to keep searching for matches in the subtree if the
@@ -222,10 +256,11 @@ public class MergeContext implements Cloneable {
         this.pretend = true;
         this.recursive = false;
         this.collectStatistics = false;
-        this.statistics = null;
+        this.statistics = new Statistics();
+        this.excludeStatisticsMSSFields = new ArrayList<>();
         this.useMCESubtreeMatcher = false;
-        this.stdErr = new StringWriter();
-        this.stdIn = new StringWriter();
+        this.semiStructured = false;
+        this.semiStructuredLevel = KeyEnums.Level.METHOD;
         this.lookAhead = MergeContext.LOOKAHEAD_OFF;
         this.lookAheads = new HashMap<>();
         this.crashes = new HashMap<>();
@@ -262,25 +297,22 @@ public class MergeContext implements Cloneable {
         this.forceOverwriting = toCopy.forceOverwriting;
 
         this.inputFiles = new ArtifactList<>();
-        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::clone).collect(Collectors.toList()));
+        this.inputFiles.addAll(toCopy.inputFiles.stream().map(FileArtifact::copy).collect(Collectors.toList()));
 
         this.filterInputDirectories = toCopy.filterInputDirectories;
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
-        this.outputFile = (toCopy.outputFile != null) ? toCopy.outputFile.clone() : null;
+        this.outputFile = toCopy.outputFile.copy();
         this.quiet = toCopy.quiet;
         this.pretend = toCopy.pretend;
         this.recursive = toCopy.recursive;
         this.collectStatistics = toCopy.collectStatistics;
-        this.statistics = (toCopy.statistics != null) ? new Statistics(toCopy.statistics) : null;
+        this.statistics = new Statistics(toCopy.statistics);
+        this.excludeStatisticsMSSFields = new ArrayList<>(toCopy.excludeStatisticsMSSFields);
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
-
-        this.stdErr = new StringWriter();
-        this.stdErr.append(toCopy.stdErr.toString());
-
-        this.stdIn = new StringWriter();
-        this.stdIn.append(toCopy.stdIn.toString());
+        this.semiStructured = toCopy.semiStructured;
+        this.semiStructuredLevel = toCopy.semiStructuredLevel;
 
         this.lookAhead = toCopy.lookAhead;
         this.lookAheads = new HashMap<>(toCopy.lookAheads);
@@ -310,110 +342,160 @@ public class MergeContext implements Cloneable {
      *         the <code>JDimeConfig</code> to query for config values
      */
     public void configureFrom(JDimeConfig config) {
+        configDump(config);
+        configInspect(config);
+        configStatistics(config);
+        configMerge(config);
+        configErrorHandling(config);
+        configInputOutput(config);
+    }
 
-        setUseMCESubtreeMatcher(config.getBoolean(USE_MCESUBTREE_MATCHER).orElse(false));
+    /**
+     * Reads configuration options related to the {@link Artifact} inspection functionality.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configInspect(JDimeConfig config) {
+        config.getInteger(CLI_INSPECT_ELEMENT).ifPresent(elId -> {
+            setInspectArtifact(elId);
+            setInspectionScope(KeyEnums.Type.NODE);
+        });
+
+        config.getInteger(CLI_INSPECT_METHOD).ifPresent(mId -> {
+            setInspectArtifact(mId);
+            setInspectionScope(KeyEnums.Type.METHOD);
+        });
+    }
+
+    /**
+     * Reads configuration options related to the {@link Artifact} dump functionality.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configDump(JDimeConfig config) {
+        Function<String, Optional<DumpMode>> dmpModeParser = mode -> {
+
+            try {
+                return Optional.of(DumpMode.valueOf(mode.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                LOG.log(Level.WARNING, e, () -> "Invalid dump format " + mode);
+                return Optional.empty();
+            }
+        };
+
+        config.get(CLI_DUMP, dmpModeParser).ifPresent(this::setDumpMode);
+    }
+
+    /**
+     * Reads configuration options related to the {@link Statistics}.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configStatistics(JDimeConfig config) {
+        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
+        config.get(STATISTICS_XML_EXCLUDE_MSS_FIELDS, list -> {
+            List<String> toExclude = Arrays.asList(list.split("\\s*,\\s*"));
+
+            if (!toExclude.isEmpty()) {
+                List<Field> fields = new ArrayList<>(toExclude.size());
+                List<Field> mssFields = Arrays.asList(MergeScenarioStatistics.class.getDeclaredFields());
+
+                for (String excludeName : toExclude) {
+                    Predicate<Field> nameMatches = f -> excludeName.equals(f.getName()) ||
+                            excludeName.equals(f.getName().replaceAll("Statistics$", ""));
+
+                    mssFields.stream().filter(nameMatches).findFirst().ifPresent(fields::add);
+                }
+
+                return Optional.of(fields);
+            } else {
+                return Optional.empty();
+            }
+        }).ifPresent(list -> this.excludeStatisticsMSSFields = list);
+    }
+
+    /**
+     * Reads configuration options determining how the merge is to be executed.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configMerge(JDimeConfig config) {
+        {
+            Optional<String> oMode = config.get(CLI_MODE);
+
+            if (oMode.isPresent()) {
+                String mode = oMode.get();
+                setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(
+                        () -> new AbortException("Invalid mode '" + mode + "'."))
+                );
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("No mode given.");
+            }
+        }
 
         config.getBoolean(CLI_DIFFONLY).ifPresent(diffOnly -> {
             setDiffOnly(diffOnly);
             config.getBoolean(CLI_CONSECUTIVE).ifPresent(this::setConsecutive);
         });
 
+        config.getBoolean(USE_MCESUBTREE_MATCHER).ifPresent(this::setUseMCESubtreeMatcher);
+
         config.get(CLI_LOOKAHEAD, val -> {
+            String msg = "Invalid lookahead level '" + val + "'. Must be one of 'off', 'full' or a non-negative integer.";
+            RuntimeException abort = new AbortException(msg);
+
+            int lah;
+
             try {
-                return Optional.of(Integer.parseInt(val));
+                lah = Integer.parseInt(val);
             } catch (NumberFormatException e) {
                 String lcVal = val.trim().toLowerCase();
 
                 if ("off".equals(lcVal)) {
-                    return Optional.of(MergeContext.LOOKAHEAD_OFF);
+                    lah = MergeContext.LOOKAHEAD_OFF;
                 } else if ("full".equals(lcVal)) {
-                    return Optional.of(MergeContext.LOOKAHEAD_FULL);
+                    lah = MergeContext.LOOKAHEAD_FULL;
                 } else {
-                    return Optional.empty();
+                    throw abort;
                 }
             }
+
+            if (lah < 0) {
+                throw abort;
+            }
+
+            return Optional.of(lah);
         }).ifPresent(this::setLookAhead);
 
         for (KeyEnums.Type type : KeyEnums.Type.values()) {
-            Optional<Integer> lah = config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name());
-            lah.ifPresent(val -> setLookAhead(type, val));
+            config.getInteger(JDimeConfig.LOOKAHEAD_PREFIX + type.name()).ifPresent(val -> setLookAhead(type, val));
         }
 
-        config.getBoolean(CLI_STATS).ifPresent(this::collectStatistics);
-        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
-        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+        configCostModelMatcher(config);
+    }
 
-        if (config.getBoolean(CLI_PRINT).orElse(false)) {
-            setPretend(true);
-            setQuiet(false);
-        } else if (config.getBoolean(CLI_QUIET).orElse(false)) {
-            setQuiet(true);
-        }
-
-        config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
-
+    /**
+     * Reads configuration options determining how to handle errors while merging.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configErrorHandling(JDimeConfig config) {
         config.getBoolean(CLI_KEEPGOING).ifPresent(this::setKeepGoing);
-
         config.getBoolean(CLI_EXIT_ON_ERROR).ifPresent(this::setExitOnError);
+    }
 
-        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
-
-        if (args.isPresent()) {
-            List<String> paths = Arrays.asList(args.get().split(CommandLineConfigSource.ARG_LIST_SEP));
-            ArtifactList<FileArtifact> inputArtifacts = new ArtifactList<>();
-
-            Supplier<Revision> revSupplier;
-
-            if (isConditionalMerge()) {
-                revSupplier = new Revision.SuccessiveRevSupplier();
-            } else {
-
-                if (paths.size() == MergeType.TWOWAY_FILES) {
-                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
-                } else if (paths.size() == MergeType.THREEWAY_FILES) {
-                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
-                } else {
-                    revSupplier = new Revision.SuccessiveRevSupplier();
-                }
-            }
-
-            for (String path : paths) {
-                String fileName = path.trim();
-
-                try {
-                    FileArtifact artifact = new FileArtifact(revSupplier.get(), new File(fileName));
-                    inputArtifacts.add(artifact);
-                } catch (FileNotFoundException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s not found.", fileName));
-                    throw new AbortException(e);
-                } catch (IOException e) {
-                    LOG.log(Level.SEVERE, () -> String.format("Input file %s could not be accessed.", fileName));
-                    throw new AbortException(e);
-                }
-            }
-
-            setInputFiles(inputArtifacts);
-        }
-
-        /*
-         * TODO[low priority]
-         * The default should in a later, rock-stable version be changed to be overwriting file1 so that we are
-         * compatible with gnu merge call syntax.
-         */
-        config.get(CLI_OUTPUT).ifPresent(outputFileName -> {
-            boolean targetIsFile = inputFiles.stream().anyMatch(FileArtifact::isFile);
-
-            try {
-                File out = new File(outputFileName);
-                FileArtifact outArtifact = new FileArtifact(MergeScenario.MERGE, out, true, targetIsFile);
-
-                setOutputFile(outArtifact);
-                setPretend(false);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, e, () -> "Could not create the output FileArtifact.");
-            }
-        });
-
+    /**
+     * Reads configuration options determining how the {@link CostModelMatcher} operates.
+     *
+     * @param config
+     *         the JDime configuration options
+     */
+    private void configCostModelMatcher(JDimeConfig config) {
         config.get(CLI_CM, mode -> {
 
             try {
@@ -499,45 +581,127 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Append a String to stdIN.
+     * Reads configuration options determining how to output the merge results and reads the additional arguments
+     * to configure the input files for the merge.
      *
-     * @param s
-     *         String to append
+     * @param config
+     *         the JDime configuration options
      */
-    public void append(String s) {
-        stdIn.append(s);
-    }
+    private void configInputOutput(JDimeConfig config) {
+        config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
+        config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
+        config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
 
-    /**
-     * Append a String to stdERR.
-     *
-     * @param s
-     *         String to append
-     */
-    public void appendError(String s) {
-        stdErr.append(s);
-    }
+        config.getBoolean(CLI_PRETEND).ifPresent(this::setPretend);
+        config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);
 
-    /**
-     * Appends a line to the saved stdin buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendLine(String line) {
-        stdIn.append(line);
-        stdIn.append(System.lineSeparator());
-    }
+        Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
-    /**
-     * Appends a line to the saved stderr buffer.
-     *
-     * @param line
-     *         to be appended
-     */
-    public void appendErrorLine(String line) {
-        stdErr.append(line);
-        stdErr.append(System.lineSeparator());
+        if (args.isPresent()) {
+            List<File> inputFiles = Arrays.stream(args.get().split(CommandLineConfigSource.ARG_LIST_SEP))
+                                          .map(String::trim).map(File::new).collect(Collectors.toCollection(ArrayList::new));
+            List<File> nonExistent = inputFiles.stream().filter(f -> !f.exists()).collect(Collectors.toList());
+
+            Boolean twFallback = config.getBoolean(TWOWAY_FALLBACK).orElse(false);
+
+            if (!nonExistent.isEmpty()) {
+                if (twFallback && inputFiles.size() == MergeType.THREEWAY_FILES && nonExistent.size() == 1
+                        && inputFiles.get(1) == nonExistent.get(0)) {
+
+                    File nonExistentBase = inputFiles.get(1);
+                    LOG.warning(() -> "Base input file " + nonExistentBase + " does not exist. Falling back to two way merge.");
+
+                    inputFiles.remove(nonExistentBase);
+                } else {
+                    nonExistent.forEach(f -> LOG.severe(() -> "Input file " + f + " does not exist."));
+                    throw new AbortException("All input files must exist.");
+                }
+            }
+
+            boolean allDirs = inputFiles.stream().allMatch(File::isDirectory);
+            boolean allFiles = inputFiles.stream().allMatch(File::isFile);
+
+            if (!(allDirs || allFiles)) {
+                LOG.severe(() -> "Inconsistent input files. (Must all be all directories or all files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
+                throw new AbortException("Input files must be all directories or all files.");
+            }
+
+            Supplier<Revision> revSupplier;
+
+            if (isConditionalMerge()) {
+                revSupplier = new Revision.SuccessiveRevSupplier();
+            } else {
+
+                if (inputFiles.size() == MergeType.TWOWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.RIGHT).iterator()::next;
+                } else if (inputFiles.size() == MergeType.THREEWAY_FILES) {
+                    revSupplier = Arrays.asList(MergeScenario.LEFT, MergeScenario.BASE, MergeScenario.RIGHT).iterator()::next;
+                } else {
+                    revSupplier = new Revision.SuccessiveRevSupplier();
+                }
+            }
+
+            List<FileArtifact> inputArtifacts = new ArtifactList<>(inputFiles.size());
+
+            for (File file : inputFiles) {
+                FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
+                inputArtifacts.add(artifact);
+            }
+
+            if (allFiles && !inputArtifacts.stream().allMatch(FileArtifact::isJavaFile)) {
+                LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
+                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
+                throw new AbortException("All input files must be Java source code files.");
+            }
+
+            setInputFiles(inputArtifacts);
+        } else {
+            throw new AbortException("No input files given.");
+        }
+
+        boolean inputIsDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
+        boolean inputIsFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
+
+        FileArtifact.FileType type;
+
+        if (inputIsDirs) {
+            type = FileArtifact.FileType.DIR;
+        } else if (inputIsFiles) {
+            type = FileArtifact.FileType.FILE;
+        } else { // This is prevented by a check above.
+            type = null;
+        }
+
+        if (isPretend()) {
+            setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
+        } else {
+            Optional<File> oFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new);
+
+            if (oFile.isPresent()) {
+                File outFile = oFile.get();
+
+                if (outFile.exists()) {
+
+                    if (!isForceOverwriting()) {
+                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                        throw new AbortException(msg);
+                    }
+
+                    if (inputIsDirs && !outFile.isDirectory()) {
+                        throw new AbortException("The output must be a directory when merging directories.");
+                    }
+
+                    if (inputIsFiles && !outFile.isFile()) {
+                        throw new AbortException("The output must be a file when merging files.");
+                    }
+                }
+
+                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+                throw new AbortException("Not output file or directory given.");
+            }
+        }
     }
 
     /**
@@ -545,7 +709,7 @@ public class MergeContext implements Cloneable {
      *
      * @return the input files
      */
-    public ArtifactList<FileArtifact> getInputFiles() {
+    public List<FileArtifact> getInputFiles() {
         return inputFiles;
     }
 
@@ -555,7 +719,7 @@ public class MergeContext implements Cloneable {
      * @param inputFiles
      *         the new input files
      */
-    public void setInputFiles(ArtifactList<FileArtifact> inputFiles) {
+    public void setInputFiles(List<FileArtifact> inputFiles) {
         this.inputFiles = inputFiles;
     }
 
@@ -622,39 +786,13 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Returns the saved standard error buffer as a <code>String</code>.
+     * Returns the list of {@link Field Fields} of the {@link MergeScenarioStatistics} class that are to be excluded
+     * when serializing the {@link Statistics}.
      *
-     * @return the stdErr buffer as a <code>String</code>
+     * @return the list of {@link Field Fields} to be omitted
      */
-    public String getStdErr() {
-        return stdErr.toString();
-    }
-
-    /**
-     * Returns the saved standard input buffer as a <code>String</code>.
-     *
-     * @return the stdIn buffer as a <code>String</code>
-     */
-    public String getStdIn() {
-        return stdIn.toString();
-    }
-
-    /**
-     * Returns true if stdErr is not empty.
-     *
-     * @return true if stdErr is not empty
-     */
-    public boolean hasErrors() {
-        return stdErr.getBuffer().length() != 0;
-    }
-
-    /**
-     * Returns true if stdIn is not empty.
-     *
-     * @return true if stdIn is not empty
-     */
-    public boolean hasOutput() {
-        return stdIn.getBuffer().length() != 0;
+    public List<Field> getExcludeStatisticsMSSFields() {
+        return excludeStatisticsMSSFields;
     }
 
     /**
@@ -831,14 +969,6 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Resets the input streams.
-     */
-    public void resetStreams() {
-        stdIn = new StringWriter();
-        stdErr = new StringWriter();
-    }
-
-    /**
      * Sets whether statistical data should be collected during the next run using this <code>MergeContext</code>
      *
      * @param collectStatistics
@@ -846,10 +976,6 @@ public class MergeContext implements Cloneable {
      */
     public void collectStatistics(boolean collectStatistics) {
         this.collectStatistics = collectStatistics;
-
-        if (collectStatistics && statistics == null) {
-            statistics = new Statistics();
-        }
     }
 
     /**
@@ -873,6 +999,8 @@ public class MergeContext implements Cloneable {
 
     /**
      * Whether merge inserts choice nodes instead of direct merging.
+     *
+     * @return whether choice nodes should be inserted instead of direct merging
      */
     public boolean isConditionalMerge() {
         return conditionalMerge;
@@ -1003,6 +1131,8 @@ public class MergeContext implements Cloneable {
      *
      * @param scenario
      *         <code>MergeScenario</code> which crashed
+     * @param t
+     *         the crash that occurred
      */
     public void addCrash(MergeScenario<?> scenario, Throwable t) {
         crashes.put(scenario, t);
@@ -1025,6 +1155,46 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
+    }
+
+    /**
+     * Returns whether the {@link StructuredStrategy} should act semi-structured, that is whether it should perform line
+     * based merging on the configured {@link #semiStructuredLevel}.
+     *
+     * @return whether the {@link StructuredStrategy} should act semi-structured
+     */
+    public boolean isSemiStructured() {
+        return semiStructured;
+    }
+
+    /**
+     * Sets whether the {@link StructuredStrategy} should act semi-structured, that is whether it should perform line
+     * based merging on the configured {@link #semiStructuredLevel}.
+     *
+     * @param semiStructured
+     *         whether the {@link StructuredStrategy} should act semi-structured
+     */
+    public void setSemiStructured(boolean semiStructured) {
+        this.semiStructured = semiStructured;
+    }
+
+    /**
+     * Returns the level for which line based merging is used if {@link #semiStructured} is true.
+     *
+     * @return the level for which line based merging is used
+     */
+    public KeyEnums.Level getSemiStructuredLevel() {
+        return semiStructuredLevel;
+    }
+
+    /**
+     * Sets the level for which line based merging is used if {@link #semiStructured} is true.
+     *
+     * @param semiStructuredLevel
+     *         the level for which line based merging is used
+     */
+    public void setSemiStructuredLevel(KeyEnums.Level semiStructuredLevel) {
+        this.semiStructuredLevel = semiStructuredLevel;
     }
 
     /**
@@ -1065,7 +1235,9 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Whether to inspect an artifact instead of merging.
+     * Whether to inspect an {@link Artifact} instead of merging.
+     *
+     * @return whether an {@link Artifact} should be inspected instead of merging
      */
     public boolean isInspect() {
         return inspectArtifact > 0;
