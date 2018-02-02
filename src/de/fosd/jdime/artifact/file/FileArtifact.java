@@ -161,7 +161,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public FileArtifact(Revision revision, File file) {
         this(revision, new AtomicInteger(0)::getAndIncrement, file, true);
     }
-    
+
     /**
      * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
      *
@@ -716,7 +716,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
     }
 
     /**
-     * Recursively writes the contents of this {@link FileArtifact} and its children to the files they represent.
+     * Recursively (over)writes the contents of this {@link FileArtifact} and its children to the files they represent.
      *
      * @throws IOException
      *         if there is an exception accessing the filesystem
@@ -759,7 +759,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         see {@link FileUtils#copyFile(File, File)}
      */
     private void copyFile() throws IOException {
-        FileUtils.copyFile(original, file);
+        if (!Files.isSameFile(original.toPath(), file.toPath())) {
+            FileUtils.copyFile(original, file);
+        }
     }
 
     /**
