@@ -24,7 +24,6 @@
 package de.fosd.jdime.config.merge;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,9 +55,28 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
-import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_FIX_PERCENTAGE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_OPTIONS;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_PARALLEL;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_REMATCH_BOUND;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_SEED;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CONSECUTIVE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DIFFONLY;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_EXIT_ON_ERROR;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_FORCE_OVERWRITE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_KEEPGOING;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOOKAHEAD;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_OUTPUT;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PRETEND;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_QUIET;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_RECURSIVE;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_STATS;
 import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
 import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
 import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
@@ -648,9 +666,9 @@ public class MergeContext implements Cloneable {
         FileArtifact.FileType type;
 
         if (inputIsDirs) {
-            type = FileArtifact.FileType.VDIR;
+            type = FileArtifact.FileType.DIR;
         } else if (inputIsFiles) {
-            type = FileArtifact.FileType.VFILE;
+            type = FileArtifact.FileType.FILE;
         } else { // This is prevented by a check above.
             type = null;
         }
@@ -679,7 +697,7 @@ public class MergeContext implements Cloneable {
                     }
                 }
 
-                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, type));
+                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
             } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
                 throw new AbortException("Not output file or directory given.");
             }

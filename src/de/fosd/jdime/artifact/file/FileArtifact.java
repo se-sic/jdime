@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.artifact.file;
 
+import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -42,7 +43,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
@@ -112,41 +112,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
     };
 
     /**
-     * The type of {@link File} a {@link FileArtifact} represents.
+     * The type of virtual {@link File} to be represented by a {@link FileArtifact}.
      */
     public enum FileType {
-
         FILE,
-        DIR,
-        VFILE,
-        VDIR;
-
-        /**
-         * Returns whether this enum constant is a virtual one.
-         *
-         * @return true iff this enum constant is one of {@link #VFILE} or {@link #VDIR}
-         */
-        boolean isVirtual() {
-            return this == VFILE || this == VDIR;
-        }
-
-        /**
-         * Returns whether this enum constant is either {@link #FILE} or {@link #VFILE}.
-         *
-         * @return true iff this enum constant is one of {@link #FILE} or {@link #VFILE}
-         */
-        boolean isFile() {
-            return this == FILE || this == VFILE;
-        }
-
-        /**
-         * Returns whether this enum constant is either {@link #DIR} or {@link #VDIR}.
-         *
-         * @return true iff this enum constant is one of {@link #DIR} or {@link #VDIR}
-         */
-        boolean isDirectory() {
-            return this == DIR || this == VDIR;
-        }
+        DIR;
     }
 
     /**
@@ -160,8 +130,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
     private final FileType type;
 
     /**
-     * The original {@link File} this {@link FileArtifact} represents or {@code null} if {@link #type} is
-     * {@link FileType#VFILE} or {@link FileType#VDIR}.
+     * The original existing {@link File} this {@link FileArtifact} represents or {@code null} if this
+     * {@link FileArtifact} is virtual.
      */
     private final File original;
 
@@ -177,24 +147,42 @@ public class FileArtifact extends Artifact<FileArtifact> {
     private String content;
 
     /**
-     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
-     * If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be added
-     * as children to this <code>FileArtifact</code>.
+     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>. If <code>file</code> is a
+     * directory then <code>FileArtifact</code>s representing its contents will be added as children to this
+     * <code>FileArtifact</code>.
      *
      * @param revision
      *         the <code>Revision</code> the artifact belongs to
      * @param file
      *         the <code>File</code> in which the artifact is stored
-     * @throws IllegalArgumentException if {@code file} does not exist
+     * @throws IllegalArgumentException
+     *         if {@code file} does not exist
      */
     public FileArtifact(Revision revision, File file) {
-        this(revision, new AtomicInteger(0)::getAndIncrement, file);
+        this(revision, new AtomicInteger(0)::getAndIncrement, file, true);
+    }
+    
+    /**
+     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
+     *
+     * @param revision
+     *         the <code>Revision</code> the artifact belongs to
+     * @param file
+     *         the <code>File</code> in which the artifact is stored
+     * @param recursive
+     *         If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be
+     *         added as children to this <code>FileArtifact</code>.
+     * @throws IllegalArgumentException
+     *         if {@code file} does not exist
+     */
+    public FileArtifact(Revision revision, File file, boolean recursive) {
+        this(revision, new AtomicInteger(0)::getAndIncrement, file, recursive);
     }
 
     /**
-     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>.
-     * If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be added
-     * as children to this <code>FileArtifact</code>.
+     * Constructs a new <code>FileArtifact</code> representing the given <code>File</code>. If <code>file</code> is a
+     * directory then <code>FileArtifact</code>s representing its contents will be added as children to this
+     * <code>FileArtifact</code>.
      *
      * @param revision
      *         the <code>Revision</code> the artifact belongs to
@@ -202,9 +190,13 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         supplies first the number for this artifact and then in DFS order the number for its children
      * @param file
      *         the <code>File</code> in which the artifact is stored
-     * @throws IllegalArgumentException if {@code file} does not exist
+     * @param recursive
+     *         If <code>file</code> is a directory then <code>FileArtifact</code>s representing its contents will be
+     *         added as children to this <code>FileArtifact</code>.
+     * @throws IllegalArgumentException
+     *         if {@code file} does not exist
      */
-    private FileArtifact(Revision revision, Supplier<Integer> number, File file) {
+    private FileArtifact(Revision revision, Supplier<Integer> number, File file, boolean recursive) {
         super(revision, number.get());
 
         if (!file.exists()) {
@@ -222,7 +214,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         this.original = file;
         this.file = file;
 
-        if (isDirectory()) {
+        if (recursive && isDirectory()) {
             modifyChildren(children -> {
                 children.addAll(getDirContent(number));
                 children.sort(comp);
@@ -237,17 +229,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @param revision
      *         the {@link Revision} the artifact belongs to
      * @param type
-     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#VFILE} or
-     *         {@link FileType#VDIR}
-     * @throws IllegalArgumentException
-     *         if {@code type} is not virtual
+     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#FILE} or
+     *         {@link FileType#DIR}
      */
     public FileArtifact(Revision revision, FileType type) {
         super(revision, 0);
-
-        if (!type.isVirtual()) {
-            throw new IllegalArgumentException("Type " + type + " is not virtual.");
-        }
 
         this.type = type;
         this.original = null;
@@ -255,7 +241,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         File tempDir = FileUtils.getTempDirectory();
         IntFunction<File> toFile;
 
-        if (type == FileType.VDIR) {
+        if (type == FileType.DIR) {
             toFile = n -> {
                 synchronized (virtualNameSupplier) {
                     return new File(tempDir, "VirtualDirectory_" + virtualNameSupplier.get());
@@ -271,32 +257,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
         this.file = IntStream.range(0, Integer.MAX_VALUE).mapToObj(toFile).filter(f -> !f.exists()).findFirst()
                 .orElseThrow(() -> new AbortException("Could not find an available file name for the virtual file or directory."));
-    }
-
-    /**
-     * Constructs a new virtual {@link FileArtifact} representing the given non-existent {@link File}. The new
-     * {@link FileArtifact} will always have the number 0.
-     *
-     * @param revision
-     *         the {@link Revision} the artifact belongs to
-     * @param file
-     *         the non-existent file the new {@link FileArtifact} represents
-     * @param type
-     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#VFILE} or
-     *         {@link FileType#VDIR}
-     * @throws IllegalArgumentException
-     *         if {@code file} exists or {@code type} is not virtual
-     */
-    public FileArtifact(Revision revision, File file, FileType type) {
-        super(revision, 0);
-
-        if (!file.exists() && !type.isVirtual()) {
-            throw new IllegalArgumentException("Type " + type + " is not virtual.");
-        }
-
-        this.type = type;
-        this.original = null;
-        this.file = file;
     }
 
     /**
@@ -346,7 +306,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public FileArtifact createEmptyArtifact(Revision revision) {
-        return new FileArtifact(revision, FileType.VFILE);
+        return new FileArtifact(revision, FileType.FILE);
     }
 
     @Override
@@ -433,7 +393,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         List<FileArtifact> artifacts = new ArrayList<>(files.length);
 
         for (File f : files) {
-            FileArtifact child = new FileArtifact(getRevision(), number, f);
+            FileArtifact child = new FileArtifact(getRevision(), number, f, true);
 
             child.setParent(this);
             artifacts.add(child);
@@ -450,12 +410,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return the encapsulated {@link File}
      */
     public File getFile() {
-
-        if (type.isVirtual()) {
-            return file;
-        } else {
-            return original;
-        }
+        return original != null ? original : file;
     }
 
     /**
@@ -604,7 +559,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return true if artifact is a directory
      */
     public boolean isDirectory() {
-        return type.isDirectory();
+        return type == FileType.DIR;
     }
 
     /**
@@ -627,7 +582,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @return true if artifact is a normal file
      */
     public boolean isFile() {
-        return type.isFile();
+        return type == FileType.FILE;
     }
 
     @Override
@@ -772,7 +727,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
             if (content != null) {
                 writeToFile();
-            } else if (!type.isVirtual()) {
+            } else if (original != null) {
                 copyFile();
             } else {
                 touchFile();
@@ -835,7 +790,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
         if (content == null) {
             String content;
 
-            if (type.isVirtual()) {
+            if (original == null) {
                 content = "";
             } else {
                 try {

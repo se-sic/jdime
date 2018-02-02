@@ -40,7 +40,7 @@ import org.extendj.ast.ConstructorDecl;
 import org.extendj.ast.Opt;
 import org.extendj.ast.Stmt;
 
-import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
+import static de.fosd.jdime.artifact.file.FileArtifact.FileType.FILE;
 import static de.fosd.jdime.config.merge.MergeType.THREEWAY;
 import static de.fosd.jdime.stats.KeyEnums.Type.METHOD;
 import static java.util.regex.Pattern.MULTILINE;
@@ -99,7 +99,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
             throw new NotReplaceableException("Can only replace ASTNodeArtifacts containing 'Block' AST nodes.");
         }
 
-        this.content = new FileArtifact(getRevision(), VFILE);
+        this.content = new FileArtifact(getRevision(), FILE);
         this.content.setContent(extractOriginalContent(originalLines));
 
         this.astnode = new SemiStructuredASTNode(this);
@@ -137,7 +137,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
      */
     private SemiStructuredArtifact(Revision revision) {
         super(revision);
-        this.content = new FileArtifact(revision, VFILE);
+        this.content = new FileArtifact(revision, FILE);
     }
 
     /**
