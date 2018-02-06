@@ -44,7 +44,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import static de.fosd.jdime.artifact.file.FileArtifact.FileType.VFILE;
+import static de.fosd.jdime.artifact.file.FileArtifact.FileType.FILE;
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 import static de.fosd.jdime.config.merge.MergeScenario.LEFT;
 import static de.fosd.jdime.config.merge.MergeScenario.MERGE;
@@ -122,7 +122,7 @@ public class MergeTest extends JDimeTest {
             context.setMergeStrategy(oStrategy.get());
 
             context.setInputFiles(inputs);
-            context.setOutputFile(new FileArtifact(MERGE, VFILE));
+            context.setOutputFile(new FileArtifact(MERGE, FILE));
 
             String dirName = strategy.replaceAll(",", "_");
             File expectedFile = file(resultsDir, dirName, testCase.path);

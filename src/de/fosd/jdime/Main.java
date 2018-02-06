@@ -87,7 +87,7 @@ public final class Main {
     }
 
     public static final String TOOLNAME = "jdime";
-    public static final String VERSION = "0.4-develop";
+    public static final String VERSION = "0.5-develop";
 
     private static final String MODE_LIST = "list";
 
