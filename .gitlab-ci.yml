@@ -26,20 +26,19 @@ before_script:
 
 build:
   stage: build
-  script: ./gradlew --build-cache assemble
+  script:
+    - ./gradlew --build-cache assemble
   cache:
-    key: "$CI_COMMIT_REF_NAME"
     policy: push
     paths:
       - build
       - .gradle
 
-
 test:
   stage: test
-  script: ./gradlew check
+  script:
+    - ./gradlew --build-cache check
   cache:
-    key: "$CI_COMMIT_REF_NAME"
     policy: pull
     paths:
       - build
