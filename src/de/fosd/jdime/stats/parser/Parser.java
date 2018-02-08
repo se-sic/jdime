@@ -36,6 +36,7 @@ public final class Parser {
     private static final Pattern conflictEnd = Pattern.compile(">>>>>>>.*");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
+    private static final Pattern whitespace = Pattern.compile("\\s+");
     private static final Pattern lineComment = Pattern.compile("\\s*//.*");
     private static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
     private static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
@@ -58,8 +59,12 @@ public final class Parser {
         Scanner s = new Scanner(code);
         ParseResult res = new ParseResult();
 
-        int linesOfCode = 0;
         int conflicts = 0;
+
+        int chars = 0;
+        int conflictingChars = 0;
+
+        int linesOfCode = 0;
         int conflictingLinesOfCode = 0;
         int clocBeforeConflict = 0; // cloc = conflicting lines of code
 
@@ -104,9 +109,14 @@ public final class Parser {
                 } else {
 
                     if (!inComment) {
+                        // We only count non-whitespace characters to normalize the results over linebased/structured.
+                        int lineLength = whitespace.matcher(line).replaceAll("").length();
+
+                        chars += lineLength;
                         linesOfCode++;
 
                         if (inConflict) {
+                            conflictingChars += lineLength;
                             conflictingLinesOfCode++;
                         }
                     }
@@ -124,6 +134,8 @@ public final class Parser {
 
         res.setLinesOfCode(linesOfCode);
         res.setConflicts(conflicts);
+        res.setChars(chars);
+        res.setConflictingChars(conflictingChars);
         res.setConflictingLinesOfCode(conflictingLinesOfCode);
 
         return res;

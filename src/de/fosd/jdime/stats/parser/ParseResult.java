@@ -38,6 +38,8 @@ public class ParseResult extends ArrayList<Content> {
 
     private int linesOfCode;
     private int conflicts;
+    private int chars;
+    private int conflictingChars;
     private int conflictingLinesOfCode;
 
     /**
@@ -76,6 +78,42 @@ public class ParseResult extends ArrayList<Content> {
      */
     public void setConflicts(int conflicts) {
         this.conflicts = conflicts;
+    }
+
+    /**
+     * Returns the number of non-whitespace characters.
+     *
+     * @return the number of characters
+     */
+    public int getChars() {
+        return chars;
+    }
+
+    /**
+     * Sets the number of non-whitespace characters.
+     *
+     * @param chars the new number of chars
+     */
+    public void setChars(int chars) {
+        this.chars = chars;
+    }
+
+    /**
+     * Returns the number of non-whitespace characters in conflict.
+     *
+     * @return the number of non-whitespace characters in conflict
+     */
+    public int getConflictingChars() {
+        return conflictingChars;
+    }
+
+    /**
+     * Sets the number of non-whitespace characters in conflict to the new value.
+     * 
+     * @param conflictingChars the new number of conflicting chars
+     */
+    public void setConflictingChars(int conflictingChars) {
+        this.conflictingChars = conflictingChars;
     }
 
     /**

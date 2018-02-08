@@ -23,18 +23,14 @@
  */
 package de.fosd.jdime.stats;
 
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.stats.parser.ParseResult;
 import de.fosd.jdime.stats.parser.Parser;
+
+import java.io.PrintStream;
+import java.util.*;
 
 import static de.fosd.jdime.stats.MergeScenarioStatus.OK;
 
@@ -51,6 +47,7 @@ public class MergeScenarioStatistics {
     private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
     private Map<Revision, MergeStatistics> mergeStatistics;
 
+    private ElementStatistics charStatistics;
     private ElementStatistics lineStatistics;
     private ElementStatistics fileStatistics;
     private ElementStatistics directoryStatistics;
@@ -71,6 +68,7 @@ public class MergeScenarioStatistics {
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
+        this.charStatistics = new ElementStatistics();
         this.lineStatistics = new ElementStatistics();
         this.fileStatistics = new ElementStatistics();
         this.directoryStatistics = new ElementStatistics();
@@ -124,6 +122,7 @@ public class MergeScenarioStatistics {
             this.mergeStatistics.put(entry.getKey(), new MergeStatistics(entry.getValue()));
         }
 
+        this.charStatistics = new ElementStatistics(toCopy.charStatistics);
         this.lineStatistics = new ElementStatistics(toCopy.lineStatistics);
         this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
         this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
@@ -315,8 +314,10 @@ public class MergeScenarioStatistics {
     public ParseResult addLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
 
+        charStatistics.incrementTotal(result.getChars());
+        charStatistics.incrementNumOccurInConflict(result.getConflictingChars());
         lineStatistics.incrementTotal(result.getLinesOfCode());
-        lineStatistics.incrementNumOccurInConflic(result.getConflictingLinesOfCode());
+        lineStatistics.incrementNumOccurInConflict(result.getConflictingLinesOfCode());
         conflicts += result.getConflicts();
 
         return result;
@@ -333,6 +334,8 @@ public class MergeScenarioStatistics {
     public ParseResult setLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
 
+        charStatistics.setTotal(result.getChars());
+        charStatistics.setNumOccurInConflict(result.getConflictingChars());
         lineStatistics.setTotal(result.getLinesOfCode());
         lineStatistics.setNumOccurInConflict(result.getConflictingLinesOfCode());
         conflicts = result.getConflicts();
@@ -436,6 +439,7 @@ public class MergeScenarioStatistics {
             getMergeStatistics(entry.getKey()).add(entry.getValue());
         }
 
+        charStatistics.add(other.charStatistics);
         lineStatistics.add(other.lineStatistics);
         fileStatistics.add(other.fileStatistics);
         directoryStatistics.add(other.directoryStatistics);
@@ -487,6 +491,9 @@ public class MergeScenarioStatistics {
             os.printf("%s %s%n", Revision.class.getSimpleName(), rev);
             stats.print(os, indent);
         });
+
+        os.println("Char statistics");
+        charStatistics.print(os, indent);
 
         os.println("Line Statistics");
         lineStatistics.print(os, indent);

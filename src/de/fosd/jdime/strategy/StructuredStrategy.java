@@ -23,10 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.security.Permission;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
@@ -37,6 +33,10 @@ import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
+
+import java.security.Permission;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
@@ -172,7 +172,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     ParseResult parseResult = scenarioStatistics.setLineStatistics(target.getContent());
 
                     if (parseResult.getConflicts() > 0) {
-                        scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
+                        scenarioStatistics.getFileStatistics().incrementNumOccurInConflict();
                     }
                 }
 
