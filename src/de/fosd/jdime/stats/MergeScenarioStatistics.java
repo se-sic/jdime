@@ -48,6 +48,7 @@ public class MergeScenarioStatistics {
     private Map<Revision, MergeStatistics> mergeStatistics;
 
     private ElementStatistics charStatistics;
+    private ElementStatistics tokenStatistics;
     private ElementStatistics lineStatistics;
     private ElementStatistics fileStatistics;
     private ElementStatistics directoryStatistics;
@@ -69,6 +70,7 @@ public class MergeScenarioStatistics {
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
         this.charStatistics = new ElementStatistics();
+        this.tokenStatistics = new ElementStatistics();
         this.lineStatistics = new ElementStatistics();
         this.fileStatistics = new ElementStatistics();
         this.directoryStatistics = new ElementStatistics();
@@ -123,6 +125,7 @@ public class MergeScenarioStatistics {
         }
 
         this.charStatistics = new ElementStatistics(toCopy.charStatistics);
+        this.tokenStatistics = new ElementStatistics(toCopy.tokenStatistics);
         this.lineStatistics = new ElementStatistics(toCopy.lineStatistics);
         this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
         this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
@@ -316,6 +319,8 @@ public class MergeScenarioStatistics {
 
         charStatistics.incrementTotal(result.getChars());
         charStatistics.incrementNumOccurInConflict(result.getConflictingChars());
+        tokenStatistics.incrementTotal(result.getTokens());
+        tokenStatistics.incrementNumOccurInConflict(result.getConflictingTokens());
         lineStatistics.incrementTotal(result.getLinesOfCode());
         lineStatistics.incrementNumOccurInConflict(result.getConflictingLinesOfCode());
         conflicts += result.getConflicts();
@@ -336,6 +341,8 @@ public class MergeScenarioStatistics {
 
         charStatistics.setTotal(result.getChars());
         charStatistics.setNumOccurInConflict(result.getConflictingChars());
+        tokenStatistics.setTotal(result.getTokens());
+        tokenStatistics.setNumOccurInConflict(result.getConflictingTokens());
         lineStatistics.setTotal(result.getLinesOfCode());
         lineStatistics.setNumOccurInConflict(result.getConflictingLinesOfCode());
         conflicts = result.getConflicts();
@@ -440,6 +447,7 @@ public class MergeScenarioStatistics {
         }
 
         charStatistics.add(other.charStatistics);
+        tokenStatistics.add(other.tokenStatistics);
         lineStatistics.add(other.lineStatistics);
         fileStatistics.add(other.fileStatistics);
         directoryStatistics.add(other.directoryStatistics);
@@ -494,6 +502,9 @@ public class MergeScenarioStatistics {
 
         os.println("Char statistics");
         charStatistics.print(os, indent);
+
+        os.println("Token statistics");
+        tokenStatistics.print(os, indent);
 
         os.println("Line Statistics");
         lineStatistics.print(os, indent);

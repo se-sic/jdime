@@ -23,6 +23,13 @@
  */
 package de.fosd.jdime.stats.parser;
 
+import beaver.Symbol;
+import org.extendj.parser.JavaParser;
+import org.extendj.scanner.JavaScanner;
+import org.extendj.scanner.Unicode;
+
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -63,6 +70,9 @@ public final class Parser {
 
         int chars = 0;
         int conflictingChars = 0;
+
+        int tokens = 0;
+        int conflictingTokens = 0;
 
         int linesOfCode = 0;
         int conflictingLinesOfCode = 0;
@@ -109,15 +119,19 @@ public final class Parser {
                 } else {
 
                     if (!inComment) {
-                        // We only count non-whitespace characters to normalize the results over linebased/structured.
-                        int lineLength = whitespace.matcher(line).replaceAll("").length();
-
-                        chars += lineLength;
                         linesOfCode++;
 
+                        // We only count non-whitespace characters to normalize the results over linebased/structured.
+                        int lineLength = whitespace.matcher(line).replaceAll("").length();
+                        chars += lineLength;
+
+                        int tokenCount = getTokenCount(line);
+                        tokens += tokenCount;
+
                         if (inConflict) {
-                            conflictingChars += lineLength;
                             conflictingLinesOfCode++;
+                            conflictingChars += lineLength;
+                            conflictingTokens += tokenCount;
                         }
                     }
                 }
@@ -132,13 +146,43 @@ public final class Parser {
             }
         }
 
-        res.setLinesOfCode(linesOfCode);
         res.setConflicts(conflicts);
+        res.setLinesOfCode(linesOfCode);
+        res.setConflictingLinesOfCode(conflictingLinesOfCode);
         res.setChars(chars);
         res.setConflictingChars(conflictingChars);
-        res.setConflictingLinesOfCode(conflictingLinesOfCode);
+        res.setTokens(tokens);
+        res.setConflictingTokens(conflictingTokens);
 
         return res;
+    }
+
+    /**
+     * Counts the number of tokens in the given line using {@link JavaScanner}.
+     *
+     * @param line
+     *         the line whose tokens to count
+     * @return the number of tokens in the line
+     */
+    private static int getTokenCount(String line) {
+        int tokenCount = 0;
+
+        try {
+            JavaScanner scanner = new JavaScanner(new StringReader(line));
+
+            try {
+                while (scanner.nextToken().getId() != JavaParser.Terminals.EOF) {
+                    tokenCount++;
+                }
+            } catch (beaver.Scanner.Exception e) {
+                // TODO: replace this with warning? add 'unknown' tokens to count?
+                throw new RuntimeException(e);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return tokenCount;
     }
 
     /**
