@@ -121,10 +121,10 @@ public class ParseResult extends ArrayList<Content> {
     /**
      * Sets the number of tokens.
      *
-     * @param chars the new number of chars
+     * @param tokens the new number of tokens
      */
-    public void setTokens(int chars) {
-        this.chars = chars;
+    public void setTokens(int tokens) {
+        this.chars = tokens;
     }
 
     /**
@@ -134,6 +134,15 @@ public class ParseResult extends ArrayList<Content> {
      */
     public int getConflictingTokens() {
         return conflictingTokens;
+    }
+
+    /**
+     * Sets the number of tokens in conflict.
+     *
+     * @param conflictingTokens the new number of tokens in conflict
+     */
+    public void setConflictingTokens(int conflictingTokens) {
+        this.conflictingTokens = conflictingTokens;
     }
 
     /**
