@@ -168,7 +168,7 @@ public final class Parser {
         int tokenCount = 0;
 
         try {
-            JavaScanner scanner = new JavaScanner(new Unicode(new StringReader(line)));
+            JavaScanner scanner = new JavaScanner(new StringReader(line));
 
             try {
                 while (scanner.nextToken().getId() != JavaParser.Terminals.EOF) {
