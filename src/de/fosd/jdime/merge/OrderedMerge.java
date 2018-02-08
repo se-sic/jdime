@@ -28,19 +28,14 @@ import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;
 import de.fosd.jdime.config.merge.Revision;
-import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.operations.AddOperation;
 import de.fosd.jdime.operations.ConflictOperation;
 import de.fosd.jdime.operations.DeleteOperation;
 import de.fosd.jdime.operations.MergeOperation;
-import de.fosd.jdime.strdump.DumpMode;
 
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static de.fosd.jdime.artifact.Artifacts.copyTree;
-import static de.fosd.jdime.artifact.Artifacts.root;
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 
 /**
@@ -187,7 +182,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                         /* TODO: This is a cross merge situation: Can this really happen in ordered merge?
                          *       Maybe assert false and see whether this is ever triggered. */
 
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target,
+                                                                                  leftChild.getRevision().getName(),
+                                                                                  rightChild.getRevision().getName());
                         conflictOp.apply(context);
 
                         moveLeft = true;
@@ -459,7 +456,9 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
                                 // As the merge is ordered, the insertion order is important but cannot be determined.
                                 // The merged revision includes a respective conflict.
 
-                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target);
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target,
+                                                                                          leftChild.getRevision().getName(),
+                                                                                          rightChild.getRevision().getName());
                                 conflictOp.apply(context);
 
                                 moveLeft = true;

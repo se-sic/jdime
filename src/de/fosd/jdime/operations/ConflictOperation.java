@@ -53,22 +53,6 @@ public class ConflictOperation<T extends Artifact<T>> extends Operation<T> {
 
     /**
      * Constructs a new {@link ConflictOperation} adding a conflict representation between the {@code left} and
-     * {@code right} alternative to the {@code target}. The conditions for the alternatives will be the names
-     * of the respective {@link de.fosd.jdime.config.merge.Revision}s.
-     *
-     * @param left
-     *         the left alternative
-     * @param right
-     *         the right alternative
-     * @param target
-     *         the target {@link Artifact} to add a conflict representation to
-     */
-    public ConflictOperation(T left, T right, T target) {
-        this(left, right, target, left.getRevision().getName(), right.getRevision().getName());
-    }
-
-    /**
-     * Constructs a new {@link ConflictOperation} adding a conflict representation between the {@code left} and
      * {@code right} alternative to the {@code target}.
      *
      * @param left
