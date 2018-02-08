@@ -39,8 +39,10 @@ public class ParseResult extends ArrayList<Content> {
     private int linesOfCode;
     private int conflicts;
     private int chars;
+    private int tokens;
     private int conflictingChars;
     private int conflictingLinesOfCode;
+    private int conflictingTokens;
 
     /**
      * Returns the lines of code.
@@ -105,6 +107,33 @@ public class ParseResult extends ArrayList<Content> {
      */
     public int getConflictingChars() {
         return conflictingChars;
+    }
+
+    /**
+     * Returns the number of tokens.
+     *
+     * @return the number of tokens
+     */
+    public int getTokens() {
+        return chars;
+    }
+
+    /**
+     * Sets the number of tokens.
+     *
+     * @param chars the new number of chars
+     */
+    public void setTokens(int chars) {
+        this.chars = chars;
+    }
+
+    /**
+     * Returns the number of tokens in conflict.
+     *
+     * @return the number of tokens in conflict
+     */
+    public int getConflictingTokens() {
+        return conflictingTokens;
     }
 
     /**

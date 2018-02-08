@@ -23,6 +23,15 @@
  */
 package de.fosd.jdime.stats.parser;
 
+import beaver.Symbol;
+import org.extendj.parser.JavaParser;
+import org.extendj.scanner.JavaScanner;
+import org.extendj.scanner.Unicode;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -63,6 +72,9 @@ public final class Parser {
 
         int chars = 0;
         int conflictingChars = 0;
+
+        int tokens = 0;
+        int conflictingTokens = 0;
 
         int linesOfCode = 0;
         int conflictingLinesOfCode = 0;
@@ -115,9 +127,35 @@ public final class Parser {
                         chars += lineLength;
                         linesOfCode++;
 
+                        int tokenCount=0;
+                        try {
+                            InputStream in = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
+                            JavaScanner scanner = new JavaScanner(new Unicode(in));
+
+                            while(true) {
+                                try {
+                                    Symbol next = scanner.nextToken();
+                                    if (next.getId() == JavaParser.Terminals.EOF) {
+                                        break;
+                                    }
+                                    tokenCount++;
+                                } catch (beaver.Scanner.Exception e) {
+                                    // TODO: replace this with warning? add 'unknown' tokens to count?
+                                    throw new RuntimeException(e);
+                                }
+                            }
+
+                            in.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        tokens += tokenCount;
+
                         if (inConflict) {
                             conflictingChars += lineLength;
                             conflictingLinesOfCode++;
+                            conflictingTokens += tokenCount;
                         }
                     }
                 }
