@@ -23,11 +23,11 @@
  */
 package de.fosd.jdime.operations;
 
-import java.util.Objects;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
+
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * An {@link Operation} that adds a conflict or choice node to the target artifact depending on the

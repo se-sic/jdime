@@ -23,27 +23,37 @@
  */
 package de.fosd.jdime.merge;
 
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.MergeType;
 import de.fosd.jdime.config.merge.Revision;
-import de.fosd.jdime.matcher.matching.Matching;
 import de.fosd.jdime.operations.AddOperation;
 import de.fosd.jdime.operations.ConflictOperation;
 import de.fosd.jdime.operations.DeleteOperation;
 import de.fosd.jdime.operations.MergeOperation;
-import de.fosd.jdime.strdump.DumpMode;
 
-import static de.fosd.jdime.artifact.Artifacts.copyTree;
-import static de.fosd.jdime.artifact.Artifacts.root;
+import java.util.Iterator;
+import java.util.logging.Logger;
+
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 
 /**
+ *
+ * This class provides an implementation of an ordered three-way merge.
+ *
+ * <p>
+ * The rules for a structured three-way merge are well documented,<br>
+ * e.g., by Bernhard Westfechtel's "Structure-oriented merging of revisions of software documents"<br>
+ * (Proceedings of the 3rd international workshop on Software configuration management, ACM, 1991)
+ * </p>
+ *
+ * <p>
+ * We documented the (JDime specific) results for each input situation in a table that is available as Google Doc.
+ * </p>
+ *
+ * @see <a href="https://docs.google.com/spreadsheets/d/1LQgR_cTPhH4vFuy-7HLpfa-HF4PmYxsrGzRTs1EHVmk/edit?usp=sharing">GoogleDoc</a>
+ *
  * @author Olaf Lessenich
  *
  * @param <T>
@@ -62,304 +72,509 @@ public class OrderedMerge<T extends Artifact<T>> implements MergeInterface<T> {
      */
     @Override
     public void merge(MergeOperation<T> operation, MergeContext context) {
-        MergeScenario<T> triple = operation.getMergeScenario();
-        T left = triple.getLeft();
-        T base = triple.getBase();
-        T right = triple.getRight();
+        boolean assertsEnabled = false;
+        assert assertsEnabled = true;
+
+        Revision leftRev, baseRev, rightRev;
+        Iterator<T> leftIt, rightIt;
+
+        {
+            MergeScenario<T> mergeScenario = operation.getMergeScenario();
+            T left = mergeScenario.getLeft();
+            T base = mergeScenario.getBase();
+            T right = mergeScenario.getRight();
+            logprefix = operation.getId() + " - ";
+
+            assert (left.matches(right));
+            assert (left.hasMatching(right)) && right.hasMatching(left);
+
+            LOG.finest(() -> {
+                String name = getClass().getSimpleName();
+                return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
+            });
+
+            leftRev = left.getRevision();
+            baseRev = base.getRevision();
+            rightRev = right.getRevision();
+            leftIt = left.getChildren().iterator();
+            rightIt = right.getChildren().iterator();
+        }
+
         T target = operation.getTarget();
-        logprefix = operation.getId() + " - ";
 
-        assert (left.matches(right));
-        assert (left.hasMatching(right)) && right.hasMatching(left);
-
-        LOG.finest(() -> {
-            String name = getClass().getSimpleName();
-            return String.format("%s%s.merge(%s, %s, %s)", prefix(), name, left.getId(), base.getId(), right.getId());
-        });
-
-        Revision l = left.getRevision();
-        Revision b = base.getRevision();
-        Revision r = right.getRevision();
-        Iterator<T> leftIt = left.getChildren().iterator();
-        Iterator<T> rightIt = right.getChildren().iterator();
-
-        boolean leftdone = false;
-        boolean rightdone = false;
+        boolean leftDone = false;
+        boolean rightDone = false;
         T leftChild = null;
         T rightChild = null;
 
         if (leftIt.hasNext()) {
             leftChild = leftIt.next();
         } else {
-            leftdone = true;
+            leftDone = true;
         }
+
         if (rightIt.hasNext()) {
             rightChild = rightIt.next();
         } else {
-            rightdone = true;
+            rightDone = true;
         }
 
-        while (!leftdone || !rightdone) {
-            if (!leftdone && !r.contains(leftChild)) {
-                assert (leftChild != null);
-                final T finalLeftChild = leftChild;
-                final T finalRightChild = rightChild;
+        while (!leftDone && !rightDone) {
+            boolean moveLeft = false, moveRight = false;
+            boolean lr = leftChild.hasMatching(rightChild);
+            boolean lR = leftChild.hasMatching(rightRev);
+            boolean lB = leftChild.hasMatching(baseRev);
+            boolean lBf = lB && leftChild.getMatching(baseRev).hasFullyMatched();
+            boolean rl = rightChild.hasMatching(leftChild);
+            boolean rL = rightChild.hasMatching(leftRev);
+            boolean rB = rightChild.hasMatching(baseRev);
+            boolean rBf = rB && rightChild.getMatching(baseRev).hasFullyMatched();
 
-                LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
+            assert !leftChild.isMerged() && !rightChild.isMerged() : "Trying to merge already merged child!";
 
-                if (b != null && b.contains(leftChild)) {
-                    LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
+            if (lr && rl) {
+                // 1 X X 1 X X
+                // Left and right child match.
+                // We have to merge them two-way or three-way depending on whether they have a common ancestor in base.
 
-                    // was deleted in right
-                    if (leftChild.hasChanges(b)) {
-                        // insertion-deletion-conflict
-                        if (LOG.isLoggable(Level.FINEST)) {
-                            LOG.finest(prefix(leftChild) + "has changes in subtree.");
-                        }
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                leftChild, rightChild, target, l.getName(), r.getName());
-                        conflictOp.apply(context);
-                        if (rightIt.hasNext()) {
-                            rightChild = rightIt.next();
-                        } else {
-                            rightdone = true;
-                        }
-                        if (leftIt.hasNext()) {
-                            leftChild = leftIt.next();
-                        } else {
-                            leftdone = true;
-                        }
-                    } else {
-                        // can be safely deleted
-                        DeleteOperation<T> delOp = new DeleteOperation<>(leftChild, target, l.getName());
-                        delOp.apply(context);
-                    }
+                MergeType mergeType;
+                T baseChild;
+
+                if (lB) {
+                    // 1 X 1 1 X X
+                    mergeType = MergeType.THREEWAY;
+                    baseChild = leftChild.getMatching(baseRev).getMatchingArtifact(leftChild);
                 } else {
-                    LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
-
-                    // leftChild is a change
-                    if (!rightdone && !l.contains(rightChild)) {
-                        assert (rightChild != null);
-                        LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
-
-                        if (b != null && b.contains(rightChild)) {
-                            LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
-
-                            // rightChild was deleted in left
-                            if (rightChild.hasChanges(b)) {
-                                LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
-
-                                // deletion-insertion conflict
-                                ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                        leftChild, rightChild, target, l.getName(), r.getName());
-                                conflictOp.apply(context);
-                                if (rightIt.hasNext()) {
-                                    rightChild = rightIt.next();
-                                } else {
-                                    rightdone = true;
-                                }
-                                if (leftIt.hasNext()) {
-                                    leftChild = leftIt.next();
-                                } else {
-                                    leftdone = true;
-                                }
-                            } else {
-                                // add the left change
-                                AddOperation<T> addOp = new AddOperation<>(copyTree(leftChild), target, l.getName());
-                                leftChild.setMerged();
-                                addOp.apply(context);
-                            }
-                        } else {
-                            LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
-
-                            // rightChild is a change
-                            ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                    leftChild, rightChild, target, l.getName(), r.getName());
-                            conflictOp.apply(context);
-
-                            if (rightIt.hasNext()) {
-                                rightChild = rightIt.next();
-                            } else {
-                                rightdone = true;
-                            }
-                        }
-                    } else {
-                        LOG.finest(() -> String.format("%s adding change", prefix(finalLeftChild)));
-
-                        // add the left change
-                        AddOperation<T> addOp = new AddOperation<>(copyTree(leftChild), target, l.getName());
-                        leftChild.setMerged();
-                        addOp.apply(context);
-                    }
+                    // 1 X 0 1 X X
+                    mergeType = MergeType.TWOWAY;
+                    baseChild = leftChild.createEmptyArtifact(BASE);
                 }
 
-                if (leftIt.hasNext()) {
-                    leftChild = leftIt.next();
-                } else {
-                    leftdone = true;
+                T targetChild = leftChild.copy();
+                target.addChild(targetChild);
+
+                MergeScenario<T> childTriple = new MergeScenario<>(mergeType, leftChild, baseChild, rightChild);
+                MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild);
+                mergeOp.apply(context);
+
+                moveLeft = true;
+                moveRight = true;
+
+                if (assertsEnabled) {
+                    leftChild.setMerged();
+                    rightChild.setMerged();
                 }
-            }
+            } else {
+                // 0 X X 0 X X
+                // Left and right child do not match.
 
-            if (!rightdone && !l.contains(rightChild)) {
-                assert (rightChild != null);
-                final T finalLeftChild = leftChild;
-                final T finalRightChild = rightChild;
+                assert !lr && !rl : "Found asymmetric matchings between " + leftChild + " and " + rightChild;
 
-                LOG.finest(() -> String.format("%s is not in left", prefix(finalRightChild)));
+                if (lR) {
+                    // 0 1 X 0 X X
+                    // Left child has a match in right revision, but not with right child.
 
-                if (b != null && b.contains(rightChild)) {
-                    LOG.finest(() -> String.format("%s was deleted by left", prefix(finalRightChild)));
+                    if (rL) {
+                        // 0 1 X 0 1 X
+                        // Right child has a match in left revision, but not with left child.
+                        // We cannot determine the insertion order, therefore left and right child are in conflict.
 
-                    // was deleted in left
-                    if (rightChild.hasChanges(b)) {
-                        LOG.finest(() -> String.format("%s has changes in subtree.", prefix(finalRightChild)));
+                        /* TODO: This is a cross merge situation: Can this really happen in ordered merge?
+                         *       Maybe assert false and see whether this is ever triggered. */
 
-                        // insertion-deletion-conflict
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                leftChild, rightChild, target, l.getName(), r.getName());
+                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target,
+                                                                                  leftChild.getRevision().getName(),
+                                                                                  rightChild.getRevision().getName());
                         conflictOp.apply(context);
-                        if (rightIt.hasNext()) {
-                            rightChild = rightIt.next();
-                        } else {
-                            rightdone = true;
-                        }
-                        if (leftIt.hasNext()) {
-                            leftChild = leftIt.next();
-                        } else {
-                            leftdone = true;
+
+                        moveLeft = true;
+                        moveRight = true;
+
+                        if (assertsEnabled) {
+                            leftChild.setMerged();
+                            rightChild.setMerged();
                         }
                     } else {
-                        // can be safely deleted
-                        DeleteOperation<T> delOp = new DeleteOperation<>(rightChild, target, r.getName());
-                        delOp.apply(context);
-                    }
-                } else {
-                    LOG.finest(() -> String.format("%s is a change", prefix(finalRightChild)));
+                        // 0 1 X 0 0 X
+                        // Left child has a match in right revision and will be dealt with later on in the loop.
+                        // Right child has no match in left revision.
+                        // Therefore, right child was either deleted in the left revision,
+                        // or is a change introduced by the right revision.
 
-                    // rightChild is a change
-                    if (!leftdone && !r.contains(leftChild)) {
-                        assert (leftChild != null);
-                        LOG.finest(() -> String.format("%s is not in right", prefix(finalLeftChild)));
+                        if (rB) {
+                            // 0 1 X 0 0 1
+                            // Deletion or Conflict:
+                            // Right child has no match in the left revision, but a match in base revision.
+                            // Right child was deleted in the left revision.
+                            // Now it depends on whether there are changes in right child's subtree.
 
-                        if (b != null && b.contains(leftChild)) {
-                            LOG.finest(() -> String.format("%s was deleted by right", prefix(finalLeftChild)));
+                            if (rBf) {
+                                // Deletion:
+                                // Right child was deleted in the left revision.
+                                // It is not included in the merged revision.
 
-                            if (leftChild.hasChanges(b)) {
-                                LOG.finest(() -> String.format("%s has changes in subtree", prefix(finalLeftChild)));
-
-                                // deletion-insertion conflict
-                                ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                        leftChild, rightChild, target, l.getName(), r.getName());
-                                conflictOp.apply(context);
-                                if (rightIt.hasNext()) {
-                                    rightChild = rightIt.next();
-                                } else {
-                                    rightdone = true;
-                                }
-                                if (leftIt.hasNext()) {
-                                    leftChild = leftIt.next();
-                                } else {
-                                    leftdone = true;
-                                }
+                                DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                deleteOp.apply(context);
                             } else {
-                                LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
+                                // Deletion/Deletion or Deletion/Insertion conflict:
+                                // Right child was deleted in the left revision,
+                                // but its subtree was changed in the right revision.
+                                // A respective conflict is added to the merged revision.
 
-                                // add the right change
-                                AddOperation<T> addOp = new AddOperation<>(copyTree(rightChild), target, r.getName());
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                conflictOp.apply(context);
+                            }
+
+                            moveRight = true;
+
+                            if (assertsEnabled) {
                                 rightChild.setMerged();
-                                addOp.apply(context);
                             }
                         } else {
-                            LOG.finest(() -> String.format("%s is a change", prefix(finalLeftChild)));
+                            // 0 1 X 0 0 0
+                            // Left child has a match in right revision, and will be dealt with later on in the loop.
+                            // Right child has no match in the base revision and no match in the left revision.
+                            // Therefore, it was added by the right revision.
+                            // It is included in the merged revision.
 
-                            // leftChild is a change
-                            ConflictOperation<T> conflictOp = new ConflictOperation<>(
-                                    leftChild, rightChild, target, l.getName(), r.getName());
-                            conflictOp.apply(context);
+                            AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                            addOp.apply(context);
 
-                            if (leftIt.hasNext()) {
-                                leftChild = leftIt.next();
+                            moveRight = true;
+
+                            if (assertsEnabled) {
+                                rightChild.setMerged();
+                            }
+                        }
+                    }
+                } else {
+                    // 0 0 X 0 X X
+                    // Left child has no match in the right revision.
+                    // Therefore, left child was either deleted in the right revision,
+                    // or is a change introduced by the left revision.
+
+                    if (lB) {
+                        // 0 0 1 0 X X
+                        // Left child has a match in base revision, it was therefore deleted by the right revision.
+                        // Now it depends on whether there are changes in left child's subtree
+                        // and on the status of right child.
+
+                        if (rL) {
+                            // 0 0 1 0 1 X
+                            // Left child was deleted in the right revision.
+                            // Right child has a match in the left revision, but not with left child.
+
+                            if (lBf) {
+                                // Left child was deleted by the right revision and is not included in the merged revision.
+
+                                DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                deleteOp.apply(context);
                             } else {
-                                leftdone = true;
+                                // Deletion/Deletion or Deletion/Insertion conflict:
+                                // Left child was deleted in the right revision,
+                                // but its subtree was changed in the left revision.
+                                // A respective conflict is added to the merged revision.
+
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                conflictOp.apply(context);
+                            }
+
+                            moveLeft = true;
+
+                            if (assertsEnabled) {
+                                leftChild.setMerged();
+                            }
+                        } else {
+                            // 0 0 1 0 0 X
+                            // Left child was deleted in the right revision.
+                            // Right child has no match in the left revision.
+                            // It was either deleted in the left revision,
+                            // or is a changed introduced by the right revision.
+
+                            if (rB) {
+                                // 0 0 1 0 0 1
+                                // Left child was deleted in the right revision.
+                                // Right child was deleted in the left revision.
+                                // Merge result depends on whether the subtrees were changed.
+
+                                if (lBf && rBf) {
+                                    // Both children were deleted, their subtrees were not changed..
+                                    // The merged revision includes neither of them.
+
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                    deleteOp.apply(context);
+
+                                    deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                    deleteOp.apply(context);
+
+                                    moveLeft = true;
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                        rightChild.setMerged();
+                                    }
+                                } else {
+                                    // Deletion/Deletion or Deletion/Insertion conflict:
+                                    // Both children were deleted.
+                                    // But at least one of their subtrees was changed.
+
+                                    if (lBf)  {
+                                        // Right subtree was changed
+                                        DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                        deleteOp.apply(context);
+
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    } else if (rBf) {
+                                        // Left subtree was changed
+                                        DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                        deleteOp.apply(context);
+
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    } else {
+                                        // Both subtrees were changed.
+                                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
+                                        conflictOp.apply(context);
+                                    }
+
+                                    moveLeft = true;
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                        rightChild.setMerged();
+                                    }
+                                }
+                            } else {
+                                // 0 0 1 0 0 0
+                                // Left child was deleted in the right revision.
+                                // Right child has no match in the left revision and no match in the base revision.
+                                // Therefore, right child is a change introduced by the right revision.
+
+                                if (lBf) {
+                                    // Left child was deleted.
+                                    // Right child was added.
+                                    // The merged revision will include right child.
+
+                                    AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                                    addOp.apply(context);
+
+                                    moveRight = true;
+
+                                    if (assertsEnabled) {
+                                        rightChild.setMerged();
+                                    }
+
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                                    deleteOp.apply(context);
+                                } else {
+                                    // Deletion/Deletion or Deletion/Insertion: conflict.
+                                    // Left child was deleted by the right revision, but its subtree was changed by
+                                    // the left revision.
+                                    // Right child was added.
+                                    // A respective conflict is included in the merged revision.
+
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
+                                    conflictOp.apply(context);
+                                }
+
+                                moveLeft = true;
+                                moveRight = true;
+
+                                if (assertsEnabled) {
+                                    leftChild.setMerged();
+                                    rightChild.setMerged();
+                                }
                             }
                         }
                     } else {
-                        LOG.finest(() -> String.format("%s adding change", prefix(finalRightChild)));
+                        // 0 0 0 0 X X
+                        // Left child has no match in the right revision and no match in the base revision.
+                        // Therefore, it was added by the left revision.
 
-                        // add the right change
-                        AddOperation<T> addOp = new AddOperation<>(copyTree(rightChild), target, r.getName());
-                        rightChild.setMerged();
-                        addOp.apply(context);
+                        if (rL) {
+                            // 0 0 0 0 1 X
+                            // Left child was added and is included in the merged revision.
+                            // Right child has a match in the left revision and will be dealt with later on in the loop.
+
+                            AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                            addOp.apply(context);
+
+                            moveLeft = true;
+
+                            if (assertsEnabled) {
+                                leftChild.setMerged();
+                            }
+                        } else {
+                            // 0 0 0 0 0 X
+                            // Left child was added.
+                            // Right child has no match in the left revision.
+                            // It was either deleted by the left revision or is a change introduced by the right revision.
+                            if (rB) {
+                                // 0 0 0 0 0 1
+                                // Right child was deleted in the left revision.
+                                if (rBf) {
+                                    // Left child was added and is included in the merged revision.
+                                    // Right child was deleted is not included in the merged revision.
+
+                                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                                    addOp.apply(context);
+
+                                    moveLeft = true;
+
+                                    if (assertsEnabled) {
+                                        leftChild.setMerged();
+                                    }
+
+                                    DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                                    deleteOp.apply(context);
+                                } else {
+                                    // Deletion/Deletion or Deletion/Insertion conflict:
+                                    // Left child was added.
+                                    // Right child was deleted in the left revision,
+                                    // but its subtree was changed by the right revision
+                                    // The merged revision includes a respective conflict.
+
+                                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target, leftRev.getName(), rightRev.getName());
+                                    conflictOp.apply(context);
+                                }
+
+                                moveLeft = true;
+                                moveRight = true;
+
+                                if (assertsEnabled) {
+                                    leftChild.setMerged();
+                                    rightChild.setMerged();
+                                }
+                            } else {
+                                // 0 0 0 0 0 0
+                                // Insertion/Insertion Conflict:
+                                // Left child was added
+                                // Right child was added.
+                                // As the merge is ordered, the insertion order is important but cannot be determined.
+                                // The merged revision includes a respective conflict.
+
+                                ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, rightChild, target,
+                                                                                          leftChild.getRevision().getName(),
+                                                                                          rightChild.getRevision().getName());
+                                conflictOp.apply(context);
+
+                                moveLeft = true;
+                                moveRight = true;
+
+                                if (assertsEnabled) {
+                                    leftChild.setMerged();
+                                    rightChild.setMerged();
+                                }
+                            }
+                        }
                     }
                 }
+            }
 
-                if (rightIt.hasNext()) {
-                    rightChild = rightIt.next();
-                } else {
-                    rightdone = true;
-                }
-
-            } else if (l.contains(rightChild) && r.contains(leftChild)) {
-                assert (leftChild != null);
-                assert (rightChild != null);
-
-                // left and right have the artifact. merge it.
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest(prefix(leftChild) + "is in both revisions [" + rightChild.getId() + "]");
-                }
-
-                // leftChild is a choice node
-                if (leftChild.isChoice()) {
-                    T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
-                    leftChild.addVariant(r.getName(), matchedVariant);
-                    AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
-                    leftChild.setMerged();
-                    rightChild.setMerged();
-                    addOp.apply(context);
-                } else {
-                    assert (leftChild.hasMatching(rightChild) && rightChild.hasMatching(leftChild));
-                }
-
-                if (!leftChild.isMerged() && !rightChild.isMerged()) {
-                    // determine whether the child is 2 or 3-way merged
-                    Matching<T> mBase = leftChild.getMatching(b);
-
-                    MergeType childType = mBase == null ? MergeType.TWOWAY
-                            : MergeType.THREEWAY;
-                    T baseChild = mBase == null ? leftChild.createEmptyArtifact(BASE)
-                            : mBase.getMatchingArtifact(leftChild);
-
-                    T targetChild = leftChild.copy();
-                    target.addChild(targetChild);
-
-                    MergeScenario<T> childTriple = new MergeScenario<>(childType,
-                            leftChild, baseChild, rightChild);
-
-                    MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild);
-
-                    leftChild.setMerged();
-                    rightChild.setMerged();
-                    mergeOp.apply(context);
-                }
+            if (moveLeft) {
+                assert leftChild.isMerged() : "Trying to move past unmerged child " + leftChild.getId();
 
                 if (leftIt.hasNext()) {
                     leftChild = leftIt.next();
                 } else {
-                    leftdone = true;
+                    leftChild = null;
+                    leftDone = true;
                 }
+            }
+
+            if (moveRight) {
+                assert rightChild.isMerged() : "Trying to move past unmerged child " + rightChild.getId();
 
                 if (rightIt.hasNext()) {
                     rightChild = rightIt.next();
                 } else {
-                    rightdone = true;
+                    rightChild = null;
+                    rightDone = true;
                 }
             }
+        }
 
-            if (!context.isDiffOnly()) {
-                LOG.finest(() -> {
-                    String dump = root(target).dump(DumpMode.PLAINTEXT_TREE);
-                    return String.format("%s target.dumpTree() after processing child:%n%s", prefix(), dump);
-                });
+        while (!leftDone) {
+            boolean lB = leftChild.hasMatching(baseRev);
+            boolean lBf = lB && leftChild.getMatching(baseRev).hasFullyMatched();
+
+            if (lB) {
+                if (lBf) {
+                    // LeftChild was deleted in Right.
+
+                    DeleteOperation<T> deleteOp = new DeleteOperation<>(leftChild, target, leftRev.getName());
+                    deleteOp.apply(context);
+                } else {
+                    // Deletion/Deletion conflict.
+
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, leftRev.getName(), rightRev.getName());
+                    conflictOp.apply(context);
+                }
+            } else {
+                // LeftChild was added.
+
+                AddOperation<T> addOp = new AddOperation<>(leftChild, target, leftRev.getName());
+                addOp.apply(context);
+            }
+
+            if (assertsEnabled) {
+                leftChild.setMerged();
+            }
+
+            if (leftIt.hasNext()) {
+                leftChild = leftIt.next();
+            } else {
+                leftDone = true;
+            }
+        }
+
+        while (!rightDone) {
+            boolean rB = rightChild.hasMatching(baseRev);
+            boolean rBf = rB && rightChild.getMatching(baseRev).hasFullyMatched();
+
+            if (rB) {
+                if (rBf) {
+                    // RightChild was deleted in Left.
+
+                    DeleteOperation<T> deleteOp = new DeleteOperation<>(rightChild, target, rightRev.getName());
+                    deleteOp.apply(context);
+                } else {
+                    // Deletion/Deletion conflict.
+
+                    ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, leftRev.getName(), rightRev.getName());
+                    conflictOp.apply(context);
+                }
+            } else {
+                // RightChild was added.
+
+                AddOperation<T> addOp = new AddOperation<>(rightChild, target, rightRev.getName());
+                addOp.apply(context);
+            }
+
+            if (assertsEnabled) {
+                rightChild.setMerged();
+            }
+
+            if (rightIt.hasNext()) {
+                rightChild = rightIt.next();
+            } else {
+                rightDone = true;
+            }
+        }
+
+        if (assertsEnabled) {
+            MergeScenario<T> mergeScenario = operation.getMergeScenario();
+            T left = mergeScenario.getLeft();
+            T right = mergeScenario.getRight();
+
+            for (T child : left.getChildren()) {
+                assert (child.isMerged()) : "Child was not merged: " + child.getId();
+            }
+            for (T child : right.getChildren()) {
+                assert (child.isMerged()) : "Child was not merged: " + child.getId();
             }
         }
     }
