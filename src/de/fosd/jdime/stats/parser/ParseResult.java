@@ -64,19 +64,19 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Returns the conflicts.
+     * Returns the number of conflicts.
      *
-     * @return the conflicts
+     * @return the number of conflicts
      */
     public int getConflicts() {
         return conflicts;
     }
 
     /**
-     * Sets the conflicts to the new value.
+     * Sets the number of conflicts to the new value.
      *
      * @param conflicts
-     *         the new conflicts
+     *         the new number of conflicts
      */
     public void setConflicts(int conflicts) {
         this.conflicts = conflicts;
@@ -107,6 +107,15 @@ public class ParseResult extends ArrayList<Content> {
      */
     public int getConflictingChars() {
         return conflictingChars;
+    }
+
+    /**
+     * Sets the number of non-whitespace characters in conflict to the new value.
+     *
+     * @param conflictingChars the new number of conflicting chars
+     */
+    public void setConflictingChars(int conflictingChars) {
+        this.conflictingChars = conflictingChars;
     }
 
     /**
@@ -143,15 +152,6 @@ public class ParseResult extends ArrayList<Content> {
      */
     public void setConflictingTokens(int conflictingTokens) {
         this.conflictingTokens = conflictingTokens;
-    }
-
-    /**
-     * Sets the number of non-whitespace characters in conflict to the new value.
-     * 
-     * @param conflictingChars the new number of conflicting chars
-     */
-    public void setConflictingChars(int conflictingChars) {
-        this.conflictingChars = conflictingChars;
     }
 
     /**
