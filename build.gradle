@@ -198,6 +198,15 @@ task getTestFiles {
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
+        def remotes = grgit.remote.list()
+
+        if (remotes.find({ it.name.equals("origin") && it.url.equals(gitURI) }) == null) {
+            if (!testFilesDir.deleteDir()) {
+                throw new GradleException("Failed to delete " + testFilesDir)
+            }
+            return true
+        }
+
         grgit.fetch()
 
         if (grgit.resolve.toBranch(testFilesBranchName) == null) {
