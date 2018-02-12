@@ -115,7 +115,7 @@ public class ParseResult extends ArrayList<Content> {
      * @return the number of tokens
      */
     public int getTokens() {
-        return chars;
+        return tokens;
     }
 
     /**
@@ -124,7 +124,7 @@ public class ParseResult extends ArrayList<Content> {
      * @param tokens the new number of tokens
      */
     public void setTokens(int tokens) {
-        this.chars = tokens;
+        this.tokens = tokens;
     }
 
     /**
