@@ -326,6 +326,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     /**
+     * Returns whether this <code>ASTNodeArtifact</code> represents an (<code>org.extendj.ast.List</code>).
+     *
+     * @return true iff this is a <code>org.extendj.ast.List</code>
+     */
+    private boolean isList() {
+        return astnode instanceof org.extendj.ast.List;
+    }
+
+    /**
      * Optionally returns the enclosing class or method (or constructor) declaration artifact (whichever is closest)
      * of this {@link ASTNodeArtifact}.
      *
@@ -631,7 +640,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
         }
 
-        if (subtreeIsConflict) {
+        if (subtreeIsConflict && isList()) {
             ASTNodeArtifact conflict = null;
 
             Revision left = getChild(0).getLeft().getRevision();
