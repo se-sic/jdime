@@ -4,6 +4,7 @@ import de.fosd.jdime.config.merge.MergeContext;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -13,6 +14,7 @@ public class ConflictOptimizer {
     private static final Pattern conflictStart = Pattern.compile("^" + MergeContext.conflictStart + ".*");
     private static final Pattern conflictSep = Pattern.compile("^" + MergeContext.conflictSep);
     private static final Pattern conflictEnd = Pattern.compile("^" + MergeContext.conflictEnd + ".*");
+    private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private enum Position {
         NO_CONFLICT, LEFT_SIDE, RIGHT_SIDE, AFTER_CONFLICT
@@ -31,12 +33,19 @@ public class ConflictOptimizer {
         Position pos = Position.NO_CONFLICT;
         List<String> left = new LinkedList<>();
         List<String> right = new LinkedList<>();
+        Queue<String> queue = new LinkedList<>();
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
 
             if (matches(conflictStart, line)) {
-
+                if (pos == Position.AFTER_CONFLICT) {
+                    while (!queue.isEmpty()) {
+                        String queuedLine = queue.remove();
+                        left.add(queuedLine);
+                        right.add(queuedLine);
+                    }
+                }
                 pos = Position.LEFT_SIDE;
             } else if (matches(conflictSep, line)) {
                 pos = Position.RIGHT_SIDE;
@@ -51,6 +60,9 @@ public class ConflictOptimizer {
                         right.add(line + System.lineSeparator());
                         break;
                     case AFTER_CONFLICT:
+                        // lines containing only whitespaces are queued
+                        // and later appended to either both sides or the common output
+                        if (matches(emptyLine, line)) { queue.add(line + System.lineSeparator()); break; }
                         pos = Position.NO_CONFLICT;
                     case NO_CONFLICT:
                         if (pos == Position.NO_CONFLICT && (!left.isEmpty() || !right.isEmpty())) {
@@ -64,6 +76,7 @@ public class ConflictOptimizer {
                             left.clear();
                             right.clear();
                         }
+                        while (!queue.isEmpty()) { out.append(queue.remove()); }
                         out.append(line + System.lineSeparator());
                         break;
                 }
