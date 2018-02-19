@@ -242,7 +242,8 @@ public final class Parser {
                         // and later appended to either both sides or the common output
                         if (matches(emptyLine, line)) { queue.add(line); break; }
                         pos = Position.NO_CONFLICT;
-                        // intentional fall-through
+                        // intentional fallthrough because the current line has to be appended
+                        // if it's clear that we are done with the conflict
                     case NO_CONFLICT:
                         while (!queue.isEmpty()) { out.addMergedLine(queue.remove()); }
                         out.addMergedLine(line);
