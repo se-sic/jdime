@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.stats.parser;
+package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;

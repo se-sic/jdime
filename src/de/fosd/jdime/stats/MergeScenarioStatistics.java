@@ -26,8 +26,8 @@ package de.fosd.jdime.stats;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
-import de.fosd.jdime.stats.parser.ParseResult;
-import de.fosd.jdime.stats.parser.Parser;
+import de.fosd.jdime.util.parser.ParseResult;
+import de.fosd.jdime.util.parser.Parser;
 
 import java.io.PrintStream;
 import java.util.*;

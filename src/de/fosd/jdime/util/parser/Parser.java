@@ -21,16 +21,17 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.stats.parser;
+package de.fosd.jdime.util.parser;
 
-import beaver.Symbol;
-import de.fosd.jdime.config.merge.MergeContext;
 import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
-import org.extendj.scanner.Unicode;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -39,10 +40,9 @@ import java.util.regex.Pattern;
  */
 public final class Parser {
 
-    // TODO: could this be ^conflictStart etc.?
-    private static final Pattern conflictStart = Pattern.compile(MergeContext.conflictStart + ".*");
-    private static final Pattern conflictSep = Pattern.compile(MergeContext.conflictSep);
-    private static final Pattern conflictEnd = Pattern.compile(MergeContext.conflictEnd + ".*");
+    private static final Pattern conflictStartPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_START + ".*");
+    private static final Pattern conflictSepPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_DELIM);
+    private static final Pattern conflictEndPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_END + ".*");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern whitespace = Pattern.compile("\\s+");
@@ -98,7 +98,7 @@ public final class Parser {
                 } else if (matches(blockCommentEnd, line)) {
 
                     inComment = false;
-                } else if (matches(conflictStart, line)) {
+                } else if (matches(conflictStartPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = true;
@@ -106,12 +106,12 @@ public final class Parser {
                     inLeft = true;
                     clocBeforeConflict = conflictingLinesOfCode;
                     conflicts++;
-                } else if (matches(conflictSep, line)) {
+                } else if (matches(conflictSepPattern, line)) {
 
                     wasConflictMarker = true;
                     inComment = inLeftComment;
                     inLeft = false;
-                } else if (matches(conflictEnd, line)) {
+                } else if (matches(conflictEndPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = false;
@@ -198,5 +198,69 @@ public final class Parser {
      */
     private static boolean matches(Pattern p, String line) {
         return p.matcher(line).matches();
+    }
+
+    /**
+     * Merges subsequent conflicts.
+     *
+     * @param in merge result that should be optimized w.r.t. conflicts
+     * @return optimized merge result
+     */
+    public static String mergeSubsequentConflicts(String in) {
+        Scanner s = new Scanner(in);
+        StringWriter sout = new StringWriter();
+        PrintWriter out = new PrintWriter(sout);
+
+        Position pos = Position.NO_CONFLICT;
+        Content.Conflict conflict = new Content.Conflict();
+        Queue<String> queue = new LinkedList<>();
+
+        while (s.hasNextLine()) {
+            String line = s.nextLine();
+
+            if (matches(conflictStartPattern, line)) {
+                if (pos == Position.AFTER_CONFLICT) {
+                    while (!queue.isEmpty()) {
+                        String queuedLine = queue.remove();
+                        conflict.addLeft(queuedLine);
+                        conflict.addRight(queuedLine);
+                    }
+                }
+                pos = Position.LEFT_SIDE;
+            } else if (matches(conflictSepPattern, line)) {
+                pos = Position.RIGHT_SIDE;
+            } else if (matches(conflictEndPattern, line)) {
+                pos = Position.AFTER_CONFLICT;
+            } else {
+                switch (pos) {
+                    case LEFT_SIDE:
+                        conflict.addLeft(line);
+                        break;
+                    case RIGHT_SIDE:
+                        conflict.addRight(line);
+                        break;
+                    case AFTER_CONFLICT:
+                        // lines containing only whitespaces are queued
+                        // and later appended to either both sides or the common output
+                        if (matches(emptyLine, line)) { queue.add(line); break; }
+                        pos = Position.NO_CONFLICT;
+                    case NO_CONFLICT:
+                        if (pos == Position.NO_CONFLICT && !conflict.isEmpty()) {
+                            // print previous conflict before processing queued lines and current line
+                            out.println(conflict);
+                            conflict.clear();
+                        }
+                        while (!queue.isEmpty()) { out.println(queue.remove()); }
+                        out.println(line);
+                        break;
+                }
+            }
+        }
+
+        return sout.toString();
+    }
+
+    private enum Position {
+        NO_CONFLICT, LEFT_SIDE, RIGHT_SIDE, AFTER_CONFLICT
     }
 }
