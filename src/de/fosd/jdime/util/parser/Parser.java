@@ -208,11 +208,9 @@ public final class Parser {
      */
     public static String mergeSubsequentConflicts(String in) {
         Scanner s = new Scanner(in);
-        StringWriter sout = new StringWriter();
-        PrintWriter out = new PrintWriter(sout);
+        ParseResult out = new ParseResult();
 
         Position pos = Position.NO_CONFLICT;
-        Content.Conflict conflict = new Content.Conflict();
         Queue<String> queue = new LinkedList<>();
 
         while (s.hasNextLine()) {
@@ -222,8 +220,8 @@ public final class Parser {
                 if (pos == Position.AFTER_CONFLICT) {
                     while (!queue.isEmpty()) {
                         String queuedLine = queue.remove();
-                        conflict.addLeft(queuedLine);
-                        conflict.addRight(queuedLine);
+                        out.addConflictingLine(queuedLine, true);
+                        out.addConflictingLine(queuedLine, false);
                     }
                 }
                 pos = Position.LEFT_SIDE;
@@ -234,30 +232,26 @@ public final class Parser {
             } else {
                 switch (pos) {
                     case LEFT_SIDE:
-                        conflict.addLeft(line);
+                        out.addConflictingLine(line, true);
                         break;
                     case RIGHT_SIDE:
-                        conflict.addRight(line);
+                        out.addConflictingLine(line, false);
                         break;
                     case AFTER_CONFLICT:
                         // lines containing only whitespaces are queued
                         // and later appended to either both sides or the common output
                         if (matches(emptyLine, line)) { queue.add(line); break; }
                         pos = Position.NO_CONFLICT;
+                        // intentional fall-through
                     case NO_CONFLICT:
-                        if (pos == Position.NO_CONFLICT && !conflict.isEmpty()) {
-                            // print previous conflict before processing queued lines and current line
-                            out.println(conflict);
-                            conflict.clear();
-                        }
-                        while (!queue.isEmpty()) { out.println(queue.remove()); }
-                        out.println(line);
+                        while (!queue.isEmpty()) { out.addMergedLine(queue.remove()); }
+                        out.addMergedLine(line);
                         break;
                 }
             }
         }
 
-        return sout.toString();
+        return out.toString();
     }
 
     private enum Position {
