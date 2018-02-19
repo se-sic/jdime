@@ -77,10 +77,7 @@ import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PRETEND;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_QUIET;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_RECURSIVE;
 import static de.fosd.jdime.config.CommandLineConfigSource.CLI_STATS;
-import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
-import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
-import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static de.fosd.jdime.config.JDimeConfig.*;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -204,6 +201,11 @@ public class MergeContext implements Cloneable {
      * Whether to use the <code>MCESubtreeMatcher</code> in the matching phase of the merge.
      */
     private boolean useMCESubtreeMatcher;
+
+    /**
+     * Whether to merge successive conflicts in structured merge.
+     */
+    private boolean optimizeMultiConflicts;
 
     /**
      * Whether {@link StructuredStrategy} act semi-structured, that is whether it should perform line based merging
@@ -443,6 +445,8 @@ public class MergeContext implements Cloneable {
         });
 
         config.getBoolean(USE_MCESUBTREE_MATCHER).ifPresent(this::setUseMCESubtreeMatcher);
+
+        config.getBoolean(OPTIMIZE_MULTI_CONFLICTS).ifPresent(this::setOptimizeMultiConflicts);
 
         config.get(CLI_LOOKAHEAD, val -> {
             String msg = "Invalid lookahead level '" + val + "'. Must be one of 'off', 'full' or a non-negative integer.";
@@ -1155,6 +1159,24 @@ public class MergeContext implements Cloneable {
      */
     public void setUseMCESubtreeMatcher(boolean useMCESubtreeMatcher) {
         this.useMCESubtreeMatcher = useMCESubtreeMatcher;
+    }
+
+    /**
+     * Returns whether successive conflicts are merged in structured merge.
+     *
+     * @return true iff successive conflicts are merged in structured merge
+     */
+    public boolean isOptimizeMultiConflicts() {
+        return optimizeMultiConflicts;
+    }
+
+    /**
+     * Set whether successive conflicts are merged in structured merge.
+     *
+     * @param optimizeMultiConflicts merge successive conflicts in structured merge
+     */
+    public void setOptimizeMultiConflicts(boolean optimizeMultiConflicts) {
+        this.optimizeMultiConflicts = optimizeMultiConflicts;
     }
 
     /**

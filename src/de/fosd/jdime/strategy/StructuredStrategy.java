@@ -149,7 +149,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {
-                target.setContent(Parser.mergeSubsequentConflicts(targetNode.prettyPrint()));
+                String content = targetNode.prettyPrint();
+                target.setContent(context.isOptimizeMultiConflicts() ? Parser.mergeSubsequentConflicts(content) : content);
             }
 
             LOG.fine("Structured merge finished.");
