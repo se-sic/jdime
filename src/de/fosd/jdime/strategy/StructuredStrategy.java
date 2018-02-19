@@ -33,6 +33,7 @@ import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.util.ConflictOptimizer;
 
 import java.security.Permission;
 import java.util.logging.Logger;
@@ -148,7 +149,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {
-                target.setContent(targetNode.prettyPrint());
+                target.setContent(ConflictOptimizer.mergeSubsequentConflicts(targetNode.prettyPrint()));
             }
 
             LOG.fine("Structured merge finished.");
