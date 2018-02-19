@@ -30,7 +30,7 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.util.parser.ParseResult;
 import de.uni_passau.fim.seibt.GitMergeFileInput;
 import de.uni_passau.fim.seibt.GitMergeFileOptions;
 import de.uni_passau.fim.seibt.GitMergeFileResult;

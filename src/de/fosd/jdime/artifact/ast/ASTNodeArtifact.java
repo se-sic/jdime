@@ -24,10 +24,7 @@
 package de.fosd.jdime.artifact.ast;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -326,6 +323,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
     }
 
     /**
+     * Returns whether this <code>ASTNodeArtifact</code> represents an (<code>org.extendj.ast.List</code>).
+     *
+     * @return true iff this is a <code>org.extendj.ast.List</code>
+     */
+    private boolean isList() {
+        return astnode instanceof org.extendj.ast.List;
+    }
+
+    /**
      * Optionally returns the enclosing class or method (or constructor) declaration artifact (whichever is closest)
      * of this {@link ASTNodeArtifact}.
      *
@@ -609,5 +615,54 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
         choice.setChoice(condition, artifact);
 
         return choice;
+    }
+
+    public ASTNodeArtifact collapseConflicts() {
+
+        if (!hasChildren()) {
+            return this;
+        }
+
+        boolean subtreeIsConflict = true;
+        for (int i = 0; i < getNumChildren(); i++) {
+            ASTNodeArtifact child = getChild(i);
+            if (!child.isConflict()) {
+                ASTNodeArtifact result = child.collapseConflicts();
+                if (result != child) {
+                    setChild(result, i);
+                    result.setParent(this);
+                } else {
+                    subtreeIsConflict = false;
+                }
+            }
+        }
+
+        if (subtreeIsConflict && isList() && left != null && right != null) {
+            // FIXME: handle cases where one side of the conflict is null
+
+            ASTNodeArtifact conflict = null;
+
+            Revision left = getChild(0).getLeft().getRevision();
+            Revision right = getChild(0).getRight().getRevision();
+
+            for (Revision rev : getMatches().keySet()) {
+                if (rev.equals(right)) {
+                    ASTNodeArtifact rightNode = getMatching(right).getMatchingArtifact(this);
+                    ASTNodeArtifact leftNode = rightNode.getMatching(left).getMatchingArtifact(rightNode);
+                    conflict = getParent().createConflictArtifact(leftNode, rightNode);
+                } else if (rev.equals(left)) {
+                    ASTNodeArtifact leftNode = getMatching(left).getMatchingArtifact(this);
+                    ASTNodeArtifact rightNode = leftNode.getMatching(right).getMatchingArtifact(leftNode);
+                    conflict = getParent().createConflictArtifact(leftNode, rightNode);
+                } else {
+                    assert (false) : "Matching revision (" + rev + ") is neither left nor right";
+                }
+            }
+
+            return conflict;
+
+        } else {
+            return this;
+        }
     }
 }

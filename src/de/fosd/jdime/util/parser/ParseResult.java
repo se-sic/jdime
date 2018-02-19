@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.stats.parser;
+package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -188,7 +188,7 @@ public class ParseResult extends ArrayList<Content> {
         } else {
             Content content = get(size() - 1);
 
-            if (!content.isConflict) {
+            if (!content.isConflict()) {
                 lines = (Content.Merged) content;
             } else {
                 lines = new Content.Merged();
@@ -216,7 +216,7 @@ public class ParseResult extends ArrayList<Content> {
         } else {
             Content content = get(size() - 1);
 
-            if (content.isConflict) {
+            if (content.isConflict()) {
                 conflict = (Content.Conflict) content;
             } else {
                 conflict = new Content.Conflict();

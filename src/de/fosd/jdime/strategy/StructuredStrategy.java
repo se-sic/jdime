@@ -32,7 +32,8 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
-import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.util.parser.ParseResult;
+import de.fosd.jdime.util.parser.Parser;
 
 import java.security.Permission;
 import java.util.logging.Logger;
@@ -142,10 +143,14 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 astMergeOp.apply(context);
             }
 
+            // TODO: find clusters of microconflicts and restructure them to larger conflicts
+            targetNode.collapseConflicts();
+
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {
-                target.setContent(targetNode.prettyPrint());
+                String content = targetNode.prettyPrint();
+                target.setContent(context.isOptimizeMultiConflicts() ? Parser.mergeSubsequentConflicts(content) : content);
             }
 
             LOG.fine("Structured merge finished.");

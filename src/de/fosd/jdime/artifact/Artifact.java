@@ -222,6 +222,16 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
     }
 
     /**
+     * Clears all matches recursively.
+     */
+    public void clearAllMatches() {
+        matches = new HashMap<>();
+        for (T child : getChildren()) {
+            child.clearAllMatches();
+        }
+    }
+
+    /**
      * Returns an <code>Artifact</code> that represents a merge conflict.
      * A conflict contains two alternative <code>Artifact</code> (left and right) and is handled in a special way
      * while pretty-printed.
@@ -801,6 +811,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            right alternative
      */
     protected void setConflict(T left, T right) {
+        if (left != null) {
+            left.clearAllMatches();
+        }
+
+        if (right != null) {
+            right.clearAllMatches();
+        }
+
         this.conflict = true;
         this.left = left;
         this.right = right;
