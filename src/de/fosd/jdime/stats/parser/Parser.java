@@ -24,6 +24,7 @@
 package de.fosd.jdime.stats.parser;
 
 import beaver.Symbol;
+import de.fosd.jdime.config.merge.MergeContext;
 import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
 import org.extendj.scanner.Unicode;
@@ -38,9 +39,10 @@ import java.util.regex.Pattern;
  */
 public final class Parser {
 
-    private static final Pattern conflictStart = Pattern.compile("<<<<<<<.*");
-    private static final Pattern conflictSep = Pattern.compile("=======");
-    private static final Pattern conflictEnd = Pattern.compile(">>>>>>>.*");
+    // TODO: could this be ^conflictStart etc.?
+    private static final Pattern conflictStart = Pattern.compile(MergeContext.conflictStart + ".*");
+    private static final Pattern conflictSep = Pattern.compile(MergeContext.conflictSep);
+    private static final Pattern conflictEnd = Pattern.compile(MergeContext.conflictEnd + ".*");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern whitespace = Pattern.compile("\\s+");

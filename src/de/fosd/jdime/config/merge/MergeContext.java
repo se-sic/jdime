@@ -91,6 +91,13 @@ public class MergeContext implements Cloneable {
     private static final Logger LOG = Logger.getLogger(MergeContext.class.getCanonicalName());
 
     /**
+     * Sequence of characters that are used to represent merge conflicts.
+     */
+    public static final String conflictStart = "<<<<<<<";
+    public static final String conflictSep = "=======";
+    public static final String conflictEnd = ">>>>>>>";
+
+    /**
      * Do look at all nodes in the subtree even if the compared nodes are not
      * equal.
      */
