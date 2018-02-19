@@ -46,7 +46,7 @@ public abstract class Content {
         /**
          * Constructs a new <code>Merged</code> instance.
          */
-        public Merged() {
+        Merged() {
             super(false);
             this.lines = new ArrayList<>();
         }
@@ -87,7 +87,7 @@ public abstract class Content {
         /**
          * Constructs a new <code>Conflict</code> instance.
          */
-        public Conflict() {
+        Conflict() {
             super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
@@ -185,7 +185,7 @@ public abstract class Content {
         }
     }
 
-    protected boolean isConflict;
+    private final boolean isConflict;
 
     /**
      * Constructs a new <code>Content</code> piece.
@@ -193,7 +193,7 @@ public abstract class Content {
      * @param isConflict
      *         whether this <code>Content</code> is a <code>Conflict</code>
      */
-    public Content(boolean isConflict) {
+    private Content(boolean isConflict) {
         this.isConflict = isConflict;
     }
 
