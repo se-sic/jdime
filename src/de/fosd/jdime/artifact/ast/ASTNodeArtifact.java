@@ -637,12 +637,14 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             }
         }
 
-        if (subtreeIsConflict && isList()) {
+        if (subtreeIsConflict && isList() && left != null && right != null) {
+            // FIXME: handle cases where one side of the conflict is null
+
             ASTNodeArtifact conflict = null;
 
             Revision left = getChild(0).getLeft().getRevision();
             Revision right = getChild(0).getRight().getRevision();
-            
+
             for (Revision rev : getMatches().keySet()) {
                 if (rev.equals(right)) {
                     ASTNodeArtifact rightNode = getMatching(right).getMatchingArtifact(this);

@@ -811,8 +811,14 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
      *            right alternative
      */
     protected void setConflict(T left, T right) {
-        left.clearAllMatches();
-        right.clearAllMatches();
+        if (left != null) {
+            left.clearAllMatches();
+        }
+
+        if (right != null) {
+            right.clearAllMatches();
+        }
+
         this.conflict = true;
         this.left = left;
         this.right = right;
