@@ -313,6 +313,7 @@ public class MergeContext implements Cloneable {
         this.statistics = new Statistics(toCopy.statistics);
         this.excludeStatisticsMSSFields = new ArrayList<>(toCopy.excludeStatisticsMSSFields);
         this.useMCESubtreeMatcher = toCopy.useMCESubtreeMatcher;
+        this.optimizeMultiConflicts = toCopy.optimizeMultiConflicts;
         this.semiStructured = toCopy.semiStructured;
         this.semiStructuredLevel = toCopy.semiStructuredLevel;
 
