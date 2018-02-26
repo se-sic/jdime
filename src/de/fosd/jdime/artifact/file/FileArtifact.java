@@ -90,6 +90,9 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * {@link Files#probeContentType(java.nio.file.Path)} fails.
      */
     private static final MimetypesFileTypeMap mimeMap;
+    public static final String CONFLICT_START = "<<<<<<<";
+    public static final String CONFLICT_DELIM = "=======";
+    public static final String CONFLICT_END = ">>>>>>>";
 
     static {
         mimeMap = new MimetypesFileTypeMap();
@@ -448,16 +451,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     protected String hashId() {
-        return file.getName();
-    }
-
-    /**
-     * Returns the SHA256 hash of the content of this {@link FileArtifact} encoded in a hexadecimal {@link String}.
-     *
-     * @return the hexadecimal content hash
-     */
-    public String getContentHash() {
-        return DigestUtils.sha256Hex(getContent());
+        if (isFile()) {
+            return DigestUtils.sha256Hex(file.getName() + getContent());
+        } else {
+            return DigestUtils.sha256Hex(file.getName());
+        }
     }
 
     @Override
@@ -688,7 +686,42 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
     @Override
     public FileArtifact createConflictArtifact(FileArtifact left, FileArtifact right) {
-        throw new NotYetImplementedException();
+        // This is not a conflict introduced by concurrent modification of content,
+        // but by deleting and changing a file (insertion-deletion conflict on file/directory level)
+
+        FileArtifact deleted = left != null ? left : right;
+        assert deleted != null;
+
+        if (deleted.isFile()) {
+            FileArtifact conflict = new FileArtifact(deleted);
+
+            StringBuilder content = new StringBuilder();
+            content.append(CONFLICT_START);
+            if (deleted == left) {
+                content.append(" ").append(deleted.getRevision());
+            }
+            if (deleted == left) {
+                content.append(System.lineSeparator()).append(deleted.content);
+            }
+            content.append(System.lineSeparator()).append(CONFLICT_DELIM);
+            if (deleted == right) {
+                content.append(System.lineSeparator()).append(deleted.content);
+            }
+            content.append(System.lineSeparator()).append(CONFLICT_END);
+            if (deleted == right) {
+                content.append(" ").append(deleted.getRevision());
+            }
+            content.append(System.lineSeparator());
+
+            conflict.setContent(content.toString());
+
+            return conflict;
+        } else if (deleted.isDirectory()) {
+            // TODO: call this recursively to handle insertion-deletion conflicts on directories
+            throw new NotYetImplementedException("Insertion-Deletion conflicts on directories are not yet supported.");
+        } else {
+            throw new RuntimeException("FileArtifact " + deleted + " is neither file nor directory.");
+        }
     }
 
     @Override
