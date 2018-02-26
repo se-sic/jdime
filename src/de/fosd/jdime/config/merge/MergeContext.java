@@ -56,27 +56,7 @@ import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_FIX_PERCENTAGE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_OPTIONS;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_PARALLEL;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_REMATCH_BOUND;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CM_SEED;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_CONSECUTIVE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DIFFONLY;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_DUMP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_EXIT_ON_ERROR;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_FORCE_OVERWRITE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_ELEMENT;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_INSPECT_METHOD;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_KEEPGOING;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_LOOKAHEAD;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_OUTPUT;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_PRETEND;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_QUIET;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_RECURSIVE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_STATS;
+import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.*;
 import static java.util.logging.Level.WARNING;
 
@@ -596,6 +576,7 @@ public class MergeContext implements Cloneable {
         config.getBoolean(FILTER_INPUT_DIRECTORIES).ifPresent(this::setFilterInputDirectories);
         config.getBoolean(CLI_FORCE_OVERWRITE).ifPresent(this::setForceOverwriting);
         config.getBoolean(CLI_RECURSIVE).ifPresent(this::setRecursive);
+        config.getBoolean(CLI_OPTIMIZE_MULTI_CONFLICTS).ifPresent(this::setOptimizeMultiConflicts);
 
         config.getBoolean(CLI_PRETEND).ifPresent(this::setPretend);
         config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);

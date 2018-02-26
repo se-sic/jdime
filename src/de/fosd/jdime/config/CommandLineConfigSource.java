@@ -62,6 +62,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_MODE = "m";
     public static final String CLI_DUMP = "dmp";
     public static final String CLI_OUTPUT = "o";
+    public static final String CLI_OPTIMIZE_MULTI_CONFLICTS = "omc";
     public static final String CLI_RECURSIVE = "r";
     public static final String CLI_STATS = "s";
     public static final String CLI_PRETEND = "p";
@@ -229,6 +230,14 @@ public class CommandLineConfigSource extends ConfigSource {
                 .desc("Set the output directory/file.")
                 .hasArg()
                 .argName("file")
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_OPTIMIZE_MULTI_CONFLICTS)
+                .longOpt("optimize-multi-conflicts")
+                .desc("Merge successive conflicts after running structured strategy.")
+                .hasArg(false)
                 .build();
 
         options.addOption(o);
