@@ -206,6 +206,7 @@ public final class Parser {
      * @param in merge result that should be optimized w.r.t. conflicts
      * @return optimized merge result
      */
+    @SuppressWarnings("fallthrough")
     public static String mergeSubsequentConflicts(String in) {
         Scanner s = new Scanner(in);
         ParseResult out = new ParseResult();
