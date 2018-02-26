@@ -46,6 +46,7 @@ import java.util.stream.IntStream;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
+import de.fosd.jdime.artifact.Artifacts;
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
@@ -287,7 +288,10 @@ public class FileArtifact extends Artifact<FileArtifact> {
     public void addChild(FileArtifact child) {
         super.addChild(child);
 
-        child.file = new File(file, child.file.getName());
+        for (FileArtifact node : Artifacts.dfsIterable(child)) {
+            node.file = new File(node.getParent().file, node.file.getName());
+        }
+
         modifyChildren(ch -> ch.sort(comp));
     }
 
@@ -717,8 +721,19 @@ public class FileArtifact extends Artifact<FileArtifact> {
 
             return conflict;
         } else if (deleted.isDirectory()) {
-            // TODO: call this recursively to handle insertion-deletion conflicts on directories
-            throw new NotYetImplementedException("Insertion-Deletion conflicts on directories are not yet supported.");
+            FileArtifact conflict = new FileArtifact(deleted);
+
+            for (FileArtifact child : deleted.getChildren()) {
+                if (deleted == left) {
+                    conflict.addChild(createConflictArtifact(child, null));
+                } else if (deleted == right) {
+                    conflict.addChild(createConflictArtifact(null, child));
+                } else {
+                    throw new RuntimeException("Both sides of conflict are null");
+                }
+            }
+
+            return conflict;
         } else {
             throw new RuntimeException("FileArtifact " + deleted + " is neither file nor directory.");
         }
