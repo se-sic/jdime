@@ -146,41 +146,55 @@ public class Merge<T extends Artifact<T>> implements MergeInterface<T> {
             } else if (!left.hasChildren()) {
                 LOG.finest(() -> String.format("%s has no children", prefix(left)));
 
-                if (!base.hasChildren() || !right.hasChanges(b)) {
+                if (base.hasChildren()) {
+                    LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
+                    if (right.hasChanges(b)) {
+                        LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
 
+                        for (T rightChild : right.getChildren()) {
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, l.getName(), r.getName());
+                            conflictOp.apply(context);
+                        }
+                        return;
+                    } else {
+                        // Implicit delete operation
+                        LOG.finest(() -> String.format("%s has no changes in subtree", prefix(right)));
+                        LOG.finest(() -> String.format("%s is deleted", prefix(right)));
+                        return;
+                    }
+
+                } else {
+                    LOG.finest(() -> String.format("%s is added", prefix(right)));
                     for (T rightChild : right.getChildren()) {
                         AddOperation<T> addOp = new AddOperation<>(rightChild, target, r.getName());
                         addOp.apply(context);
-                    }
-                    return;
-                } else {
-                    LOG.finest(() -> String.format("%s was deleted by left", prefix(right)));
-                    LOG.finest(() -> String.format("%s has changes in subtree", prefix(right)));
-
-                    for (T rightChild : right.getChildren()) {
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(null, rightChild, target, l.getName(), r.getName());
-                        conflictOp.apply(context);
                     }
                     return;
                 }
             } else if (!right.hasChildren()) {
                 LOG.finest(() -> String.format("%s has no children", prefix(right)));
 
+                if (base.hasChildren()) {
+                    LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
+                    if (left.hasChanges(b)) {
+                        LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
 
-                if (!base.hasChildren() || !left.hasChanges(b)) {
-
+                        for (T leftChild : left.getChildren()) {
+                            ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, l.getName(), r.getName());
+                            conflictOp.apply(context);
+                        }
+                        return;
+                    } else {
+                        // Implicit delete operation
+                        LOG.finest(() -> String.format("%s has no changes in subtree", prefix(left)));
+                        LOG.finest(() -> String.format("%s is deleted", prefix(left)));
+                        return;
+                    }
+                } else {
+                    LOG.finest(() -> String.format("%s is added", prefix(left)));
                     for (T leftChild : left.getChildren()) {
                         AddOperation<T> addOp = new AddOperation<>(leftChild, target, l.getName());
                         addOp.apply(context);
-                    }
-                    return;
-                } else {
-                    LOG.finest(() -> String.format("%s was deleted by right", prefix(left)));
-                    LOG.finest(() -> String.format("%s has changes in subtree", prefix(left)));
-
-                    for (T leftChild : left.getChildren()) {
-                        ConflictOperation<T> conflictOp = new ConflictOperation<>(leftChild, null, target, l.getName(), r.getName());
-                        conflictOp.apply(context);
                     }
                     return;
                 }
