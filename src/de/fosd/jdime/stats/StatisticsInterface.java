@@ -23,23 +23,15 @@
  */
 package de.fosd.jdime.stats;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.IntSummaryStatistics;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public interface StatisticsInterface {
 
@@ -151,7 +143,7 @@ public interface StatisticsInterface {
             elementStats.forEach(ElementStatistics::incrementTotal);
 
             if (current.isConflict()) {
-                elementStats.forEach(ElementStatistics::incrementNumOccurInConflic);
+                elementStats.forEach(ElementStatistics::incrementNumOccurInConflict);
             } else if (otherMatches.negate().test(current)) {
 
                 // added or deleted?

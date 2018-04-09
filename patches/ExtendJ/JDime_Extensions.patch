@@ -741,6 +741,50 @@ index 2544ac0..6aa3cab 100644
      out.print("void");
    }
  }
+diff --git a/java4/frontend/PrettyPrintUtil.jrag b/java4/frontend/PrettyPrintUtil.jrag
+index f9afc3c..f46c675 100644
+--- a/java4/frontend/PrettyPrintUtil.jrag
++++ b/java4/frontend/PrettyPrintUtil.jrag
+@@ -82,6 +82,7 @@ aspect PrettyPrintUtil {
+ 
+   /** Pretty-print Opt nodes only if they are not empty. */
+   public void Opt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     if (getNumChild() > 0) {
+       getChild(0).prettyPrint(out);
+     }
+@@ -89,6 +90,7 @@ aspect PrettyPrintUtil {
+ 
+   /** Default list pretty printing prints all list elements. */
+   public void List.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     for (int i = 0; i < getNumChild(); ++i) {
+       getChild(i).prettyPrint(out);
+     }
+@@ -107,6 +109,7 @@ aspect PrettyPrintUtil {
+    * Manually implemented because it is too complex for a template.
+    */
+   public void ForStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("for (");
+     if (getNumInitStmt() > 0) {
+       if (getInitStmt(0) instanceof ExprStmt) {
+@@ -154,6 +157,7 @@ aspect PrettyPrintUtil {
+   }
+ 
+   public void IfStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("if (");
+     out.print(getCondition());
+     out.print(") ");
+@@ -184,6 +188,7 @@ aspect PrettyPrintUtil {
+   }
+ 
+   public void WhileStmt.prettyPrint(PrettyPrinter out) {
++    if (isVirtualNode()) { printVirtualNode(out); return; }
+     out.print("while (");
+     out.print(getCondition());
+     out.print(") ");
 diff --git a/java5/frontend/PrettyPrint.jadd b/java5/frontend/PrettyPrint.jadd
 index 3aa6614..c8057b0 100644
 --- a/java5/frontend/PrettyPrint.jadd
@@ -1068,10 +1112,19 @@ index 5514fd6..1696eaf 100755
  	echo "Generating Java ${JAVA_VERSION} pretty printing aspect..."
  	java -jar "$ASPECTGEN" -aspect "Java${JAVA_VERSION}PrettyPrint" Header.tt \
 diff --git a/src/frontend/org/jastadd/util/PrettyPrinter.java b/src/frontend/org/jastadd/util/PrettyPrinter.java
-index 7793c1b..4b36f81 100644
+index 7793c1b..9705a82 100644
 --- a/src/frontend/org/jastadd/util/PrettyPrinter.java
 +++ b/src/frontend/org/jastadd/util/PrettyPrinter.java
-@@ -95,6 +95,13 @@ public class PrettyPrinter {
+@@ -33,6 +33,8 @@ import java.io.PrintStream;
+ import java.util.ArrayList;
+ import java.util.Stack;
+ 
++import org.extendj.ast.ASTNode;
++
+ /**
+  * @author Jesper Öqvist <jesper.oqvist@cs.lth.se>
+  */
+@@ -95,6 +97,13 @@ public class PrettyPrinter {
      out.print(str);
    }
  
@@ -1085,3 +1138,27 @@ index 7793c1b..4b36f81 100644
    /**
     *
     */
+@@ -150,6 +159,11 @@ public class PrettyPrinter {
+ 
+   /** Concatenate a list of pretty-printable items, without a separator. */
+   public final void join(Iterable<? extends PrettyPrintable> list) {
++    if (list instanceof ASTNode && ((ASTNode) list).isVirtualNode()) {
++        ((ASTNode) list).printVirtualNode(this);
++        return;
++    }
++
+     for (PrettyPrintable item : list) {
+       print(item);
+     }
+@@ -157,6 +171,11 @@ public class PrettyPrinter {
+ 
+   /** Concatenate a list of pretty-printable items with a separator. */
+   public final void join(Iterable<? extends PrettyPrintable> list, Joiner joiner) {
++    if (list instanceof ASTNode && ((ASTNode) list).isVirtualNode()) {
++        ((ASTNode) list).printVirtualNode(this);
++        return;
++    }
++
+     boolean first = true;
+     for (PrettyPrintable item : list) {
+       if (!first) {

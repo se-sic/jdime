@@ -23,8 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
@@ -32,11 +30,13 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.util.parser.ParseResult;
 import de.uni_passau.fim.seibt.GitMergeFileInput;
 import de.uni_passau.fim.seibt.GitMergeFileOptions;
 import de.uni_passau.fim.seibt.GitMergeFileResult;
 import de.uni_passau.fim.seibt.LibGit2;
+
+import java.util.logging.Logger;
 
 import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -101,7 +101,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
             ParseResult res = scenarioStatistics.setLineStatistics(mergeResult);
 
             if (res.getConflicts() > 0) {
-                scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
+                scenarioStatistics.getFileStatistics().incrementNumOccurInConflict();
             }
 
             scenarioStatistics.putRuntime(merge);

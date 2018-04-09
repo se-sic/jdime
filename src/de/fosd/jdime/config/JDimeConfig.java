@@ -113,6 +113,11 @@ public final class JDimeConfig extends Config {
     public static final String USE_MCESUBTREE_MATCHER = "USE_MCESUBTREE_MATCHER";
 
     /**
+     * Whether to merge successive conflicts after running structured strategy.
+     */
+    public static final String OPTIMIZE_MULTI_CONFLICTS = "OPTIMIZE_MULTI_CONFLICTS";
+
+    /**
      * Whether to append a number to the file name to ensure that no file of the same name is overwritten when
      * writing the statistics. Must be either 'true' or 'false'. Defaults to true.
      */

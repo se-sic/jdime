@@ -102,7 +102,7 @@ public class ElementStatistics {
      *
      * @param by the amount to add
      */
-    public void incrementNumOccurInConflic(int by) {
+    public void incrementNumOccurInConflict(int by) {
         numOccurInConflict += by;
     }
 
@@ -137,8 +137,8 @@ public class ElementStatistics {
     /**
      * Increments the occur in conflict count by 1.
      */
-    public void incrementNumOccurInConflic() {
-        incrementNumOccurInConflic(1);
+    public void incrementNumOccurInConflict() {
+        incrementNumOccurInConflict(1);
     }
 
     /**

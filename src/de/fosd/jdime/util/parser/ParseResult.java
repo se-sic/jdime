@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.stats.parser;
+package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -38,7 +38,11 @@ public class ParseResult extends ArrayList<Content> {
 
     private int linesOfCode;
     private int conflicts;
+    private int chars;
+    private int tokens;
+    private int conflictingChars;
     private int conflictingLinesOfCode;
+    private int conflictingTokens;
 
     /**
      * Returns the lines of code.
@@ -60,22 +64,94 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Returns the conflicts.
+     * Returns the number of conflicts.
      *
-     * @return the conflicts
+     * @return the number of conflicts
      */
     public int getConflicts() {
         return conflicts;
     }
 
     /**
-     * Sets the conflicts to the new value.
+     * Sets the number of conflicts to the new value.
      *
      * @param conflicts
-     *         the new conflicts
+     *         the new number of conflicts
      */
     public void setConflicts(int conflicts) {
         this.conflicts = conflicts;
+    }
+
+    /**
+     * Returns the number of non-whitespace characters.
+     *
+     * @return the number of characters
+     */
+    public int getChars() {
+        return chars;
+    }
+
+    /**
+     * Sets the number of non-whitespace characters.
+     *
+     * @param chars the new number of chars
+     */
+    public void setChars(int chars) {
+        this.chars = chars;
+    }
+
+    /**
+     * Returns the number of non-whitespace characters in conflict.
+     *
+     * @return the number of non-whitespace characters in conflict
+     */
+    public int getConflictingChars() {
+        return conflictingChars;
+    }
+
+    /**
+     * Sets the number of non-whitespace characters in conflict to the new value.
+     *
+     * @param conflictingChars the new number of conflicting chars
+     */
+    public void setConflictingChars(int conflictingChars) {
+        this.conflictingChars = conflictingChars;
+    }
+
+    /**
+     * Returns the number of tokens.
+     *
+     * @return the number of tokens
+     */
+    public int getTokens() {
+        return tokens;
+    }
+
+    /**
+     * Sets the number of tokens.
+     *
+     * @param tokens the new number of tokens
+     */
+    public void setTokens(int tokens) {
+        this.tokens = tokens;
+    }
+
+    /**
+     * Returns the number of tokens in conflict.
+     *
+     * @return the number of tokens in conflict
+     */
+    public int getConflictingTokens() {
+        return conflictingTokens;
+    }
+
+    /**
+     * Sets the number of tokens in conflict.
+     *
+     * @param conflictingTokens the new number of tokens in conflict
+     */
+    public void setConflictingTokens(int conflictingTokens) {
+        this.conflictingTokens = conflictingTokens;
     }
 
     /**
@@ -112,7 +188,7 @@ public class ParseResult extends ArrayList<Content> {
         } else {
             Content content = get(size() - 1);
 
-            if (!content.isConflict) {
+            if (!content.isConflict()) {
                 lines = (Content.Merged) content;
             } else {
                 lines = new Content.Merged();
@@ -140,7 +216,7 @@ public class ParseResult extends ArrayList<Content> {
         } else {
             Content content = get(size() - 1);
 
-            if (content.isConflict) {
+            if (content.isConflict()) {
                 conflict = (Content.Conflict) content;
             } else {
                 conflict = new Content.Conflict();

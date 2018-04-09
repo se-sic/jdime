@@ -23,14 +23,12 @@
  */
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.operation.BranchAddOp
-import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.api.tasks.wrapper.Wrapper.DistributionType;
 
 plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "2.1.0"
+    id "org.ajoberstar.grgit" version "2.1.1"
     id "com.github.hierynomus.license" version "0.14.0"
     id "com.scuilion.syntastic" version "0.3.8"
 }
@@ -80,8 +78,8 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    distributionType DistributionType.ALL
-    gradleVersion '4.4'
+    distributionType Wrapper.DistributionType.ALL
+    gradleVersion '4.6'
 }
 
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
@@ -198,6 +196,15 @@ task getTestFiles {
         }
 
         def grgit = Grgit.open(dir: testFilesDir)
+        def remotes = grgit.remote.list()
+
+        if (remotes.find({ it.name.equals("origin") && it.url.equals(gitURI) }) == null) {
+            if (!testFilesDir.deleteDir()) {
+                throw new GradleException("Failed to delete " + testFilesDir)
+            }
+            return true
+        }
+
         grgit.fetch()
 
         if (grgit.resolve.toBranch(testFilesBranchName) == null) {

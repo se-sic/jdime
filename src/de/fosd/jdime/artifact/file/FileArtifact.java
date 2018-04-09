@@ -62,6 +62,7 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
+import de.fosd.jdime.util.parser.Content;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.CompositeFileComparator;
@@ -91,9 +92,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * {@link Files#probeContentType(java.nio.file.Path)} fails.
      */
     private static final MimetypesFileTypeMap mimeMap;
-    public static final String CONFLICT_START = "<<<<<<<";
-    public static final String CONFLICT_DELIM = "=======";
-    public static final String CONFLICT_END = ">>>>>>>";
 
     static {
         mimeMap = new MimetypesFileTypeMap();
@@ -700,18 +698,18 @@ public class FileArtifact extends Artifact<FileArtifact> {
             FileArtifact conflict = new FileArtifact(deleted);
 
             StringBuilder content = new StringBuilder();
-            content.append(CONFLICT_START);
+            content.append(Content.Conflict.CONFLICT_START);
             if (deleted == left) {
                 content.append(" ").append(deleted.getRevision());
             }
             if (deleted == left) {
                 content.append(System.lineSeparator()).append(deleted.content);
             }
-            content.append(System.lineSeparator()).append(CONFLICT_DELIM);
+            content.append(System.lineSeparator()).append(Content.Conflict.CONFLICT_DELIM);
             if (deleted == right) {
                 content.append(System.lineSeparator()).append(deleted.content);
             }
-            content.append(System.lineSeparator()).append(CONFLICT_END);
+            content.append(System.lineSeparator()).append(Content.Conflict.CONFLICT_END);
             if (deleted == right) {
                 content.append(" ").append(deleted.getRevision());
             }

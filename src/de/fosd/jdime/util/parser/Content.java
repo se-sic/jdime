@@ -21,7 +21,7 @@
  *     Olaf Lessenich <lessenic@fim.uni-passau.de>
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
-package de.fosd.jdime.stats.parser;
+package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public abstract class Content {
         /**
          * Constructs a new <code>Merged</code> instance.
          */
-        public Merged() {
+        Merged() {
             super(false);
             this.lines = new ArrayList<>();
         }
@@ -77,9 +77,9 @@ public abstract class Content {
      */
     public static class Conflict extends Content {
 
-        private static final String CONFLICT_START = "<<<<<<<";
-        private static final String CONFLICT_DELIM = "=======";
-        private static final String CONFLICT_END = ">>>>>>>";
+        public static final String CONFLICT_START = "<<<<<<<";
+        public static final String CONFLICT_DELIM = "=======";
+        public static final String CONFLICT_END = ">>>>>>>";
 
         private List<String> leftLines;
         private List<String> rightLines;
@@ -87,7 +87,7 @@ public abstract class Content {
         /**
          * Constructs a new <code>Conflict</code> instance.
          */
-        public Conflict() {
+        Conflict() {
             super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
@@ -125,15 +125,36 @@ public abstract class Content {
             rightLines.add(line);
         }
 
+        /**
+         * Returns true if the conflict is empty, i.e., both sides of the conflict are empty.
+         *
+         * @return true iff both sides of the conflict are empty
+         */
+        public boolean isEmpty() {
+            return leftLines.isEmpty() && rightLines.isEmpty();
+        }
+
+        /**
+         * Clears both sides of the conflict.
+         */
+        public void clear() {
+            leftLines.clear();
+            rightLines.clear();
+        }
+
         @Override
         public String toString() {
             String ls = System.lineSeparator();
             StringBuilder b = new StringBuilder();
 
             b.append(CONFLICT_START).append(ls);
-            b.append(String.join(ls, leftLines)).append(ls);
+            if (!leftLines.isEmpty()) {
+                b.append(String.join(ls, leftLines)).append(ls);
+            }
             b.append(CONFLICT_DELIM).append(ls);
-            b.append(String.join(ls, rightLines)).append(ls);
+            if (!rightLines.isEmpty()) {
+                b.append(String.join(ls, rightLines)).append(ls);
+            }
             b.append(CONFLICT_END);
 
             return b.toString();
@@ -151,16 +172,20 @@ public abstract class Content {
             String ls = System.lineSeparator();
 
             b.append(CONFLICT_START).append(" ").append(fstId).append(ls);
-            b.append(String.join(ls, leftLines)).append(ls);
+            if (!leftLines.isEmpty()) {
+                b.append(String.join(ls, leftLines)).append(ls);
+            }
             b.append(CONFLICT_DELIM).append(ls);
-            b.append(String.join(ls, rightLines)).append(ls);
+            if (!rightLines.isEmpty()) {
+                b.append(String.join(ls, rightLines)).append(ls);
+            }
             b.append(CONFLICT_END).append(" ").append(ids[0]);
 
             return b.toString();
         }
     }
 
-    protected boolean isConflict;
+    private final boolean isConflict;
 
     /**
      * Constructs a new <code>Content</code> piece.
@@ -168,7 +193,7 @@ public abstract class Content {
      * @param isConflict
      *         whether this <code>Content</code> is a <code>Conflict</code>
      */
-    public Content(boolean isConflict) {
+    private Content(boolean isConflict) {
         this.isConflict = isConflict;
     }
 

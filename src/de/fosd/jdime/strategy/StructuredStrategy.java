@@ -23,10 +23,6 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.security.Permission;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
@@ -36,7 +32,12 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.stats.StatisticsInterface;
-import de.fosd.jdime.stats.parser.ParseResult;
+import de.fosd.jdime.util.parser.ParseResult;
+import de.fosd.jdime.util.parser.Parser;
+
+import java.security.Permission;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
@@ -136,25 +137,27 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
             MergeScenario<ASTNodeArtifact> nodeTriple = new MergeScenario<>(triple.getMergeType(), left, base, right);
             MergeOperation<ASTNodeArtifact> astMergeOp = new MergeOperation<>(nodeTriple, targetNode);
 
-            LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
-            LOG.finest(() -> String.format("MergeScenario:%n%s", nodeTriple.toString()));
             LOG.finest("Applying an ASTNodeArtifact MergeOperation.");
 
             try (Runtime.Measurement m = merge.time()) {
                 astMergeOp.apply(context);
             }
 
+            // TODO: find clusters of microconflicts and restructure them to larger conflicts
+            targetNode.collapseConflicts();
+
             targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
             if (!context.isDiffOnly()) {
-                target.setContent(targetNode.prettyPrint());
+                String content = targetNode.prettyPrint();
+                target.setContent(context.isOptimizeMultiConflicts() ? Parser.mergeSubsequentConflicts(content) : content);
             }
 
             LOG.fine("Structured merge finished.");
             LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
             if (!context.isDiffOnly()) {
-                LOG.finest(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
+                LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             }
 
             ASTNodeArtifact finalLeft = left;
@@ -174,7 +177,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                     ParseResult parseResult = scenarioStatistics.setLineStatistics(target.getContent());
 
                     if (parseResult.getConflicts() > 0) {
-                        scenarioStatistics.getFileStatistics().incrementNumOccurInConflic();
+                        scenarioStatistics.getFileStatistics().incrementNumOccurInConflict();
                     }
                 }
 
