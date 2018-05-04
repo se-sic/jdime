@@ -653,18 +653,18 @@ public class MergeContext implements Cloneable {
         boolean inputIsDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
         boolean inputIsFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
 
-        FileArtifact.FileType type;
+        FileArtifact.FileType outputType;
 
         if (inputIsDirs) {
-            type = FileArtifact.FileType.DIR;
+            outputType = FileArtifact.FileType.DIR;
         } else if (inputIsFiles) {
-            type = FileArtifact.FileType.FILE;
+            outputType = FileArtifact.FileType.FILE;
         } else { // This is prevented by a check above.
-            type = null;
+            outputType = null;
         }
 
         if (isPretend()) {
-            setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
+            setOutputFile(new FileArtifact(MergeScenario.MERGE, outputType));
         } else {
             Optional<File> oFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new);
 
@@ -685,9 +685,11 @@ public class MergeContext implements Cloneable {
                         String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
                         throw new AbortException(msg);
                     }
-                }
 
-                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
+                    setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
+                } else {
+                    setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, outputType));
+                }
             } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
                 throw new AbortException("No output file or directory given.");
             }
