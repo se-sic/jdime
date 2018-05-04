@@ -673,17 +673,17 @@ public class MergeContext implements Cloneable {
 
                 if (outFile.exists()) {
 
-                    if (!isForceOverwriting()) {
-                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                        throw new AbortException(msg);
-                    }
-
                     if (inputIsDirs && !outFile.isDirectory()) {
                         throw new AbortException("The output must be a directory when merging directories.");
                     }
 
                     if (inputIsFiles && !outFile.isFile()) {
                         throw new AbortException("The output must be a file when merging files.");
+                    }
+
+                    if (!isForceOverwriting()) {
+                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                        throw new AbortException(msg);
                     }
                 }
 
