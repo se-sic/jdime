@@ -57,7 +57,11 @@ import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
-import static de.fosd.jdime.config.JDimeConfig.*;
+import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.OPTIMIZE_MULTI_CONFLICTS;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
+import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
+import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -685,7 +689,7 @@ public class MergeContext implements Cloneable {
 
                 setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
             } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
-                throw new AbortException("Not output file or directory given.");
+                throw new AbortException("No output file or directory given.");
             }
         }
     }
