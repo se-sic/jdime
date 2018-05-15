@@ -23,7 +23,6 @@
  */
 package de.fosd.jdime.artifact.file;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -43,6 +42,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
@@ -231,15 +231,44 @@ public class FileArtifact extends Artifact<FileArtifact> {
      * @param revision
      *         the {@link Revision} the artifact belongs to
      * @param type
-     *         the virtual type for the {@link FileArtifact}, must be one of {@link FileType#FILE} or
-     *         {@link FileType#DIR}
+     *         the type for the {@link FileArtifact}
      */
     public FileArtifact(Revision revision, FileType type) {
+        this(revision, generateVirtualFile(type), type);
+    }
+
+    /**
+     * Constructs a new virtual {@link FileArtifact} representing the given non-existent {@link File}.
+     * The new {@link FileArtifact} will always have the number 0.
+     *
+     * @param revision
+     *         the {@link Revision} the artifact belongs to
+     * @param virtualFile
+     *         the non-existent {@link File} to represent
+     * @param type
+     *         the type for the {@link FileArtifact}
+     */
+    public FileArtifact(Revision revision, File virtualFile, FileType type) {
         super(revision, 0);
+
+        if (virtualFile.exists()) {
+            throw new IllegalArgumentException("File '" + virtualFile + "' does exist.");
+        }
 
         this.type = type;
         this.original = null;
+        this.file = virtualFile;
+    }
 
+    /**
+     * Generates a non-existent file or directory (depending on {@code type}) in the systems temporary directory.
+     *
+     * @param type
+     *         the type of {@link File} to generate
+     *
+     * @return the virtual file
+     */
+    private static File generateVirtualFile(FileType type) {
         File tempDir = FileUtils.getTempDirectory();
         IntFunction<File> toFile;
 
@@ -257,8 +286,11 @@ public class FileArtifact extends Artifact<FileArtifact> {
             };
         }
 
-        this.file = IntStream.range(0, Integer.MAX_VALUE).mapToObj(toFile).filter(f -> !f.exists()).findFirst()
-                .orElseThrow(() -> new AbortException("Could not find an available file name for the virtual file or directory."));
+        return IntStream.range(0, Integer.MAX_VALUE)
+                        .mapToObj(toFile)
+                        .filter(f -> !f.exists())
+                        .findFirst()
+                        .orElseThrow(() -> new AbortException("Could not find an available file name for the virtual file or directory."));
     }
 
     /**

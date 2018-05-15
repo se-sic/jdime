@@ -57,7 +57,11 @@ import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
-import static de.fosd.jdime.config.JDimeConfig.*;
+import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
+import static de.fosd.jdime.config.JDimeConfig.OPTIMIZE_MULTI_CONFLICTS;
+import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
+import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
+import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -649,18 +653,18 @@ public class MergeContext implements Cloneable {
         boolean inputIsDirs = getInputFiles().stream().allMatch(FileArtifact::isDirectory);
         boolean inputIsFiles = getInputFiles().stream().allMatch(FileArtifact::isFile);
 
-        FileArtifact.FileType type;
+        FileArtifact.FileType outputType;
 
         if (inputIsDirs) {
-            type = FileArtifact.FileType.DIR;
+            outputType = FileArtifact.FileType.DIR;
         } else if (inputIsFiles) {
-            type = FileArtifact.FileType.FILE;
+            outputType = FileArtifact.FileType.FILE;
         } else { // This is prevented by a check above.
-            type = null;
+            outputType = null;
         }
 
         if (isPretend()) {
-            setOutputFile(new FileArtifact(MergeScenario.MERGE, type));
+            setOutputFile(new FileArtifact(MergeScenario.MERGE, outputType));
         } else {
             Optional<File> oFile = config.get(CLI_OUTPUT).map(String::trim).map(File::new);
 
@@ -669,11 +673,6 @@ public class MergeContext implements Cloneable {
 
                 if (outFile.exists()) {
 
-                    if (!isForceOverwriting()) {
-                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
-                        throw new AbortException(msg);
-                    }
-
                     if (inputIsDirs && !outFile.isDirectory()) {
                         throw new AbortException("The output must be a directory when merging directories.");
                     }
@@ -681,11 +680,18 @@ public class MergeContext implements Cloneable {
                     if (inputIsFiles && !outFile.isFile()) {
                         throw new AbortException("The output must be a file when merging files.");
                     }
-                }
 
-                setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
+                    if (!isForceOverwriting()) {
+                        String msg = String.format("The output file or directory exists. Use -%s to force overwriting.", CLI_FORCE_OVERWRITE);
+                        throw new AbortException(msg);
+                    }
+
+                    setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, false));
+                } else {
+                    setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, outputType));
+                }
             } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
-                throw new AbortException("Not output file or directory given.");
+                throw new AbortException("No output file or directory given.");
             }
         }
     }
