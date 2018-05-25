@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -239,8 +240,23 @@ public final class JDimeConfig extends Config {
         addSource(cmdLine = new CommandLineConfigSource(args, 3));
         get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
 
-        loadConfigFile(cmdLine.get(CLI_PROP_FILE).map(File::new).orElse(new File(CONFIG_FILE_NAME)));
-        get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+        Optional<File> optCliPropFile = cmdLine.get(CLI_PROP_FILE).map(File::new);
+
+        if (optCliPropFile.isPresent()) {
+            // Issues a WARNING if the config file was specified on the command line but does not exist.
+            loadConfigFile(optCliPropFile.get());
+            get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+        } else {
+            File configFile = new File(CONFIG_FILE_NAME);
+
+            if (configFile.exists()) {
+                loadConfigFile(configFile);
+                get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
+            } else {
+                // Log FINE if the config file was not specified on the command line and the default config file does not exist.
+                LOG.fine(() -> "Default config file " + configFile.getAbsolutePath() + " does not exist.");
+            }
+        }
 
         addSource(new SysEnvConfigSource(1));
         get(CLI_LOG_LEVEL).ifPresent(JDimeConfig::setLogLevel);
