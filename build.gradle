@@ -28,7 +28,7 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "2.1.1"
+    id "org.ajoberstar.grgit" version "2.2.1"
     id "com.github.hierynomus.license" version "0.14.0"
     id "com.scuilion.syntastic" version "0.3.8"
 }
