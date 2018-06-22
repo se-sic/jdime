@@ -77,9 +77,11 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-wrapper {
-    distributionType Wrapper.DistributionType.ALL
-    gradleVersion '4.8.1'
+if (project == getRootProject()) {
+    wrapper {
+        distributionType Wrapper.DistributionType.ALL
+        gradleVersion '4.8.1'
+    }
 }
 
 def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
