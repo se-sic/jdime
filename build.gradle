@@ -77,7 +77,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-task wrapper(type: Wrapper) {
+wrapper {
     distributionType Wrapper.DistributionType.ALL
     gradleVersion '4.8.1'
 }
