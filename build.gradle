@@ -28,9 +28,10 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "2.2.1"
-    id "com.github.hierynomus.license" version "0.14.0"
+    id "org.ajoberstar.grgit" version "2.3.0" // Used for interacting with git repositories from the buildscript.
+    id "com.github.hierynomus.license" version "0.14.0"  // Used to ensure that all files contain a license header.
     id "com.scuilion.syntastic" version "0.3.8"
+    id "com.github.ben-manes.versions" version "0.20.0" // Used to check for new plugin / dependency versions.
 }
 
 tasks.withType(JavaCompile) {
