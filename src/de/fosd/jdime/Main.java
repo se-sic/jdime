@@ -536,7 +536,13 @@ public final class Main {
      * Prints usage information and a help text about the command line options to <code>System.out</code>.
      */
     private static void printCLIHelp() {
+        String ls = System.lineSeparator();
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp(Main.TOOLNAME, config.getCmdLine().getOptions(), true);
+
+        String syntax = Main.TOOLNAME + " <left file> [<base file>] <right file>";
+        String header = ls + "Perform a two or three way merge between the input files." + ls + ls;
+        String footer = ls + "Please report issues at https://github.com/se-passau/jdime/issues";
+
+        formatter.printHelp(120, syntax, header, config.getCmdLine().getOptions(), footer, true);
     }
 }
