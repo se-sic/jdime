@@ -23,22 +23,6 @@
  */
 package de.fosd.jdime;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.Permission;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
@@ -51,13 +35,24 @@ import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
+import de.uni_passau.fim.seibt.LibGit2;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_MODE;
-import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.Permission;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static de.fosd.jdime.config.CommandLineConfigSource.*;
 import static de.fosd.jdime.config.JDimeConfig.*;
 
 /**
@@ -349,12 +344,10 @@ public final class Main {
         if (config.getBoolean(CLI_VERSION).orElse(false)) {
             Optional<String> commit = config.get(JDIME_COMMIT);
 
-            if (commit.isPresent()) {
-                System.out.printf("%s version %s commit %s%n", TOOLNAME, VERSION, commit.get());
-            } else {
-                System.out.printf("%s version %s%n", TOOLNAME, VERSION);
-            }
+            System.out.printf("%s version %s", TOOLNAME, VERSION);
+            commit.ifPresent(s -> System.out.printf(" commit %s", s));
 
+            System.out.printf(" using libgit2 %s%n", LibGit2.git_libgit2_version());
             return false;
         }
 
