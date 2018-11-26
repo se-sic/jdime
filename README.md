@@ -56,8 +56,8 @@ To avoid version mismatches with already installed instances of gradle, you can 
 After running `./gradlew installDist`, the directory `build/install/JDime/bin` will contain Unix and Windows scripts that you can use to start the application.
 
 ## Usage:
-The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime is invoked as follows:
+The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime may be invoked as follows:
 
-`JDime --mode [unstructured|structured|autotuning] --output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
+`JDime --mode [linebased|semistructured|structured] --output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
 
-Run `JDime --help` to show more extensive usage information.
+**Run `JDime --help` to show more extensive usage information.**
