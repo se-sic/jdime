@@ -11,7 +11,7 @@ if (!jNativeMergeDir.exists()) {
     logger.lifecycle("Cloning $jNativeMergeName dependency...")
 
     ProcessBuilder cloneBuilder = new ProcessBuilder('git', 'clone', jNativeMergeURI, jNativeMergeName)
-    cloneBuilder.directory(new File('..'))
+    cloneBuilder.directory(jNativeMergeDir.parentFile)
     cloneBuilder.redirectErrorStream(true)
 
     Process clone = cloneBuilder.start()
