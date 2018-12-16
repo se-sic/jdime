@@ -385,7 +385,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *
      * @return the MIME content type
      */
-    private String getContentType() {
+    public String getContentType() {
         String mimeType = null;
         File file = getFile();
 

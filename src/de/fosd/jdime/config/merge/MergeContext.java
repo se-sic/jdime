@@ -637,12 +637,12 @@ public class MergeContext implements Cloneable {
             for (File file : inputFiles) {
                 FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
                 inputArtifacts.add(artifact);
-            }
 
-            if (allFiles && !inputArtifacts.stream().allMatch(FileArtifact::isJavaFile)) {
-                LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
-                inputFiles.forEach(f -> LOG.severe(f::getAbsolutePath));
-                throw new AbortException("All input files must be Java source code files.");
+                if (file.isFile() && !artifact.isJavaFile()) {
+                    LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
+                    LOG.severe(file.getAbsolutePath() + ": " + artifact.getContentType());
+                    throw new AbortException("All input files must be Java source code files.");
+                }
             }
 
             setInputFiles(inputArtifacts);
