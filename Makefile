@@ -5,7 +5,7 @@ jdime:
 
 .PHONY: install
 install: jdime
-	tar -C $(DESTDIR)$(PREFIX) -xaf build/distributions/JDime.tar
+	tar -C $(DESTDIR)$(PREFIX) -xf build/distributions/JDime.tar
 
 .PHONY: uninstall
 uninstall:
