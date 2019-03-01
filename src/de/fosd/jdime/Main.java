@@ -429,7 +429,7 @@ public final class Main {
         List<FileArtifact> inFiles = context.getInputFiles();
         FileArtifact outFile = context.getOutputFile();
 
-        if (context.isFilterInputDirectories()) {
+        if (context.isFilterInputDirectories() && !context.isAcceptNonJava()) {
             inFiles.forEach(FileArtifact::filterNonJavaFiles);
         }
 

@@ -70,6 +70,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_VERSION = "v";
     public static final String CLI_PROP_FILE = "pf";
     public static final String CLI_EXIT_ON_ERROR = "eoe";
+    public static final String CLI_ACCEPT_NON_JAVA = "anj";
     public static final String CLI_CM = "cm";
     public static final String CLI_CM_REMATCH_BOUND = "cmbound";
     public static final String CLI_CM_OPTIONS = "cmopts";
@@ -295,6 +296,14 @@ public class CommandLineConfigSource extends ConfigSource {
                 .longOpt("exit-on-error")
                 .desc("Whether to end the merge if there is an exception merging a set of files. If neither this " +
                         "option nor keep-going is set the fallback line based strategy will be tried.")
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_ACCEPT_NON_JAVA)
+                .longOpt("accept-non-java")
+                .desc("Whether to allow linebased merging of non-Java files. No effect in other modes.")
                 .hasArg(false)
                 .build();
 

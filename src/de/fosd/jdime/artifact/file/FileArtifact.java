@@ -665,11 +665,6 @@ public class FileArtifact extends Artifact<FileArtifact> {
             MergeStrategy<FileArtifact> strategy = context.getMergeStrategy();
             MergeScenario<FileArtifact> scenario = operation.getMergeScenario();
 
-            if (!isJavaFile()) {
-                LOG.fine(() -> "Skipping non-java file " + this);
-                return;
-            }
-
             if (context.hasStatistics()) {
                 context.getStatistics().setCurrentFileMergeScenario(scenario);
             }

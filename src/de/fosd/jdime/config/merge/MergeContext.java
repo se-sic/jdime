@@ -149,6 +149,11 @@ public class MergeContext implements Cloneable {
     private boolean exitOnError;
 
     /**
+     * If true, we are using a {@link LinebasedStrategy} and are also accepting non-Java files.
+     */
+    private boolean acceptNonJava;
+
+    /**
      * Strategy to apply for the merge.
      */
     private MergeStrategy<FileArtifact> mergeStrategy;
@@ -236,6 +241,7 @@ public class MergeContext implements Cloneable {
         this.filterInputDirectories = true;
         this.keepGoing = false;
         this.exitOnError = false;
+        this.acceptNonJava = false;
         this.mergeStrategy = new LinebasedStrategy();
         this.outputFile = null;
         this.quiet = false;
@@ -288,6 +294,7 @@ public class MergeContext implements Cloneable {
         this.filterInputDirectories = toCopy.filterInputDirectories;
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
+        this.acceptNonJava = toCopy.acceptNonJava;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
         this.outputFile = toCopy.outputFile.copy();
         this.quiet = toCopy.quiet;
@@ -585,6 +592,9 @@ public class MergeContext implements Cloneable {
         config.getBoolean(CLI_PRETEND).ifPresent(this::setPretend);
         config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);
 
+        config.getBoolean(CLI_ACCEPT_NON_JAVA).map(anj -> anj && getMergeStrategy() instanceof LinebasedStrategy)
+                                              .ifPresent(this::setAcceptNonJava);
+
         Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
         if (args.isPresent()) {
@@ -638,7 +648,7 @@ public class MergeContext implements Cloneable {
                 FileArtifact artifact = new FileArtifact(revSupplier.get(), file);
                 inputArtifacts.add(artifact);
 
-                if (file.isFile() && !artifact.isJavaFile()) {
+                if (!acceptNonJava && file.isFile() && !artifact.isJavaFile()) {
                     LOG.severe(() -> "Invalid input files. (Must all be java source code files.)");
                     LOG.severe(file.getAbsolutePath() + ": " + artifact.getContentType());
                     throw new AbortException("All input files must be Java source code files.");
@@ -901,6 +911,24 @@ public class MergeContext implements Cloneable {
      */
     public void setExitOnError(boolean exitOnError) {
         this.exitOnError = exitOnError;
+    }
+
+    /**
+     * Gets whether to accept non-Java files when using a {@link LinebasedStrategy}.
+     *
+     * @return whether to accept non-Java files
+     */
+    public boolean isAcceptNonJava() {
+        return acceptNonJava;
+    }
+
+    /**
+     * Sets whether to accept non-Java files when using a {@link LinebasedStrategy}.
+     *
+     * @param acceptNonJava the new value
+     */
+    public void setAcceptNonJava(boolean acceptNonJava) {
+        this.acceptNonJava = acceptNonJava;
     }
 
     /**
