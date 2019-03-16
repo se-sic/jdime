@@ -40,9 +40,9 @@ import java.util.regex.Pattern;
  */
 public final class Parser {
 
-    private static final Pattern conflictStartPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_START + ".*");
+    private static final Pattern conflictStartPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_START + " .*");
     private static final Pattern conflictSepPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_DELIM);
-    private static final Pattern conflictEndPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_END + ".*");
+    private static final Pattern conflictEndPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_END + " .*");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern whitespace = Pattern.compile("\\s+");

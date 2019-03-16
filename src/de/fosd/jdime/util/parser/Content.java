@@ -77,9 +77,10 @@ public abstract class Content {
      */
     public static class Conflict extends Content {
 
-        public static final String CONFLICT_START = "<<<<<<<";
-        public static final String CONFLICT_DELIM = "=======";
-        public static final String CONFLICT_END = ">>>>>>>";
+        public static final int MARKER_SIZE = 7;
+        public static final String CONFLICT_START = new String(new char[MARKER_SIZE]).replace("\0", "<");
+        public static final String CONFLICT_DELIM = new String(new char[MARKER_SIZE]).replace("\0", "=");
+        public static final String CONFLICT_END = new String(new char[MARKER_SIZE]).replace("\0", ">");
 
         private List<String> leftLines;
         private List<String> rightLines;
