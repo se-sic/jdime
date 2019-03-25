@@ -561,6 +561,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      *         the <code>Consumer</code> to apply
      */
     private void forAllJavaFiles(Consumer<ASTNodeArtifact> cons) {
+        //TODO What if --accept-non-java is enabled?
 
         for (FileArtifact child : getJavaFiles()) {
             ASTNodeArtifact childAST;

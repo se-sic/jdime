@@ -149,7 +149,7 @@ public class MergeContext implements Cloneable {
     private boolean exitOnError;
 
     /**
-     * If true, we are using a {@link LinebasedStrategy} and are also accepting non-Java files.
+     * If true, allow merging of all file types.
      */
     private boolean acceptNonJava;
 
@@ -592,8 +592,7 @@ public class MergeContext implements Cloneable {
         config.getBoolean(CLI_PRETEND).ifPresent(this::setPretend);
         config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);
 
-        config.getBoolean(CLI_ACCEPT_NON_JAVA).map(anj -> anj && getMergeStrategy() instanceof LinebasedStrategy)
-                                              .ifPresent(this::setAcceptNonJava);
+        config.getBoolean(CLI_ACCEPT_NON_JAVA).ifPresent(this::setAcceptNonJava);
 
         Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
@@ -914,7 +913,7 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Gets whether to accept non-Java files when using a {@link LinebasedStrategy}.
+     * Gets whether to accept non-Java files when merging.
      *
      * @return whether to accept non-Java files
      */
@@ -923,7 +922,7 @@ public class MergeContext implements Cloneable {
     }
 
     /**
-     * Sets whether to accept non-Java files when using a {@link LinebasedStrategy}.
+     * Sets whether to accept non-Java files when merging.
      *
      * @param acceptNonJava the new value
      */

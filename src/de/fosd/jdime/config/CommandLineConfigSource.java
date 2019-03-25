@@ -303,7 +303,7 @@ public class CommandLineConfigSource extends ConfigSource {
 
         o = Option.builder(CLI_ACCEPT_NON_JAVA)
                 .longOpt("accept-non-java")
-                .desc("Whether to allow linebased merging of non-Java files. No effect in other modes.")
+                .desc("Whether to allow merging of non-Java files.")
                 .hasArg(false)
                 .build();
 
