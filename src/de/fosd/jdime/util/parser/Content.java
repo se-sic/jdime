@@ -84,6 +84,9 @@ public abstract class Content {
         private List<String> leftLines;
         private List<String> rightLines;
 
+        private String leftLabel;
+        private String rightLabel;
+
         /**
          * Constructs a new <code>Conflict</code> instance.
          */
@@ -91,6 +94,22 @@ public abstract class Content {
             super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
+        }
+
+        /**
+         * Sets the label for the left side of this <code>Conflict</code>.
+         * @param leftLabel left label
+         */
+        public void setLeftLabel(String leftLabel) {
+            this.leftLabel = leftLabel;
+        }
+
+        /**
+         * Sets the label for the right side of this <code>Conflict</code>.
+         * @param rightLabel right label
+         */
+        public void setRightLabel(String rightLabel) {
+            this.rightLabel = rightLabel;
         }
 
         /**
@@ -147,7 +166,10 @@ public abstract class Content {
             String ls = System.lineSeparator();
             StringBuilder b = new StringBuilder();
 
-            b.append(CONFLICT_START).append(ls);
+            b.append(CONFLICT_START);
+            b.append(" ");
+            b.append(leftLabel);
+            b.append(ls);
             if (!leftLines.isEmpty()) {
                 b.append(String.join(ls, leftLines)).append(ls);
             }
@@ -156,6 +178,8 @@ public abstract class Content {
                 b.append(String.join(ls, rightLines)).append(ls);
             }
             b.append(CONFLICT_END);
+            b.append(" ");
+            b.append(rightLabel);
 
             return b.toString();
         }

@@ -206,8 +206,10 @@ public class ParseResult extends ArrayList<Content> {
      *         the line to add
      * @param left
      *         true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     * @param label
+     *         label of the respective conflicting side (usually a file name or a revision)
      */
-    public void addConflictingLine(String line, boolean left) {
+    public void addConflictingLine(String line, boolean left, String label) {
         Content.Conflict conflict;
 
         if (isEmpty()) {
@@ -226,8 +228,10 @@ public class ParseResult extends ArrayList<Content> {
 
         if (left) {
             conflict.addLeft(line);
+            conflict.setLeftLabel(label);
         } else {
             conflict.addRight(line);
+            conflict.setRightLabel(label);
         }
     }
 
