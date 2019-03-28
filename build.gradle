@@ -78,7 +78,7 @@ dependencies {
     compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
-    compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_1'
+    compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_2'
     compile files('lib/extendj.jar')
     testCompile 'junit:junit:4.12'
 }
