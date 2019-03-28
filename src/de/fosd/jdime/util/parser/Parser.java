@@ -35,14 +35,16 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import static de.fosd.jdime.util.parser.Content.Conflict.*;
+
 /**
  * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
  */
 public final class Parser {
 
-    private static final Pattern conflictStartPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_START + " .*");
-    private static final Pattern conflictSepPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_DELIM);
-    private static final Pattern conflictEndPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_END + " .*");
+    private static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
+    private static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
+    private static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern whitespace = Pattern.compile("\\s+");

@@ -77,7 +77,7 @@ public abstract class Content {
      */
     public static class Conflict extends Content {
 
-        public static final int MARKER_SIZE = 7;
+        public static final short MARKER_SIZE = 7;
         public static final String CONFLICT_START = new String(new char[MARKER_SIZE]).replace("\0", "<");
         public static final String CONFLICT_DELIM = new String(new char[MARKER_SIZE]).replace("\0", "=");
         public static final String CONFLICT_END = new String(new char[MARKER_SIZE]).replace("\0", ">");
