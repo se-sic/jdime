@@ -39,6 +39,7 @@ import de.uni_passau.fim.seibt.LibGit2;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -86,8 +87,9 @@ public final class Main {
 
     private static final String MODE_LIST = "list";
 
-    private static final int EXIT_ABORTED = 2;
-    private static final int EXIT_FAILURE = 1;
+    private static final int EXIT_SUCCESS = 0;
+    private static final int EXIT_ABORTED = -2;
+    private static final int EXIT_FAILURE = -1;
 
     private static JDimeConfig config;
 
@@ -105,7 +107,7 @@ public final class Main {
     public static void main(String[] args) {
 
         try {
-            run(args);
+            System.exit(run(args));
         } catch (AbortException e) {
 
             if (e.getCause() != null) {
@@ -125,26 +127,61 @@ public final class Main {
     /**
      * Perform a merge operation on the input files or directories.
      *
-     * @param args
-     *         command line arguments
+     * @param args command line arguments
+     *
+     * @return the exit code for the program; a positive value if stats are enabled and there were conflicts (the sum),
+     *         a negative value if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
+     *         {@value EXIT_SUCCESS} otherwise
      */
-    public static void run(String[] args) {
+    public static int run(String[] args) {
         MergeContext context = new MergeContext();
 
-        if (!parseCommandLineArgs(context, args)) {
-            return;
+        JDimeConfig config;
+
+        try {
+            config = new JDimeConfig(args);
+        } catch (ParseException e) {
+            System.err.println("Failed to parse the command line arguments " + Arrays.toString(args));
+            System.err.println(e.getMessage());
+            return EXIT_FAILURE;
         }
+
+        Main.config = config;
+
+        if (args.length == 0 || config.getBoolean(CLI_HELP).orElse(false)) {
+            printCLIHelp();
+            return EXIT_SUCCESS;
+        }
+
+        if (config.getBoolean(CLI_VERSION).orElse(false)) {
+            Optional<String> commit = config.get(JDIME_COMMIT);
+
+            System.out.printf("%s version %s", TOOLNAME, VERSION);
+            commit.ifPresent(s -> System.out.printf(" commit %s", s));
+
+            System.out.printf(" using libgit2 %s%n", LibGit2.git_libgit2_version());
+            return EXIT_SUCCESS;
+        }
+
+        Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
+
+        if (mode.isPresent() && MODE_LIST.equals(mode.get())) {
+            printStrategies();
+            return EXIT_SUCCESS;
+        }
+
+        context.configureFrom(config);
 
         List<FileArtifact> inputFiles = context.getInputFiles();
 
         if (context.isInspect()) {
             inspectElement(inputFiles.get(0), context.getInspectArtifact(), context.getInspectionScope());
-            return;
+            return EXIT_SUCCESS;
         }
 
         if (context.getDumpMode() != DumpMode.NONE) {
             inputFiles.forEach(artifact -> dump(artifact, context.getDumpMode()));
-            return;
+            return EXIT_SUCCESS;
         }
 
         try {
@@ -172,6 +209,13 @@ public final class Main {
 
                 LOG.fine(sb.toString());
             }
+        }
+
+        if (context.hasStatistics()) {
+            return (int) context.getStatistics().getConflictStatistics().getSum();
+        } else {
+            LOG.fine(() -> "Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
+            return EXIT_SUCCESS;
         }
     }
 
@@ -311,55 +355,6 @@ public final class Main {
                 new RuntimeException("Can not find a file that does not exist."));
 
         return nextFree;
-    }
-
-    /**
-     * Parses command line arguments and initializes program.
-     *
-     * @param context
-     *         merge context
-     * @param args
-     *         command line arguments
-     * @return true if program should continue
-     */
-    private static boolean parseCommandLineArgs(MergeContext context, String[] args) {
-        JDimeConfig config;
-
-        try {
-            config = new JDimeConfig(args);
-        } catch (ParseException e) {
-            System.err.println("Failed to parse the command line arguments " + Arrays.toString(args));
-            System.err.println(e.getMessage());
-            System.exit(EXIT_FAILURE);
-            return false;
-        }
-
-        Main.config = config;
-
-        if (args.length == 0 || config.getBoolean(CLI_HELP).orElse(false)) {
-            printCLIHelp();
-            return false;
-        }
-
-        if (config.getBoolean(CLI_VERSION).orElse(false)) {
-            Optional<String> commit = config.get(JDIME_COMMIT);
-
-            System.out.printf("%s version %s", TOOLNAME, VERSION);
-            commit.ifPresent(s -> System.out.printf(" commit %s", s));
-
-            System.out.printf(" using libgit2 %s%n", LibGit2.git_libgit2_version());
-            return false;
-        }
-
-        Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
-
-        if (mode.isPresent() && MODE_LIST.equals(mode.get())) {
-            printStrategies();
-            return false;
-        }
-
-        context.configureFrom(config);
-        return true;
     }
 
     /**
