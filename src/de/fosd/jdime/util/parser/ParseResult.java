@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * A <code>List</code> of <code>Content</code> instances resulting from a run of {@link Parser#parse(String)}.
  * In addition to the pieces of content the lines of code, the number of lines of code in conflicts and the number
- * of conflicts are stored. The {@link #toString()} and {@link #toString(String, String...)} methods produce the
+ * of conflicts are stored. The {@link #toString()} and {@link #toString(String, String)} methods produce the
  * concatenation of the <code>String</code> representations of the <code>Content</code> pieces.
  */
 public class ParseResult extends ArrayList<Content> {
@@ -43,6 +43,9 @@ public class ParseResult extends ArrayList<Content> {
     private int conflictingChars;
     private int conflictingLinesOfCode;
     private int conflictingTokens;
+
+    private String leftLabel = Content.Conflict.DEFAULT_LABEL;
+    private String rightLabel = Content.Conflict.DEFAULT_LABEL;
 
     /**
      * Returns the lines of code.
@@ -174,6 +177,24 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
+     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     *
+     * @param leftLabel the label for the left side
+     */
+    public void setLeftLabel(String leftLabel) {
+        this.leftLabel = leftLabel;
+    }
+
+    /**
+     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     *
+     * @param rightLabel the label for the right side
+     */
+    public void setRightLabel(String rightLabel) {
+        this.rightLabel = rightLabel;
+    }
+
+    /**
      * Adds a merged line (one that is not in a conflict) to the <code>ParseResult</code>.
      *
      * @param line
@@ -206,10 +227,8 @@ public class ParseResult extends ArrayList<Content> {
      *         the line to add
      * @param left
      *         true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
-     * @param label
-     *         label of the respective conflicting side (usually a file name or a revision)
      */
-    public void addConflictingLine(String line, boolean left, String label) {
+    public void addConflictingLine(String line, boolean left) {
         Content.Conflict conflict;
 
         if (isEmpty()) {
@@ -228,30 +247,33 @@ public class ParseResult extends ArrayList<Content> {
 
         if (left) {
             conflict.addLeft(line);
-            conflict.setLeftLabel(label);
         } else {
             conflict.addRight(line);
-            conflict.setRightLabel(label);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <br><br>
+     * The {@link Content.Conflict Conflicts} in this {@link ParseResult} will be labeled using the labels set via
+     * {@link #setLeftLabel(String)} and {@link #setRightLabel(String)}.
+     *
+     * @see Content#toString(String, String)
+     */
     @Override
     public String toString() {
-        return String.join(System.lineSeparator(), stream().map(Content::toString).collect(Collectors.toList()));
+        return toString(leftLabel, rightLabel);
     }
 
     /**
-     * Returns a <code>String</code> representation of this <code>ParseResult</code>. The identifiers will
-     * be used by the <code>Content</code> implementations to identify their parts (for example <code>Conflict</code>
-     * will use the first two identifiers for marking the two sides of the conflict).
+     * Returns a {@link String} representation of this {@link ParseResult}. The given labels will be applied to the
+     * sides of any {@link Content.Conflict} elements in this {@link ParseResult}.
      *
-     * @param fstId
-     *         the first identifier to use
-     * @param ids
-     *         the other identifiers to use
-     * @return a <code>String</code> representing this <code>ParseResult</code>
+     * @param leftLabel  the label for the left side of any conflict in the {@link ParseResult}
+     * @param rightLabel the label for the right side of any conflict in the {@link ParseResult}
+     * @return a {@link String} representing this {@link ParseResult}
      */
-    public String toString(String fstId, String... ids) {
-        return String.join(System.lineSeparator(), stream().map(c -> c.toString(fstId, ids)).collect(Collectors.toList()));
+    public String toString(String leftLabel, String rightLabel) {
+        return stream().map(c -> c.toString(leftLabel, rightLabel)).collect(Collectors.joining(System.lineSeparator()));
     }
 }

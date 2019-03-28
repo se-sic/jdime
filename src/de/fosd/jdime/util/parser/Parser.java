@@ -84,8 +84,6 @@ public final class Parser {
         boolean inLeftComment = false; // whether we were in a comment when the left part of the conflict started
         boolean inLeft = true;
         boolean inComment = false;
-        String leftLabel = null;
-        String rightLabel = null;
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
@@ -108,7 +106,11 @@ public final class Parser {
                     inLeft = true;
                     clocBeforeConflict = conflictingLinesOfCode;
                     conflicts++;
-                    leftLabel = line.split(" ")[1];
+
+                    String[] startAndLabel = line.split(" ");
+                    if (startAndLabel.length == 2) {
+                        res.setLeftLabel(startAndLabel[1]);
+                    }
                 } else if (matches(conflictSepPattern, line)) {
 
                     wasConflictMarker = true;
@@ -121,7 +123,11 @@ public final class Parser {
                     if (clocBeforeConflict == conflictingLinesOfCode) {
                         conflicts--; // the conflict only contained empty lines and comments
                     }
-                    rightLabel = line.split(" ")[1];
+
+                    String[] endAndLabel = line.split(" ");
+                    if (endAndLabel.length == 2) {
+                        res.setRightLabel(endAndLabel[1]);
+                    }
                 } else {
 
                     if (!inComment) {
@@ -146,9 +152,9 @@ public final class Parser {
             if (!wasConflictMarker) {
                 if (inConflict) {
                     if (inLeft) {
-                        res.addConflictingLine(line, true, leftLabel);
+                        res.addConflictingLine(line, true);
                     } else {
-                        res.addConflictingLine(line, false, rightLabel);
+                        res.addConflictingLine(line, false);
                     }
                 } else {
                     res.addMergedLine(line);
@@ -221,34 +227,38 @@ public final class Parser {
 
         Position pos = Position.NO_CONFLICT;
         Queue<String> queue = new LinkedList<>();
-        String leftLabel = null;
-        String rightLabel = null;
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
 
             if (matches(conflictStartPattern, line)) {
-                leftLabel = line.split(" ")[1];
+                String[] startAndLabel = line.split(" ");
+                if (startAndLabel.length == 2) {
+                    out.setLeftLabel(startAndLabel[1]);
+                }
                 if (pos == Position.AFTER_CONFLICT) {
                     while (!queue.isEmpty()) {
                         String queuedLine = queue.remove();
-                        out.addConflictingLine(queuedLine, true, leftLabel);
-                        out.addConflictingLine(queuedLine, false, rightLabel);
+                        out.addConflictingLine(queuedLine, true);
+                        out.addConflictingLine(queuedLine, false);
                     }
                 }
                 pos = Position.LEFT_SIDE;
             } else if (matches(conflictSepPattern, line)) {
                 pos = Position.RIGHT_SIDE;
             } else if (matches(conflictEndPattern, line)) {
-                rightLabel = line.split(" ")[1];
+                String[] endAndLabel = line.split(" ");
+                if (endAndLabel.length == 2) {
+                    out.setRightLabel(endAndLabel[1]);
+                }
                 pos = Position.AFTER_CONFLICT;
             } else {
                 switch (pos) {
                     case LEFT_SIDE:
-                        out.addConflictingLine(line, true, leftLabel);
+                        out.addConflictingLine(line, true);
                         break;
                     case RIGHT_SIDE:
-                        out.addConflictingLine(line, false, rightLabel);
+                        out.addConflictingLine(line, false);
                         break;
                     case AFTER_CONFLICT:
                         // lines containing only whitespaces are queued

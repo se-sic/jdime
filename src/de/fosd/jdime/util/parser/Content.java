@@ -67,7 +67,7 @@ public abstract class Content {
         }
 
         @Override
-        public String toString(String fstId, String... ids) {
+        public String toString(String leftLabel, String rightLabel) {
             return toString();
         }
     }
@@ -80,12 +80,10 @@ public abstract class Content {
         public static final String CONFLICT_START = "<<<<<<<";
         public static final String CONFLICT_DELIM = "=======";
         public static final String CONFLICT_END = ">>>>>>>";
+        public static final String DEFAULT_LABEL = "UNLABELED";
 
         private List<String> leftLines;
         private List<String> rightLines;
-
-        private String leftLabel;
-        private String rightLabel;
 
         /**
          * Constructs a new <code>Conflict</code> instance.
@@ -94,22 +92,6 @@ public abstract class Content {
             super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
-        }
-
-        /**
-         * Sets the label for the left side of this <code>Conflict</code>.
-         * @param leftLabel left label
-         */
-        public void setLeftLabel(String leftLabel) {
-            this.leftLabel = leftLabel;
-        }
-
-        /**
-         * Sets the label for the right side of this <code>Conflict</code>.
-         * @param rightLabel right label
-         */
-        public void setRightLabel(String rightLabel) {
-            this.rightLabel = rightLabel;
         }
 
         /**
@@ -163,39 +145,15 @@ public abstract class Content {
 
         @Override
         public String toString() {
-            String ls = System.lineSeparator();
-            StringBuilder b = new StringBuilder();
-
-            b.append(CONFLICT_START);
-            b.append(" ");
-            b.append(leftLabel);
-            b.append(ls);
-            if (!leftLines.isEmpty()) {
-                b.append(String.join(ls, leftLines)).append(ls);
-            }
-            b.append(CONFLICT_DELIM).append(ls);
-            if (!rightLines.isEmpty()) {
-                b.append(String.join(ls, rightLines)).append(ls);
-            }
-            b.append(CONFLICT_END);
-            b.append(" ");
-            b.append(rightLabel);
-
-            return b.toString();
+            return toString(DEFAULT_LABEL, DEFAULT_LABEL);
         }
 
         @Override
-        public String toString(String fstId, String... ids) {
-
-            if (fstId != null && ids == null || ids.length < 1) {
-                LOG.warning("Insufficient identifiers for constructing a detailed conflict representation.");
-                return toString();
-            }
-
-            StringBuilder b = new StringBuilder();
+        public String toString(String leftLabel, String rightLabel) {
             String ls = System.lineSeparator();
+            StringBuilder b = new StringBuilder();
 
-            b.append(CONFLICT_START).append(" ").append(fstId).append(ls);
+            b.append(CONFLICT_START).append(" ").append(leftLabel).append(ls);
             if (!leftLines.isEmpty()) {
                 b.append(String.join(ls, leftLines)).append(ls);
             }
@@ -203,7 +161,7 @@ public abstract class Content {
             if (!rightLines.isEmpty()) {
                 b.append(String.join(ls, rightLines)).append(ls);
             }
-            b.append(CONFLICT_END).append(" ").append(ids[0]);
+            b.append(CONFLICT_END).append(" ").append(rightLabel);
 
             return b.toString();
         }
@@ -234,15 +192,12 @@ public abstract class Content {
     public abstract String toString();
 
     /**
-     * Returns a <code>String</code> representation of this piece of <code>Content</code>. The identifiers will
-     * be used by the implementations to identify their parts (for example <code>Conflict</code> will use the first
-     * two identifiers for marking the two sides of the conflict).
+     * Returns a {@link String} representation of this piece of {@link Content}. The labels will
+     * be used by {@link Conflict} elements to identify their sides.
      *
-     * @param fstId
-     *         to first identifier to use
-     * @param ids
-     *         the other identifiers to use
+     * @param leftLabel  the label for the left side of a {@link Conflict}
+     * @param rightLabel the label for the right side of a {@link Conflict}
      * @return a <code>String</code> representing this piece of <code>Content</code>
      */
-    public abstract String toString(String fstId, String... ids);
+    public abstract String toString(String leftLabel, String rightLabel);
 }
