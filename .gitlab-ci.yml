@@ -1,4 +1,4 @@
-image: ubuntu:latest
+image: ubuntu:18.04
 
 # Disable the Gradle daemon for Continuous Integration servers as correctness
 # is usually a priority over speed in CI environments. Using a fresh
@@ -8,19 +8,15 @@ variables:
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 before_script:
-    - apt-get update
-    - apt-get install -y software-properties-common
+    - apt-get -qq update
+    - apt-get -qq install software-properties-common
     
     - add-apt-repository ppa:webupd8team/java
-    - add-apt-repository ppa:git-core/ppa
-    - apt-get update
+    - apt-get -qq update
     
     - echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
     - echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 seen true" | debconf-set-selections
-    - apt-get install -y oracle-java8-installer
-    
-    - apt-get install -y git
-    - apt-get install -y libgit2-dev
+    - apt-get -qq install oracle-java8-installer
     
     - export GRADLE_USER_HOME=`pwd`/.gradle
 
@@ -28,11 +24,12 @@ build:
     stage: build
     script:
         - ./gradlew --build-cache assemble
-    only:
-        - master
-        - develop
-        - tags
+#    only:
+#        - master
+#        - develop
+#        - tags
     cache:
+        key: "$CI_COMMIT_SHORT_SHA"
         policy: push
         paths:
             - build
@@ -42,11 +39,12 @@ test:
     stage: test
     script:
         - ./gradlew --build-cache check
-    only:
-        - master
-        - develop
-        - tags
+#    only:
+#        - master
+#        - develop
+#        - tags
     cache:
+        key: "$CI_COMMIT_SHORT_SHA"
         policy: pull
         paths:
             - build
