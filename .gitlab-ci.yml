@@ -26,7 +26,7 @@ before_script:
 build:
     stage: build
     script:
-        - ./gradlew --build-cache assemble
+        - ./gradlew clean assemble
     cache:
         key: ${CI_COMMIT_REF_SLUG}
         policy: pull-push
