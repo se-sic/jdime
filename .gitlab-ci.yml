@@ -27,10 +27,6 @@ build:
     stage: build
     script:
         - ./gradlew --build-cache assemble
-#    only:
-#        - master
-#        - develop
-#        - tags
     cache:
         key: ${CI_COMMIT_REF_SLUG}
         policy: pull-push
@@ -42,10 +38,6 @@ test:
     stage: test
     script:
         - ./gradlew --build-cache check
-#    only:
-#        - master
-#        - develop
-#        - tags
     cache:
         key: ${CI_COMMIT_REF_SLUG}
         policy: pull
