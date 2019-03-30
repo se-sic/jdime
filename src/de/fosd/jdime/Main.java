@@ -129,7 +129,8 @@ public final class Main {
      *
      * @param args command line arguments
      *
-     * @return the exit code for the program; a positive value if stats are enabled and there were conflicts (the sum),
+     * @return the exit code for the program;
+     *         a positive value if stats are enabled and there were conflicts (the sum, truncated to 127),
      *         a negative value if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
      *         {@value EXIT_SUCCESS} otherwise
      */
@@ -212,7 +213,13 @@ public final class Main {
         }
 
         if (context.hasStatistics()) {
-            return (int) context.getStatistics().getConflictStatistics().getSum();
+            long conflicts = context.getStatistics().getConflictStatistics().getSum();
+            // being compliant with git-merge-file, exit code is truncated to 127 if there are more than that many conflicts
+            if (conflicts >= 0 && conflicts <= 127) {
+                return (int) conflicts;
+            } else {
+                return 127;
+            }
         } else {
             LOG.fine(() -> "Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
             return EXIT_SUCCESS;
