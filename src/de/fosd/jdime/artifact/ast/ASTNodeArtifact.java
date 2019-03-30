@@ -58,6 +58,7 @@ import org.extendj.ast.Program;
 import org.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
+import static java.util.logging.Level.FINE;
 
 /**
  * @author Olaf Lessenich
@@ -98,15 +99,15 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                     throw new AbortException(msg.toString());
                 }
 
-                // log warning in case there were semantic errors
+                // log semantic errors
                 Collection<Problem> errors = cu.errors();
-                if (!errors.isEmpty()) {
+                if (!errors.isEmpty() && LOG.isLoggable(FINE)) {
                     StringBuilder msg = new StringBuilder();
                     msg.append(String.format("Semantic errors detected by ExtendJ in %s:%s", path, System.lineSeparator()));
                     for (Problem problem : errors) {
                         msg.append(problem.toString() + System.lineSeparator());
                     }
-                    LOG.warning(msg.toString());
+                    LOG.fine(msg.toString());
                 }
 
             } catch (IOException e) {
