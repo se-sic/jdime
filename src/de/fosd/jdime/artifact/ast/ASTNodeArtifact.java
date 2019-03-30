@@ -47,11 +47,13 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import org.extendj.ast.ASTNode;
 import org.extendj.ast.Block;
 import org.extendj.ast.ClassDecl;
+import org.extendj.ast.CompilationUnit;
 import org.extendj.ast.ConstructorDecl;
 import org.extendj.ast.ImportDecl;
 import org.extendj.ast.InterfaceDecl;
 import org.extendj.ast.Literal;
 import org.extendj.ast.MethodDecl;
+import org.extendj.ast.Problem;
 import org.extendj.ast.Program;
 import org.extendj.ast.TryStmt;
 
@@ -82,7 +84,31 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
             Program p = new Program();
 
             try {
-                p.addSourceFile(artifact.getFile().getPath());
+                String path = artifact.getFile().getPath();
+                CompilationUnit cu = p.addSourceFile(path);
+
+                // abort if there were parse errors
+                Collection<Problem> parseErrors = cu.parseErrors();
+                if (!parseErrors.isEmpty()) {
+                    StringBuilder msg = new StringBuilder();
+                    msg.append(String.format("Errors while parsing %s:%s", path, System.lineSeparator()));
+                    for (Problem problem : parseErrors) {
+                        msg.append(problem.toString() + System.lineSeparator());
+                    }
+                    throw new AbortException(msg.toString());
+                }
+
+                // log warning in case there were semantic errors
+                Collection<Problem> errors = cu.errors();
+                if (!errors.isEmpty()) {
+                    StringBuilder msg = new StringBuilder();
+                    msg.append(String.format("Semantic errors detected by ExtendJ in %s:%s", path, System.lineSeparator()));
+                    for (Problem problem : errors) {
+                        msg.append(problem.toString() + System.lineSeparator());
+                    }
+                    LOG.warning(msg.toString());
+                }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
