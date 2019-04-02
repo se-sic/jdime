@@ -28,10 +28,10 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
-    id "org.ajoberstar.grgit" version "3.0.0" // Used for interacting with git repositories from the buildscript.
+    id "org.ajoberstar.grgit" version "3.1.1" // Used for interacting with git repositories from the buildscript.
     id "com.github.hierynomus.license" version "0.15.0"  // Used to ensure that all files contain a license header.
     id "com.scuilion.syntastic" version "0.3.8"
-    id "com.github.ben-manes.versions" version "0.20.0" // Used to check for new plugin / dependency versions.
+    id "com.github.ben-manes.versions" version "0.21.0" // Used to check for new plugin / dependency versions.
 }
 
 tasks.withType(JavaCompile) {
@@ -63,17 +63,31 @@ sourceSets {
 
 repositories {
     mavenCentral()
+
+    if (project.ext.JNM_MAVEN.toBoolean()) {
+        maven {
+            // The GitLab Maven endpoint of the JNativeMerge project
+            url "https://gitlab.infosun.fim.uni-passau.de/api/v4/projects/199/packages/maven"
+            content { includeModuleByRegex 'de.uni_passau.fim.seibt', '^jnativemerge.*$' }
+        }
+    }
 }
 
 dependencies {
     compile 'commons-io:commons-io:2.6'
     compile 'commons-cli:commons-cli:1.4'
     compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'commons-codec:commons-codec:1.11'
+    compile 'commons-codec:commons-codec:1.12'
     compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
-    compile project(':JNativeMerge')
+
+    if (project.ext.JNM_MAVEN.toBoolean()) {
+        compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
+    } else {
+        compile project(':JNativeMerge')
+    }
+
     compile files('lib/extendj.jar')
     testCompile 'junit:junit:4.12'
 }

@@ -1,40 +1,5 @@
-import java.nio.file.Paths
-
 rootProject.name = 'JDime'
 
-def jNativeMergeName = 'JNativeMerge'
-def jNativeMergeBranch = 'master'
-def jNativeMergeURI = 'https://gitlab.infosun.fim.uni-passau.de/seibt/JNativeMerge.git'
-def jNativeMergeDir = Paths.get(rootProject.projectDir.absolutePath, '..', jNativeMergeName).toFile().canonicalFile
-
-if (!jNativeMergeDir.exists()) {
-    logger.lifecycle("Cloning $jNativeMergeName dependency...")
-
-    ProcessBuilder cloneBuilder = new ProcessBuilder('git', 'clone', jNativeMergeURI, jNativeMergeName)
-    cloneBuilder.directory(jNativeMergeDir.parentFile)
-    cloneBuilder.redirectErrorStream(true)
-
-    Process clone = cloneBuilder.start()
-    def output = clone.inputStream.text
-
-    if (clone.waitFor() != 0) {
-        logger.error('Failed to clone ' + jNativeMergeURI)
-        logger.error(output)
-        throw new GradleException('Failed to clone dependencies.')
-    } else {
-        ProcessBuilder checkoutBuilder = new ProcessBuilder('git', 'checkout', jNativeMergeBranch)
-        checkoutBuilder.directory(jNativeMergeDir)
-        checkoutBuilder.redirectErrorStream(true)
-
-        Process checkout = checkoutBuilder.start()
-        output = checkout.inputStream.text
-
-        if (checkout.waitFor() != 0) {
-            logger.error('Failed to checkout ' + jNativeMergeBranch)
-            logger.error(output)
-            throw new GradleException('Failed to checkout dependencies.')
-        }
-    }
+if (!ext.JNM_MAVEN.toBoolean()) {
+    includeFlat('JNativeMerge')
 }
-
-includeFlat(jNativeMergeName)
