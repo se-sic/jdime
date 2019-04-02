@@ -35,14 +35,16 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import static de.fosd.jdime.util.parser.Content.Conflict.*;
+
 /**
  * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
  */
 public final class Parser {
 
-    private static final Pattern conflictStartPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_START + ".*");
-    private static final Pattern conflictSepPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_DELIM);
-    private static final Pattern conflictEndPattern = Pattern.compile("^" + Content.Conflict.CONFLICT_END + ".*");
+    private static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
+    private static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
+    private static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
     private static final Pattern emptyLine = Pattern.compile("\\s*");
 
     private static final Pattern whitespace = Pattern.compile("\\s+");
@@ -106,6 +108,11 @@ public final class Parser {
                     inLeft = true;
                     clocBeforeConflict = conflictingLinesOfCode;
                     conflicts++;
+
+                    String[] startAndLabel = line.split(" ");
+                    if (startAndLabel.length == 2) {
+                        res.setLeftLabel(startAndLabel[1]);
+                    }
                 } else if (matches(conflictSepPattern, line)) {
 
                     wasConflictMarker = true;
@@ -117,6 +124,11 @@ public final class Parser {
                     inConflict = false;
                     if (clocBeforeConflict == conflictingLinesOfCode) {
                         conflicts--; // the conflict only contained empty lines and comments
+                    }
+
+                    String[] endAndLabel = line.split(" ");
+                    if (endAndLabel.length == 2) {
+                        res.setRightLabel(endAndLabel[1]);
                     }
                 } else {
 
@@ -141,7 +153,11 @@ public final class Parser {
 
             if (!wasConflictMarker) {
                 if (inConflict) {
-                    res.addConflictingLine(line, inLeft);
+                    if (inLeft) {
+                        res.addConflictingLine(line, true);
+                    } else {
+                        res.addConflictingLine(line, false);
+                    }
                 } else {
                     res.addMergedLine(line);
                 }
@@ -218,6 +234,10 @@ public final class Parser {
             String line = s.nextLine();
 
             if (matches(conflictStartPattern, line)) {
+                String[] startAndLabel = line.split(" ");
+                if (startAndLabel.length == 2) {
+                    out.setLeftLabel(startAndLabel[1]);
+                }
                 if (pos == Position.AFTER_CONFLICT) {
                     while (!queue.isEmpty()) {
                         String queuedLine = queue.remove();
@@ -229,6 +249,10 @@ public final class Parser {
             } else if (matches(conflictSepPattern, line)) {
                 pos = Position.RIGHT_SIDE;
             } else if (matches(conflictEndPattern, line)) {
+                String[] endAndLabel = line.split(" ");
+                if (endAndLabel.length == 2) {
+                    out.setRightLabel(endAndLabel[1]);
+                }
                 pos = Position.AFTER_CONFLICT;
             } else {
                 switch (pos) {
