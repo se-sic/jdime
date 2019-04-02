@@ -131,7 +131,7 @@ public final class Main {
      *
      * @return the exit code for the program;
      *         a positive value if stats are enabled and there were conflicts (the sum, truncated to 127),
-     *         a negative value if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
+     *         a value >= 200 if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
      *         {@value EXIT_SUCCESS} otherwise
      */
     public static int run(String[] args) {
