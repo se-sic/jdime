@@ -88,8 +88,8 @@ public final class Main {
     private static final String MODE_LIST = "list";
 
     private static final int EXIT_SUCCESS = 0;
-    private static final int EXIT_ABORTED = -2;
-    private static final int EXIT_FAILURE = -1;
+    private static final int EXIT_ABORTED = 200;
+    private static final int EXIT_FAILURE = 210;
 
     private static JDimeConfig config;
 
@@ -129,8 +129,9 @@ public final class Main {
      *
      * @param args command line arguments
      *
-     * @return the exit code for the program; a positive value if stats are enabled and there were conflicts (the sum),
-     *         a negative value if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
+     * @return the exit code for the program;
+     *         a positive value if stats are enabled and there were conflicts (the sum, truncated to 127),
+     *         a value >= 200 if there was an error ({@link #EXIT_FAILURE}, {@link #EXIT_ABORTED}),
      *         {@value EXIT_SUCCESS} otherwise
      */
     public static int run(String[] args) {
@@ -212,9 +213,18 @@ public final class Main {
         }
 
         if (context.hasStatistics()) {
-            return (int) context.getStatistics().getConflictStatistics().getSum();
+            long conflicts = context.getStatistics().getConflictStatistics().getSum();
+            final int MAX_CONFLICTS = 127;
+
+            if (conflicts > MAX_CONFLICTS) {
+                LOG.warning("Produced " + conflicts + " conflicts. Truncating to " + MAX_CONFLICTS +
+                            " to comply with 'git merge-file'.");
+                return MAX_CONFLICTS;
+            } else {
+                return (int) conflicts;
+            }
         } else {
-            LOG.fine(() -> "Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
+            LOG.fine("Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
             return EXIT_SUCCESS;
         }
     }
