@@ -214,14 +214,17 @@ public final class Main {
 
         if (context.hasStatistics()) {
             long conflicts = context.getStatistics().getConflictStatistics().getSum();
-            // being compliant with git-merge-file, exit code is truncated to 127 if there are more than that many conflicts
-            if (conflicts >= 0 && conflicts <= 127) {
-                return (int) conflicts;
+            final int MAX_CONFLICTS = 127;
+
+            if (conflicts > MAX_CONFLICTS) {
+                LOG.warning("Produced " + conflicts + " conflicts. Truncating to " + MAX_CONFLICTS +
+                            " to comply with 'git merge-file'.");
+                return MAX_CONFLICTS;
             } else {
-                return 127;
+                return (int) conflicts;
             }
         } else {
-            LOG.fine(() -> "Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
+            LOG.fine("Statistics are not enabled, exiting with code 0 even though there might have been conflicts.");
             return EXIT_SUCCESS;
         }
     }
