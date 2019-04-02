@@ -389,10 +389,14 @@ public class FileArtifact extends Artifact<FileArtifact> {
         String mimeType = null;
         File file = getFile();
 
-        try {
-            mimeType = Files.probeContentType(file.toPath());
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
+        // Skip Files#probeContentType as it might return text/plain for empty files.
+        // Empty FileArtifacts are handled in ASTNodeArtifact#parse and produce empty ASTNodeArtifacts.
+        if (!isEmpty()) {
+            try {
+                mimeType = Files.probeContentType(file.toPath());
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
+            }
         }
 
         if (mimeType == null) {
