@@ -83,7 +83,7 @@ dependencies {
     compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
 
     if (project.ext.JNM_MAVEN.toBoolean()) {
-        compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_2'
+        compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
     } else {
         compile project(':JNativeMerge')
     }
