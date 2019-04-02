@@ -88,8 +88,8 @@ public final class Main {
     private static final String MODE_LIST = "list";
 
     private static final int EXIT_SUCCESS = 0;
-    private static final int EXIT_ABORTED = -2;
-    private static final int EXIT_FAILURE = -1;
+    private static final int EXIT_ABORTED = 200;
+    private static final int EXIT_FAILURE = 210;
 
     private static JDimeConfig config;
 
