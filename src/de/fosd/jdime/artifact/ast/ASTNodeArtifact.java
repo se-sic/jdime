@@ -98,18 +98,6 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                     }
                     throw new AbortException(msg.toString());
                 }
-
-                // log semantic errors
-                Collection<Problem> errors = cu.errors();
-                if (!errors.isEmpty() && LOG.isLoggable(FINE)) {
-                    StringBuilder msg = new StringBuilder();
-                    msg.append(String.format("Semantic errors detected by ExtendJ in %s:%s", path, System.lineSeparator()));
-                    for (Problem problem : errors) {
-                        msg.append(problem.toString() + System.lineSeparator());
-                    }
-                    LOG.fine(msg.toString());
-                }
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
