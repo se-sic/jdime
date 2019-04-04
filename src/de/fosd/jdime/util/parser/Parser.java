@@ -27,12 +27,12 @@ import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static de.fosd.jdime.util.parser.Content.Conflict.*;
@@ -41,6 +41,8 @@ import static de.fosd.jdime.util.parser.Content.Conflict.*;
  * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
  */
 public final class Parser {
+
+    private static final Logger LOG = Logger.getLogger(Parser.class.getCanonicalName());
 
     private static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
     private static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
@@ -86,6 +88,9 @@ public final class Parser {
         boolean inLeftComment = false; // whether we were in a comment when the left part of the conflict started
         boolean inLeft = true;
         boolean inComment = false;
+
+        // Whether there was an error parsing a line to count its tokens.
+        boolean tokensCounted = true;
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
@@ -139,7 +144,17 @@ public final class Parser {
                         int lineLength = whitespace.matcher(line).replaceAll("").length();
                         chars += lineLength;
 
-                        int tokenCount = getTokenCount(line);
+                        int tokenCount = 0;
+
+                        try {
+                            tokenCount = getTokenCount(line);
+                        } catch (beaver.Scanner.Exception e) {
+                            LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
+                                                            "to count its tokens. ParseResult will show 0 tokens " +
+                                                            "for the whole code fragment.");
+                            tokensCounted = false;
+                        }
+
                         tokens += tokenCount;
 
                         if (inConflict) {
@@ -169,8 +184,11 @@ public final class Parser {
         res.setConflictingLinesOfCode(conflictingLinesOfCode);
         res.setChars(chars);
         res.setConflictingChars(conflictingChars);
-        res.setTokens(tokens);
-        res.setConflictingTokens(conflictingTokens);
+
+        if (tokensCounted) {
+            res.setTokens(tokens);
+            res.setConflictingTokens(conflictingTokens);
+        }
 
         return res;
     }
@@ -182,22 +200,17 @@ public final class Parser {
      *         the line whose tokens to count
      * @return the number of tokens in the line
      */
-    private static int getTokenCount(String line) {
+    private static int getTokenCount(String line) throws beaver.Scanner.Exception {
         int tokenCount = 0;
 
         try {
             JavaScanner scanner = new JavaScanner(new StringReader(line));
 
-            try {
-                while (scanner.nextToken().getId() != JavaParser.Terminals.EOF) {
-                    tokenCount++;
-                }
-            } catch (beaver.Scanner.Exception e) {
-                // TODO: replace this with warning? add 'unknown' tokens to count?
-                throw new RuntimeException(e);
+            while (scanner.nextToken().getId() != JavaParser.Terminals.EOF) {
+                tokenCount++;
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("JavaScanner threw an IOException while parsing '" + line + "'", e);
         }
 
         return tokenCount;
