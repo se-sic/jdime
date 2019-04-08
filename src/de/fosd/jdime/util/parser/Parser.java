@@ -25,8 +25,10 @@ package de.fosd.jdime.util.parser;
 
 import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
+import org.extendj.scanner.Unicode;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -193,6 +195,42 @@ public final class Parser {
         return res;
     }
 
+    private static class ZeroReader extends Reader {
+
+        private Reader reader;
+
+        public ZeroReader(Reader reader) {
+            this.reader = reader;
+        }
+
+        @Override
+        public int read(char[] cbuf, int off, int len) throws IOException {
+            int n = reader.read(cbuf, off, len);
+
+            if (n != 0 || len <= 0) {
+                return n;
+            }
+
+            if (off < cbuf.length) {
+                int c = reader.read();
+
+                if (c == -1) {
+                    return -1;
+                }
+
+                cbuf[off] = (char) c;
+                return 1;
+            }
+
+            throw new IOException("Offset " + off + " is outside the buffer.");
+        }
+
+        @Override
+        public void close() throws IOException {
+            reader.close();
+        }
+    }
+
     /**
      * Counts the number of tokens in the given line using {@link JavaScanner}.
      *
@@ -204,7 +242,7 @@ public final class Parser {
         int tokenCount = 0;
 
         try {
-            JavaScanner scanner = new JavaScanner(new StringReader(line));
+            JavaScanner scanner = new JavaScanner(new ZeroReader(new Unicode(new StringReader(line))));
 
             while (scanner.nextToken().getId() != JavaParser.Terminals.EOF) {
                 tokenCount++;
