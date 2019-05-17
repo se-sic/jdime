@@ -42,7 +42,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import javax.activation.MimetypesFileTypeMap;
 
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
@@ -65,6 +64,7 @@ import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.util.parser.Content;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.comparator.CompositeFileComparator;
 
 import static de.fosd.jdime.stats.MergeScenarioStatus.FAILED;
@@ -87,16 +87,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     private static final String MIME_JAVA_SOURCE = "text/x-java";
 
-    /**
-     * Used for determining the content type of this <code>FileArtifact</code> if
-     * {@link Files#probeContentType(java.nio.file.Path)} fails.
-     */
-    private static final MimetypesFileTypeMap mimeMap;
-
-    static {
-        mimeMap = new MimetypesFileTypeMap();
-        mimeMap.addMimeTypes(MIME_JAVA_SOURCE + " java");
-    }
+    private static final String JAVA_SOURCE_CODE_EXTENSION = "java";
 
     /**
      * A <code>Comparator</code> to compare <code>FileArtifact</code>s by their <code>File</code>s. It considers
@@ -397,16 +388,8 @@ public class FileArtifact extends Artifact<FileArtifact> {
             } catch (IOException e) {
                 LOG.log(Level.WARNING, e, () -> "Could not probe content type of " + file);
             }
-        }
-
-        if (mimeType == null) {
-            
-            // returns application/octet-stream if the type can not be determined
-            mimeType = mimeMap.getContentType(file);
-            
-            if ("application/octet-stream".equals(mimeType)) { 
-                mimeType = null;
-            }
+        } else if (JAVA_SOURCE_CODE_EXTENSION.equals(FilenameUtils.getExtension(file.getName()))) {
+            mimeType = MIME_JAVA_SOURCE;
         }
 
         return mimeType;
