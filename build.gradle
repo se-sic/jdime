@@ -28,6 +28,7 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
+
     id "org.ajoberstar.grgit" version "3.1.1" // Used for interacting with git repositories from the buildscript.
     id "com.github.hierynomus.license" version "0.15.0"  // Used to ensure that all files contain a license header.
     id "com.scuilion.syntastic" version "0.3.8"
