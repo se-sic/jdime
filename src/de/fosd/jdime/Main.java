@@ -39,7 +39,6 @@ import de.uni_passau.fim.seibt.LibGit2;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.omg.PortableInterceptor.SUCCESSFUL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
