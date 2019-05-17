@@ -74,22 +74,22 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-io:commons-io:2.6'
-    compile 'commons-cli:commons-cli:1.4'
-    compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'commons-codec:commons-codec:1.12'
-    compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'commons-codec:commons-codec:1.12'
+    implementation 'com.thoughtworks.xstream:xstream:1.4.11.1'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'de.uni-passau.fim.seibt:kvconfig:1.0'
 
     if (project.ext.JNM_MAVEN.toBoolean()) {
-        compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
+        implementation 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
     } else {
-        compile project(':JNativeMerge')
+        implementation project(':JNativeMerge')
     }
 
-    compile files('lib/extendj.jar')
-    testCompile 'junit:junit:4.12'
+    implementation files('lib/extendj.jar')
+    testImplementation 'junit:junit:4.12'
 }
 
 if (project == getRootProject()) {
