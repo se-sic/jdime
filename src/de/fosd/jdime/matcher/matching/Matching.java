@@ -92,6 +92,7 @@ public class Matching<T extends Artifact<T>> implements Cloneable, Comparable<Ma
         this.matchedArtifacts = UnorderedTuple.of(toCopy.matchedArtifacts.getX(), toCopy.matchedArtifacts.getY());
         this.percentage = toCopy.percentage;
         this.score = toCopy.score;
+        this.fullyMatched = toCopy.fullyMatched;
     }
 
     /**
