@@ -1073,7 +1073,7 @@ public class MergeContext implements Cloneable {
      */
     public int getLookahead(KeyEnums.Type type) {
         if (lookAheads.containsKey(type)) {
-            return lookAheads.containsKey(type) ? lookAheads.get(type) : LOOKAHEAD_OFF;
+            return lookAheads.getOrDefault(type, LOOKAHEAD_OFF);
         } else {
             return lookAhead;
         }

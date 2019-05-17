@@ -193,12 +193,7 @@ public class Matchings<T extends Artifact<T>> extends HashSet<Matching<T>> {
      */
     public Optional<Integer> getScore(UnorderedTuple<T, T> artifacts) {
         Optional<Matching<T>> matching = get(artifacts);
-
-        if (matching.isPresent()) {
-            return Optional.of(matching.get().getScore());
-        } else {
-            return Optional.empty();
-        }
+        return matching.map(Matching::getScore);
     }
 
     /**

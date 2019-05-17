@@ -224,7 +224,7 @@ public class MergeScenario<T extends Artifact<T>> {
      * @return the <code>ArtifactList</code>
      */
     public List<T> asList() {
-        return artifacts.entrySet().stream().map(Map.Entry::getValue).collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
+        return artifacts.values().stream().collect(ArtifactList::new, ArrayList::add, ArrayList::addAll);
     }
 
     @Override

@@ -58,7 +58,6 @@ import org.extendj.ast.Program;
 import org.extendj.ast.TryStmt;
 
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
-import static java.util.logging.Level.FINE;
 
 /**
  * @author Olaf Lessenich
@@ -94,7 +93,7 @@ public class ASTNodeArtifact extends Artifact<ASTNodeArtifact> {
                     StringBuilder msg = new StringBuilder();
                     msg.append(String.format("Errors while parsing %s:%s", path, System.lineSeparator()));
                     for (Problem problem : parseErrors) {
-                        msg.append(problem.toString() + System.lineSeparator());
+                        msg.append(problem.toString()).append(System.lineSeparator());
                     }
                     throw new AbortException(msg.toString());
                 }

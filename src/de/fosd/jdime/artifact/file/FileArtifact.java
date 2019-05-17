@@ -109,7 +109,7 @@ public class FileArtifact extends Artifact<FileArtifact> {
      */
     public enum FileType {
         FILE,
-        DIR;
+        DIR
     }
 
     /**

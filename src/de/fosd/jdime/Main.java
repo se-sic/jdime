@@ -347,7 +347,7 @@ public final class Main {
 
         if (pos != -1) {
             name = fullName.substring(0, pos);
-            extension = fullName.substring(pos, fullName.length());
+            extension = fullName.substring(pos);
         } else {
             name = fullName;
             extension = "";

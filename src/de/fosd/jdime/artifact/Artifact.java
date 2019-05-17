@@ -151,7 +151,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         if (toCopy.variants != null) {
             this.variants = new HashMap<>();
-            toCopy.variants.entrySet().forEach(en -> variants.put(en.getKey(), Artifacts.copyTree(en.getValue())));
+            toCopy.variants.forEach((key, value) -> variants.put(key, Artifacts.copyTree(value)));
         }
 
         copyMatches(toCopy);
@@ -213,11 +213,11 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
 
         this.matches = new HashMap<>();
 
-        toCopy.matches.entrySet().forEach(en -> {
-            Matching<T> clone = en.getValue().clone();
+        toCopy.matches.forEach((key, value) -> {
+            Matching<T> clone = value.clone();
             clone.updateMatching(self(), toCopy.self());
 
-            matches.put(en.getKey(), clone);
+            matches.put(key, clone);
         });
     }
 
@@ -655,7 +655,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         logMatchings(rev);
 
         if (isChoice()) {
-            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(rev));
+            return variants.values().stream().anyMatch(var -> var.hasMatching(rev));
         } else {
             return matches.containsKey(rev);
         }
@@ -673,7 +673,7 @@ public abstract class Artifact<T extends Artifact<T>> implements Comparable<T>, 
         logMatchings(otherRev);
 
         if (isChoice()) {
-            return variants.entrySet().stream().map(Entry::getValue).anyMatch(var -> var.hasMatching(other));
+            return variants.values().stream().anyMatch(var -> var.hasMatching(other));
         } else {
             return matches.containsKey(otherRev) && matches.get(otherRev).getMatchingArtifact(this) == other;
         }

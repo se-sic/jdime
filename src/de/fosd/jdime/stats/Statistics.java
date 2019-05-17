@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Iterator;
@@ -145,7 +146,7 @@ public class Statistics {
      * @return the <code>MergeScenarioStatistics</code>
      */
     public List<MergeScenarioStatistics> getScenarioStatistics() {
-        return scenarioStatistics.values().stream().collect(Collectors.toList());
+        return new ArrayList<>(scenarioStatistics.values());
     }
 
     /**

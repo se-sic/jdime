@@ -44,7 +44,7 @@ public class ParseResultTest extends JDimeTest {
     public void setUp() throws Exception {
         res = new ParseResult();
 
-        assertTrue(res.size() == 0);
+        assertEquals(0, res.size());
         assertEquals("", res.toString());
     }
 
