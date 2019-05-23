@@ -34,6 +34,9 @@ plugins {
     id "com.github.ben-manes.versions" version "0.21.0" // Used to check for new plugin / dependency versions.
 }
 
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
