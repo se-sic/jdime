@@ -131,23 +131,9 @@ startScripts {
     defaultJvmOpts = defaultOpts
 }
 
-task guiScripts(type: CreateStartScripts) {
-    applicationName = "${rootProject.name}_GUI"
-    mainClassName = 'de.fosd.jdime.gui.GUI'
-    outputDir = startScripts.outputDir
-    classpath = startScripts.classpath
-}
-
 distributions.with {
     main.with {
         def binDir = 'bin'
-
-        contents {
-            into(binDir) {
-                from(guiScripts)
-                fileMode = 0755
-            }
-        }
 
         contents {
             into binDir, {
@@ -183,7 +169,7 @@ installDist {
 }
 
 run {
-    main = 'de.fosd.jdime.gui.GUI'
+    main = 'de.fosd.jdime.Main'
 }
 
 test {
