@@ -87,6 +87,14 @@ public abstract class Content {
         private List<String> rightLines;
 
         /**
+         * This is true if the {@link Parser} determined that this {@link Conflict} consists only of lines
+         * that are empty or comments / documentation. These lines are not included in the AST and as such can not
+         * produce conflicts in structured strategies but may conflict in the linebased strategy. Including these
+         * conflicts would therefore put the linebased strategy at a disadvantage.
+         */
+        private boolean filtered;
+
+        /**
          * Constructs a new <code>Conflict</code> instance.
          */
         Conflict() {
@@ -142,6 +150,35 @@ public abstract class Content {
         public void clear() {
             leftLines.clear();
             rightLines.clear();
+        }
+
+        /**
+         * Returns whether this conflict was filtered by the {@link Parser}.
+         *
+         * @return whether this {@link Conflict} was filtered
+         * @see #filtered
+         */
+        public boolean isFiltered() {
+            return filtered;
+        }
+
+        /**
+         * Filters this {@link Conflict}.
+         *
+         * @see #filtered
+         */
+        public void setFiltered() {
+            setFiltered(true);
+        }
+
+        /**
+         * Sets whether this {@link Conflict} was filtered.
+         *
+         * @param filtered whether the {@link Conflict} is filtered
+         * @see #filtered
+         */
+        public void setFiltered(boolean filtered) {
+            this.filtered = filtered;
         }
 
         @Override
