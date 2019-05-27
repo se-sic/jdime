@@ -253,6 +253,15 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
+     * Returns the last {@link Content} added to this {@link ParseResult}.
+     *
+     * @return the last {@link Content} or {@code null}
+     */
+    Content getLast() {
+        return isEmpty() ? null : get(size() - 1);
+    }
+
+    /**
      * {@inheritDoc}
      * <br><br>
      * The {@link Content.Conflict Conflicts} in this {@link ParseResult} will be labeled using the labels set via

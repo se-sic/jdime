@@ -130,6 +130,7 @@ public final class Parser {
                     wasConflictMarker = true;
                     inConflict = false;
                     if (clocBeforeConflict == conflictingLinesOfCode) {
+                        ((Conflict) res.getLast()).setFiltered();
                         conflicts--; // the conflict only contained empty lines and comments
                     }
 

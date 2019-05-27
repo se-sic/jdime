@@ -74,5 +74,14 @@ public class ParserTest extends JDimeTest {
         assertEquals(1, result.getConflicts());
         assertEquals(2, result.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
+
+        file = file(resultsDir, "linebased", "ParserTest", "FilteredConflicts.java");
+        code = FileUtils.readFileToString(file, UTF_8);
+        result = Parser.parse(code);
+
+        assertEquals(10, result.getLinesOfCode());
+        assertEquals(0, result.getConflicts());
+        assertEquals(0, result.getConflictingLinesOfCode());
+        assertEquals(normalize(code), normalize(result.toString()));
     }
 }
