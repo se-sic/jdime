@@ -46,16 +46,17 @@ public final class Parser {
 
     private static final Logger LOG = Logger.getLogger(Parser.class.getCanonicalName());
 
-    private static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
-    private static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
-    private static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
-    private static final Pattern emptyLine = Pattern.compile("\\s*");
+    static final Pattern emptyLine = Pattern.compile("\\s*");
+    static final Pattern whitespace = Pattern.compile("\\s+");
 
-    private static final Pattern whitespace = Pattern.compile("\\s+");
-    private static final Pattern lineComment = Pattern.compile("\\s*//.*");
-    private static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
-    private static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
-    private static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
+    static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
+    static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
+    static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
+
+    static final Pattern lineComment = Pattern.compile("\\s*//.*");
+    static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
+    static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
+    static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
 
     /**
      * Utility class.
