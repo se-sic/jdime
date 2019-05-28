@@ -24,6 +24,7 @@
 package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,16 +37,29 @@ public class ParseResult extends ArrayList<Content> {
 
     private static final long serialVersionUID = 1L;
 
-    private int linesOfCode;
+    /**
+     * The last {@link #hashCode()} for which the statistics below were calculated. This is used for lazy
+     * (re)initialization of these attributes.
+     */
+    private Optional<Integer> statsHash;
+
     private int conflicts;
-    private int chars;
-    private int tokens;
-    private int conflictingChars;
+
+    private int linesOfCode;
     private int conflictingLinesOfCode;
+
+    private int chars;
+    private int conflictingChars;
+
+    private int tokens;
     private int conflictingTokens;
 
     private String leftLabel = Content.Conflict.DEFAULT_LABEL;
     private String rightLabel = Content.Conflict.DEFAULT_LABEL;
+
+    public ParseResult() {
+        this.statsHash = Optional.empty();
+    }
 
     /**
      * Returns the lines of code.
