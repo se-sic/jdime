@@ -24,8 +24,11 @@
 package de.fosd.jdime.util.parser;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static de.fosd.jdime.util.parser.Content.*;
 
 /**
  * A <code>List</code> of <code>Content</code> instances resulting from a run of {@link Parser#parse(String)}.
@@ -54,8 +57,8 @@ public class ParseResult extends ArrayList<Content> {
     private int tokens;
     private int conflictingTokens;
 
-    private String leftLabel = Content.Conflict.DEFAULT_LABEL;
-    private String rightLabel = Content.Conflict.DEFAULT_LABEL;
+    private String leftLabel = Conflict.DEFAULT_LABEL;
+    private String rightLabel = Conflict.DEFAULT_LABEL;
 
     public ParseResult() {
         this.statsHash = Optional.empty();
@@ -191,7 +194,7 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     * Sets the label for the left side of any {@link Conflict} in this {@link ParseResult}.
      *
      * @param leftLabel the label for the left side
      */
@@ -200,7 +203,7 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     * Sets the label for the left side of any {@link Conflict} in this {@link ParseResult}.
      *
      * @param rightLabel the label for the right side
      */
@@ -214,55 +217,54 @@ public class ParseResult extends ArrayList<Content> {
      * @param line
      *         the line to add
      */
-    public void addMergedLine(String line) {
-        Content.Merged lines;
+    public void addMergedLine(String line, boolean comment) {
+        Merged lines;
 
         if (isEmpty()) {
-            lines = new Content.Merged();
+            lines = new Merged();
             add(lines);
         } else {
             Content content = get(size() - 1);
 
             if (!content.isConflict()) {
-                lines = (Content.Merged) content;
+                lines = (Merged) content;
             } else {
-                lines = new Content.Merged();
+                lines = new Merged();
                 add(lines);
             }
         }
 
-        lines.add(line);
+        lines.add(line, comment);
     }
 
     /**
      * Adds a line that is part of a conflict to the <code>ParseResult</code>.
      *
-     * @param line
-     *         the line to add
-     * @param left
-     *         true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     * @param line    the line to add
+     * @param left    true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     * @param comment whether the line is part of a comment
      */
-    public void addConflictingLine(String line, boolean left) {
-        Content.Conflict conflict;
+    public void addConflictingLine(String line, boolean left, boolean comment) {
+        Conflict conflict;
 
         if (isEmpty()) {
-            conflict = new Content.Conflict();
+            conflict = new Conflict();
             add(conflict);
         } else {
             Content content = get(size() - 1);
 
             if (content.isConflict()) {
-                conflict = (Content.Conflict) content;
+                conflict = (Conflict) content;
             } else {
-                conflict = new Content.Conflict();
+                conflict = new Conflict();
                 add(conflict);
             }
         }
 
         if (left) {
-            conflict.addLeft(line);
+            conflict.addLeft(line, comment);
         } else {
-            conflict.addRight(line);
+            conflict.addRight(line, comment);
         }
     }
 
@@ -278,7 +280,7 @@ public class ParseResult extends ArrayList<Content> {
     /**
      * {@inheritDoc}
      * <br><br>
-     * The {@link Content.Conflict Conflicts} in this {@link ParseResult} will be labeled using the labels set via
+     * The {@link Conflict Conflicts} in this {@link ParseResult} will be labeled using the labels set via
      * {@link #setLeftLabel(String)} and {@link #setRightLabel(String)}.
      *
      * @see Content#toString(String, String)
@@ -290,7 +292,7 @@ public class ParseResult extends ArrayList<Content> {
 
     /**
      * Returns a {@link String} representation of this {@link ParseResult}. The given labels will be applied to the
-     * sides of any {@link Content.Conflict} elements in this {@link ParseResult}.
+     * sides of any {@link Conflict} elements in this {@link ParseResult}.
      *
      * @param leftLabel  the label for the left side of any conflict in the {@link ParseResult}
      * @param rightLabel the label for the right side of any conflict in the {@link ParseResult}

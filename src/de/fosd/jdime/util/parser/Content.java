@@ -26,6 +26,7 @@ package de.fosd.jdime.util.parser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The <code>Parser</code> generates a list of <code>Content</code> instances that represent the parts that the parsed
@@ -36,12 +37,60 @@ public abstract class Content {
 
     private static final Logger LOG = Logger.getLogger(Content.class.getCanonicalName());
 
+    public static class LineOfCode {
+
+        public final String line;
+        public final boolean comment;
+
+        public LineOfCode(String line, boolean comment) {
+            this.line = line;
+            this.comment = comment;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public boolean isComment() {
+            return comment;
+        }
+
+        @Override
+        public String toString() {
+            return line;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            LineOfCode that = (LineOfCode) o;
+
+            if (comment != that.comment) return false;
+            return line.equals(that.line);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = line.hashCode();
+            result = 31 * result + (comment ? 1 : 0);
+            return result;
+        }
+    }
+
     /**
      * A list of lines of code that were not part of a conflict.
      */
     public static class Merged extends Content {
 
-        private List<String> lines;
+        private List<LineOfCode> lines;
 
         /**
          * Constructs a new <code>Merged</code> instance.
@@ -54,16 +103,16 @@ public abstract class Content {
         /**
          * Adds a line of code to this <code>Merged</code> instance.
          *
-         * @param line
-         *         the line to add
+         * @param line    the line to add
+         * @param comment whether the line is part of a comment
          */
-        public void add(String line) {
-            lines.add(line);
+        public void add(String line, boolean comment) {
+            lines.add(new LineOfCode(line, comment));
         }
 
         @Override
         public String toString() {
-            return String.join(System.lineSeparator(), lines);
+            return lines.stream().map(LineOfCode::getLine).collect(Collectors.joining(System.lineSeparator()));
         }
 
         @Override
@@ -102,8 +151,8 @@ public abstract class Content {
         public static final String CONFLICT_END = new String(new char[MARKER_SIZE]).replace("\0", ">");
         public static final String DEFAULT_LABEL = "UNLABELED";
 
-        private List<String> leftLines;
-        private List<String> rightLines;
+        private List<LineOfCode> leftLines;
+        private List<LineOfCode> rightLines;
 
         /**
          * This is true if the {@link Parser} determined that this {@link Conflict} consists only of lines
@@ -137,21 +186,21 @@ public abstract class Content {
         /**
          * Adds a line to the left side of this <code>Conflict</code>.
          *
-         * @param line
-         *         the line to add
+         * @param line    the line to add
+         * @param comment whether the line is part of a comment
          */
-        public void addLeft(String line) {
-            leftLines.add(line);
+        public void addLeft(String line, boolean comment) {
+            leftLines.add(new LineOfCode(line, comment));
         }
 
         /**
          * Adds a line to the right side of this <code>Conflict</code>.
          *
-         * @param line
-         *         the line to add
+         * @param line    the line to add
+         * @param comment whether the line is part of a comment
          */
-        public void addRight(String line) {
-            rightLines.add(line);
+        public void addRight(String line, boolean comment) {
+            rightLines.add(new LineOfCode(line, comment));
         }
 
         /**
@@ -212,11 +261,11 @@ public abstract class Content {
 
             b.append(CONFLICT_START).append(" ").append(leftLabel).append(ls);
             if (!leftLines.isEmpty()) {
-                b.append(String.join(ls, leftLines)).append(ls);
+                b.append(leftLines.stream().map(LineOfCode::getLine).collect(Collectors.joining(ls))).append(ls);
             }
             b.append(CONFLICT_DELIM).append(ls);
             if (!rightLines.isEmpty()) {
-                b.append(String.join(ls, rightLines)).append(ls);
+                b.append(rightLines.stream().map(LineOfCode::getLine).collect(Collectors.joining(ls))).append(ls);
             }
             b.append(CONFLICT_END).append(" ").append(rightLabel);
 

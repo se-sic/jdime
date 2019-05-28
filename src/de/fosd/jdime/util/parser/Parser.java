@@ -171,13 +171,9 @@ public final class Parser {
 
             if (!wasConflictMarker) {
                 if (inConflict) {
-                    if (inLeft) {
-                        res.addConflictingLine(line, true);
-                    } else {
-                        res.addConflictingLine(line, false);
-                    }
+                    res.addConflictingLine(line, inLeft, inComment);
                 } else {
-                    res.addMergedLine(line);
+                    res.addMergedLine(line, inComment);
                 }
             }
         }
@@ -293,8 +289,8 @@ public final class Parser {
                 if (pos == Position.AFTER_CONFLICT) {
                     while (!queue.isEmpty()) {
                         String queuedLine = queue.remove();
-                        out.addConflictingLine(queuedLine, true);
-                        out.addConflictingLine(queuedLine, false);
+                        out.addConflictingLine(queuedLine, true, false);
+                        out.addConflictingLine(queuedLine, false, false);
                     }
                 }
                 pos = Position.LEFT_SIDE;
@@ -309,10 +305,10 @@ public final class Parser {
             } else {
                 switch (pos) {
                     case LEFT_SIDE:
-                        out.addConflictingLine(line, true);
+                        out.addConflictingLine(line, true, false);
                         break;
                     case RIGHT_SIDE:
-                        out.addConflictingLine(line, false);
+                        out.addConflictingLine(line, false, false);
                         break;
                     case AFTER_CONFLICT:
                         // lines containing only whitespaces are queued
@@ -322,8 +318,8 @@ public final class Parser {
                         // intentional fallthrough because the current line has to be appended
                         // if it's clear that we are done with the conflict
                     case NO_CONFLICT:
-                        while (!queue.isEmpty()) { out.addMergedLine(queue.remove()); }
-                        out.addMergedLine(line);
+                        while (!queue.isEmpty()) { out.addMergedLine(queue.remove(), false); }
+                        out.addMergedLine(line, false);
                         break;
                 }
             }
