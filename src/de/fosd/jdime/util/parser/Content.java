@@ -23,10 +23,10 @@
  */
 package de.fosd.jdime.util.parser;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The <code>Parser</code> generates a list of <code>Content</code> instances that represent the parts that the parsed
@@ -40,10 +40,13 @@ public abstract class Content {
     public static class LineOfCode {
 
         public final String line;
+
+        public final boolean empty;
         public final boolean comment;
 
         public LineOfCode(String line, boolean comment) {
             this.line = line;
+            this.empty = Parser.emptyLine.matcher(line).matches();
             this.comment = comment;
         }
 
@@ -110,6 +113,15 @@ public abstract class Content {
             lines.add(new LineOfCode(line, comment));
         }
 
+        /**
+         * Returns an unmodifiable view of the lines of this merged part of code.
+         *
+         * @return the lines
+         */
+        public List<LineOfCode> getLines() {
+            return Collections.unmodifiableList(lines);
+        }
+
         @Override
         public String toString() {
             return lines.stream().map(LineOfCode::getLine).collect(Collectors.joining(System.lineSeparator()));
@@ -161,6 +173,7 @@ public abstract class Content {
          * conflicts would therefore put the linebased strategy at a disadvantage.
          */
         private boolean filtered;
+        private Optional<Integer> filteredHash;
 
         /**
          * Constructs a new <code>Conflict</code> instance.
@@ -169,6 +182,9 @@ public abstract class Content {
             super(true);
             this.leftLines = new ArrayList<>();
             this.rightLines = new ArrayList<>();
+
+            this.filtered = false;
+            this.filteredHash = Optional.empty();
         }
 
         /**
@@ -194,6 +210,15 @@ public abstract class Content {
         }
 
         /**
+         * Returns an unmodifiable view of the left lines of this {@link Conflict}.
+         *
+         * @return the left lines of the conflict
+         */
+        public List<LineOfCode> getLeftLines() {
+            return Collections.unmodifiableList(leftLines);
+        }
+
+        /**
          * Adds a line to the right side of this <code>Conflict</code>.
          *
          * @param line    the line to add
@@ -201,6 +226,15 @@ public abstract class Content {
          */
         public void addRight(String line, boolean comment) {
             rightLines.add(new LineOfCode(line, comment));
+        }
+
+        /**
+         * Returns an unmodifiable view of the right lines of this {@link Conflict}.
+         *
+         * @return the right lines of the conflict
+         */
+        public List<LineOfCode> getRightLines() {
+            return Collections.unmodifiableList(rightLines);
         }
 
         /**
@@ -227,26 +261,14 @@ public abstract class Content {
          * @see #filtered
          */
         public boolean isFiltered() {
+            int filteredHash = Objects.hash(leftLines, rightLines);
+
+            if (!this.filteredHash.isPresent() || this.filteredHash.get() != filteredHash) {
+                this.filtered = Stream.concat(leftLines.stream(), rightLines.stream()).allMatch(l -> l.comment || l.empty);
+                this.filteredHash = Optional.of(filteredHash);
+            }
+
             return filtered;
-        }
-
-        /**
-         * Filters this {@link Conflict}.
-         *
-         * @see #filtered
-         */
-        public void setFiltered() {
-            setFiltered(true);
-        }
-
-        /**
-         * Sets whether this {@link Conflict} was filtered.
-         *
-         * @param filtered whether the {@link Conflict} is filtered
-         * @see #filtered
-         */
-        public void setFiltered(boolean filtered) {
-            this.filtered = filtered;
         }
 
         @Override

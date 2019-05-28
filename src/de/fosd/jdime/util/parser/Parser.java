@@ -75,47 +75,39 @@ public final class Parser {
         Scanner s = new Scanner(code);
         ParseResult res = new ParseResult();
 
-        int conflicts = 0;
-
-        int chars = 0;
-        int conflictingChars = 0;
-
-        int tokens = 0;
-        int conflictingTokens = 0;
-
-        int linesOfCode = 0;
-        int conflictingLinesOfCode = 0;
-        int clocBeforeConflict = 0; // cloc = conflicting lines of code
-
-        boolean inConflict = false;
-        boolean inLeftComment = false; // whether we were in a comment when the left part of the conflict started
-        boolean inLeft = true;
-        boolean inComment = false;
-
-        // Whether there was an error parsing a line to count its tokens.
-        boolean tokensCounted = true;
+        boolean inConflict = false; // Whether we are in a conflict
+        boolean inLeftBlockComment = false; // Whether we were in a comment when the left part of the conflict started
+        boolean inLeft = true; // Whether we are parsing the left side of a conflict (or the right)
+        boolean inBlockComment = false; // Whether we are in a block comment
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
-            boolean wasConflictMarker = false;
 
-            if (!matches(emptyLine, line) && !matches(lineComment, line)) {
-                if (matches(blockCommentStart, line)) {
+            boolean wasLineComment = inBlockComment; // Whether the line is commented out
+            boolean wasConflictMarker = false; // Whether the line  is a conflict marker
+
+            if (!matches(emptyLine, line)) {
+
+                if (matches(lineComment, line)) {
+
+                    wasLineComment = true;
+                } else if (matches(blockCommentStart, line)) {
+
+                    wasLineComment = true;
 
                     if (!matches(blockComment1Line, line)) {
-                        inComment = true;
+                        inBlockComment = true;
                     }
                 } else if (matches(blockCommentEnd, line)) {
 
-                    inComment = false;
+                    wasLineComment = true;
+                    inBlockComment = false;
                 } else if (matches(conflictStartPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = true;
-                    inLeftComment = inComment;
+                    inLeftBlockComment = inBlockComment;
                     inLeft = true;
-                    clocBeforeConflict = conflictingLinesOfCode;
-                    conflicts++;
 
                     String[] startAndLabel = line.split(" ");
                     if (startAndLabel.length == 2) {
@@ -124,70 +116,27 @@ public final class Parser {
                 } else if (matches(conflictSepPattern, line)) {
 
                     wasConflictMarker = true;
-                    inComment = inLeftComment;
+                    inBlockComment = inLeftBlockComment;
                     inLeft = false;
                 } else if (matches(conflictEndPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = false;
-                    if (clocBeforeConflict == conflictingLinesOfCode) {
-                        ((Conflict) res.getLast()).setFiltered();
-                        conflicts--; // the conflict only contained empty lines and comments
-                    }
 
                     String[] endAndLabel = line.split(" ");
                     if (endAndLabel.length == 2) {
                         res.setRightLabel(endAndLabel[1]);
-                    }
-                } else {
-
-                    if (!inComment) {
-                        linesOfCode++;
-
-                        // We only count non-whitespace characters to normalize the results over linebased/structured.
-                        int lineLength = whitespace.matcher(line).replaceAll("").length();
-                        chars += lineLength;
-
-                        int tokenCount = 0;
-
-                        try {
-                            tokenCount = getTokenCount(line);
-                        } catch (beaver.Scanner.Exception e) {
-                            LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
-                                                            "to count its tokens. ParseResult will show 0 tokens " +
-                                                            "for the whole code fragment.");
-                            tokensCounted = false;
-                        }
-
-                        tokens += tokenCount;
-
-                        if (inConflict) {
-                            conflictingLinesOfCode++;
-                            conflictingChars += lineLength;
-                            conflictingTokens += tokenCount;
-                        }
                     }
                 }
             }
 
             if (!wasConflictMarker) {
                 if (inConflict) {
-                    res.addConflictingLine(line, inLeft, inComment);
+                    res.addConflictingLine(line, inLeft, wasLineComment);
                 } else {
-                    res.addMergedLine(line, inComment);
+                    res.addMergedLine(line, wasLineComment);
                 }
             }
-        }
-
-        res.setConflicts(conflicts);
-        res.setLinesOfCode(linesOfCode);
-        res.setConflictingLinesOfCode(conflictingLinesOfCode);
-        res.setChars(chars);
-        res.setConflictingChars(conflictingChars);
-
-        if (tokensCounted) {
-            res.setTokens(tokens);
-            res.setConflictingTokens(conflictingTokens);
         }
 
         return res;
@@ -236,7 +185,7 @@ public final class Parser {
      *         the line whose tokens to count
      * @return the number of tokens in the line
      */
-    private static int getTokenCount(String line) throws beaver.Scanner.Exception {
+    static int getTokenCount(String line) throws beaver.Scanner.Exception {
         int tokenCount = 0;
 
         try {
