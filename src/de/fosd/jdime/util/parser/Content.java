@@ -70,6 +70,25 @@ public abstract class Content {
         public String toString(String leftLabel, String rightLabel) {
             return toString();
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Merged merged = (Merged) o;
+            return lines.equals(merged.lines);
+        }
+
+        @Override
+        public int hashCode() {
+            return lines.hashCode();
+        }
     }
 
     /**
@@ -202,6 +221,37 @@ public abstract class Content {
             b.append(CONFLICT_END).append(" ").append(rightLabel);
 
             return b.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Conflict conflict = (Conflict) o;
+
+            if (filtered != conflict.filtered) {
+                return false;
+            }
+
+            if (!leftLines.equals(conflict.leftLines)) {
+                return false;
+            }
+
+            return rightLines.equals(conflict.rightLines);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = leftLines.hashCode();
+            result = 31 * result + rightLines.hashCode();
+            result = 31 * result + (filtered ? 1 : 0);
+            return result;
         }
     }
 
