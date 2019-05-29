@@ -200,6 +200,10 @@ public final class Parser {
         return tokenCount;
     }
 
+    static ContentStats calcStats(Content content) {
+        return null;
+    }
+
     /**
      * Returns whether the given <code>Pattern</code> matches the <code>line</code>.
      *

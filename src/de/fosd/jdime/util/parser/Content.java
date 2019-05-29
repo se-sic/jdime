@@ -23,7 +23,7 @@
  */
 package de.fosd.jdime.util.parser;
 
-import java.util.logging.Logger;
+import java.util.Optional;
 
 /**
  * The <code>Parser</code> generates a list of <code>Content</code> instances that represent the parts that the parsed
@@ -32,9 +32,10 @@ import java.util.logging.Logger;
  */
 public abstract class Content {
 
-    private static final Logger LOG = Logger.getLogger(Content.class.getCanonicalName());
-
     private final boolean isConflict;
+
+    private Optional<Integer> statsHash;
+    private ContentStats stats;
 
     /**
      * Constructs a new <code>Content</code> piece.
@@ -55,6 +56,22 @@ public abstract class Content {
         return isConflict;
     }
 
+    /**
+     * Returns the {@link ContentStats} accumulated over the lines that are part of this {@link Content}.
+     *
+     * @return the {@link ContentStats} for this {@link Content}
+     */
+    public ContentStats getStats() {
+        int statsHash = hashCode();
+
+        if (!this.statsHash.isPresent() || this.statsHash.get() != statsHash) {
+            this.stats = Parser.calcStats(this);
+            this.statsHash = Optional.of(statsHash);
+        }
+
+        return this.stats;
+    }
+
     @Override
     public abstract String toString();
 
@@ -67,4 +84,10 @@ public abstract class Content {
      * @return a <code>String</code> representing this piece of <code>Content</code>
      */
     public abstract String toString(String leftLabel, String rightLabel);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract boolean equals(Object obj);
 }
