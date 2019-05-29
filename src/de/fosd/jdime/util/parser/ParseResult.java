@@ -63,6 +63,9 @@ public class ParseResult extends ArrayList<Content> {
     private String leftLabel = Conflict.DEFAULT_LABEL;
     private String rightLabel = Conflict.DEFAULT_LABEL;
 
+    /**
+     * Constructs an empty {@link ParseResult}.
+     */
     public ParseResult() {
         this.statsHash = Optional.empty();
     }
