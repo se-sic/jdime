@@ -258,11 +258,8 @@ public class ParseResult extends ArrayList<Content> {
                     continue;
                 }
 
-                linesOfCode += 1;
-
                 // We only count non-whitespace characters to normalize the results over linebased/structured.
                 int dChars = Parser.whitespace.matcher(line.line).replaceAll("").length();
-                chars += dChars;
 
                 int dTokens = 0;
 
@@ -273,6 +270,8 @@ public class ParseResult extends ArrayList<Content> {
                             "to count its tokens. ParseResult will record 0 tokens for the line.");
                 }
 
+                linesOfCode += 1;
+                chars += dChars;
                 tokens += dTokens;
 
                 if (part.isConflict()) {
