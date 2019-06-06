@@ -316,14 +316,15 @@ public class MergeScenarioStatistics {
      */
     public ParseResult addLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
+        CodeStatistics cs = result.getStats();
 
-        charStatistics.incrementTotal(result.getChars());
-        charStatistics.incrementNumOccurInConflict(result.getConflictingChars());
-        tokenStatistics.incrementTotal(result.getTokens());
-        tokenStatistics.incrementNumOccurInConflict(result.getConflictingTokens());
-        lineStatistics.incrementTotal(result.getLinesOfCode());
-        lineStatistics.incrementNumOccurInConflict(result.getConflictingLinesOfCode());
-        conflicts += result.getConflicts();
+        charStatistics.incrementTotal(cs.getChars());
+        charStatistics.incrementNumOccurInConflict(cs.getConflictingChars());
+        tokenStatistics.incrementTotal(cs.getTokens());
+        tokenStatistics.incrementNumOccurInConflict(cs.getConflictingTokens());
+        lineStatistics.incrementTotal(cs.getLinesOfCode());
+        lineStatistics.incrementNumOccurInConflict(cs.getConflictingLinesOfCode());
+        conflicts += cs.getConflicts();
 
         return result;
     }
@@ -338,14 +339,15 @@ public class MergeScenarioStatistics {
      */
     public ParseResult setLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
+        CodeStatistics cs = result.getStats();
 
-        charStatistics.setTotal(result.getChars());
-        charStatistics.setNumOccurInConflict(result.getConflictingChars());
-        tokenStatistics.setTotal(result.getTokens());
-        tokenStatistics.setNumOccurInConflict(result.getConflictingTokens());
-        lineStatistics.setTotal(result.getLinesOfCode());
-        lineStatistics.setNumOccurInConflict(result.getConflictingLinesOfCode());
-        conflicts = result.getConflicts();
+        charStatistics.setTotal(cs.getChars());
+        charStatistics.setNumOccurInConflict(cs.getConflictingChars());
+        tokenStatistics.setTotal(cs.getTokens());
+        tokenStatistics.setNumOccurInConflict(cs.getConflictingTokens());
+        lineStatistics.setTotal(cs.getLinesOfCode());
+        lineStatistics.setNumOccurInConflict(cs.getConflictingLinesOfCode());
+        conflicts = cs.getConflicts();
 
         return result;
     }

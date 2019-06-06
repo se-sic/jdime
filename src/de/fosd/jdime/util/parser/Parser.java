@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.util.parser;
 
+import de.fosd.jdime.stats.CodeStatistics;
 import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
 import org.extendj.scanner.Unicode;
@@ -30,9 +31,8 @@ import org.extendj.scanner.Unicode;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -184,7 +184,7 @@ public final class Parser {
      *         the line whose tokens to count
      * @return the number of tokens in the line
      */
-    static int getTokenCount(String line) throws beaver.Scanner.Exception {
+    private static int getTokenCount(String line) throws beaver.Scanner.Exception {
         int tokenCount = 0;
 
         try {
@@ -200,8 +200,81 @@ public final class Parser {
         return tokenCount;
     }
 
-    static ContentStats calcStats(Content content) {
-        return null;
+    /**
+     * Calculates the {@link CodeStatistics} for the given {@link Content} instance.
+     */
+    static CodeStatistics calcStats(Content content) {
+        int conflicts = 0;
+
+        int linesOfCode = 0;
+        int conflictingLinesOfCode = 0;
+
+        int chars = 0;
+        int conflictingChars = 0;
+
+        int tokens = 0;
+        int conflictingTokens = 0;
+
+        List<LineOfCode> lines = new ArrayList<>();
+
+        if (content.isConflict()) {
+            ConflictContent conflict = (ConflictContent) content;
+
+            if (!conflict.isFiltered()) {
+                conflicts += 1;
+            }
+
+            lines.addAll(conflict.getLeftLines());
+            lines.addAll(conflict.getRightLines());
+        } else {
+            MergedContent merged = (MergedContent) content;
+
+            lines.addAll(merged.getLines());
+        }
+
+        for (LineOfCode line : lines) {
+
+            if (line.empty || line.comment) {
+                continue;
+            }
+
+            // We only count non-whitespace characters to normalize the results over linebased/structured.
+            int dChars = whitespace.matcher(line.line).replaceAll("").length();
+
+            int dTokens = 0;
+
+            try {
+                dTokens = getTokenCount(line.line);
+            } catch (beaver.Scanner.Exception e) {
+                LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
+                        "to count its tokens. ParseResult will record 0 tokens for the line.");
+            }
+
+            linesOfCode += 1;
+            chars += dChars;
+            tokens += dTokens;
+
+            if (content.isConflict()) {
+                conflictingLinesOfCode += 1;
+                conflictingChars += dChars;
+                conflictingTokens += dTokens;
+            }
+        }
+
+        CodeStatistics cs = new CodeStatistics();
+
+        cs.setConflicts(conflicts);
+
+        cs.setLinesOfCode(linesOfCode);
+        cs.setConflictingLinesOfCode(conflictingLinesOfCode);
+
+        cs.setChars(chars);
+        cs.setConflictingChars(conflictingChars);
+
+        cs.setTokens(tokens);
+        cs.setConflictingTokens(conflictingTokens);
+
+        return cs;
     }
 
     /**

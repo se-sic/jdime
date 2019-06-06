@@ -26,6 +26,7 @@ package de.fosd.jdime.util.parser;
 import java.io.File;
 
 import de.fosd.jdime.JDimeTest;
+import de.fosd.jdime.stats.CodeStatistics;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -42,46 +43,51 @@ public class ParserTest extends JDimeTest {
         File file = file(resultsDir, "linebased", "SimpleTests", "Bag", "Bag2.java");
         String code = FileUtils.readFileToString(file, UTF_8);
         ParseResult result = Parser.parse(code);
+        CodeStatistics cs = result.getStats();
 
-        assertEquals(11, result.getLinesOfCode());
-        assertEquals(1, result.getConflicts());
-        assertEquals(7, result.getConflictingLinesOfCode());
+        assertEquals(11, cs.getLinesOfCode());
+        assertEquals(1, cs.getConflicts());
+        assertEquals(7, cs.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
         file = file(resultsDir, "linebased", "SimpleTests", "Bag", "Bag3.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
+        cs = result.getStats();
 
-        assertEquals(20, result.getLinesOfCode());
-        assertEquals(0, result.getConflicts());
-        assertEquals(0, result.getConflictingLinesOfCode());
+        assertEquals(20, cs.getLinesOfCode());
+        assertEquals(0, cs.getConflicts());
+        assertEquals(0, cs.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
         file = file(resultsDir, "linebased", "ParserTest", "Comments.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
+        cs = result.getStats();
 
-        assertEquals(7, result.getLinesOfCode());
-        assertEquals(0, result.getConflicts());
-        assertEquals(0, result.getConflictingLinesOfCode());
+        assertEquals(7, cs.getLinesOfCode());
+        assertEquals(0, cs.getConflicts());
+        assertEquals(0, cs.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
         file = file(resultsDir, "linebased", "ParserTest", "CommentsConflict.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
+        cs = result.getStats();
 
-        assertEquals(11, result.getLinesOfCode());
-        assertEquals(1, result.getConflicts());
-        assertEquals(2, result.getConflictingLinesOfCode());
+        assertEquals(11, cs.getLinesOfCode());
+        assertEquals(1, cs.getConflicts());
+        assertEquals(2, cs.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
 
         file = file(resultsDir, "linebased", "ParserTest", "FilteredConflicts.java");
         code = FileUtils.readFileToString(file, UTF_8);
         result = Parser.parse(code);
+        cs = result.getStats();
 
-        assertEquals(10, result.getLinesOfCode());
-        assertEquals(0, result.getConflicts());
-        assertEquals(0, result.getConflictingLinesOfCode());
+        assertEquals(10, cs.getLinesOfCode());
+        assertEquals(0, cs.getConflicts());
+        assertEquals(0, cs.getConflictingLinesOfCode());
         assertEquals(normalize(code), normalize(result.toString()));
     }
 }

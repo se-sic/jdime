@@ -23,11 +23,14 @@
  */
 package de.fosd.jdime.util.parser;
 
+import de.fosd.jdime.stats.CodeStatistics;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -46,17 +49,7 @@ public class ParseResult extends ArrayList<Content> {
      * (re)initialization of these attributes.
      */
     private Optional<Integer> statsHash;
-
-    private int conflicts;
-
-    private int linesOfCode;
-    private int conflictingLinesOfCode;
-
-    private int chars;
-    private int conflictingChars;
-
-    private int tokens;
-    private int conflictingTokens;
+    private CodeStatistics stats;
 
     private String leftLabel = ConflictContent.DEFAULT_LABEL;
     private String rightLabel = ConflictContent.DEFAULT_LABEL;
@@ -69,73 +62,19 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Returns the number of conflicts.
+     * Returns the summary statistics for all {@link Content} instances in this {@link ParseResult}.
      *
-     * @return the number of conflicts
+     * @return the summed up statistics
      */
-    public int getConflicts() {
-        calc();
-        return conflicts;
-    }
+    public CodeStatistics getStats() {
+        int statsHash = hashCode();
 
-    /**
-     * Returns the lines of code.
-     *
-     * @return the lines of code
-     */
-    public int getLinesOfCode() {
-        calc();
-        return linesOfCode;
-    }
+        if (!this.statsHash.isPresent() || this.statsHash.get() != statsHash) {
+            this.stats = stream().reduce(new CodeStatistics(), (cs, c) -> cs.add(c.getStats(), cs), CodeStatistics::add);
+            this.statsHash = Optional.of(statsHash);
+        }
 
-    /**
-     * Returns the conflicting lines of code.
-     *
-     * @return the conflicting lines of code
-     */
-    public int getConflictingLinesOfCode() {
-        calc();
-        return conflictingLinesOfCode;
-    }
-
-    /**
-     * Returns the number of non-whitespace characters.
-     *
-     * @return the number of characters
-     */
-    public int getChars() {
-        calc();
-        return chars;
-    }
-
-    /**
-     * Returns the number of non-whitespace characters in conflict.
-     *
-     * @return the number of non-whitespace characters in conflict
-     */
-    public int getConflictingChars() {
-        calc();
-        return conflictingChars;
-    }
-
-    /**
-     * Returns the number of tokens.
-     *
-     * @return the number of tokens
-     */
-    public int getTokens() {
-        calc();
-        return tokens;
-    }
-
-    /**
-     * Returns the number of tokens in conflict.
-     *
-     * @return the number of tokens in conflict
-     */
-    public int getConflictingTokens() {
-        calc();
-        return conflictingTokens;
+        return this.stats;
     }
 
     /**
@@ -211,90 +150,6 @@ public class ParseResult extends ArrayList<Content> {
         } else {
             conflict.addRight(line, comment);
         }
-    }
-
-    /**
-     * Calculates the values of the statistics field if necessary.
-     */
-    private void calc() {
-        int statsHash = hashCode();
-
-        if (this.statsHash.isPresent() && this.statsHash.get() == statsHash) {
-            return;
-        }
-
-        int conflicts = 0;
-
-        int linesOfCode = 0;
-        int conflictingLinesOfCode = 0;
-
-        int chars = 0;
-        int conflictingChars = 0;
-
-        int tokens = 0;
-        int conflictingTokens = 0;
-
-
-        for (Content part : this) {
-            List<LineOfCode> lines = new ArrayList<>();
-
-            if (part.isConflict()) {
-                ConflictContent conflict = (ConflictContent) part;
-
-                if (!conflict.isFiltered()) {
-                    conflicts += 1;
-                }
-
-                lines.addAll(conflict.getLeftLines());
-                lines.addAll(conflict.getRightLines());
-            } else {
-                MergedContent merged = (MergedContent) part;
-
-                lines.addAll(merged.getLines());
-            }
-
-            for (LineOfCode line : lines) {
-
-                if (line.empty || line.comment) {
-                    continue;
-                }
-
-                // We only count non-whitespace characters to normalize the results over linebased/structured.
-                int dChars = Parser.whitespace.matcher(line.line).replaceAll("").length();
-
-                int dTokens = 0;
-
-                try {
-                    dTokens = Parser.getTokenCount(line.line);
-                } catch (beaver.Scanner.Exception e) {
-                    LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
-                            "to count its tokens. ParseResult will record 0 tokens for the line.");
-                }
-
-                linesOfCode += 1;
-                chars += dChars;
-                tokens += dTokens;
-
-                if (part.isConflict()) {
-                    conflictingLinesOfCode += 1;
-                    conflictingChars += dChars;
-                    conflictingTokens += dTokens;
-                }
-            }
-        }
-
-        this.statsHash = Optional.of(statsHash);
-
-        this.conflicts = conflicts;
-
-        this.linesOfCode = linesOfCode;
-        this.conflictingLinesOfCode = conflictingLinesOfCode;
-
-        this.chars = chars;
-        this.conflictingChars = conflictingChars;
-
-        this.tokens = tokens;
-        this.conflictingTokens = conflictingTokens;
     }
 
     /**

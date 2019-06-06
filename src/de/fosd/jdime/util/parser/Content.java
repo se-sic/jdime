@@ -23,6 +23,8 @@
  */
 package de.fosd.jdime.util.parser;
 
+import de.fosd.jdime.stats.CodeStatistics;
+
 import java.util.Optional;
 
 /**
@@ -35,7 +37,7 @@ public abstract class Content {
     private final boolean isConflict;
 
     private Optional<Integer> statsHash;
-    private ContentStats stats;
+    private CodeStatistics stats;
 
     /**
      * Constructs a new <code>Content</code> piece.
@@ -45,6 +47,7 @@ public abstract class Content {
      */
     Content(boolean isConflict) {
         this.isConflict = isConflict;
+        this.statsHash = Optional.empty();
     }
 
     /**
@@ -57,11 +60,11 @@ public abstract class Content {
     }
 
     /**
-     * Returns the {@link ContentStats} accumulated over the lines that are part of this {@link Content}.
+     * Returns the {@link CodeStatistics} accumulated over the lines that are part of this {@link Content}.
      *
-     * @return the {@link ContentStats} for this {@link Content}
+     * @return the {@link CodeStatistics} for this {@link Content}
      */
-    public ContentStats getStats() {
+    public CodeStatistics getStats() {
         int statsHash = hashCode();
 
         if (!this.statsHash.isPresent() || this.statsHash.get() != statsHash) {
