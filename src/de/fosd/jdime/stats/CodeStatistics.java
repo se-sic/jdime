@@ -3,6 +3,8 @@ package de.fosd.jdime.stats;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.util.parser.Parser;
 
+import java.io.PrintStream;
+
 /**
  * Statistics about (a segment of) Code produced by one of the {@link MergeStrategy MergeStrategies}. This is produced
  * by the {@link Parser}.
@@ -19,6 +21,29 @@ public final class CodeStatistics {
 
     private int tokens;
     private int conflictingTokens;
+
+    /**
+     * Constructs a new, empty {@link CodeStatistics} instance.
+     */
+    public CodeStatistics() { }
+
+    /**
+     * Copies the given {@link CodeStatistics}.
+     *
+     * @param toCopy the {@link CodeStatistics} to copy
+     */
+    public CodeStatistics(CodeStatistics toCopy) {
+        this.conflicts = toCopy.conflicts;
+
+        this.linesOfCode = toCopy.linesOfCode;
+        this.conflictingLinesOfCode = toCopy.conflictingLinesOfCode;
+
+        this.chars = toCopy.chars;
+        this.conflictingChars = toCopy.conflictingChars;
+
+        this.tokens = toCopy.tokens;
+        this.conflictingTokens = toCopy.conflictingTokens;
+    }
 
     /**
      * Gets the number of conflicts.
@@ -178,6 +203,28 @@ public final class CodeStatistics {
         result.setConflictingTokens(conflictingTokens + other.conflictingTokens);
 
         return result;
+    }
+
+    /**
+     * Writes a human readable representation of this {@link CodeStatistics} object to the given
+     * <code>PrintStream</code>. Each line will be prepended by the given <code>indent</code>.
+     *
+     * @param ps
+     *         the <code>PrintStream</code> to write to
+     * @param indent
+     *         the indentation to use
+     */
+    public void print(PrintStream ps, String indent) {
+        ps.print(indent); ps.print("Conflicts:                 "); ps.println(conflicts);
+
+        ps.print(indent); ps.print("Lines of Code:             "); ps.println(linesOfCode);
+        ps.print(indent); ps.print("Conflicting Lines of Code: "); ps.println(conflictingLinesOfCode);
+
+        ps.print(indent); ps.print("Chars:                     "); ps.println(chars);
+        ps.print(indent); ps.print("Conflicting Chars:         "); ps.println(conflictingChars);
+
+        ps.print(indent); ps.print("Tokens:                    "); ps.println(tokens);
+        ps.print(indent); ps.print("Conflicting Tokens:        "); ps.println(conflictingTokens);
     }
 
     @Override
