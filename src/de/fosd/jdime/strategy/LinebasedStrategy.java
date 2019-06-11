@@ -30,7 +30,7 @@ import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Runtime;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.util.parser.Content;
+import de.fosd.jdime.util.parser.ConflictContent;
 import de.fosd.jdime.util.parser.ParseResult;
 import de.uni_passau.fim.seibt.GitMergeFileInput;
 import de.uni_passau.fim.seibt.GitMergeFileOptions;
@@ -142,7 +142,7 @@ public class LinebasedStrategy extends MergeStrategy<FileArtifact> {
         right.setContent(rightFile.getContent(), UTF_8);
         opts.their_label = rightL;
 
-        opts.marker_size = Content.Conflict.MARKER_SIZE;
+        opts.marker_size = ConflictContent.MARKER_SIZE;
 
         LibGit2.git_merge_file(res, base, left, right, opts);
 

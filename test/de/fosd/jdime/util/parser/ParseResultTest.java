@@ -58,7 +58,7 @@ public class ParseResultTest extends JDimeTest {
         }
 
         assertEquals(1, res.size());
-        assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
+        assertThat(res.get(0), is(instanceOf(MergedContent.class)));
         assertEquals(concat, res.toString());
     }
 
@@ -84,9 +84,9 @@ public class ParseResultTest extends JDimeTest {
         res.addMergedLine(lines[4], false);
 
         assertEquals(3, res.size());
-        assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
-        assertThat(res.get(1), is(instanceOf(Content.Conflict.class)));
-        assertThat(res.get(2), is(instanceOf(Content.Merged.class)));
+        assertThat(res.get(0), is(instanceOf(MergedContent.class)));
+        assertThat(res.get(1), is(instanceOf(ConflictContent.class)));
+        assertThat(res.get(2), is(instanceOf(MergedContent.class)));
         assertEquals(concat, res.toString());
     }
 }

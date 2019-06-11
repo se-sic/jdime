@@ -33,11 +33,10 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import static de.fosd.jdime.util.parser.Content.Conflict.*;
+import static de.fosd.jdime.util.parser.ConflictContent.*;
 
 /**
  * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
