@@ -23,7 +23,14 @@
  */
 package de.fosd.jdime.util.parser;
 
+import de.fosd.jdime.stats.CodeStatistics;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -34,150 +41,44 @@ import java.util.stream.Collectors;
  */
 public class ParseResult extends ArrayList<Content> {
 
+    private static final Logger LOG = Logger.getLogger(ParseResult.class.getCanonicalName());
     private static final long serialVersionUID = 1L;
 
-    private int linesOfCode;
-    private int conflicts;
-    private int chars;
-    private int tokens;
-    private int conflictingChars;
-    private int conflictingLinesOfCode;
-    private int conflictingTokens;
+    /**
+     * The last {@link #hashCode()} for which the statistics below were calculated. This is used for lazy
+     * (re)initialization of these attributes.
+     */
+    private Optional<Integer> statsHash;
+    private CodeStatistics stats;
 
-    private String leftLabel = Content.Conflict.DEFAULT_LABEL;
-    private String rightLabel = Content.Conflict.DEFAULT_LABEL;
+    private String leftLabel = ConflictContent.DEFAULT_LABEL;
+    private String rightLabel = ConflictContent.DEFAULT_LABEL;
 
     /**
-     * Returns the lines of code.
-     *
-     * @return the lines of code
+     * Constructs an empty {@link ParseResult}.
      */
-    public int getLinesOfCode() {
-        return linesOfCode;
+    public ParseResult() {
+        this.statsHash = Optional.empty();
     }
 
     /**
-     * Sets the lines of code to the new value.
+     * Returns the summary statistics for all {@link Content} instances in this {@link ParseResult}.
      *
-     * @param linesOfCode
-     *         the new lines of code
+     * @return the summed up statistics
      */
-    public void setLinesOfCode(int linesOfCode) {
-        this.linesOfCode = linesOfCode;
+    public CodeStatistics getStats() {
+        int statsHash = hashCode();
+
+        if (!this.statsHash.isPresent() || this.statsHash.get() != statsHash) {
+            this.stats = stream().reduce(new CodeStatistics(), (cs, c) -> cs.add(c.getStats(), cs), CodeStatistics::add);
+            this.statsHash = Optional.of(statsHash);
+        }
+
+        return this.stats;
     }
 
     /**
-     * Returns the number of conflicts.
-     *
-     * @return the number of conflicts
-     */
-    public int getConflicts() {
-        return conflicts;
-    }
-
-    /**
-     * Sets the number of conflicts to the new value.
-     *
-     * @param conflicts
-     *         the new number of conflicts
-     */
-    public void setConflicts(int conflicts) {
-        this.conflicts = conflicts;
-    }
-
-    /**
-     * Returns the number of non-whitespace characters.
-     *
-     * @return the number of characters
-     */
-    public int getChars() {
-        return chars;
-    }
-
-    /**
-     * Sets the number of non-whitespace characters.
-     *
-     * @param chars the new number of chars
-     */
-    public void setChars(int chars) {
-        this.chars = chars;
-    }
-
-    /**
-     * Returns the number of non-whitespace characters in conflict.
-     *
-     * @return the number of non-whitespace characters in conflict
-     */
-    public int getConflictingChars() {
-        return conflictingChars;
-    }
-
-    /**
-     * Sets the number of non-whitespace characters in conflict to the new value.
-     *
-     * @param conflictingChars the new number of conflicting chars
-     */
-    public void setConflictingChars(int conflictingChars) {
-        this.conflictingChars = conflictingChars;
-    }
-
-    /**
-     * Returns the number of tokens.
-     *
-     * @return the number of tokens
-     */
-    public int getTokens() {
-        return tokens;
-    }
-
-    /**
-     * Sets the number of tokens.
-     *
-     * @param tokens the new number of tokens
-     */
-    public void setTokens(int tokens) {
-        this.tokens = tokens;
-    }
-
-    /**
-     * Returns the number of tokens in conflict.
-     *
-     * @return the number of tokens in conflict
-     */
-    public int getConflictingTokens() {
-        return conflictingTokens;
-    }
-
-    /**
-     * Sets the number of tokens in conflict.
-     *
-     * @param conflictingTokens the new number of tokens in conflict
-     */
-    public void setConflictingTokens(int conflictingTokens) {
-        this.conflictingTokens = conflictingTokens;
-    }
-
-    /**
-     * Returns the conflicting lines of code.
-     *
-     * @return the conflicting lines of code
-     */
-    public int getConflictingLinesOfCode() {
-        return conflictingLinesOfCode;
-    }
-
-    /**
-     * Sets the conflicting lines of code to the new value.
-     *
-     * @param conflictingLinesOfCode
-     *         the new conflicting lines of code
-     */
-    public void setConflictingLinesOfCode(int conflictingLinesOfCode) {
-        this.conflictingLinesOfCode = conflictingLinesOfCode;
-    }
-
-    /**
-     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     * Sets the label for the left side of any {@link ConflictContent} in this {@link ParseResult}.
      *
      * @param leftLabel the label for the left side
      */
@@ -186,7 +87,7 @@ public class ParseResult extends ArrayList<Content> {
     }
 
     /**
-     * Sets the label for the left side of any {@link Content.Conflict} in this {@link ParseResult}.
+     * Sets the label for the left side of any {@link ConflictContent} in this {@link ParseResult}.
      *
      * @param rightLabel the label for the right side
      */
@@ -200,62 +101,61 @@ public class ParseResult extends ArrayList<Content> {
      * @param line
      *         the line to add
      */
-    public void addMergedLine(String line) {
-        Content.Merged lines;
+    public void addMergedLine(String line, boolean comment) {
+        MergedContent lines;
 
         if (isEmpty()) {
-            lines = new Content.Merged();
+            lines = new MergedContent();
             add(lines);
         } else {
             Content content = get(size() - 1);
 
             if (!content.isConflict()) {
-                lines = (Content.Merged) content;
+                lines = (MergedContent) content;
             } else {
-                lines = new Content.Merged();
+                lines = new MergedContent();
                 add(lines);
             }
         }
 
-        lines.add(line);
+        lines.add(line, comment);
     }
 
     /**
      * Adds a line that is part of a conflict to the <code>ParseResult</code>.
      *
-     * @param line
-     *         the line to add
-     * @param left
-     *         true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     * @param line    the line to add
+     * @param left    true iff the line is part of the left side of the conflict (otherwise it is part of the right side)
+     * @param comment whether the line is part of a comment
      */
-    public void addConflictingLine(String line, boolean left) {
-        Content.Conflict conflict;
+    public void addConflictingLine(String line, boolean left, boolean comment) {
+        ConflictContent conflict;
 
         if (isEmpty()) {
-            conflict = new Content.Conflict();
+            conflict = new ConflictContent();
             add(conflict);
         } else {
             Content content = get(size() - 1);
 
             if (content.isConflict()) {
-                conflict = (Content.Conflict) content;
+                conflict = (ConflictContent) content;
             } else {
-                conflict = new Content.Conflict();
+                conflict = new ConflictContent();
                 add(conflict);
             }
         }
 
         if (left) {
-            conflict.addLeft(line);
+            conflict.addLeft(line, comment);
         } else {
-            conflict.addRight(line);
+            conflict.addRight(line, comment);
         }
     }
 
     /**
      * {@inheritDoc}
      * <br><br>
-     * The {@link Content.Conflict Conflicts} in this {@link ParseResult} will be labeled using the labels set via
+     * The {@link ConflictContent Conflicts} in this {@link ParseResult} will be labeled using the labels set via
      * {@link #setLeftLabel(String)} and {@link #setRightLabel(String)}.
      *
      * @see Content#toString(String, String)
@@ -267,7 +167,7 @@ public class ParseResult extends ArrayList<Content> {
 
     /**
      * Returns a {@link String} representation of this {@link ParseResult}. The given labels will be applied to the
-     * sides of any {@link Content.Conflict} elements in this {@link ParseResult}.
+     * sides of any {@link ConflictContent} elements in this {@link ParseResult}.
      *
      * @param leftLabel  the label for the left side of any conflict in the {@link ParseResult}
      * @param rightLabel the label for the right side of any conflict in the {@link ParseResult}

@@ -23,6 +23,7 @@
  */
 package de.fosd.jdime.util.parser;
 
+import de.fosd.jdime.stats.CodeStatistics;
 import org.extendj.parser.JavaParser;
 import org.extendj.scanner.JavaScanner;
 import org.extendj.scanner.Unicode;
@@ -30,14 +31,12 @@ import org.extendj.scanner.Unicode;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import static de.fosd.jdime.util.parser.Content.Conflict.*;
+import static de.fosd.jdime.util.parser.ConflictContent.*;
 
 /**
  * Contains methods for parsing code (possibly containing conflict markers) resulting from a merge.
@@ -46,16 +45,17 @@ public final class Parser {
 
     private static final Logger LOG = Logger.getLogger(Parser.class.getCanonicalName());
 
-    private static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
-    private static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
-    private static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
-    private static final Pattern emptyLine = Pattern.compile("\\s*");
+    static final Pattern emptyLine = Pattern.compile("\\s*");
+    static final Pattern whitespace = Pattern.compile("\\s+");
 
-    private static final Pattern whitespace = Pattern.compile("\\s+");
-    private static final Pattern lineComment = Pattern.compile("\\s*//.*");
-    private static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
-    private static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
-    private static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
+    static final Pattern conflictStartPattern = Pattern.compile("^" + CONFLICT_START + "(?: .*$|$)");
+    static final Pattern conflictSepPattern = Pattern.compile("^" + CONFLICT_DELIM + "$");
+    static final Pattern conflictEndPattern = Pattern.compile("^" + CONFLICT_END + "(?: .*$|$)");
+
+    static final Pattern lineComment = Pattern.compile("\\s*//.*");
+    static final Pattern blockComment1Line = Pattern.compile("\\s*/\\*.*?\\*/\\s*");
+    static final Pattern blockCommentStart = Pattern.compile("\\s*/\\*.*");
+    static final Pattern blockCommentEnd = Pattern.compile(".*?\\*/");
 
     /**
      * Utility class.
@@ -74,47 +74,39 @@ public final class Parser {
         Scanner s = new Scanner(code);
         ParseResult res = new ParseResult();
 
-        int conflicts = 0;
-
-        int chars = 0;
-        int conflictingChars = 0;
-
-        int tokens = 0;
-        int conflictingTokens = 0;
-
-        int linesOfCode = 0;
-        int conflictingLinesOfCode = 0;
-        int clocBeforeConflict = 0; // cloc = conflicting lines of code
-
-        boolean inConflict = false;
-        boolean inLeftComment = false; // whether we were in a comment when the left part of the conflict started
-        boolean inLeft = true;
-        boolean inComment = false;
-
-        // Whether there was an error parsing a line to count its tokens.
-        boolean tokensCounted = true;
+        boolean inConflict = false; // Whether we are in a conflict
+        boolean inLeftBlockComment = false; // Whether we were in a comment when the left part of the conflict started
+        boolean inLeft = true; // Whether we are parsing the left side of a conflict (or the right)
+        boolean inBlockComment = false; // Whether we are in a block comment
 
         while (s.hasNextLine()) {
             String line = s.nextLine();
-            boolean wasConflictMarker = false;
 
-            if (!matches(emptyLine, line) && !matches(lineComment, line)) {
-                if (matches(blockCommentStart, line)) {
+            boolean wasLineComment = inBlockComment; // Whether the line is commented out
+            boolean wasConflictMarker = false; // Whether the line  is a conflict marker
+
+            if (!matches(emptyLine, line)) {
+
+                if (matches(lineComment, line)) {
+
+                    wasLineComment = true;
+                } else if (matches(blockCommentStart, line)) {
+
+                    wasLineComment = true;
 
                     if (!matches(blockComment1Line, line)) {
-                        inComment = true;
+                        inBlockComment = true;
                     }
                 } else if (matches(blockCommentEnd, line)) {
 
-                    inComment = false;
+                    wasLineComment = true;
+                    inBlockComment = false;
                 } else if (matches(conflictStartPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = true;
-                    inLeftComment = inComment;
+                    inLeftBlockComment = inBlockComment;
                     inLeft = true;
-                    clocBeforeConflict = conflictingLinesOfCode;
-                    conflicts++;
 
                     String[] startAndLabel = line.split(" ");
                     if (startAndLabel.length == 2) {
@@ -123,73 +115,27 @@ public final class Parser {
                 } else if (matches(conflictSepPattern, line)) {
 
                     wasConflictMarker = true;
-                    inComment = inLeftComment;
+                    inBlockComment = inLeftBlockComment;
                     inLeft = false;
                 } else if (matches(conflictEndPattern, line)) {
 
                     wasConflictMarker = true;
                     inConflict = false;
-                    if (clocBeforeConflict == conflictingLinesOfCode) {
-                        conflicts--; // the conflict only contained empty lines and comments
-                    }
 
                     String[] endAndLabel = line.split(" ");
                     if (endAndLabel.length == 2) {
                         res.setRightLabel(endAndLabel[1]);
-                    }
-                } else {
-
-                    if (!inComment) {
-                        linesOfCode++;
-
-                        // We only count non-whitespace characters to normalize the results over linebased/structured.
-                        int lineLength = whitespace.matcher(line).replaceAll("").length();
-                        chars += lineLength;
-
-                        int tokenCount = 0;
-
-                        try {
-                            tokenCount = getTokenCount(line);
-                        } catch (beaver.Scanner.Exception e) {
-                            LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
-                                                            "to count its tokens. ParseResult will show 0 tokens " +
-                                                            "for the whole code fragment.");
-                            tokensCounted = false;
-                        }
-
-                        tokens += tokenCount;
-
-                        if (inConflict) {
-                            conflictingLinesOfCode++;
-                            conflictingChars += lineLength;
-                            conflictingTokens += tokenCount;
-                        }
                     }
                 }
             }
 
             if (!wasConflictMarker) {
                 if (inConflict) {
-                    if (inLeft) {
-                        res.addConflictingLine(line, true);
-                    } else {
-                        res.addConflictingLine(line, false);
-                    }
+                    res.addConflictingLine(line, inLeft, wasLineComment);
                 } else {
-                    res.addMergedLine(line);
+                    res.addMergedLine(line, wasLineComment);
                 }
             }
-        }
-
-        res.setConflicts(conflicts);
-        res.setLinesOfCode(linesOfCode);
-        res.setConflictingLinesOfCode(conflictingLinesOfCode);
-        res.setChars(chars);
-        res.setConflictingChars(conflictingChars);
-
-        if (tokensCounted) {
-            res.setTokens(tokens);
-            res.setConflictingTokens(conflictingTokens);
         }
 
         return res;
@@ -255,6 +201,83 @@ public final class Parser {
     }
 
     /**
+     * Calculates the {@link CodeStatistics} for the given {@link Content} instance.
+     */
+    static CodeStatistics calcStats(Content content) {
+        int conflicts = 0;
+
+        int linesOfCode = 0;
+        int conflictingLinesOfCode = 0;
+
+        int chars = 0;
+        int conflictingChars = 0;
+
+        int tokens = 0;
+        int conflictingTokens = 0;
+
+        List<LineOfCode> lines = new ArrayList<>();
+
+        if (content.isConflict()) {
+            ConflictContent conflict = (ConflictContent) content;
+
+            if (!conflict.isFiltered()) {
+                conflicts += 1;
+            }
+
+            lines.addAll(conflict.getLeftLines());
+            lines.addAll(conflict.getRightLines());
+        } else {
+            MergedContent merged = (MergedContent) content;
+
+            lines.addAll(merged.getLines());
+        }
+
+        for (LineOfCode line : lines) {
+
+            if (line.empty || line.comment) {
+                continue;
+            }
+
+            // We only count non-whitespace characters to normalize the results over linebased/structured.
+            int dChars = whitespace.matcher(line.line).replaceAll("").length();
+
+            int dTokens = 0;
+
+            try {
+                dTokens = getTokenCount(line.line);
+            } catch (beaver.Scanner.Exception e) {
+                LOG.log(Level.WARNING, e, () -> "Exception while parsing line '" + line + "' " +
+                        "to count its tokens. ParseResult will record 0 tokens for the line.");
+            }
+
+            linesOfCode += 1;
+            chars += dChars;
+            tokens += dTokens;
+
+            if (content.isConflict()) {
+                conflictingLinesOfCode += 1;
+                conflictingChars += dChars;
+                conflictingTokens += dTokens;
+            }
+        }
+
+        CodeStatistics cs = new CodeStatistics();
+
+        cs.setConflicts(conflicts);
+
+        cs.setLinesOfCode(linesOfCode);
+        cs.setConflictingLinesOfCode(conflictingLinesOfCode);
+
+        cs.setChars(chars);
+        cs.setConflictingChars(conflictingChars);
+
+        cs.setTokens(tokens);
+        cs.setConflictingTokens(conflictingTokens);
+
+        return cs;
+    }
+
+    /**
      * Returns whether the given <code>Pattern</code> matches the <code>line</code>.
      *
      * @param p
@@ -292,8 +315,8 @@ public final class Parser {
                 if (pos == Position.AFTER_CONFLICT) {
                     while (!queue.isEmpty()) {
                         String queuedLine = queue.remove();
-                        out.addConflictingLine(queuedLine, true);
-                        out.addConflictingLine(queuedLine, false);
+                        out.addConflictingLine(queuedLine, true, false);
+                        out.addConflictingLine(queuedLine, false, false);
                     }
                 }
                 pos = Position.LEFT_SIDE;
@@ -308,10 +331,10 @@ public final class Parser {
             } else {
                 switch (pos) {
                     case LEFT_SIDE:
-                        out.addConflictingLine(line, true);
+                        out.addConflictingLine(line, true, false);
                         break;
                     case RIGHT_SIDE:
-                        out.addConflictingLine(line, false);
+                        out.addConflictingLine(line, false, false);
                         break;
                     case AFTER_CONFLICT:
                         // lines containing only whitespaces are queued
@@ -321,8 +344,8 @@ public final class Parser {
                         // intentional fallthrough because the current line has to be appended
                         // if it's clear that we are done with the conflict
                     case NO_CONFLICT:
-                        while (!queue.isEmpty()) { out.addMergedLine(queue.remove()); }
-                        out.addMergedLine(line);
+                        while (!queue.isEmpty()) { out.addMergedLine(queue.remove(), false); }
+                        out.addMergedLine(line, false);
                         break;
                 }
             }

@@ -61,7 +61,7 @@ import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.StatisticsInterface;
 import de.fosd.jdime.strategy.LinebasedStrategy;
 import de.fosd.jdime.strategy.MergeStrategy;
-import de.fosd.jdime.util.parser.Content;
+import de.fosd.jdime.util.parser.ConflictContent;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -713,18 +713,18 @@ public class FileArtifact extends Artifact<FileArtifact> {
             FileArtifact conflict = new FileArtifact(deleted);
 
             StringBuilder content = new StringBuilder();
-            content.append(Content.Conflict.CONFLICT_START);
+            content.append(ConflictContent.CONFLICT_START);
             if (deleted == left) {
                 content.append(" ").append(deleted.getRevision());
             }
             if (deleted == left) {
                 content.append(System.lineSeparator()).append(deleted.content);
             }
-            content.append(System.lineSeparator()).append(Content.Conflict.CONFLICT_DELIM);
+            content.append(System.lineSeparator()).append(ConflictContent.CONFLICT_DELIM);
             if (deleted == right) {
                 content.append(System.lineSeparator()).append(deleted.content);
             }
-            content.append(System.lineSeparator()).append(Content.Conflict.CONFLICT_END);
+            content.append(System.lineSeparator()).append(ConflictContent.CONFLICT_END);
             if (deleted == right) {
                 content.append(" ").append(deleted.getRevision());
             }

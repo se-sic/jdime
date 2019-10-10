@@ -327,6 +327,11 @@ public class Statistics {
             serializer.omitField(MergeScenarioStatistics.class, field.getName());
         }
 
+        serializer.alias(CodeStatistics.class.getSimpleName().toLowerCase(), CodeStatistics.class);
+        for (Field field : CodeStatistics.class.getDeclaredFields()) {
+            serializer.useAttributeFor(CodeStatistics.class, field.getName());
+        }
+
         serializer.alias(Runtime.class.getSimpleName().toLowerCase(), Runtime.class);
         serializer.useAttributeFor(Runtime.class, "label");
         serializer.useAttributeFor(Runtime.class, "timeMS");

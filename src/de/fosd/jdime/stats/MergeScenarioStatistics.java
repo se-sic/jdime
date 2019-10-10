@@ -26,6 +26,8 @@ package de.fosd.jdime.stats;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.util.parser.ConflictContent;
+import de.fosd.jdime.util.parser.Content;
 import de.fosd.jdime.util.parser.ParseResult;
 import de.fosd.jdime.util.parser.Parser;
 
@@ -47,12 +49,14 @@ public class MergeScenarioStatistics {
     private Map<Revision, Map<KeyEnums.Type, ElementStatistics>> typeStatistics;
     private Map<Revision, MergeStatistics> mergeStatistics;
 
+    private int conflicts;
+    private Map<Integer, CodeStatistics> conflictStatistics;
+
     private ElementStatistics charStatistics;
     private ElementStatistics tokenStatistics;
     private ElementStatistics lineStatistics;
     private ElementStatistics fileStatistics;
     private ElementStatistics directoryStatistics;
-    private int conflicts;
 
     private Map<String, Runtime> runtimes;
 
@@ -69,12 +73,13 @@ public class MergeScenarioStatistics {
         this.levelStatistics = new HashMap<>();
         this.typeStatistics = new HashMap<>();
         this.mergeStatistics = new HashMap<>();
+        this.conflicts = 0;
+        this.conflictStatistics = new HashMap<>();
         this.charStatistics = new ElementStatistics();
         this.tokenStatistics = new ElementStatistics();
         this.lineStatistics = new ElementStatistics();
         this.fileStatistics = new ElementStatistics();
         this.directoryStatistics = new ElementStatistics();
-        this.conflicts = 0;
         this.runtimes = new HashMap<>();
     }
 
@@ -124,12 +129,19 @@ public class MergeScenarioStatistics {
             this.mergeStatistics.put(entry.getKey(), new MergeStatistics(entry.getValue()));
         }
 
+        this.conflicts = toCopy.conflicts;
+
+        this.conflictStatistics = new HashMap<>(toCopy.conflictStatistics.size());
+
+        for (Map.Entry<Integer, CodeStatistics> entry : toCopy.conflictStatistics.entrySet()) {
+            this.conflictStatistics.put(entry.getKey(), new CodeStatistics(entry.getValue()));
+        }
+
         this.charStatistics = new ElementStatistics(toCopy.charStatistics);
         this.tokenStatistics = new ElementStatistics(toCopy.tokenStatistics);
         this.lineStatistics = new ElementStatistics(toCopy.lineStatistics);
         this.fileStatistics = new ElementStatistics(toCopy.fileStatistics);
         this.directoryStatistics = new ElementStatistics(toCopy.directoryStatistics);
-        this.conflicts = toCopy.conflicts;
 
         this.runtimes = new HashMap<>(toCopy.runtimes.size());
 
@@ -307,28 +319,6 @@ public class MergeScenarioStatistics {
     }
 
     /**
-     * Parses the given <code>mergeResult</code> using {@link Parser#parse(String)} and adds the resulting statistics
-     * to this <code>MergeScenarioStatistics</code>.
-     *
-     * @param mergeResult
-     *         the code to parse
-     * @return the <code>ParseResult</code> from {@link Parser#parse(String)}
-     */
-    public ParseResult addLineStatistics(String mergeResult) {
-        ParseResult result = Parser.parse(mergeResult);
-
-        charStatistics.incrementTotal(result.getChars());
-        charStatistics.incrementNumOccurInConflict(result.getConflictingChars());
-        tokenStatistics.incrementTotal(result.getTokens());
-        tokenStatistics.incrementNumOccurInConflict(result.getConflictingTokens());
-        lineStatistics.incrementTotal(result.getLinesOfCode());
-        lineStatistics.incrementNumOccurInConflict(result.getConflictingLinesOfCode());
-        conflicts += result.getConflicts();
-
-        return result;
-    }
-
-    /**
      * Parses the given <code>mergeResult</code> using {@link Parser#parse(String)} and sets the resulting statistics
      * to this <code>MergeScenarioStatistics</code>.
      *
@@ -338,14 +328,19 @@ public class MergeScenarioStatistics {
      */
     public ParseResult setLineStatistics(String mergeResult) {
         ParseResult result = Parser.parse(mergeResult);
+        CodeStatistics cs = result.getStats();
 
-        charStatistics.setTotal(result.getChars());
-        charStatistics.setNumOccurInConflict(result.getConflictingChars());
-        tokenStatistics.setTotal(result.getTokens());
-        tokenStatistics.setNumOccurInConflict(result.getConflictingTokens());
-        lineStatistics.setTotal(result.getLinesOfCode());
-        lineStatistics.setNumOccurInConflict(result.getConflictingLinesOfCode());
-        conflicts = result.getConflicts();
+        conflicts = cs.getConflicts();
+
+        conflictStatistics.clear();
+        result.stream().filter(Content::isConflict).forEach(c -> conflictStatistics.put(c.hashCode(), c.getStats()));
+
+        charStatistics.setTotal(cs.getChars());
+        charStatistics.setNumOccurInConflict(cs.getConflictingChars());
+        tokenStatistics.setTotal(cs.getTokens());
+        tokenStatistics.setNumOccurInConflict(cs.getConflictingTokens());
+        lineStatistics.setTotal(cs.getLinesOfCode());
+        lineStatistics.setNumOccurInConflict(cs.getConflictingLinesOfCode());
 
         return result;
     }
@@ -446,12 +441,19 @@ public class MergeScenarioStatistics {
             getMergeStatistics(entry.getKey()).add(entry.getValue());
         }
 
+        conflicts += other.conflicts;
+
+        /*
+         * It does not make sense to add the statistics of individual conflicts as the key of the map is the hash
+         * of the conflict the stats belong to. The maps are merged instead.
+         */
+        conflictStatistics.putAll(other.conflictStatistics);
+
         charStatistics.add(other.charStatistics);
         tokenStatistics.add(other.tokenStatistics);
         lineStatistics.add(other.lineStatistics);
         fileStatistics.add(other.fileStatistics);
         directoryStatistics.add(other.directoryStatistics);
-        conflicts += other.conflicts;
 
         for (Map.Entry<String, Runtime> entry : other.runtimes.entrySet()) {
             getRuntime(entry.getKey()).add(entry.getValue());
@@ -480,42 +482,47 @@ public class MergeScenarioStatistics {
                 os.printf("%sRuntime (%s): %dms%n", indent, label, runtime.getTimeMS())
         );
 
-        if (!matchings.isEmpty()) os.println("Matchings");
+        conflictStatistics.forEach((hash, cs) -> {
+            os.printf("Conflict Statistics (Hash %s):%n", hash);
+            cs.print(os, indent);
+        });
+
+        if (!matchings.isEmpty()) os.println("Matchings:");
         matchings.stream().sorted().forEachOrdered(matching ->
             os.printf("%s%s%n", indent, matching)
         );
 
-        if (!levelStatistics.isEmpty()) os.println("Level Statistics");
+        if (!levelStatistics.isEmpty()) os.println("Level Statistics:");
         levelStatistics.forEach((rev, map) -> map.forEach((level, stats) -> {
             os.printf("%s %s %s %s%n", Revision.class.getSimpleName(), rev, KeyEnums.Level.class.getSimpleName(), level);
             stats.print(os, indent);
         }));
 
-        if (!typeStatistics.isEmpty()) os.println("Type Statistics");
+        if (!typeStatistics.isEmpty()) os.println("Type Statistics:");
         typeStatistics.forEach((rev, map) -> map.forEach((type, stats) -> {
             os.printf("%s %s %s %s%n", Revision.class.getSimpleName(), rev, KeyEnums.Type.class.getSimpleName(), type);
             stats.print(os, indent);
         }));
 
-        if (!mergeStatistics.isEmpty()) os.println("Merge Statistics");
+        if (!mergeStatistics.isEmpty()) os.println("Merge Statistics:");
         mergeStatistics.forEach((rev, stats) -> {
             os.printf("%s %s%n", Revision.class.getSimpleName(), rev);
             stats.print(os, indent);
         });
 
-        os.println("Char statistics");
+        os.println("Char statistics:");
         charStatistics.print(os, indent);
 
-        os.println("Token statistics");
+        os.println("Token statistics:");
         tokenStatistics.print(os, indent);
 
-        os.println("Line Statistics");
+        os.println("Line Statistics:");
         lineStatistics.print(os, indent);
 
-        os.println("File Statistics");
+        os.println("File Statistics:");
         fileStatistics.print(os, indent);
 
-        os.println("Directory Statistics");
+        os.println("Directory Statistics:");
         directoryStatistics.print(os, indent);
     }
 }
