@@ -370,6 +370,13 @@ public class Statistics {
                 MergeScenario<?> mScenario = (MergeScenario<?>) source;
 
                 writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
+
+                if (mScenario.getLabel() != null) {
+                    writer.startNode("label");
+                    writer.setValue(mScenario.getLabel());
+                    writer.endNode();
+                }
+
                 c.marshal(mScenario.asList(), writer, context);
             }
 

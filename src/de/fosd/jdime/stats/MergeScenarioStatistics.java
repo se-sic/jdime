@@ -468,7 +468,10 @@ public class MergeScenarioStatistics {
     public void print(PrintStream os) {
         String indent = "    ";
 
-        os.printf("%s for %s:%n", MergeScenarioStatistics.class.getSimpleName(), MergeScenario.class.getSimpleName());
+        os.printf("%s for %s", MergeScenarioStatistics.class.getSimpleName(), MergeScenario.class.getSimpleName());
+        if (mergeScenario.getLabel() != null) { os.printf(" (%s)", mergeScenario.getLabel()); }
+        os.printf(":%n");
+
         mergeScenario.asList().forEach(artifact -> os.printf("%s%s%n", indent, artifact.getId()));
         os.println("General:");
         os.printf("%sConflicts: %s%n", indent, conflicts);

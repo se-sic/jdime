@@ -59,6 +59,8 @@ public class MergeScenario<T extends Artifact<T>> {
     private MergeType mergeType;
     private Map<Revision, T> artifacts;
 
+    private String label;
+
     /**
      * Constructs a {@link MergeType#TWOWAY} or {@link MergeType#THREEWAY} merge scenario.
      *
@@ -128,6 +130,25 @@ public class MergeScenario<T extends Artifact<T>> {
      */
     public Map<Revision, T> getArtifacts() {
         return Collections.unmodifiableMap(artifacts);
+    }
+
+    /**
+     * Returns the label for this {@link MergeScenario}.
+     *
+     * @return the label for this {@link MergeScenario}
+     */
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * Sets the label for this {@link MergeScenario}. This label is only used to convey additional info about the
+     * {@link MergeScenario} when it is serialized as part of a {@link de.fosd.jdime.stats.MergeScenarioStatistics}.
+     *
+     * @param label the new label for the {@link MergeScenario}
+     */
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     /**
