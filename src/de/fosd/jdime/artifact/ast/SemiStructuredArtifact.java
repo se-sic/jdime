@@ -230,7 +230,7 @@ public class SemiStructuredArtifact extends ASTNodeArtifact {
                     builder.append(theLine);
                 }
             } else if (line == endLine) {
-                builder.append(lines[line].substring(0, endCol + 1));
+                builder.append(lines[line], 0, endCol + 1);
             } else {
                 builder.append(lines[line]);
             }

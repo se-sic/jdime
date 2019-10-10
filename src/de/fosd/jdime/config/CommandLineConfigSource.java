@@ -71,6 +71,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_PROP_FILE = "pf";
     public static final String CLI_EXIT_ON_ERROR = "eoe";
     public static final String CLI_ACCEPT_NON_JAVA = "anj";
+    public static final String CLI_MS_LABEL = "msl";
     public static final String CLI_CM = "cm";
     public static final String CLI_CM_REMATCH_BOUND = "cmbound";
     public static final String CLI_CM_OPTIONS = "cmopts";
@@ -305,6 +306,16 @@ public class CommandLineConfigSource extends ConfigSource {
                 .longOpt("accept-non-java")
                 .desc("Whether to allow merging of non-Java files.")
                 .hasArg(false)
+                .build();
+
+        options.addOption(o);
+
+        o = Option.builder(CLI_MS_LABEL)
+                .longOpt("merge-scenario-label")
+                .desc("The label for the root merge scenario produced from the input files. This is included in the " +
+                      "statistics output.")
+                .hasArg()
+                .argName("label")
                 .build();
 
         options.addOption(o);

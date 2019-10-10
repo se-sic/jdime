@@ -44,7 +44,7 @@ public class ParseResultTest extends JDimeTest {
     public void setUp() throws Exception {
         res = new ParseResult();
 
-        assertTrue(res.size() == 0);
+        assertEquals(0, res.size());
         assertEquals("", res.toString());
     }
 
@@ -54,11 +54,11 @@ public class ParseResultTest extends JDimeTest {
         String concat = String.join(System.lineSeparator(), lines);
 
         for (String line : lines) {
-            res.addMergedLine(line);
+            res.addMergedLine(line, false);
         }
 
         assertEquals(1, res.size());
-        assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
+        assertThat(res.get(0), is(instanceOf(MergedContent.class)));
         assertEquals(concat, res.toString());
     }
 
@@ -77,16 +77,16 @@ public class ParseResultTest extends JDimeTest {
         res.setLeftLabel("ID1");
         res.setRightLabel("ID2");
 
-        res.addMergedLine(lines[0]);
-        res.addConflictingLine(lines[1], true);
-        res.addConflictingLine(lines[2], true);
-        res.addConflictingLine(lines[3], false);
-        res.addMergedLine(lines[4]);
+        res.addMergedLine(lines[0], false);
+        res.addConflictingLine(lines[1], true, false);
+        res.addConflictingLine(lines[2], true, false);
+        res.addConflictingLine(lines[3], false, false);
+        res.addMergedLine(lines[4], false);
 
         assertEquals(3, res.size());
-        assertThat(res.get(0), is(instanceOf(Content.Merged.class)));
-        assertThat(res.get(1), is(instanceOf(Content.Conflict.class)));
-        assertThat(res.get(2), is(instanceOf(Content.Merged.class)));
+        assertThat(res.get(0), is(instanceOf(MergedContent.class)));
+        assertThat(res.get(1), is(instanceOf(ConflictContent.class)));
+        assertThat(res.get(2), is(instanceOf(MergedContent.class)));
         assertEquals(concat, res.toString());
     }
 }

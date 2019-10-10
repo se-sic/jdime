@@ -86,21 +86,11 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
         Iterator<T> leftIt = left.getChildren().iterator();
         Iterator<T> rightIt = right.getChildren().iterator();
 
-        boolean leftdone = false;
-        boolean rightdone = false;
-        T leftChild = null;
-        T rightChild = null;
+        T leftChild = findNextUnmerged(leftIt);
+        boolean leftdone = leftChild == null;
 
-        if (leftIt.hasNext()) {
-            leftChild = leftIt.next();
-        } else {
-            leftdone = true;
-        }
-        if (rightIt.hasNext()) {
-            rightChild = rightIt.next();
-        } else {
-            rightdone = true;
-        }
+        T rightChild = findNextUnmerged(rightIt);
+        boolean rightdone = rightChild == null;
 
         while (!leftdone || !rightdone) {
             if (!leftdone && !r.contains(leftChild)) {
@@ -136,15 +126,12 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     // add the left change
                     AddOperation<T> addOp = new AddOperation<>(copyTree(leftChild), target, l.getName());
-                    leftChild.setMerged();
                     addOp.apply(context);
+                    leftChild.setMerged();
                 }
 
-                if (leftIt.hasNext()) {
-                    leftChild = leftIt.next();
-                } else {
-                    leftdone = true;
-                }
+                leftChild = findNextUnmerged(leftIt);
+                leftdone = leftChild == null;
             }
 
             if (!rightdone && !l.contains(rightChild)) {
@@ -178,15 +165,12 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     // add the right change
                     AddOperation<T> addOp = new AddOperation<>(copyTree(rightChild), target, r.getName());
-                    rightChild.setMerged();
                     addOp.apply(context);
+                    rightChild.setMerged();
                 }
 
-                if (rightIt.hasNext()) {
-                    rightChild = rightIt.next();
-                } else {
-                    rightdone = true;
-                }
+                rightChild = findNextUnmerged(rightIt);
+                rightdone = rightChild == null;
             } else if (l.contains(rightChild) && r.contains(leftChild)) {
                 assert (leftChild != null);
                 assert (rightChild != null);
@@ -201,9 +185,10 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                     T matchedVariant = rightChild.getMatching(l).getMatchingArtifact(rightChild);
                     leftChild.addVariant(r.getName(), matchedVariant);
                     AddOperation<T> addOp = new AddOperation<>(leftChild, target, null);
+
+                    addOp.apply(context);
                     leftChild.setMerged();
                     rightChild.setMerged();
-                    addOp.apply(context);
                 }
 
                 // merge left
@@ -227,15 +212,9 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild);
 
+                    mergeOp.apply(context);
                     leftChild.setMerged();
                     rightMatch.setMerged();
-                    mergeOp.apply(context);
-                }
-
-                if (leftIt.hasNext()) {
-                    leftChild = leftIt.next();
-                } else {
-                    leftdone = true;
                 }
 
                 // merge right
@@ -259,16 +238,16 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
 
                     MergeOperation<T> mergeOp = new MergeOperation<>(childTriple, targetChild);
 
+                    mergeOp.apply(context);
                     leftMatch.setMerged();
                     rightChild.setMerged();
-                    mergeOp.apply(context);
                 }
 
-                if (rightIt.hasNext()) {
-                    rightChild = rightIt.next();
-                } else {
-                    rightdone = true;
-                }
+                leftChild = findNextUnmerged(leftIt);
+                leftdone = leftChild == null;
+
+                rightChild = findNextUnmerged(rightIt);
+                rightdone = rightChild == null;
             }
 
             if (!context.isDiffOnly()) {
@@ -278,6 +257,27 @@ public class UnorderedMerge<T extends Artifact<T>> implements MergeInterface<T> 
                 });
             }
         }
+    }
+
+    /**
+     * Advances {@code it} until it returns an {@link Artifact} that hast not been merged already. If there is no such
+     * {@link Artifact} {@code null} will be returned.
+     *
+     * @param it the {@link Iterator} over the children being merged
+     * @return the next unmerged child {@link Artifact} or {@code null}
+     */
+    private T findNextUnmerged(Iterator<T> it) {
+        T t;
+
+        while (it.hasNext()) {
+            t = it.next();
+
+            if (!t.isMerged()) {
+                return t;
+            }
+        }
+
+        return null;
     }
 
     /**

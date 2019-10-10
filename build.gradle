@@ -28,11 +28,15 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'idea'
+
     id "org.ajoberstar.grgit" version "3.1.1" // Used for interacting with git repositories from the buildscript.
     id "com.github.hierynomus.license" version "0.15.0"  // Used to ensure that all files contain a license header.
     id "com.scuilion.syntastic" version "0.3.8"
     id "com.github.ben-manes.versions" version "0.21.0" // Used to check for new plugin / dependency versions.
 }
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
@@ -74,22 +78,22 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-io:commons-io:2.6'
-    compile 'commons-cli:commons-cli:1.4'
-    compile 'org.apache.commons:commons-math3:3.6.1'
-    compile 'commons-codec:commons-codec:1.12'
-    compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'de.uni-passau.fim.seibt:kvconfig:1.0'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'commons-codec:commons-codec:1.12'
+    implementation 'com.thoughtworks.xstream:xstream:1.4.11.1'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'de.uni-passau.fim.seibt:kvconfig:1.0'
 
     if (project.ext.JNM_MAVEN.toBoolean()) {
-        compile 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
+        implementation 'de.uni_passau.fim.seibt:jnativemerge:0.28.1_3'
     } else {
-        compile project(':JNativeMerge')
+        implementation project(':JNativeMerge')
     }
 
-    compile files('lib/extendj.jar')
-    testCompile 'junit:junit:4.12'
+    implementation files('lib/extendj.jar')
+    testImplementation 'junit:junit:4.12'
 }
 
 if (project == getRootProject()) {
@@ -131,23 +135,9 @@ startScripts {
     defaultJvmOpts = defaultOpts
 }
 
-task guiScripts(type: CreateStartScripts) {
-    applicationName = "${rootProject.name}_GUI"
-    mainClassName = 'de.fosd.jdime.gui.GUI'
-    outputDir = startScripts.outputDir
-    classpath = startScripts.classpath
-}
-
 distributions.with {
     main.with {
         def binDir = 'bin'
-
-        contents {
-            into(binDir) {
-                from(guiScripts)
-                fileMode = 0755
-            }
-        }
 
         contents {
             into binDir, {
@@ -183,7 +173,7 @@ installDist {
 }
 
 run {
-    main = 'de.fosd.jdime.gui.GUI'
+    main = 'de.fosd.jdime.Main'
 }
 
 test {
@@ -193,7 +183,7 @@ test {
 }
 
 task getTestFiles {
-    def testFilesBranchName = "feature/extendj_update"
+    def testFilesBranchName = "fixes/endless_loop_uomerge"
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
@@ -215,7 +205,7 @@ task getTestFiles {
         def grgit = Grgit.open(dir: testFilesDir)
         def remotes = grgit.remote.list()
 
-        if (remotes.find({ it.name.equals("origin") && it.url.equals(gitURI) }) == null) {
+        if (remotes.find({ it.name == "origin" && it.url == gitURI }) == null) {
             if (!testFilesDir.deleteDir()) {
                 throw new GradleException("Failed to delete " + testFilesDir)
             }

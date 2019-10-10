@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Iterator;
@@ -145,7 +146,7 @@ public class Statistics {
      * @return the <code>MergeScenarioStatistics</code>
      */
     public List<MergeScenarioStatistics> getScenarioStatistics() {
-        return scenarioStatistics.values().stream().collect(Collectors.toList());
+        return new ArrayList<>(scenarioStatistics.values());
     }
 
     /**
@@ -326,6 +327,11 @@ public class Statistics {
             serializer.omitField(MergeScenarioStatistics.class, field.getName());
         }
 
+        serializer.alias(CodeStatistics.class.getSimpleName().toLowerCase(), CodeStatistics.class);
+        for (Field field : CodeStatistics.class.getDeclaredFields()) {
+            serializer.useAttributeFor(CodeStatistics.class, field.getName());
+        }
+
         serializer.alias(Runtime.class.getSimpleName().toLowerCase(), Runtime.class);
         serializer.useAttributeFor(Runtime.class, "label");
         serializer.useAttributeFor(Runtime.class, "timeMS");
@@ -369,6 +375,13 @@ public class Statistics {
                 MergeScenario<?> mScenario = (MergeScenario<?>) source;
 
                 writer.addAttribute(TYPE_ATTR, mScenario.getMergeType().toString());
+
+                if (mScenario.getLabel() != null) {
+                    writer.startNode("label");
+                    writer.setValue(mScenario.getLabel());
+                    writer.endNode();
+                }
+
                 c.marshal(mScenario.asList(), writer, context);
             }
 

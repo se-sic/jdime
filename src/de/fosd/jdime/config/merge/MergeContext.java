@@ -154,6 +154,13 @@ public class MergeContext implements Cloneable {
     private boolean acceptNonJava;
 
     /**
+     * A label for the root {@link MergeScenario} produced from the input files. This is included in the statistics
+     * output and was introduced because {@code git merge} scrambles the paths of the files it passes to a merge driver.
+     * This made it impossible to determine which file of the repository was merged based on the statistics XML.
+     */
+    private String mergeScenarioLabel;
+
+    /**
      * Strategy to apply for the merge.
      */
     private MergeStrategy<FileArtifact> mergeStrategy;
@@ -593,6 +600,7 @@ public class MergeContext implements Cloneable {
         config.getBoolean(CLI_QUIET).ifPresent(this::setQuiet);
 
         config.getBoolean(CLI_ACCEPT_NON_JAVA).ifPresent(this::setAcceptNonJava);
+        config.get(CLI_MS_LABEL).ifPresent(this::setMergeScenarioLabel);
 
         Optional<String> args = config.get(CommandLineConfigSource.ARG_LIST);
 
@@ -931,6 +939,24 @@ public class MergeContext implements Cloneable {
     }
 
     /**
+     * Returns the label for the root {@link MergeScenario}.
+     *
+     * @return the label
+     */
+    public String getMergeScenarioLabel() {
+        return mergeScenarioLabel;
+    }
+
+    /**
+     * Sets the label for the root {@link MergeScenario}.
+     *
+     * @param mergeScenarioLabel the new label
+     */
+    private void setMergeScenarioLabel(String mergeScenarioLabel) {
+        this.mergeScenarioLabel = mergeScenarioLabel;
+    }
+
+    /**
      * Returns true if the output is quiet.
      *
      * @return if output is quiet
@@ -1073,7 +1099,7 @@ public class MergeContext implements Cloneable {
      */
     public int getLookahead(KeyEnums.Type type) {
         if (lookAheads.containsKey(type)) {
-            return lookAheads.containsKey(type) ? lookAheads.get(type) : LOOKAHEAD_OFF;
+            return lookAheads.getOrDefault(type, LOOKAHEAD_OFF);
         } else {
             return lookAhead;
         }

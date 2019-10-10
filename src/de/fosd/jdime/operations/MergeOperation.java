@@ -24,7 +24,6 @@
 package de.fosd.jdime.operations;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -169,16 +168,14 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
             Statistics statistics = context.getStatistics();
             MergeScenarioStatistics mScenarioStatistics = statistics.getCurrentFileMergeScenarioStatistics();
 
-            boolean files = mergeScenario.getArtifacts().entrySet().stream()
-                    .map(Map.Entry::getValue)
+            boolean files = mergeScenario.getArtifacts().values().stream()
                     .map(T::getType)
                     .allMatch(t -> t == FILE || t == DIRECTORY);
 
             if (files) {
                 artifact.mergeOpStatistics(mScenarioStatistics, context);
             } else {
-                mergeScenario.getArtifacts().entrySet().stream()
-                        .map(Map.Entry::getValue)
+                mergeScenario.getArtifacts().values().stream()
                         .filter(a -> !BASE.equals(a.getRevision()))
                         .forEach(a -> a.mergeOpStatistics(mScenarioStatistics, context));
             }

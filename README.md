@@ -30,28 +30,14 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
-* JDK8 + JavaFX
-* git (http://git-scm.com/)
-* libgit2 (https://libgit2.github.com/)
-
-__Debian/Ubuntu:__
-`apt-get install git libgit2-dev`
-
-__Redhat/Fedora:__
-`dnf install git libgit2`
-
-__Suse/OpenSuse:__
-`zypper install git libgit2`
-
-__FreeBSD:__
-`pkg install git openjfx8-devel libgit2`
+* OpenJDK 8 (JDime must run in a Java 8 VM)
+* If you are not on 64bit Linux or Windows: [libgit2](https://libgit2.github.com/) (for [JNativeMerge](https://gitlab.infosun.fim.uni-passau.de/seibt/JNativeMerge))
 
 ## Installation:
 Clone the repository using `git clone $URL`.
 
-JDime uses gradle as a build system.
+JDime uses [Gradle](https://gradle.org/) as its build system.
 To avoid version mismatches with already installed instances of gradle, you can use the supplied gradle wrapper `gradlew` that bootstraps the right version of gradle automatically.
-
 
 After running `./gradlew installDist`, the directory `build/install/JDime/bin` will contain Unix and Windows scripts that you can use to start the application.
 
