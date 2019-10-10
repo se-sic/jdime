@@ -183,7 +183,7 @@ test {
 }
 
 task getTestFiles {
-    def testFilesBranchName = "feature/extendj_update"
+    def testFilesBranchName = "fixes/endless_loop_uomerge"
     def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
 
     description = "Clones (or pulls) the JDime test files repository from GitHub."
