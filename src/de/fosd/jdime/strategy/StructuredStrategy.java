@@ -171,7 +171,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
             if (context.hasStatistics()) {
                 Statistics statistics = context.getStatistics();
-                MergeScenarioStatistics scenarioStatistics = new MergeScenarioStatistics(triple);
+                MergeScenarioStatistics scenarioStatistics = statistics.getScenarioStatistics(triple);
+                scenarioStatistics.setStrategy(getClass());
 
                 if (!context.isDiffOnly()) {
                     ParseResult parseResult = scenarioStatistics.setLineStatistics(target.getContent());
@@ -185,8 +186,6 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(right, left.getRevision()));
                 scenarioStatistics.add(StatisticsInterface.getASTStatistics(targetNode, null));
                 Stream.of(parse, semistructure, merge).filter(Runtime::isMeasured).forEach(scenarioStatistics::putRuntime);
-
-                statistics.addScenarioStatistics(scenarioStatistics);
             }
         } finally {
             System.setSecurityManager(systemSecurityManager);

@@ -150,15 +150,14 @@ public class Statistics {
     }
 
     /**
-     * Adds a <code>MergeScenarioStatistics</code> instance to this <code>Statistics</code>. If there already is a
-     * <code>MergeScenarioStatistics</code> for the <code>MergeScenario</code> stored in <code>statistics</code> it will
-     * be added to the old value using {@link MergeScenarioStatistics#add(MergeScenarioStatistics)}.
+     * Stores the given {@link MergeScenarioStatistics} in this {@link Statistics} instance.
+     * If there already are {@link MergeScenarioStatistics} registered for the {@link MergeScenario} in {@code stats}
+     * they will be overwritten.
      *
-     * @param statistics
-     *         the <code>MergeScenarioStatistics</code> to be added
+     * @param stats the {@link MergeScenarioStatistics} to store
      */
-    public void addScenarioStatistics(MergeScenarioStatistics statistics) {
-        scenarioStatistics.merge(statistics.getMergeScenario(), statistics, (o, n) -> {o.add(n); return o;});
+    public void putScenarioStatistics(MergeScenarioStatistics stats) {
+        scenarioStatistics.put(stats.getMergeScenario(), stats);
     }
 
     /**
@@ -319,6 +318,7 @@ public class Statistics {
         serializer.setMode(XStream.NO_REFERENCES);
 
         serializer.alias(MergeScenarioStatistics.class.getSimpleName().toLowerCase(), MergeScenarioStatistics.class);
+        serializer.useAttributeFor(MergeScenarioStatistics.class, "strategy");
         serializer.useAttributeFor(MergeScenarioStatistics.class, "status");
 
         serializer.addImplicitMap(MergeScenarioStatistics.class, "runtimes", Runtime.class, "label");

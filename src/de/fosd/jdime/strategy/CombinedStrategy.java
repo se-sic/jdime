@@ -120,13 +120,12 @@ public class CombinedStrategy extends MergeStrategy<FileArtifact> {
         LOG.fine(() -> String.format("Combined merge time was %d ms.", mergeTime));
 
         if (subContext != null && context.hasStatistics()) {
-            Statistics statistics = context.getStatistics();
             Statistics subStatistics = subContext.getStatistics();
-            MergeScenarioStatistics scenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
+            MergeScenarioStatistics subScenarioStats = subStatistics.getScenarioStatistics(operation.getMergeScenario());
+            runtimes.forEach(subScenarioStats::putRuntime);
 
-            runtimes.forEach(scenarioStats::putRuntime);
-
-            statistics.addScenarioStatistics(scenarioStats);
+            Statistics statistics = context.getStatistics();
+            statistics.putScenarioStatistics(subScenarioStats);
         }
     }
 }

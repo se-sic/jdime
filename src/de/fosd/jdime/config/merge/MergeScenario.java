@@ -111,6 +111,7 @@ public class MergeScenario<T extends Artifact<T>> {
     public MergeScenario(MergeScenario<T> toCopy) {
         this.mergeType = toCopy.mergeType;
         this.artifacts = new HashMap<>(toCopy.artifacts);
+        this.label = toCopy.label;
     }
 
     /**

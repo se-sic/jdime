@@ -26,6 +26,7 @@ package de.fosd.jdime.stats;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.util.parser.ConflictContent;
 import de.fosd.jdime.util.parser.Content;
 import de.fosd.jdime.util.parser.ParseResult;
@@ -42,6 +43,8 @@ import static de.fosd.jdime.stats.MergeScenarioStatus.OK;
 public class MergeScenarioStatistics {
 
     private MergeScenario<?> mergeScenario;
+
+    private String strategy;
     private MergeScenarioStatus status;
 
     private Set<Matching<?>> matchings;
@@ -66,8 +69,9 @@ public class MergeScenarioStatistics {
      * @param mergeScenario
      *         the <code>MergeScenario</code> this <code>MergeScenarioStatistics</code> collects statistics for
      */
-    public MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
+    MergeScenarioStatistics(MergeScenario<?> mergeScenario) {
         this.mergeScenario = mergeScenario;
+        this.strategy = null;
         this.status = OK;
         this.matchings = new HashSet<>();
         this.levelStatistics = new HashMap<>();
@@ -89,8 +93,9 @@ public class MergeScenarioStatistics {
      * @param toCopy
      *         the <code>MergeScenarioStatistics</code> to copy
      */
-    public MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
+    MergeScenarioStatistics(MergeScenarioStatistics toCopy) {
         this.mergeScenario = new MergeScenario<>(toCopy.mergeScenario);
+        this.strategy = toCopy.strategy;
         this.status = toCopy.status;
 
         this.matchings = new HashSet<>(toCopy.matchings.size());
@@ -157,6 +162,15 @@ public class MergeScenarioStatistics {
      */
     public MergeScenario<?> getMergeScenario() {
         return mergeScenario;
+    }
+
+    /**
+     * Sets the type of the {@link MergeStrategy} that merged the {@link MergeScenario}.
+     *
+     * @param strategy the type of the {@link MergeStrategy} that merged the {@link MergeScenario}
+     */
+    public void setStrategy(Class<? extends MergeStrategy<?>> strategy) {
+        this.strategy = strategy.getSimpleName();
     }
 
     /**
@@ -476,6 +490,8 @@ public class MergeScenarioStatistics {
 
         mergeScenario.asList().forEach(artifact -> os.printf("%s%s%n", indent, artifact.getId()));
         os.println("General:");
+        os.printf("%sPerformed by: %s%n", indent, strategy);
+        os.printf("%sStatus: %s%n", indent, status);
         os.printf("%sConflicts: %s%n", indent, conflicts);
 
         runtimes.forEach((label, runtime) ->
