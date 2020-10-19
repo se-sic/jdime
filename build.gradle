@@ -22,7 +22,6 @@
  *     Georg Seibt <seibt@fim.uni-passau.de>
  */
 import org.ajoberstar.grgit.Grgit
-import org.ajoberstar.grgit.operation.BranchAddOp
 
 plugins {
     id 'application'
@@ -106,14 +105,12 @@ java {
     }
 }
 
-def testFilesDir = new File(rootProject.buildDir, 'jdime-testfiles')
-
 license {
     header rootProject.file('LICENSE_HEADER')
     mapping("fxml", "XML_STYLE")
     strictCheck true
 
-    fileTree(testFilesDir).visit {
+    fileTree('testres').visit {
         exclude it.getRelativePath().getPathString()
     }
 
@@ -184,66 +181,6 @@ test {
     maxHeapSize = '2048m'
     enableAssertions = true
 }
-
-task getTestFiles {
-    def testFilesBranchName = "fixes/endless_loop_uomerge"
-    def gitURI = "https://github.com/se-passau/jdime-testfiles.git"
-
-    description = "Clones (or pulls) the JDime test files repository from GitHub."
-    group = 'verification'
-
-    sourceSets {
-        test {
-            resources {
-                srcDir testFilesDir
-            }
-        }
-    }
-
-    onlyIf {
-        if (!testFilesDir.exists()) { // Execute the task if the test files directory does not exist.
-            return true
-        }
-
-        def grgit = Grgit.open(dir: testFilesDir)
-        def remotes = grgit.remote.list()
-
-        if (remotes.find({ it.name == "origin" && it.url == gitURI }) == null) {
-            if (!testFilesDir.deleteDir()) {
-                throw new GradleException("Failed to delete " + testFilesDir)
-            }
-            return true
-        }
-
-        grgit.fetch()
-
-        if (grgit.resolve.toBranch(testFilesBranchName) == null) {
-            grgit.branch.add(name: testFilesBranchName, startPoint: "origin/$testFilesBranchName",
-                             mode: BranchAddOp.Mode.TRACK)
-        }
-
-        def status = grgit.branch.status(name: testFilesBranchName)
-
-        grgit.checkout(branch: testFilesBranchName)
-        grgit.close()
-
-        return status.behindCount != 0 // Execute the task if the existing test files are not up to date.
-    }
-
-    doLast {
-        if (testFilesDir.exists()) {
-            def grgit = Grgit.open(dir: testFilesDir)
-
-            grgit.checkout(branch: testFilesBranchName)
-            grgit.merge(head: "origin/$testFilesBranchName")
-            grgit.close()
-        } else {
-            Grgit.clone(dir: testFilesDir, refToCheckout: testFilesBranchName, uri: gitURI).close()
-        }
-    }
-}
-
-test.dependsOn getTestFiles
 
 compileJava {
     options.compilerArgs << "-Xlint:all"
