@@ -63,8 +63,7 @@ public final class Parser {
     private Parser() {}
 
     /**
-     * Parses the given code to a list of {@link Content} objects and counts the merged and conflicting lines
-     * and the number of conflicts. Comments and conflicts consisting only of commented out lines will be ignored.
+     * Parses the given code to a list of {@link Content} objects.
      *
      * @param code
      *         the piece of code to be parsed
@@ -202,6 +201,13 @@ public final class Parser {
 
     /**
      * Calculates the {@link CodeStatistics} for the given {@link Content} instance.
+     * <br><br>
+     * If the given {@link Content} is a {@link ConflictContent}, the number of conflicts returned will be zero
+     * if it is {@link ConflictContent#isFiltered() filtered} and one otherwise. Whether the {@link Content} is a
+     * filtered {@link ConflictContent} is irrelevant for (both conflicting and regular) line, char and token counts.
+     * <br><br>
+     * For the line, char and token counts, empty lines and those consisting of only whitespace characters are filtered
+     * out. Additionally, for character counts, we only count those which are not whitespace.
      */
     static CodeStatistics calcStats(Content content) {
         int conflicts = 0;
@@ -238,7 +244,7 @@ public final class Parser {
                 continue;
             }
 
-            // We only count non-whitespace characters to normalize the results over linebased/structured.
+            // We only count non-whitespace characters to normalize the results over linebased / structured.
             int dChars = whitespace.matcher(line.line).replaceAll("").length();
 
             int dTokens = 0;

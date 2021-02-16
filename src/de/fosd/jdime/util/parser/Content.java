@@ -63,6 +63,7 @@ public abstract class Content {
      * Returns the {@link CodeStatistics} accumulated over the lines that are part of this {@link Content}.
      *
      * @return the {@link CodeStatistics} for this {@link Content}
+     * @see Parser#calcStats(Content)
      */
     public CodeStatistics getStats() {
         int statsHash = hashCode();

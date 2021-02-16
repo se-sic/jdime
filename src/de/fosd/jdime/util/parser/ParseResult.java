@@ -26,11 +26,8 @@ package de.fosd.jdime.util.parser;
 import de.fosd.jdime.stats.CodeStatistics;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -65,6 +62,7 @@ public class ParseResult extends ArrayList<Content> {
      * Returns the summary statistics for all {@link Content} instances in this {@link ParseResult}.
      *
      * @return the summed up statistics
+     * @see Parser#calcStats(Content)
      */
     public CodeStatistics getStats() {
         int statsHash = hashCode();

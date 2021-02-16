@@ -347,7 +347,8 @@ public class MergeScenarioStatistics {
         conflicts = cs.getConflicts();
 
         conflictStatistics.clear();
-        result.stream().filter(Content::isConflict).forEach(c -> conflictStatistics.put(c.hashCode(), c.getStats()));
+        result.stream().filter(Content::isConflict).filter(c -> ((ConflictContent) c).isFiltered())
+                       .forEach(c -> conflictStatistics.put(c.hashCode(), c.getStats()));
 
         charStatistics.setTotal(cs.getChars());
         charStatistics.setNumOccurInConflict(cs.getConflictingChars());
