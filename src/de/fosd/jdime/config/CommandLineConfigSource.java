@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import de.fosd.jdime.Main;
 import de.fosd.jdime.matcher.cost_model.CMMode;
 import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
@@ -61,6 +62,7 @@ public class CommandLineConfigSource extends ConfigSource {
     public static final String CLI_INSPECT_METHOD = "im";
     public static final String CLI_MODE = "m";
     public static final String CLI_DUMP = "dmp";
+    public static final String CLI_CMP = "cmp";
     public static final String CLI_OUTPUT = "o";
     public static final String CLI_OPTIMIZE_MULTI_CONFLICTS = "omc";
     public static final String CLI_RECURSIVE = "r";
@@ -226,6 +228,16 @@ public class CommandLineConfigSource extends ConfigSource {
 
             options.addOption(o);
         }
+
+        o = Option.builder(CLI_CMP)
+                .longOpt("compare-ast")
+                .desc("Compare the AST of two input files. Return " + Main.EXIT_COMPARE_EQUAL + " if they fully " +
+                      "match and " + Main.EXIT_COMPARE_NOT_EQUAL + " if they do not. Any exception " +
+                      "(e.g., when parsing) will result in exit code " + Main.EXIT_FAILURE)
+                .hasArg(false)
+                .build();
+
+        options.addOption(o);
 
         o = Option.builder(CLI_OUTPUT)
                 .longOpt("output")

@@ -113,6 +113,13 @@ public class MergeContext implements Cloneable {
     private DumpMode dumpMode;
 
     /**
+     * If set, instead of merging, the (two) input files ASTs will be compared using
+     * {@link de.fosd.jdime.matcher.unordered.IdenticalSubtreeMatcher} and whether they are exactly equal will
+     * be returned via the exit code of the program.
+     */
+    private boolean compare;
+
+    /**
      * The number of an artifact that should be inspected. If this is set, no merge will be executed.
      */
     private int inspectArtifact;
@@ -243,6 +250,7 @@ public class MergeContext implements Cloneable {
         this.diffOnly = false;
         this.consecutive = false;
         this.dumpMode = DumpMode.NONE;
+        this.compare = false;
         this.forceOverwriting = false;
         this.inputFiles = new ArtifactList<>();
         this.filterInputDirectories = true;
@@ -291,6 +299,7 @@ public class MergeContext implements Cloneable {
         this.diffOnly = toCopy.diffOnly;
         this.consecutive = toCopy.consecutive;
         this.dumpMode = toCopy.dumpMode;
+        this.compare = toCopy.compare;
         this.inspectArtifact = toCopy.inspectArtifact;
         this.inspectionScope = toCopy.inspectionScope;
         this.forceOverwriting = toCopy.forceOverwriting;
@@ -345,6 +354,7 @@ public class MergeContext implements Cloneable {
     public void configureFrom(JDimeConfig config) {
         configDump(config);
         configInspect(config);
+        configCompare(config);
         configStatistics(config);
         configMerge(config);
         configErrorHandling(config);
@@ -387,6 +397,15 @@ public class MergeContext implements Cloneable {
         };
 
         config.get(CLI_DUMP, dmpModeParser).ifPresent(this::setDumpMode);
+    }
+
+    /**
+     * Reads configuration options related to the {@link Artifact} compare functionality.
+     *
+     * @param config the JDime configuration options
+     */
+    private void configCompare(JDimeConfig config) {
+        config.getBoolean(CLI_CMP).ifPresent(this::setCompare);
     }
 
     /**
@@ -433,7 +452,7 @@ public class MergeContext implements Cloneable {
                 setMergeStrategy(MergeStrategy.parse(mode).orElseThrow(
                         () -> new AbortException("Invalid mode '" + mode + "'."))
                 );
-            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect() || isCompare())) {
                 throw new AbortException("No mode given.");
             }
         }
@@ -662,6 +681,10 @@ public class MergeContext implements Cloneable {
                 }
             }
 
+            if (isCompare() && (!allFiles || inputArtifacts.size() != 2)) {
+                throw new AbortException("Exactly two input files are required.");
+            }
+
             setInputFiles(inputArtifacts);
         } else {
             throw new AbortException("No input files given.");
@@ -707,7 +730,7 @@ public class MergeContext implements Cloneable {
                 } else {
                     setOutputFile(new FileArtifact(MergeScenario.MERGE, outFile, outputType));
                 }
-            } else if (!(getDumpMode() != DumpMode.NONE || isInspect())) {
+            } else if (!(getDumpMode() != DumpMode.NONE || isInspect() || isCompare())) {
                 throw new AbortException("No output file or directory given.");
             }
         }
@@ -840,6 +863,25 @@ public class MergeContext implements Cloneable {
      */
     public void setDumpMode(DumpMode dumpMode) {
         this.dumpMode = dumpMode;
+    }
+
+    /**
+     * Returns whether, instead of merging, the (two) input artifacts ASTs are to be compared. Result of the
+     * comparison will be signalled via the exit code of the program.
+     *
+     * @return whether to compare instead of merging
+     */
+    public boolean isCompare() {
+        return compare;
+    }
+
+    /**
+     * Sets whether to only compare ASTs instead of merging.
+     *
+     * @param compare
+     */
+    public void setCompare(boolean compare) {
+        this.compare = compare;
     }
 
     /**

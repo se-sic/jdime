@@ -30,10 +30,13 @@ import de.fosd.jdime.config.JDimeConfig;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.execption.AbortException;
+import de.fosd.jdime.matcher.Matcher;
+import de.fosd.jdime.matcher.matching.Color;
+import de.fosd.jdime.matcher.matching.Matching;
+import de.fosd.jdime.matcher.matching.Matchings;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
 import de.fosd.jdime.stats.Statistics;
-import de.fosd.jdime.strategy.MergeStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 import de.uni_passau.fim.seibt.LibGit2;
 import org.apache.commons.cli.HelpFormatter;
@@ -52,7 +55,8 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static de.fosd.jdime.config.CommandLineConfigSource.*;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_HELP;
+import static de.fosd.jdime.config.CommandLineConfigSource.CLI_VERSION;
 import static de.fosd.jdime.config.JDimeConfig.*;
 
 /**
@@ -104,9 +108,13 @@ public final class Main {
     public static final String TOOLNAME = "jdime";
     public static final String VERSION = "0.5-develop";
 
-    private static final int EXIT_SUCCESS = 0;
-    private static final int EXIT_ABORTED = 200;
-    private static final int EXIT_FAILURE = 210;
+    public static final int EXIT_SUCCESS = 0;
+    public static final int EXIT_ABORTED = 200;
+    public static final int EXIT_FAILURE = 210;
+
+    // Exit codes used for --mode compare
+    public static final int EXIT_COMPARE_EQUAL = EXIT_SUCCESS;
+    public static final int EXIT_COMPARE_NOT_EQUAL = 220;
 
     private static JDimeConfig config;
 
@@ -202,6 +210,10 @@ public final class Main {
         if (context.getDumpMode() != DumpMode.NONE) {
             inputFiles.forEach(artifact -> dump(artifact, context.getDumpMode()));
             return EXIT_SUCCESS;
+        }
+
+        if (context.isCompare()) {
+            return compare(context);
         }
 
         try {
@@ -513,6 +525,42 @@ public final class Main {
             System.out.println(element.dump(DumpMode.PRETTY_PRINT_DUMP));
         } else {
             LOG.log(Level.WARNING, () -> "Could not find a node with number " + number + ".");
+        }
+    }
+
+    /**
+     * Expects exactly two input {@link FileArtifact.FileType#FILE files} and uses the {@link Matcher} to compare them.
+     * If the ASTs fully match, the method returns {@link #EXIT_COMPARE_EQUAL}, otherwise
+     * {@link #EXIT_COMPARE_NOT_EQUAL}.
+     *
+     * @param context the {@link MergeContext} containing the input files
+     * @return whether the ASTs of the input files fully match
+     */
+    private static int compare(MergeContext context) {
+        List<FileArtifact> inputFiles = context.getInputFiles();
+
+        // MergeContext checks that there are exactly two input files for compare mode
+        FileArtifact left = inputFiles.get(0);
+        FileArtifact right = inputFiles.get(1);
+
+        ASTNodeArtifact leftAST = new ASTNodeArtifact(left);
+        ASTNodeArtifact rightAST = new ASTNodeArtifact(right);
+
+        Matcher<ASTNodeArtifact> matcher = new Matcher<>(leftAST, rightAST);
+        Matchings<ASTNodeArtifact> matches = matcher.match(context, Color.DEFAULT);
+
+        Optional<Matching<ASTNodeArtifact>> optRootMatching = matches.get(leftAST, rightAST);
+
+        if (!optRootMatching.isPresent()) {
+            return EXIT_COMPARE_NOT_EQUAL;
+        }
+
+        Matching<ASTNodeArtifact> rootMatching = optRootMatching.get();
+
+        if (rootMatching.hasFullyMatched()) {
+            return EXIT_COMPARE_EQUAL;
+        } else {
+            return EXIT_COMPARE_NOT_EQUAL;
         }
     }
 
