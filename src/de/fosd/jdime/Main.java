@@ -84,8 +84,6 @@ public final class Main {
     public static final String TOOLNAME = "jdime";
     public static final String VERSION = "0.5-develop";
 
-    private static final String MODE_LIST = "list";
-
     private static final int EXIT_SUCCESS = 0;
     private static final int EXIT_ABORTED = 200;
     private static final int EXIT_FAILURE = 210;
@@ -160,13 +158,6 @@ public final class Main {
             commit.ifPresent(s -> System.out.printf(" commit %s", s));
 
             System.out.printf(" using libgit2 %s%n", LibGit2.git_libgit2_version());
-            return EXIT_SUCCESS;
-        }
-
-        Optional<String> mode = config.get(CLI_MODE).map(String::toLowerCase);
-
-        if (mode.isPresent() && MODE_LIST.equals(mode.get())) {
-            printStrategies();
             return EXIT_SUCCESS;
         }
 
@@ -409,17 +400,6 @@ public final class Main {
         } catch (IOException e) {
             System.err.println("Failed to configure logging.");
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Prints the available strategies.
-     */
-    private static void printStrategies() {
-        System.out.println("Available merge strategies:");
-
-        for (String s : MergeStrategy.listStrategies()) {
-            System.out.println("\t- " + s);
         }
     }
 
