@@ -81,6 +81,26 @@ public final class Main {
         LOG = Logger.getLogger(Main.class.getCanonicalName());
     }
 
+    private static final SecurityManager SYS_SEC_MANAGER = System.getSecurityManager();
+    private static final SecurityManager NO_EXIT_SEC_MANAGER = new SecurityManager() {
+        @Override
+        public void checkPermission(Permission perm) {
+            // Allow everything
+        }
+
+        @Override
+        public void checkPermission(Permission perm, Object context) {
+            // Allow everything
+        }
+
+        @Override
+        public void checkExit(int status) {
+            // Disallow halting the JVM (ExtendJ is known to do this...)
+            super.checkExit(status);
+            throw new SecurityException("Captured attempt to exit JVM.");
+        }
+    };
+
     public static final String TOOLNAME = "jdime";
     public static final String VERSION = "0.5-develop";
 
@@ -104,7 +124,16 @@ public final class Main {
     public static void main(String[] args) {
 
         try {
-            System.exit(run(args));
+            int exitCode;
+
+            try {
+                System.setSecurityManager(NO_EXIT_SEC_MANAGER);
+                exitCode = run(args);
+            } finally {
+                System.setSecurityManager(SYS_SEC_MANAGER);
+            }
+
+            System.exit(exitCode);
         } catch (AbortException e) {
 
             if (e.getCause() != null) {
@@ -441,36 +470,13 @@ public final class Main {
         if (mode == DumpMode.FILE_DUMP || artifact.isDirectory()) {
             System.out.println(artifact.dump(mode));
         } else {
-            SecurityManager prevSecManager = System.getSecurityManager();
-            SecurityManager noExitManager = new SecurityManager() {
-                @Override
-                public void checkPermission(Permission perm) {
-                    // allow anything.
-                }
-
-                @Override
-                public void checkPermission(Permission perm, Object context) {
-                    // allow anything.
-                }
-
-                @Override
-                public void checkExit(int status) {
-                    super.checkExit(status);
-                    throw new SecurityException("Captured attempt to exit JVM.");
-                }
-            };
-
             ASTNodeArtifact astArtifact;
-
-            System.setSecurityManager(noExitManager);
 
             try {
                 astArtifact = new ASTNodeArtifact(artifact);
             } catch (RuntimeException e) {
                 LOG.log(Level.WARNING, e, () -> "Could not parse " + artifact + " to an ASTNodeArtifact.");
                 return;
-            } finally {
-                System.setSecurityManager(prevSecManager);
             }
 
             System.out.println(astArtifact.dump(mode));
