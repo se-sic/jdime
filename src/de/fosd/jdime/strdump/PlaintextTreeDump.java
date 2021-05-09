@@ -59,6 +59,12 @@ public class PlaintextTreeDump implements StringDumper {
     private <T extends Artifact<T>> void dumpTree(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
                                                   String prefix, String childPrefix, StringBuilder builder) {
 
+        if (artifact == null) {
+            builder.append("NONE");
+            builder.append(LS);
+            return;
+        }
+
         if (artifact.isChoice() || artifact.isConflict()) {
             String emptyPrefix = replicate(" ", childPrefix.length());
             String emptyChildPrefix = emptyPrefix + "    ";
