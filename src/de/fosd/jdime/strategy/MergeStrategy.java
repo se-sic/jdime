@@ -23,16 +23,12 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
+import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.merge.MergeInterface;
+
+import java.util.*;
 
 /**
  * A <code>MergeStrategy</code> implements an algorithm to merge a certain type of <code>Artifacts</code>.
@@ -46,6 +42,10 @@ import de.fosd.jdime.merge.MergeInterface;
  */
 public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInterface<T> {
 
+    public static final String CHOOSE_LEFT = "choose_left";
+    public static final String CHOOSE_BASE = "choose_base";
+    public static final String CHOOSE_RIGHT = "choose_right";
+
     public static final String LINEBASED = "linebased";
     public static final String SEMISTRUCTURED = "semistructured";
     public static final String STRUCTURED = "structured";
@@ -57,7 +57,7 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
      * @return names of available strategies
      */
     public static List<String> listStrategies() {
-        return Arrays.asList(LINEBASED, SEMISTRUCTURED, STRUCTURED, NWAY);
+        return Arrays.asList(LINEBASED, SEMISTRUCTURED, STRUCTURED, NWAY, CHOOSE_LEFT, CHOOSE_BASE, CHOOSE_RIGHT);
     }
 
     /**
@@ -99,6 +99,15 @@ public abstract class MergeStrategy<T extends Artifact<T>> implements MergeInter
         MergeStrategy<FileArtifact> strategy = null;
 
         switch (name) {
+            case CHOOSE_LEFT:
+                strategy = new ChooseRevisionStrategy(MergeScenario.LEFT);
+                break;
+            case CHOOSE_BASE:
+                strategy = new ChooseRevisionStrategy(MergeScenario.BASE);
+                break;
+            case CHOOSE_RIGHT:
+                strategy = new ChooseRevisionStrategy(MergeScenario.RIGHT);
+                break;
             case LINEBASED:
                 strategy = new LinebasedStrategy();
                 break;
