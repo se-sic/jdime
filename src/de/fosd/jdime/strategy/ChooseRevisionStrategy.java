@@ -29,13 +29,13 @@ public class ChooseRevisionStrategy extends MergeStrategy<FileArtifact> {
     /**
      * Constructs a new {@link ChooseRevisionStrategy}
      *
-     * @param revToChoose
+     * @param revToChoose the {@link Revision} to choose when 'merging'
      */
     public ChooseRevisionStrategy(Revision revToChoose) {
         this.revToChoose = revToChoose;
     }
 
-    @Override
+    @Override @SuppressWarnings("try")
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
         LOG.fine(() -> "Instead of merging, JDime is configure to choose revision " + revToChoose);
 
