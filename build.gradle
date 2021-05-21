@@ -92,13 +92,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.1'
 }
 
-if (project == getRootProject()) {
-    wrapper {
-        distributionType Wrapper.DistributionType.ALL
-        gradleVersion '6.8.2'
-    }
-}
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
