@@ -124,7 +124,7 @@ def defaultOpts = ["-Xmx2048m", "-ea"]
 
 startScripts {
     applicationName = rootProject.name
-    mainClassName = "de.fosd.jdime.Main"
+    mainClass = "de.fosd.jdime.Main"
     defaultJvmOpts = defaultOpts
 }
 
@@ -166,7 +166,7 @@ installDist {
 }
 
 run {
-    main = 'de.fosd.jdime.Main'
+    mainClass = 'de.fosd.jdime.Main'
 }
 
 test {
