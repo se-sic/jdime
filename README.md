@@ -30,7 +30,8 @@ See patches/ExtendJ for the changes,
 and patches/ExtendJ/LICENSE for the license text.
 
 ## System Requirements:
-* OpenJDK 8 (JDime must run in a Java 8 VM)
+* At least Java 11 for running the Gradle build of JDime
+* Java 8 for developing / running JDime. If you are using Gradle to build / run, Gradle will automatically discover / download Java 8.
 * If you are not on 64bit Linux or Windows: [libgit2](https://libgit2.github.com/) (for [JNativeMerge](https://gitlab.infosun.fim.uni-passau.de/seibt/JNativeMerge))
 
 ## Installation:
