@@ -92,7 +92,8 @@ dependencies {
 
 java {
     toolchain {
-        version = JavaLanguageVersion.of(8)
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
     }
 }
 
