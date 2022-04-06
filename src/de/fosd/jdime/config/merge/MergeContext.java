@@ -257,6 +257,7 @@ public class MergeContext implements Cloneable {
         this.keepGoing = false;
         this.exitOnError = false;
         this.acceptNonJava = false;
+        this.mergeScenarioLabel = null;
         this.mergeStrategy = new LinebasedStrategy();
         this.outputFile = null;
         this.quiet = false;
@@ -311,6 +312,7 @@ public class MergeContext implements Cloneable {
         this.keepGoing = toCopy.keepGoing;
         this.exitOnError = toCopy.exitOnError;
         this.acceptNonJava = toCopy.acceptNonJava;
+        this.mergeScenarioLabel = toCopy.mergeScenarioLabel;
         this.mergeStrategy = toCopy.mergeStrategy; // MergeStrategy should be stateless
         this.outputFile = toCopy.outputFile.copy();
         this.quiet = toCopy.quiet;
