@@ -23,11 +23,11 @@
  */
 package de.fosd.jdime.strdump;
 
+import de.fosd.jdime.artifact.Artifact;
+
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import de.fosd.jdime.artifact.Artifact;
 
 /**
  * Enumeration of the currently configurable dump modes.
@@ -80,7 +80,7 @@ public enum DumpMode {
         }
     }
 
-    private StringDumper dumper;
+    private final StringDumper dumper;
 
     /**
      * Constructs a new <code>DumpMode</code> variant representing the given <code>StringDumper</code>.

@@ -47,7 +47,7 @@ public final class Runtime {
     public final static class Measurement implements AutoCloseable {
 
         private final Runtime rt;
-        private long startNS;
+        private final long startNS;
 
         /**
          * Constructs a new {@link Measurement}.

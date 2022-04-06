@@ -23,19 +23,19 @@
  */
 package de.fosd.jdime.strategy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
 import de.fosd.jdime.artifact.ast.SemiStructuredArtifact;
 import de.fosd.jdime.artifact.file.FileArtifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.operations.MergeOperation;
 import de.fosd.jdime.stats.KeyEnums;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static de.fosd.jdime.stats.KeyEnums.Type.BLOCK;
 
@@ -46,7 +46,7 @@ public class SemiStructuredStrategy extends StructuredStrategy {
     /**
      * Regex used to split a String into lines while retaining the original line separators.
      */
-    private static Pattern LINES = Pattern.compile("(?<=\\R)");
+    private static final Pattern LINES = Pattern.compile("(?<=\\R)");
 
     @Override
     public void merge(MergeOperation<FileArtifact> operation, MergeContext context) {
