@@ -23,21 +23,6 @@
  */
 package de.fosd.jdime.config.merge;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.artifact.ArtifactList;
 import de.fosd.jdime.artifact.ast.ASTNodeArtifact;
@@ -56,12 +41,18 @@ import de.fosd.jdime.strategy.NWayStrategy;
 import de.fosd.jdime.strategy.StructuredStrategy;
 import de.fosd.jdime.strdump.DumpMode;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import static de.fosd.jdime.config.CommandLineConfigSource.*;
-import static de.fosd.jdime.config.JDimeConfig.FILTER_INPUT_DIRECTORIES;
-import static de.fosd.jdime.config.JDimeConfig.OPTIMIZE_MULTI_CONFLICTS;
-import static de.fosd.jdime.config.JDimeConfig.STATISTICS_XML_EXCLUDE_MSS_FIELDS;
-import static de.fosd.jdime.config.JDimeConfig.TWOWAY_FALLBACK;
-import static de.fosd.jdime.config.JDimeConfig.USE_MCESUBTREE_MATCHER;
+import static de.fosd.jdime.config.JDimeConfig.*;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -592,7 +583,7 @@ public class MergeContext implements Cloneable {
 
         config.get(CLI_CM_SEED).ifPresent(opt -> {
 
-            if ("none".equals(opt.trim().toLowerCase())) {
+            if ("none".equalsIgnoreCase(opt.trim())) {
                 setSeed(Optional.empty());
             } else {
                 try {
