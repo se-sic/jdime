@@ -28,10 +28,10 @@ plugins {
     eclipse
     idea
 
-    id("org.ajoberstar.grgit") version ("4.1.0") // Used for interacting with git repositories from the buildscript.
+    id("org.ajoberstar.grgit") version ("5.0.0") // Used for interacting with git repositories from the buildscript.
     id("com.github.hierynomus.license") version ("0.16.1")  // Used to ensure that all files contain a license header.
     id("com.scuilion.syntastic") version ("0.3.9")
-    id("com.github.ben-manes.versions") version ("0.39.0") // Used to check for new plugin / dependency versions.
+    id("com.github.ben-manes.versions") version ("0.42.0") // Used to check for new plugin / dependency versions.
 }
 
 tasks.withType(JavaCompile::class).configureEach {
@@ -72,12 +72,12 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.10.0")
-    implementation("commons-cli:commons-cli:1.4")
+    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-cli:commons-cli:1.5.0")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("commons-codec:commons-codec:1.15")
-    implementation("com.thoughtworks.xstream:xstream:1.4.17")
-    implementation("com.google.code.gson:gson:2.8.7")
+    implementation("com.thoughtworks.xstream:xstream:1.4.19")
+    implementation("com.google.code.gson:gson:2.9.0")
     implementation("de.uni-passau.fim.seibt:kvconfig:1.0")
 
     if (USE_JNM_MAVEN) {
