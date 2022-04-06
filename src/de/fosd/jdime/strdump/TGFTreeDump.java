@@ -23,17 +23,11 @@
  */
 package de.fosd.jdime.strdump;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import de.fosd.jdime.artifact.Artifact;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-
-import de.fosd.jdime.artifact.Artifact;
 
 /**
  * Dumps the given <code>Artifact</code> tree using the TGF format.
@@ -54,7 +48,7 @@ public class TGFTreeDump implements StringDumper {
             Artifact<T> current = q.removeFirst();
 
             Integer fromId = ids.computeIfAbsent(current, a -> nextId.getAndIncrement());
-            nodeIDs.add(String.format("%d %s", fromId, current.toString()));
+            nodeIDs.add(String.format("%d %s", fromId, current));
 
             for (T t : current.getChildren()) {
                 Integer toId = ids.computeIfAbsent(t, a -> nextId.getAndIncrement());
