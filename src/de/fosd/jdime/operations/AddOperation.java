@@ -23,13 +23,13 @@
  */
 package de.fosd.jdime.operations;
 
-import java.util.Objects;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
+
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * An {@link Operation} that adds a given {@link Artifact} to the children of another {@link Artifact}.
@@ -44,12 +44,12 @@ public class AddOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * The {@link Artifact} that is being added to the children of {@link #target}.
      */
-    private T artifact;
+    private final T artifact;
 
     /**
      * The {@link Artifact} to whose children {@link #artifact} is added.
      */
-    private T target;
+    private final T target;
 
     private String condition;
 

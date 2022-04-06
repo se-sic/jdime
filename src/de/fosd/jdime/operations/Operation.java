@@ -23,10 +23,10 @@
  */
 package de.fosd.jdime.operations;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Abstract superclass for all operations being performed on {@link Artifact Artifacts}.
@@ -39,7 +39,7 @@ public abstract class Operation<T extends Artifact<T>> {
     /**
      * Operation counter.
      */
-    private static AtomicLong count = new AtomicLong();
+    private static final AtomicLong COUNT = new AtomicLong();
 
     /**
      * Returns the number of {@link Operation Operations} that have been created.
@@ -47,19 +47,19 @@ public abstract class Operation<T extends Artifact<T>> {
      * @return the number of {@link Operation Operations} that have been created
      */
     public static long getCount() {
-        return count.get();
+        return COUNT.get();
     }
 
     /**
      * The number of this {@link Operation}.
      */
-    private long number;
+    private final long number;
 
     /**
      * Constructs a new {@link Operation}.
      */
     public Operation() {
-        this.number = count.getAndIncrement();
+        this.number = COUNT.getAndIncrement();
     }
 
     /**

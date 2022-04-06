@@ -23,10 +23,6 @@
  */
 package de.fosd.jdime.operations;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.config.merge.MergeScenario;
@@ -34,6 +30,10 @@ import de.fosd.jdime.config.merge.MergeType;
 import de.fosd.jdime.execption.AbortException;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 import static de.fosd.jdime.config.merge.MergeScenario.BASE;
 import static de.fosd.jdime.stats.KeyEnums.Type.DIRECTORY;
@@ -52,12 +52,12 @@ public class MergeOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * The <code>MergeScenario</code> containing the <code>Artifact</code>s to be merged.
      */
-    private MergeScenario<T> mergeScenario;
+    private final MergeScenario<T> mergeScenario;
 
     /**
      * The <code>Artifact</code> to output the result of the merge to.
      */
-    private T target;
+    private final T target;
 
     /**
      * Constructs a new <code>MergeOperation</code> merging the given <code>inputArtifacts</code>. The result

@@ -23,13 +23,13 @@
  */
 package de.fosd.jdime.operations;
 
-import java.util.Objects;
-import java.util.logging.Logger;
-
 import de.fosd.jdime.artifact.Artifact;
 import de.fosd.jdime.config.merge.MergeContext;
 import de.fosd.jdime.stats.MergeScenarioStatistics;
 import de.fosd.jdime.stats.Statistics;
+
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * An {@link Operation} that deletes an {@link Artifact} from the children of another {@link Artifact}.
@@ -44,12 +44,12 @@ public class DeleteOperation<T extends Artifact<T>> extends Operation<T> {
     /**
      * The {@link Artifact} that is deleted by this {@link Operation}.
      */
-    private T artifact;
+    private final T artifact;
 
     /**
      * The {@link Artifact} from whose children to delete {@link #artifact} from.
      */
-    private T target;
+    private final T target;
 
     /**
      * The condition under which the {@link #artifact} is <b>NOT</b> deleted from {@link #target}.
