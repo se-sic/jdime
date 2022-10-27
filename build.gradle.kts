@@ -142,7 +142,7 @@ distributions {
                         head.id
                     }
 
-                    expand("commit" to getHeadCommit)
+                    expand("commit" to getHeadCommit())
                 }
 
                 from(project.projectDir) {
