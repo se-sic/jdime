@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static de.fosd.jdime.stats.Runtime.MERGE_LABEL;
+import static de.fosd.jdime.strdump.DumpMode.CSV_DUMP;
 import static de.fosd.jdime.strdump.DumpMode.PLAINTEXT_TREE;
 
 /**
@@ -134,7 +135,8 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         LOG.fine(() -> String.format("%s merge time was %d ms.", getClass().getSimpleName(), merge.getTimeMS()));
 
         if (!context.isDiffOnly()) {
-            LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
+            LOG.fine("Printing CSV to stdout:");
+            LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(CSV_DUMP)));
         }
 
         ASTNodeArtifact finalLeft = left;

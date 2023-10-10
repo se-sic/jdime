@@ -62,8 +62,8 @@ public enum DumpMode {
     /**
      * Parse the file to an AST and pretty-print it.
      */
-    PRETTY_PRINT_DUMP(new PrettyPrintDump());
-
+    PRETTY_PRINT_DUMP(new PrettyPrintDump()),
+    CSV_DUMP(new CSVTreeDump());
     /**
      * A <code>StringDumper</code> that returns an empty <code>String</code> and logs improper use.
      */
