@@ -4,6 +4,8 @@ import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
@@ -69,7 +71,7 @@ public class CSVTreeDump implements StringDumper {
         if (artifact.isChoice() || artifact.isConflict()) {
 
 
-            builder.append(Color.RED.toShell());
+            //builder.append(Color.RED.toShell());
 
             if (artifact.isChoice()) {
                 // isChoice() means that we insert something?
@@ -91,7 +93,7 @@ public class CSVTreeDump implements StringDumper {
                 //builder.append(">>>>>>>").append(LS);
             }
 
-            builder.append(Color.DEFAULT.toShell());
+            //builder.append(Color.DEFAULT.toShell());
             return;
         }
 
@@ -99,7 +101,7 @@ public class CSVTreeDump implements StringDumper {
             Iterator<Map.Entry<Revision, Matching<T>>> it = artifact.getMatches().entrySet().iterator();
             Matching<T> firstEntry = it.next().getValue();
 
-            builder.append(firstEntry.getHighlightColor().toShell());
+            //builder.append(firstEntry.getHighlightColor().toShell());
             //id[1]= "both";
             appendArtifact(artifact, getLabel, builder, parentID);
 
@@ -118,7 +120,7 @@ public class CSVTreeDump implements StringDumper {
                 //appendArtifact(entry.getValue().getMatchingArtifact(artifact), getLabel, builder, id1);
             });*/
 
-            builder.append(Color.DEFAULT.toShell());
+            //builder.append(Color.DEFAULT.toShell());
         } else {
             // handle insertion of new lines
 
@@ -162,10 +164,13 @@ public class CSVTreeDump implements StringDumper {
         builder.append(id[1]).append(",").append(id[0]).append(",");
 
         String[] type = getLabel.apply(artifact).split(" ");
+
         int len = type.length;
         // make sure that the same amount of entries are done into the table
         // assume that ID is the second entry, if it exists
-
+        if (len > 3 ){
+            throw new IndexOutOfBoundsException("Label contains more than 3 fields" + type.toString());
+        }
         for (int i = 0; i < 3; i++) {
             if (i < len) {
                 if (i == 1){
@@ -214,12 +219,19 @@ public class CSVTreeDump implements StringDumper {
         String id = "target:-1";
         dumpTree(artifact, getLabel, builder,id);
 
-        int lastLS = builder.lastIndexOf(LS);
+        /*int lastLS = builder.lastIndexOf(LS);
 
         if (lastLS != -1) {
             builder.delete(lastLS, lastLS + LS.length());
+        }*/
+        FileWriter csvWriter = null;
+        try {
+            csvWriter = new FileWriter("TargetCSV.csv");
+            csvWriter.write(builder.toString());
+            csvWriter.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
         return builder.toString();
     }
 }
