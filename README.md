@@ -38,7 +38,7 @@ Clone the repository using `git clone $URL`.
 JDime uses [Gradle](https://gradle.org/) as its build system.
 To avoid version mismatches with already installed instances of gradle, you can use the supplied gradle wrapper `gradlew` that bootstraps the right version of gradle automatically.
 
-After running `./gradlew installDist`, the directory `build/install/JDime/bin` will contain Unix and Windows scripts that you can use to start the application.
+After running `./gradlew installDist`, the directory `build/scripts` will contain Unix and Windows scripts that you can use to start the application.
 
 ## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime may be invoked as follows:
