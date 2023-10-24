@@ -43,6 +43,9 @@ After running `./gradlew installDist`, the directory `build/install/JDime/bin` w
 ## Usage:
 The input versions are passed to JDime as command line arguments. To perform a three-way merge, JDime may be invoked as follows:
 
-`JDime --mode [linebased|semistructured|structured] --output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
+`./JDime --mode [linebased|semistructured|structured] --output [file/directory] <leftVersion> <baseVersion> <rightVersion>`
+
+Note that you have to run JDime with the working directory set to the folder containing the Script produced by Gradle.
+E.g., using the `installDist` task, you need to run JDime from `build/install/JDime/bin`.
 
 **Run `JDime --help` to show more extensive usage information.**
