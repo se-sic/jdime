@@ -124,7 +124,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
         // TODO: find clusters of microconflicts and restructure them to larger conflicts
         targetNode.collapseConflicts();
 
-        targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
+        //targetNode.setRevision(MergeScenario.TARGET, true); // TODO do this somewhere else?
 
         if (!context.isDiffOnly()) {
             String content = targetNode.prettyPrint();
@@ -136,7 +136,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         if (!context.isDiffOnly()) {
             LOG.fine("Printing CSV to stdout:");
-            LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(CSV_DUMP)));
+            LOG.fine(() -> String.format("Tree dump of target node1:%n%s", targetNode.dump(CSV_DUMP)));
         }
 
         ASTNodeArtifact finalLeft = left;
@@ -146,6 +146,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         if (!context.isDiffOnly()) {
             LOG.finest(() -> String.format("Pretty-printing merge result:%n%s", target.getContent()));
+            //LOG.fine(() -> String.format("Tree dump of target node2:%n%s", target.dump(CSV_DUMP)));
         }
 
         if (context.hasStatistics()) {

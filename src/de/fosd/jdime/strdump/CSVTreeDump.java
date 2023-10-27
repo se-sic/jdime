@@ -1,5 +1,6 @@
 package de.fosd.jdime.strdump;
 import de.fosd.jdime.artifact.Artifact;
+import de.fosd.jdime.config.merge.MergeScenario;
 import de.fosd.jdime.config.merge.Revision;
 import de.fosd.jdime.matcher.matching.Color;
 import de.fosd.jdime.matcher.matching.Matching;
@@ -57,16 +58,12 @@ public class CSVTreeDump implements StringDumper {
      */
     private <T extends Artifact<T>> void dumpTree(Artifact<T> artifact, Function<Artifact<T>, String> getLabel
                                                  , StringBuilder builder, String parentID) {
-        //File csvFile = new File("AST.csv");
-        String[] csvColumns = {"NodeNumber","ParentNumber","NodeType", "NodeID"};
-
 
         if (artifact == null) {
             builder.append("NONE");
             builder.append(LS);
             return;
         }
-        String id = artifact.getId();
 
         if (artifact.isChoice() || artifact.isConflict()) {
 
@@ -101,43 +98,27 @@ public class CSVTreeDump implements StringDumper {
             Iterator<Map.Entry<Revision, Matching<T>>> it = artifact.getMatches().entrySet().iterator();
             Matching<T> firstEntry = it.next().getValue();
 
-            //builder.append(firstEntry.getHighlightColor().toShell());
-            //id[1]= "both";
+
+            artifact.setRevision(MergeScenario.TARGET);
             appendArtifact(artifact, getLabel, builder, parentID);
 
 
-            //int percentage = (int) (firstEntry.getPercentage() * 100);
-            //builder.append(String.format(" <(%d, %d%%)> ", firstEntry.getScore(), percentage));
 
-
-            //appendArtifact(firstEntry.getMatchingArtifact(artifact), getLabel, builder, id2);
-
-            /*it.forEachRemaining(entry -> {
-                builder.append(Color.DEFAULT.toShell()).append(", ");
-                builder.append(entry.getValue().getHighlightColor().toShell());
-                String[] id1 = artifact.getId().split(":");
-                //id1[1] = "both";
-                //appendArtifact(entry.getValue().getMatchingArtifact(artifact), getLabel, builder, id1);
-            });*/
-
-            //builder.append(Color.DEFAULT.toShell());
         } else {
             // handle insertion of new lines
-
-            Artifact<T> fake = artifact;
-            //fake.setRevision(new Revision("insert:00"));
-            id = fake.getId();
-            //builder.append(fake.isMerged());
-            appendArtifact(fake, getLabel, builder, parentID);
+            appendArtifact(artifact, getLabel, builder, parentID);
         }
 
         builder.append(LS);
 //rekursion mit dumpTree()
+        String id = artifact.getId();
+
         for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
             Artifact<T> next = it.next();
             dumpTree(next, getLabel, builder, id);
 
         }
+        //throw new RuntimeException("test");
     }
 
 
@@ -157,7 +138,9 @@ public class CSVTreeDump implements StringDumper {
                                                         StringBuilder builder, String parentID) {
         // NodeNr, side, Type, ID, Package,  ParentNodeNr, ParentSide
         // getLabel can also hold Literals etc. we reserve 1 column for ID, the other one can hold
-        // values of Literals or packages
+        // values of literals or packages
+
+        //builder.append(artifact.getId()).append(",").append(getLabel.apply(artifact)).append(",").append(parentID);
         String[] id = artifact.getId().split(":");
         String[] parId = parentID.split(":");
 
@@ -171,26 +154,20 @@ public class CSVTreeDump implements StringDumper {
         if (len > 3 ){
             throw new IndexOutOfBoundsException("Label contains more than 3 fields" + type.toString());
         }
-        for (int i = 0; i < 3; i++) {
-            if (i < len) {
-                if (i == 1){
-                    //builder.append(type[1]).append(",");
-                    if(type[1].contains("ID=")) {
-                        builder.append(type[1].substring(type[1].indexOf("ID=") + 3 ).replace("\"",""));
-                        //.split("\"")[0])
-                    }else{
-                        builder.append(",").append(type[1]).append(",");
-                        break;
-                    }
-                }else{
-                    builder.append(type[i]);
+        String TYPE = type[0];
+        String ID = "";
+        String LITERAL = "";
+        String Package = "";
+        for (int i = 1; i <= 3 && i < len; i++) {
 
-                }
-
-            }
-            builder.append(",");
+            if(type[i].contains("ID="))
+                ID = type[i].substring(type[i].indexOf("ID=") + 3).replace("\"","");
+            if(type[i].contains("LITERAL="))
+                LITERAL = type[i].substring(type[i].indexOf("LITERAL=") + 8).replace("\"", "");
+            if (type[i].contains("Package="))
+                Package = type[i].substring(type[i].indexOf("Package=") + 8).replace("\"", "");
         }
-
+        builder.append(TYPE).append(",").append(ID).append(",").append(LITERAL).append(",").append(Package).append(",");
         try {
             builder.append(parId[1]).append(",").append(parId[0]);
         }catch (ArrayIndexOutOfBoundsException e){
