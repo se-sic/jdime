@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.HashMap;
+
 import java.util.function.Function;
 
 /**
@@ -42,6 +44,15 @@ import java.util.function.Function;
 public class CSVTreeDump implements StringDumper {
 
     private static final String LS = System.lineSeparator();
+    private Map<String, Integer> renumber = new HashMap<String,Integer>();
+    private Integer nr_inc = -1;
+
+    private void incNr(){
+        nr_inc += 1;
+    }
+    private int getNr(){
+        return nr_inc;
+    }
 
     /**
      * Appends a plaintext representation of the tree with <code>artifact</code> at its root to the given
@@ -83,14 +94,9 @@ public class CSVTreeDump implements StringDumper {
                 Artifact<T> left = artifact.getLeft();
                 Artifact<T> right = artifact.getRight();
 
-                //builder.append("<<<<<<<").append(LS);
                 dumpTree(left, getLabel, builder,parentID);
-                //builder.append("=======").append(LS);
                 dumpTree(right, getLabel, builder,parentID);
-                //builder.append(">>>>>>>").append(LS);
             }
-
-            //builder.append(Color.DEFAULT.toShell());
             return;
         }
 
@@ -102,15 +108,13 @@ public class CSVTreeDump implements StringDumper {
             artifact.setRevision(MergeScenario.TARGET);
             appendArtifact(artifact, getLabel, builder, parentID);
 
-
-
         } else {
             // handle insertion of new lines
             appendArtifact(artifact, getLabel, builder, parentID);
         }
 
         builder.append(LS);
-//rekursion mit dumpTree()
+        //rekursion mit dumpTree()
         String id = artifact.getId();
 
         for (Iterator<T> it = artifact.getChildren().iterator(); it.hasNext(); ) {
@@ -137,14 +141,18 @@ public class CSVTreeDump implements StringDumper {
     private <T extends Artifact<T>> void appendArtifact(Artifact<T> artifact, Function<Artifact<T>, String> getLabel,
                                                         StringBuilder builder, String parentID) {
         // NodeNr, side, Type, ID, Package,  ParentNodeNr, ParentSide
-        // getLabel can also hold Literals etc. we reserve 1 column for ID, the other one can hold
-        // values of literals or packages
-
-        //builder.append(artifact.getId()).append(",").append(getLabel.apply(artifact)).append(",").append(parentID);
-        String[] id = artifact.getId().split(":");
+        String id = artifact.getId();
         String[] parId = parentID.split(":");
 
-        builder.append(id[1]).append(",").append(id[0]).append(",");
+        Integer nr = getNr();
+        incNr();
+        renumber.put(id,nr);
+        Integer par_nr = renumber.get(parentID);
+        String side = id.split(":")[0];
+
+        builder.append(nr).append(",");
+        // !!! Uncomment this line if you want to see the side of the artifact
+        builder.append(side).append(",");
 
         String[] type = getLabel.apply(artifact).split(" ");
 
@@ -157,19 +165,16 @@ public class CSVTreeDump implements StringDumper {
         String TYPE = type[0];
         String ID = "";
         String LITERAL = "";
-        String Package = "";
         for (int i = 1; i <= 3 && i < len; i++) {
 
             if(type[i].contains("ID="))
                 ID = type[i].substring(type[i].indexOf("ID=") + 3).replace("\"","");
             if(type[i].contains("LITERAL="))
                 LITERAL = type[i].substring(type[i].indexOf("LITERAL=") + 8).replace("\"", "");
-            if (type[i].contains("Package="))
-                Package = type[i].substring(type[i].indexOf("Package=") + 8).replace("\"", "");
         }
-        builder.append(TYPE).append(",").append(ID).append(",").append(LITERAL).append(",").append(Package).append(",");
+        builder.append(TYPE).append(",").append(ID).append(",").append(LITERAL).append(","); //.append(Package).append(",");
         try {
-            builder.append(parId[1]).append(",").append(parId[0]);
+            builder.append(par_nr).append(",").append(parId[0]);
         }catch (ArrayIndexOutOfBoundsException e){
             builder.append("Indexoutofbounds").append(parentID);
         }
@@ -193,7 +198,9 @@ public class CSVTreeDump implements StringDumper {
     @Override
     public <T extends Artifact<T>> String dump(Artifact<T> artifact, Function<Artifact<T>, String> getLabel) {
         StringBuilder builder = new StringBuilder();
-        String id = "target:-1";
+        String id = "target:" + String.valueOf(getNr());
+        renumber.put(id,getNr());
+        incNr();
         dumpTree(artifact, getLabel, builder,id);
 
         /*int lastLS = builder.lastIndexOf(LS);
@@ -203,7 +210,7 @@ public class CSVTreeDump implements StringDumper {
         }*/
         FileWriter csvWriter = null;
         try {
-            csvWriter = new FileWriter("TargetCSV.csv");
+            csvWriter = new FileWriter("TargetAST.csv");
             csvWriter.write(builder.toString());
             csvWriter.close();
         } catch (IOException e) {

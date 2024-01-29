@@ -136,6 +136,7 @@ public class StructuredStrategy extends MergeStrategy<FileArtifact> {
 
         if (!context.isDiffOnly()) {
             LOG.fine("Printing CSV to stdout:");
+            LOG.fine(() -> String.format("Tree dump of target node:%n%s", targetNode.dump(PLAINTEXT_TREE)));
             LOG.fine(() -> String.format("Tree dump of target node1:%n%s", targetNode.dump(CSV_DUMP)));
         }
 
