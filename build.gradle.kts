@@ -28,10 +28,10 @@ plugins {
     eclipse
     idea
 
-    id("org.ajoberstar.grgit") version ("5.2.0") // Used for interacting with git repositories from the buildscript.
+    id("org.ajoberstar.grgit") version ("5.3.3") // Used for interacting with git repositories from the buildscript.
     id("com.github.hierynomus.license") version ("0.16.1")  // Used to ensure that all files contain a license header.
     id("com.scuilion.syntastic") version ("0.3.9")
-    id("com.github.ben-manes.versions") version ("0.49.0") // Used to check for new plugin / dependency versions.
+    id("com.github.ben-manes.versions") version ("0.53.0") // Used to check for new plugin / dependency versions.
 }
 
 tasks.withType(JavaCompile::class).configureEach {
